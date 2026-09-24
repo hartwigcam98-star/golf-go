@@ -50,6 +50,8 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .iconbtn svg{width:20px;height:20px}
 
 /* toast */
+.shotstats{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 128px);background:rgba(12,30,46,.88);color:#fff6dc;border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;letter-spacing:.03em;white-space:nowrap;font-variant-numeric:tabular-nums;pointer-events:none;animation:rise .3s ease-out}
+.shotstats b{color:var(--sun)}
 #toast{position:absolute;left:0;right:0;top:30%;text-align:center;pointer-events:none;opacity:0;padding-inline:16px}
 #toast .t1{font-size:clamp(38px,11vw,64px);line-height:1;color:var(--sun);text-shadow:0 4px 0 #0f2233,0 0 24px rgba(0,0,0,.35);-webkit-text-stroke:2px #0f2233;paint-order:stroke fill}
 #toast .t2{margin-top:6px;font-weight:700;font-size:17px;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 2px 0 #0f2233}
@@ -58,14 +60,15 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 
 /* bottom hud */
 .bottom{position:absolute;left:0;right:0;bottom:0;padding:28px 12px calc(env(safe-area-inset-bottom,0px) + 12px);background:linear-gradient(to top,rgba(9,24,36,.94) 62%,rgba(9,24,36,0));pointer-events:none}
-.inner{max-width:540px;margin:0 auto;display:grid;gap:9px;pointer-events:auto}
+.inner{max-width:540px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:9px;pointer-events:auto}
+.inner>*{min-width:0}
 .row{display:flex;gap:8px;align-items:stretch}
 .club{display:flex;align-items:center;background:var(--panel2);border-radius:14px;overflow:hidden;flex:0 0 auto}
-.club button{width:34px;height:48px;font-size:24px;line-height:1;opacity:.9}
+.club button{width:28px;height:48px;font-size:24px;line-height:1;opacity:.9}
 .club button:disabled{opacity:.25;cursor:default}
 .club .clubname{width:auto;height:auto;font-size:inherit;opacity:1;cursor:pointer}
 .club .clubname:disabled{opacity:1;cursor:default}
-.clubname{min-width:92px;text-align:center;padding-block:4px;color:inherit}
+.clubname{min-width:84px;text-align:center;padding-block:4px;color:inherit}
 .baggrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 6px}
 .baggrid button{background:#12283b;color:var(--paper);border-radius:12px;padding:8px 0 7px;display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid transparent}
 .baggrid button b{font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:22px;line-height:1;color:var(--sun)}
@@ -79,14 +82,21 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .clubname b{display:block;font-size:24px;line-height:1;color:var(--sun)}
 .clubname span{font-size:12px;opacity:.85;font-variant-numeric:tabular-nums;white-space:nowrap}
 .chips{display:flex;flex-direction:column;gap:4px;justify-content:center;flex:1;min-width:0}
-.chip{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;white-space:nowrap;font-variant-numeric:tabular-nums;max-width:100%;overflow:hidden}
+.chip>span{overflow:hidden;text-overflow:ellipsis}
 .chip i{width:10px;height:10px;border-radius:3px;background:#6db14a;flex:0 0 auto}
-.spin{background:var(--panel2);border-radius:14px;padding:4px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:64px}
+.spin{background:var(--panel2);border-radius:14px;padding:4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:64px;max-width:76px}
 .spin:disabled{opacity:.3;cursor:default}
 .spin svg{width:22px;height:22px}
-.spin span{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.spin span{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
 
-.shots{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:var(--panel2);border-radius:12px;padding:3px}
+.shots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) minmax(0,.7fr);gap:4px;background:var(--panel2);border-radius:12px;padding:3px}
+.psbtn{color:#ffb36b}.psbtn.on{background:linear-gradient(180deg,#ff9a3c,#ff5a2a)!important;color:#fff!important;opacity:1}.psbtn:disabled{opacity:.22}
+.imppop{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);background:var(--paper);color:var(--paperInk);border-radius:18px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:5;touch-action:none}
+.imppop{width:210px}.imphead{display:flex;flex-direction:column;align-items:center;gap:0}.imphead b{font-size:20px;white-space:nowrap}.imphead span{font-size:13px;opacity:.75}
+#impBall{touch-action:none;cursor:crosshair}.trajseg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%;background:#e3dccb;border-radius:10px;padding:3px}.trajseg button{padding:5px 0;border-radius:8px;font-weight:700;font-size:13px}.trajseg button.on{background:#12283b;color:var(--sun)}
+.impbtns{display:flex;gap:8px}.impbtns button{padding:6px 14px;border-radius:10px;border:2px solid #12283b;font-weight:700}.impbtns button.on{background:#12283b;color:var(--sun)}
+.meter.power .track{background:linear-gradient(90deg,#63231a 0 12%,#7a2d12 12%,#c2531e 45%,#ff8a3c 80%,#ff4a2a 100%)!important;opacity:.7}
 .shots button{height:30px;border-radius:9px;font-weight:700;font-size:14px;letter-spacing:.04em;opacity:.85}
 .shots button.on{background:var(--sun);color:var(--ink);opacity:1}
 .shots button:disabled{opacity:.22;cursor:default}
@@ -199,6 +209,7 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
   <button id="replayBtn" class="replaybtn disp" hidden>▶ Replay</button>
   <button id="ffBtn" class="replaybtn ffbtn disp" hidden aria-label="Fast forward">⏩ Speed up</button>
   <div id="toast"><div class="t1 disp"></div><div class="t2"></div></div>
+  <div id="shotStats" class="shotstats" hidden></div>
 
   <div class="bottom" id="bottom">
     <div class="inner">
@@ -212,13 +223,19 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
           <span class="chip"><i id="lieDot"></i><span id="lieTxt">Tee box</span></span>
           <span class="chip" id="pinTxt">Pin 372 yds</span>
         </div>
-        <button class="spin" id="spinBtn" aria-label="Change spin">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#fff" stroke="#0f2233" stroke-width="1.5"/><circle id="spinDot" cx="12" cy="12" r="3.2" fill="#ff6a48"/></svg>
-          <span id="spinTxt">Normal</span>
+        <button class="spin" id="spinBtn" aria-label="Choose where to strike the ball">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#fff" stroke="#0f2233" stroke-width="1.5"/><path d="M12 4v16M4 12h16" stroke="#c9d3da" stroke-width=".8"/><circle id="spinDot" cx="12" cy="12" r="3" fill="#ff6a48"/></svg>
+          <span id="spinTxt">Centre</span>
         </button>
       </div>
       <div class="shots" id="shots" role="group" aria-label="Shot type">
-        <button data-t="full" id="st_full">Full</button><button data-t="punch" id="st_punch">Punch</button><button data-t="pitch" id="st_pitch">Pitch</button><button data-t="chip" id="st_chip">Chip</button><button data-t="flop" id="st_flop">Flop</button>
+        <button data-t="full" id="st_full">Full</button><button data-t="punch" id="st_punch">Punch</button><button data-t="pitch" id="st_pitch">Pitch</button><button data-t="chip" id="st_chip">Chip</button><button data-t="flop" id="st_flop">Flop</button><button id="psBtn" class="psbtn" aria-label="Power shot">\u26a13</button>
+      </div>
+      <div class="imppop" id="impPop" hidden>
+        <div class="imphead"><b class="disp">Strike point</b><span id="impDesc">Centre</span></div>
+        <svg id="impBall" viewBox="-60 -60 120 120" width="150" height="150"><defs><radialGradient id="ibg" cx="-.3" cy="-.35" r="1.1"><stop offset="0" stop-color="#fff"/><stop offset=".7" stop-color="#e7ecef"/><stop offset="1" stop-color="#b9c4cb"/></radialGradient></defs><circle r="54" fill="url(#ibg)" stroke="#0f2233" stroke-width="2.5"/><path d="M0-54V54M-54 0H54" stroke="#9fb0bb" stroke-width="1" stroke-dasharray="3 4"/><text y="-40" text-anchor="middle" font-size="9" fill="#5b6b76">TOPSPIN</text><text y="47" text-anchor="middle" font-size="9" fill="#5b6b76">BACKSPIN</text><text x="-44" y="3" text-anchor="middle" font-size="9" fill="#5b6b76">DRAW</text><text x="44" y="3" text-anchor="middle" font-size="9" fill="#5b6b76">FADE</text><circle id="impDot" r="8" fill="#ff6a48" stroke="#fff" stroke-width="2"/></svg>
+        <div class="trajseg" role="group" aria-label="Shot height"><button data-tj="-1">Low</button><button data-tj="0" class="on">Normal</button><button data-tj="1">High</button></div>
+        <div class="impbtns"><button id="impReset">Reset</button><button id="impDone" class="on">Done</button></div>
       </div>
       <div class="meter" id="meter" aria-label="Swing meter">
         <div class="track"></div>
@@ -1092,7 +1109,7 @@ function drawGround(){
 /* ---------- state ---------- */
 const HOLES=[];
 const G={hi:0,hole:null,terrains:[],scores:[],ball:{x:0,y:0},prev:{x:0,y:0},bY:0,lie:'tee',fromLie:'tee',
-  strokes:0,clubIdx:0,aim:0,spin:0,stype:'full',mode:'round',paused:false,wind:{a:0,mph:0},state:'intro',meter:{pos:IMPACT,power:0},
+  strokes:0,clubIdx:0,aim:0,spin:0,imp:{x:0,y:0},traj:0,pshot:false,psLeft:3,stype:'full',mode:'round',paused:false,wind:{a:0,mph:0},state:'intro',meter:{pos:IMPACT,power:0},
   ff:1,flight:null,roll:null,trail:[],fx:[],overview:false,puttMax:10,shotRot:0,inCup:false,waitT:0,waitFn:null,followT:0,golferAt:null};
 const cam={E:[0,50,50],L:[0,0,0]};
 const V={E:[0,0,0],R:[1,0,0],U:[0,1,0],F:[0,0,-1],f:500,cy:400,yaw:0};
@@ -1118,16 +1135,31 @@ function lieMul(c,lie){const k=c.kind;
 function pinDist(){const p=G.hole.pin;return hyp(G.ball.x-p[0],G.ball.y-p[1]);}
 function pinRise(){const p=G.hole.pin;return hAt(p[0],p[1])-hAt(G.ball.x,G.ball.y);}
 function previewDist(){const c=curClub();return c.putter?G.puttMax:c.carry*lieMul(c,G.lie)*SHOTS[G.stype].c;}
-const shotApex=(c,carry)=>c.apex*SHOTS[G.stype].a*Math.sqrt(clamp(carry/(c.carry*SHOTS[G.stype].c),.2,1))*(G.spin===1?.8:G.spin===2?1.12:1);
+const shotApex=(c,carry)=>c.apex*SHOTS[G.stype].a*Math.sqrt(clamp(carry/(c.carry*SHOTS[G.stype].c),.2,1))*(G.imp.y>0?1-.22*G.imp.y:1-.14*G.imp.y);
 function calcPuttMax(){const d=pinDist();return G.lie==='green'?clamp(d*1.3+1,3,40):clamp(d*1.5+2,4,45);}
 function aimTarget(){const h=G.hole,s=alongCl(h,G.ball.x,G.ball.y);if(h.len-s>300){const p=h.at(s+255);return[p[0],p[1]];}return h.pin;}
 function autoClub(d){
   if(G.lie==='green')return PUTTER;
   if(d<14&&(G.lie==='fairway'||G.lie==='tee'))return PUTTER;
+  if(G.lie==='sand'){for(let i=PUTTER-1;i>=CI('5I');i--){const c=CLUBS[i];if(c.carry*lieMul(c,G.lie)>=d*.97)return i;}return CI('5I');}
   for(let i=PUTTER-1;i>=0;i--){const c=CLUBS[i];if(c.carry*lieMul(c,G.lie)>=d*.97)return i;}
   return 0;
 }
-function perfectWin(){if(curClub().putter)return .026;return((G.lie==='rough'||G.lie==='sand'||G.lie==='fescue')?.018:.024)*SHOTS[G.stype].win;}
+/* where the club meets the ball (x: -1 left .. 1 right, y: -1 bottom .. 1 top), power shots and uneven lies */
+function stance(){const b=G.ball,[dx,dy]=dirOf(G.aim),px=-dy,py=dx,r=1.6;
+  const gx=(hAt(b.x+r,b.y)-hAt(b.x-r,b.y))/(2*r),gy=(hAt(b.x,b.y+r)-hAt(b.x,b.y-r))/(2*r);
+  let along=gx*dx+gy*dy,side=gx*px+gy*py;const dz=v=>Math.abs(v)<.022?0:v-Math.sign(v)*.022;return{along:dz(along),side:dz(side)};}
+function stanceLabel(){if(curClub().putter||G.lie==='green')return'';const S=stance(),a=[];
+  if(S.along>.02)a.push('Uphill');else if(S.along<-.02)a.push('Downhill');if(S.side>.02)a.push('Above feet');else if(S.side<-.02)a.push('Below feet');return a.join(' \u00b7 ');}
+function shotMods(){const c=curClub();if(c.putter)return{carry:1,apex:1,roll:1,curve:0,win:1,back:0,wind:1};const tj=G.traj||0;
+  const S=stance(),ix=G.imp.x,iy=G.imp.y,ps=G.pshot?1:0;
+  return{carry:(1+.1*ps)*(1-clamp(S.along,-.15,.15)*1.1)*(1-Math.abs(ix)*.04)*(iy<0?1+iy*.04:1)*(tj>0?.97:1),
+    apex:(1+clamp(S.along,-.15,.15)*1.8)*(1-.08*ps)*(tj>0?1.3:tj<0?.68:1),
+    roll:(1-clamp(S.along,-.15,.15)*1.5)*(iy>0?1+.9*iy:1+.72*iy)*(tj>0?.55:tj<0?1.6:1),wind:tj>0?1.35:tj<0?.55:1,
+    curve:ix*.085-clamp(S.side,-.15,.15)*.55-clamp(S.along,-.15,.15)*.12,
+    win:(ps?.72:1)*(tj?.9:1)*clamp(1-(Math.abs(S.along)+Math.abs(S.side))*2.2,.6,1),back:iy<-.5?(-iy-.5)*2:0};}
+function perfectWin(){if(!curClub().putter)return perfectWinBase()*shotMods().win;return perfectWinBase();}
+function perfectWinBase(){if(curClub().putter)return .026;return((G.lie==='rough'||G.lie==='sand'||G.lie==='fescue')?.018:.024)*SHOTS[G.stype].win;}
 // touch screens show the cursor a frame or two late; judge the tap against what the player saw
 // what you see is what you get: the tap is judged exactly where the cursor is drawn
 try{localStorage.removeItem('troyburne-tap-lag');}catch(e){}
@@ -1244,7 +1276,7 @@ function scoreName(strokes,par){const d=strokes-par;if(strokes===1)return'HOLE I
 /* ---------- save file (this device) ---------- */
 let SAVE_KEY=CUR.saveKey;
 function saveGame(o={}){if(G.mode!=='round')return;
-  const d={v:1,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,ts:Date.now()};
+  const d={v:1,ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,ts:Date.now()};
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(d));}catch(e){}}
 function loadSave(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d&&d.v===1&&Number.isInteger(d.hi)&&d.hi>=0&&d.hi<TB.length)return d;}catch(e){}return null;}
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
@@ -1279,10 +1311,11 @@ function prepareShot(){
   const t=aimTarget();G.aim=angTo(G.ball.x,G.ball.y,t[0],t[1]);
   G.clubIdx=autoClub(hyp(t[0]-G.ball.x,t[1]-G.ball.y)+clamp(hAt(t[0],t[1])-hAt(G.ball.x,G.ball.y),-25,25)*.9);
   G.puttMax=calcPuttMax();
-  if(G.clubIdx===PUTTER)G.spin=0;
+  G.spin=0;G.imp={x:0,y:0};G.traj=0;G.pshot=false;
   { const d=pinDist();G.stype='full';
     if(G.clubIdx!==PUTTER&&G.lie!=='sand'){if(d<=32&&(G.lie==='fairway'||G.lie==='rough'||G.lie==='tee')){G.clubIdx=CI(d<=18?'SW':'PW');G.stype='chip';}else if(d<=62){G.clubIdx=CI(d<=42?'LW':'SW');G.stype='pitch';}}
     G.puttMax=calcPuttMax(); }
+  { const sl=stanceLabel();if(sl&&G.strokes>0)setTimeout(()=>{if(G.state==='aim')toast(sl.toUpperCase(),/Above/.test(sl)?'Ball will want to draw left':/Below/.test(sl)?'Ball will want to fade right':/Uphill/.test(sl)?'Higher and shorter':'Lower, and it runs','#bfe3ff');},900); }
   if(G.strokes>0){G.wind.mph=clamp(Math.round(G.wind.mph+(Math.random()-.5)*3),0,16);G.wind.a+=(Math.random()-.5)*.5;}
   G.meter.pos=IMPACT;G.meter.power=0;
   G.state='aim';
@@ -1299,6 +1332,7 @@ function tap(){
 function executeShot(power,e){
   const club=curClub(),lie=G.lie;
   G.rec=[];G.recT=0;G.recOn=true;G.canReplay=false;G.recHoled=false;
+  G.shotInfo=null;$('shotStats').hidden=true;
   G.ff=1;G.strokes++;G.prev={...G.ball};G.fromLie=lie;G.trail=[];G.shotRot=G.aim;G.state='flight';G.followT=.001;G.bY=hAt(G.ball.x,G.ball.y)+.03;G.launchAt=club.putter?PUTT_IMPACT:IMPACT_T;G.swingBack=Math.max(.15,G.meter.power);G.swingType=club.putter?'putt':G.stype;G.swingClub=G.clubIdx;
   G.golferAt={x:G.ball.x,y:G.ball.y,aim:G.aim};
   const miss=e===null;let perfect=false,q=.05;G.missBy=0;
@@ -1313,14 +1347,16 @@ function executeShot(power,e){
   }
   const ST=SHOTS[G.stype];
   const lm=lieMul(club,lie),em=(lie==='rough'?1.4:lie==='sand'?1.6:lie==='fescue'?1.8:1)*ST.e;
-  const carry=Math.max(2,club.carry*power*lm*ST.c*(perfect===2?1.03:1)*(1-Math.min(.16,G.missBy*1.6)));
+  const M=shotMods();
+  const carry=Math.max(2,club.carry*power*lm*ST.c*M.carry*(perfect===2?1.03:1)*(1-Math.min(.16,G.missBy*1.6)));
   const[dx,dy]=dirOf(G.aim),px=-dy,py=dx;
-  const lat=-e*1.8*em*carry;
-  const w=dirOf(G.wind.a),wk=G.wind.mph*.85*(carry/200)*club.loft*ST.w;
-  const apex=shotApex(club,carry);
-  G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype};
+  const lat=-e*1.8*em*carry+M.curve*carry;
+  const w=dirOf(G.wind.a),wk=G.wind.mph*.85*(carry/200)*club.loft*ST.w*M.wind;
+  const apex=shotApex(club,carry)*M.apex;
+  const usedPower=G.pshot;if(G.pshot){G.psLeft=Math.max(0,G.psLeft-1);G.pshot=false;}
+  G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll,back:M.back};
   // perfect contact lights the ball up: red flames at full power, blue otherwise
-  G.flame=perfect===2?(power>=.95?'red':'blue'):null;
+  G.flame=perfect===2?(power>=.95||usedPower?'red':'blue'):null;
   const lieNow=lie,kind=club.kind,fl=G.flame;
   setTimeout(()=>sfx.swoosh(.5+.5*power),Math.max(0,G.launchAt*1000-150));
   setTimeout(()=>{sfx.strike(power,q,kind,lieNow);if(fl)sfx.flame(fl==='red');if(perfect)setTimeout(sfx.nice,120);},G.launchAt*1000);
@@ -1348,17 +1384,17 @@ function stepFlight(dt){
 }
 function travelDir(f,u){const s=flightS(u),tx=f.dx*f.carry+2*s*(f.px*f.lat+f.wx),ty=f.dy*f.carry+2*s*(f.py*f.lat+f.wy);const l=hyp(tx,ty)||1;return[tx/l,ty/l];}
 function land(u){
-  const f=G.flight;G.flight=null;
+  const f=G.flight;G.flight=null;G.shotInfo={carry:hyp(G.ball.x-f.sx,G.ball.y-f.sy),peak:f.apex,sx:f.sx,sy:f.sy};
   const L=lieAt(G.ball.x,G.ball.y);
   if(L==='water'||L==='ob'){penalty(L);return;}
   const p=G.hole.pin;if(hyp(G.ball.x-p[0],G.ball.y-p[1])<.35){holed('Slam dunk');return;}
   const[tx,ty]=travelDir(f,u);
   const ST=SHOTS[f.stype||'full'];
-  let R=(f.stype==='chip'?f.carry*.85:f.stype==='punch'?f.carry*.22:f.carry*f.club.roll*ST.r)*(SURF[L]||1)*(G.spin===1?1.8:G.spin===2?.3:1);
+  let R=(f.stype==='chip'?f.carry*.85:f.stype==='punch'?f.carry*.22:f.carry*f.club.roll*ST.r)*(SURF[L]||1)*(f.rollMul??1);
   if(f.stype==='chip'&&L!=='green')R*=.6;
   // wedges into the green check up; with backspin selected they zip back
-  const spinBack=L==='green'&&(G.spin===2||(f.club.loft>=1.15&&f.stype!=='chip'&&f.stype!=='punch'&&f.carry>45));
-  if(spinBack)R=G.spin===2?-Math.min(3.5,f.carry*.03):Math.min(R,f.carry*.012);
+  const spinBack=L==='green'&&((f.back>0)||(f.club.loft>=1.15&&f.stype!=='chip'&&f.stype!=='punch'&&f.carry>45));
+  if(spinBack)R=f.back>0?-Math.min(3.5,f.carry*.03)*f.back:Math.min(R,f.carry*.012);
   const mu=MU[L]||MU.fairway;
   // bounce and roll use the original landing model (independent of the longer hang time)
   const Tb=Math.max(.8+f.carry/140,.55+Math.sqrt(f.apex)*.28);
@@ -1422,7 +1458,10 @@ function stepRoll(dt){
 }
 function endRec(holedIt){if(!G.recOn)return;G.recOn=false;G.rec.push({t:G.recT+.02,x:G.ball.x,y:G.ball.y,Y:hAt(G.ball.x,G.ball.y)});G.recHoled=!!holedIt;
   G.lastShot={rec:G.rec,golferAt:G.golferAt,launchAt:G.launchAt,holed:!!holedIt,putt:G.swingType==='putt',flame:G.flame};G.canReplay=G.rec.length>6;}
+function showShotStats(){const I=G.shotInfo;G.shotInfo=null;if(!I)return;const tot=hyp(G.ball.x-I.sx,G.ball.y-I.sy),el=$('shotStats');
+  el.innerHTML='Carry <b>'+Math.round(I.carry)+'</b> \u00b7 Total <b>'+Math.round(tot)+'</b> \u00b7 Peak <b>'+Math.round(I.peak*3)+' ft</b>';el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>{el.hidden=true;},3600);}
 function stopBall(){
+  showShotStats();
   endRec(false);G.roll=null;G.hop=null;G.state='wait';G.trail=[];
   const p=G.hole.pin;if(hyp(G.ball.x-p[0],G.ball.y-p[1])<CUP){holed();return;}
   const L=lieAt(G.ball.x,G.ball.y);
@@ -1504,12 +1543,12 @@ function openMenu(fromGame){G.paused=true;$('menuM').hidden=false;$('mHoles').hi
   setTimeout(()=>($('mContinue').hidden?$('mNew'):$('mContinue')).focus({preventScroll:true}),50);}
 function closeMenu(){$('menuM').hidden=true;G.paused=false;}
 let newArmed=false;
-function newRound(){G.mode='round';G.scores=[];clearSave();closeMenu();startHole(0);}
-function continueRound(){const sv=loadSave();if(!sv){newRound();return;}
+function newRound(){G.mode='round';G.scores=[];G.psLeft=3;clearSave();closeMenu();startHole(0);}
+function continueRound(){const sv=loadSave();if(!sv){newRound();return;}G.psLeft=Number.isInteger(sv.ps)?sv.ps:3;
   G.mode='round';G.scores=Array.isArray(sv.scores)?sv.scores:[];closeMenu();startHole(sv.hi);
   if(sv.mid&&sv.strokes>0&&sv.ball){$('introM').hidden=true;G.strokes=sv.strokes;G.ball={x:sv.ball.x,y:sv.ball.y};G.prev=sv.prev?{x:sv.prev.x,y:sv.prev.y}:{...G.ball};if(sv.wind)G.wind=sv.wind;
     prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];toast('WELCOME BACK','Hole '+(sv.hi+1)+' \u00b7 stroke '+(sv.strokes+1),'#8ee6a8');}}
-function playHole(i){G.mode='practice';G.scores=[];closeMenu();startHole(i);}
+function playHole(i){G.mode='practice';G.scores=[];G.psLeft=3;closeMenu();startHole(i);}
 function buildHoleGrid(){const g=$('holeGrid');let h='';for(let i=0;i<TB.length;i++){if(i===0||i===9)h+='<div class="nine">'+(i?'Back nine':'Front nine')+'</div>';
   h+='<button data-h="'+i+'" aria-label="Hole '+(i+1)+', par '+TB[i].par+'"><b>'+(i+1)+'</b><span>Par '+TB[i].par+'</span><span>'+holeLen(i)+'y</span></button>';}g.innerHTML=h;
   g.querySelectorAll('button[data-h]').forEach(b=>b.addEventListener('click',()=>{A();playHole(+b.dataset.h);}));}
@@ -1961,13 +2000,13 @@ function renderScene(){
     for(let i=0;i<(f.type==='splash'?3:1);i++){sctx.beginPath();sctx.ellipse(e.x,e.y,e.rx*(1+i*.4),e.ry*(1+i*.4),0,0,TAU);sctx.stroke();}}
   // aim: predicted arc (terrain-aware) and landing ring
   if(aiming){
-    const D=previewDist(),[dx,dz]=dirOf(G.aim);let mx,mz,landD;
+    const Mv=club.putter?null:shotMods(),D=previewDist()*(Mv?Mv.carry:1),[dx,dz]=dirOf(G.aim),pxv=-dz,pzv=dx,cv=Mv?Mv.curve*D:0;let mx,mz,landD;
     if(club.putter){
       mx=G.ball.x+dx*D;mz=G.ball.y+dz*D;landD=D;
       for(let i=1;i<=30;i++){const u=i/30,qx=G.ball.x+dx*D*u,qz=G.ball.y+dz*D*u;const p=proj(qx,hAt(qx,qz)+.05,qz);if(p){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
     }else{
       const y0=gB+.03;let u=0;mx=G.ball.x;mz=G.ball.y;
-      for(let i=1;i<=90;i++){u=i/36;const qx=G.ball.x+dx*D*u,qz=G.ball.y+dz*D*u,Y=y0+shotApex(club,D)*arcH(u),gnd=hAt(qx,qz);mx=qx;mz=qz;
+      for(let i=1;i<=90;i++){u=i/36;const qx=G.ball.x+dx*D*u+pxv*cv*u*u,qz=G.ball.y+dz*D*u+pzv*cv*u*u,Y=y0+shotApex(club,D)*Mv.apex*arcH(u),gnd=hAt(qx,qz);mx=qx;mz=qz;
         if(u>.5&&Y<=gnd)break;const p=proj(qx,Y,qz);if(p&&i%1===0){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
       landD=hyp(mx-G.ball.x,mz-G.ball.y);
     }
@@ -2012,6 +2051,8 @@ function render(){
 
 /* ---------- hud ---------- */
 const spinNames=['Normal','Topspin','Backspin'];
+function impShort(){const x=G.imp.x,y=G.imp.y,h=G.traj>0?'High':G.traj<0?'Low':'';if(Math.hypot(x,y)<.15)return h||'Centre';const a=h?[h]:[];if(y>.2)a.push('Top');else if(y<-.2)a.push('Back');if(x<-.2)a.push('Draw');else if(x>.2)a.push('Fade');return a.join(' ')||'Centre';}
+function impName(){const x=G.imp.x,y=G.imp.y,h=G.traj>0?'High':G.traj<0?'Low':'';if(Math.hypot(x,y)<.15)return h?h+' \u00b7 centre':'Centre';const a=h?[h]:[];if(y>.2)a.push('Topspin');else if(y<-.2)a.push('Backspin');if(x<-.2)a.push('Draw');else if(x>.2)a.push('Fade');return a.join(' \u00b7 ')||'Centre';}
 function updHud(){
   const h=G.hole;if(!h)return;
   $('replayBtn').hidden=!(G.state==='aim'&&G.canReplay&&!G.overview);
@@ -2024,14 +2065,17 @@ function updHud(){
   const c=curClub();setT('clubId',c.id);
   setT('clubInfo',c.putter?'Putter · '+Math.round(G.puttMax*3)+' ft':c.name+' · '+Math.round(previewDist())+'y');
   const lie=(G.state==='flight'||G.state==='roll'||G.state==='bounce'||G.state==='replay')?G.fromLie:G.lie;
-  setT('lieTxt',LIE_NAME[lie]||'');$('lieDot').style.background=LIE_COL[lie]||'#6db14a';
+$('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   const d=pinDist();setT('pinTxt',(G.lie==='green'||d<20)?'Cup '+Math.round(d*3)+' ft':'Pin '+Math.round(d)+' yds'+(Math.abs(pinRise())>=1.5?(pinRise()>0?' \u25b2':' \u25bc')+Math.round(Math.abs(pinRise())*3)+' ft':''));
   const aiming=G.state==='aim';
   for(const t in SHOTS){const b=$('st_'+t);b.disabled=!aiming||c.putter||!shotOK(t,G.clubIdx)&&!SHOTS[t].clubs.length;b.classList.toggle('on',!c.putter&&G.stype===t);b.setAttribute('aria-pressed',String(!c.putter&&G.stype===t));}
   $('clubPrev').disabled=$('clubNext').disabled=!aiming||G.lie==='green';$('clubName').disabled=!aiming||G.lie==='green';
   $('spinBtn').disabled=!aiming||c.putter;
-  setT('spinTxt',spinNames[G.spin]);
-  $('spinDot').setAttribute('cy',G.spin===1?7:G.spin===2?17:12);
+  if(G.state!=='aim'||c.putter)$('impPop').hidden=true;
+  setT('spinTxt',c.putter?'\u2014':impShort());$('spinDot').setAttribute('cx',12+G.imp.x*6);$('spinDot').setAttribute('cy',12-G.imp.y*6);
+  { const pb=$('psBtn'),ok=aiming&&!c.putter&&G.stype==='full'&&G.psLeft>0;pb.disabled=!ok&&!G.pshot;pb.classList.toggle('on',G.pshot);setT('psBtn','\u26a1'+G.psLeft);
+    if(G.pshot&&(c.putter||G.stype!=='full')&&aiming)G.pshot=false;$('meter').classList.toggle('power',G.pshot); }
+  { const base=LIE_NAME[lie]||'',sl=(G.state==='aim'||G.state==='power'||G.state==='acc')?stanceLabel().replace(/ feet/g,''):'';setT('lieTxt',sl?base+' \u00b7 '+sl:base); }
   $('aimL').disabled=$('aimR').disabled=$('mapBtn').disabled=!aiming;
   const sw=$('swing'),st=G.state;
   sw.disabled=!(st==='aim'||st==='power'||st==='acc');
@@ -2066,7 +2110,7 @@ function update(dt){
   if(G.state==='power'){m.pos+=(m.dir||1)*dt*(putt?.7:1.0);
     if(m.pos>=1){m.pos=1;m.dir=-1;}
     else if(m.dir<0&&m.pos<=IMPACT){m.pos=IMPACT;m.dir=1;G.state='aim';toast('NO POWER SET','Tap once more during the backswing','#fff6dc');sfx.miss();}}
-  else if(G.state==='acc'){m.pos-=dt*(putt?.6:.95);if(m.pos<=0){m.pos=0;executeShot(m.power,null);}}
+  else if(G.state==='acc'){m.pos-=dt*(putt?.6:.95*(G.pshot?1.2:1));if(m.pos<=0){m.pos=0;executeShot(m.power,null);}}
   if(G.followT>0)G.followT+=dt;
   const launched=!(G.followT>0&&G.followT<(G.launchAt||0));
   if(launched&&G.state==='flight'&&G.flight)stepFlight(dt);
@@ -2127,11 +2171,20 @@ function openBag(){if(G.state!=='aim')return;A();const g=$('bagGrid'),lie=G.lie;
 function pickClub(i){if(G.state!=='aim')return;G.clubIdx=clamp(i,0,PUTTER);if(G.clubIdx===PUTTER){G.puttMax=calcPuttMax();G.spin=0;}else if(!shotOK(G.stype,G.clubIdx))G.stype='full';sfx.tick();}
 function changeClub(d){if(G.state!=='aim'||G.lie==='green')return;G.clubIdx=clamp(G.clubIdx+d,0,PUTTER);if(G.clubIdx===PUTTER){G.puttMax=calcPuttMax();G.spin=0;}else if(!shotOK(G.stype,G.clubIdx))G.stype='full';sfx.tick();}
 function setShot(t){if(G.state!=='aim'||curClub().putter)return;if(!shotOK(t,G.clubIdx)){const c=SHOTS[t].clubs;G.clubIdx=G.clubIdx<c[0]?c[0]:c[c.length-1];}G.stype=t;sfx.tick();}
-document.querySelectorAll('#shots button').forEach(b=>b.addEventListener('click',()=>setShot(b.dataset.t)));
+document.querySelectorAll('#shots button[data-t]').forEach(b=>b.addEventListener('click',()=>setShot(b.dataset.t)));
 $('clubPrev').addEventListener('click',()=>changeClub(-1));
 $('clubName').addEventListener('click',openBag);$('bagClose').addEventListener('click',()=>{$('bagM').hidden=true;});$('bagM').addEventListener('click',e=>{if(e.target.id==='bagM')$('bagM').hidden=true;});
 $('clubNext').addEventListener('click',()=>changeClub(1));
-$('spinBtn').addEventListener('click',()=>{if(G.state!=='aim'||curClub().putter)return;G.spin=(G.spin+1)%3;sfx.tick();});
+$('spinBtn').addEventListener('click',()=>{if(G.state!=='aim'||curClub().putter)return;const pp=$('impPop');pp.hidden=!pp.hidden;drawImp();sfx.tick();});
+function drawImp(){document.querySelectorAll('.trajseg button').forEach(b=>b.classList.toggle('on',+b.dataset.tj===(G.traj||0)));$('impDot').setAttribute('cx',G.imp.x*44);$('impDot').setAttribute('cy',-G.imp.y*44);setT('impDesc',impName());}
+{ const ib=$('impBall');let drag=false;const setFrom=e=>{const r=ib.getBoundingClientRect(),x=((e.clientX-r.left)/r.width-.5)*120/44,y=-((e.clientY-r.top)/r.height-.5)*120/44;const l=Math.hypot(x,y);const k=l>1?1/l:1;G.imp={x:Math.round(x*k*20)/20,y:Math.round(y*k*20)/20};drawImp();};
+  ib.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();drag=true;ib.setPointerCapture(e.pointerId);setFrom(e);});
+  ib.addEventListener('pointermove',e=>{if(drag)setFrom(e);});ib.addEventListener('pointerup',()=>{drag=false;sfx.tick();});
+  $('impReset').addEventListener('click',e=>{e.stopPropagation();G.imp={x:0,y:0};G.traj=0;drawImp();sfx.tick();});
+  document.querySelectorAll('.trajseg button').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();G.traj=+b.dataset.tj;drawImp();sfx.tick();}));
+  $('impDone').addEventListener('click',e=>{e.stopPropagation();$('impPop').hidden=true;sfx.tick();});
+  $('impPop').addEventListener('pointerdown',e=>e.stopPropagation()); }
+$('psBtn').addEventListener('click',e=>{e.stopPropagation();if(G.state!=='aim'||curClub().putter)return;if(!G.pshot&&(G.psLeft<=0||G.stype!=='full'))return;G.pshot=!G.pshot;sfx.tick();if(G.pshot)toast('POWER SHOT','+10% distance \u00b7 faster impact','#ff9a3c');});
 $('mapBtn').addEventListener('click',()=>{if(G.state==='aim')G.overview=!G.overview;});
 $('teeBtn').addEventListener('click',teeOff);
 $('menuBtn').addEventListener('click',()=>{A();if(G.replay)endReplay();openMenu(true);});
