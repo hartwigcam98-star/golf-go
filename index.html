@@ -1524,7 +1524,7 @@ const sfx={
 
 /* ---------- ui helpers ---------- */
 const el={toast:$('toast'),t1:document.querySelector('#toast .t1'),t2:document.querySelector('#toast .t2')};
-function toast(a,b='',col='#ffc93c'){if(G.aiTurn&&MATCH.on&&MATCH.r){const n=first(MATCH.r.name);if(a!==n.toUpperCase()&&!(b&&b.startsWith(n)))b=b&&!/tap|timing|touch/i.test(b)?n+' \u00b7 '+b:n;}el.t1.textContent=a;el.t1.style.color=col;el.t2.textContent=b;el.toast.classList.remove('show');void el.toast.offsetWidth;el.toast.classList.add('show');}
+function toast(a,b='',col='#ffc93c'){if(G.aiTurn&&MATCH.on&&MATCH.r){const n=rn(MATCH.r);if(a!==n.toUpperCase()&&!(b&&b.startsWith(n)))b=b&&!/tap|timing|touch/i.test(b)?n+' \u00b7 '+b:n;}el.t1.textContent=a;el.t1.style.color=col;el.t2.textContent=b;el.toast.classList.remove('show');void el.toast.offsetWidth;el.toast.classList.add('show');}
 const cache={};function setT(id,v){if(cache[id]!==v){cache[id]=v;$(id).textContent=v;}}
 function scoreName(strokes,par){const d=strokes-par;if(strokes===1)return'HOLE IN ONE!';if(d<=-3)return'ALBATROSS!';if(d===-2)return'EAGLE!';if(d===-1)return'BIRDIE!';if(d===0)return'PAR';if(d===1)return'BOGEY';if(d===2)return'DOUBLE BOGEY';if(d===3)return'TRIPLE BOGEY';return'+'+d;}
 
@@ -1823,24 +1823,24 @@ const OUTFITS=[
  {id:'sand',name:'Links',top:'#c7b68f',hat:'#3b5a6e',cost:250}];
 // fictional rivals, two per course; sk: pow = carry multiplier, acc = timing spread (smaller is better), putt 0-1, miss = mishit chance, wind = how well they allow for it, perr = power spread
 const RIVALS=[
- {id:'gus',name:'Gus Pedersen',nick:'The Weekend Warrior',course:'troy',reward:300,blurb:'Retired shop teacher. Plays every Saturday, never practises, never stops talking.',
+ {id:'gus',name:'Dave Kowalski',nick:'Dave from Accounting',course:'troy',reward:300,blurb:'Takes Friday afternoons off for golf and keeps score very generously. Talks through your backswing.',
   sk:{pow:0.86,acc:0.052,putt:0.35,miss:0.045,wind:0.3,perr:0.09},look:{top:'#c9a13b',pants:'#4b4f58',skin:'#e8b996',hat:'#2f3b52',hatType:'cap',beard:null,boot:'#e9e6df'}},
- {id:'kelly',name:'Kelly Ostrander',nick:'Range Rat',course:'troy',reward:380,blurb:'Hits a thousand balls a week. Straight off the tee, shaky once she has to hole out.',
-  sk:{pow:0.9,acc:0.045,putt:0.45,miss:0.035,wind:0.45,perr:0.08},look:{top:'#e7eef2',pants:'#2e3a4b',skin:'#f0c7a6',hat:'#d24b6a',hatType:'cap',beard:null,boot:'#f4f4f4'}},
- {id:'hank',name:'Hank Rourke',nick:'Grip It & Rip It',course:'stoneridge',reward:460,blurb:'Long-drive dreamer. Bombs it past you, then goes looking for it in the fescue.',
-  sk:{pow:1.0,acc:0.046,putt:0.45,miss:0.04,wind:0.5,perr:0.08},look:{top:'#2f5d3a',pants:'#c9c2b0',skin:'#d9a07c',hat:'#e2e2de',hatType:'cap',beard:'#6b4a2e',boot:'#3a3029'}},
- {id:'priya',name:'Priya Nair',nick:'The Surgeon',course:'stoneridge',reward:540,blurb:'Club champion two years running. Not long, but she never misses a fairway.',
-  sk:{pow:0.92,acc:0.036,putt:0.6,miss:0.03,wind:0.65,perr:0.065},look:{top:'#5b3f8c',pants:'#ecebe6',skin:'#b98260',hat:'#ecebe6',hatType:'cap',beard:null,boot:'#ffffff'}},
- {id:'beau',name:'Beau Calloway',nick:'Lowcountry Smooth',course:'caledonia',reward:620,blurb:'Grew up caddying at Pawleys. Knows every grain on these greens.',
-  sk:{pow:0.98,acc:0.033,putt:0.62,miss:0.025,wind:0.7,perr:0.06},look:{top:'#f2d2c2',pants:'#3d4f6a',skin:'#e2ae88',hat:'#27435f',hatType:'cap',beard:null,boot:'#6a4b32'}},
- {id:'marisol',name:'Marisol Vega',nick:'Ice Water',course:'caledonia',reward:700,blurb:'Former college All-American. Doesn’t blink, doesn’t three-putt.',
-  sk:{pow:0.97,acc:0.029,putt:0.72,miss:0.02,wind:0.75,perr:0.055},look:{top:'#12283b',pants:'#dcd6c8',skin:'#c68c64',hat:'#ffc93c',hatType:'cap',beard:null,boot:'#f4f4f4'}},
- {id:'theo',name:'Theo Whitlock',nick:'Mini-Tour Grinder',course:'trueblue',reward:800,blurb:'Plays for his rent money. Long, precise and allergic to losing holes.',
-  sk:{pow:1.03,acc:0.026,putt:0.78,miss:0.015,wind:0.8,perr:0.05},look:{top:'#e9e9e6',pants:'#1f2328',skin:'#e8b996',hat:'#1f2328',hatType:'cap',beard:'#8a6a45',boot:'#1f2328'}},
- {id:'rex',name:'Rex Ashby',nick:'The Colonel',course:'trueblue',reward:1000,blurb:'Owns the course record at True Blue and reminds everyone. Beat him and you run this island.',
-  sk:{pow:1.06,acc:0.022,putt:0.85,miss:0.01,wind:0.9,perr:0.045},look:{top:'#7a1f2b',pants:'#d8d2c2',skin:'#e0a98a',hat:'#f2efe6',hatType:'cap',beard:'#cfc8bb',boot:'#3a2a20'}}];
+ {id:'kelly',name:'Kelly Brandt',nick:'The Club Pro',course:'troy',reward:380,blurb:'Gives lessons all week and finally gets to play. Textbook swing, shaky putter.',
+  sk:{pow:0.9,acc:0.045,putt:0.45,miss:0.035,wind:0.45,perr:0.08},look:{top:'#e7eef2',pants:'#2e3a4b',skin:'#f0c7a6',hat:'#d24b6a',hatType:'visor',hair:'#6b4a2e',beard:null,boot:'#f4f4f4'}},
+ {id:'hank',name:'Tyler Hanson',nick:'The College Kid',course:'stoneridge',reward:460,blurb:'Freshman on scholarship. Bombs it past you, then goes looking for it in the fescue.',
+  sk:{pow:1.0,acc:0.046,putt:0.45,miss:0.04,wind:0.5,perr:0.08},look:{top:'#2f5d3a',pants:'#c9c2b0',skin:'#d9a07c',hat:'#e2e2de',hatType:'cap',beard:null,boot:'#3a3029'}},
+ {id:'priya',name:'Priya Nair',nick:'The Local Legend',course:'stoneridge',reward:540,blurb:'Seven-time club champion. Not long, but she has not missed a fairway since 2019.',
+  sk:{pow:0.92,acc:0.036,putt:0.6,miss:0.03,wind:0.65,perr:0.065},look:{top:'#5b3f8c',pants:'#ecebe6',skin:'#b98260',hat:'#ecebe6',hatType:'visor',hair:'#1c1614',beard:null,boot:'#ffffff'}},
+ {id:'beau',name:'Vance Marlowe',nick:'The Machine',course:'caledonia',reward:620,blurb:'Four majors and not one wasted swing. At his peak he hit 72 fairways in a row.',
+  sk:{pow:0.98,acc:0.033,putt:0.62,miss:0.025,wind:0.7,perr:0.06},look:{top:'#1f3558',pants:'#e6e2d8',skin:'#efc4a2',hat:'#f4f4f2',hatType:'visor',hair:'#d8b46a',beard:null,boot:'#f4f4f4'}},
+ {id:'marisol',name:'Sol Whitaker',nick:'The Iron Duke',course:'caledonia',reward:700,blurb:'Legend of the long iron. Won the Open by nine and carried a 1-iron until the day he retired.',
+  sk:{pow:0.97,acc:0.029,putt:0.72,miss:0.02,wind:0.75,perr:0.055},look:{top:'#7a2632',pants:'#d9d0bd',skin:'#e2ae88',hat:'#6b5a45',hatType:'flat',beard:null,boot:'#3a2a20'}},
+ {id:'theo',name:'Augustus Crane',nick:'The Golden Heron',course:'trueblue',reward:800,blurb:'Six majors in the persimmon era. Tall, quiet, and still the smoothest swing anyone has seen.',
+  sk:{pow:1.03,acc:0.026,putt:0.78,miss:0.015,wind:0.8,perr:0.05},look:{top:'#e0b43a',pants:'#23272e',skin:'#e8b996',hat:'#f2efe6',hatType:'cap',beard:null,boot:'#f2efe6'}},
+ {id:'rex',name:'Old Tom Ashby',short:'Old Tom',nick:'The Old Master',course:'trueblue',reward:1000,blurb:'Twelve majors, the course record at True Blue, and legend says he has never three-putted. Beat him and the island is yours.',
+  sk:{pow:1.06,acc:0.022,putt:0.85,miss:0.01,wind:0.9,perr:0.045},look:{top:'#3f5a45',pants:'#d8d2c2',skin:'#e0a98a',hat:'#8a8a86',hatType:'flat',beard:'#d9d4ca',boot:'#3a2a20'}}];
 const RV=id=>RIVALS.find(r=>r.id===id);
-const first=n=>n.split(' ')[0];
+const first=n=>n.split(' ')[0],rn=r=>r.short||first(r.name);
 const SKILLS=[
  {k:'pow',name:'Power',d:'+1.8% carry on every full shot'},
  {k:'ctl',name:'Control',d:'Mistimed shots stray 6% less'},
@@ -1877,8 +1877,8 @@ const MATCH={on:false,r:null,hi:0,res:[],sy:[],so:[],honor:0,extra:0,P:null,turn
 const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(TAU*v);};
 function matchUp(){return MATCH.res.reduce((a,b)=>a+(b||0),0);}
 function holesPlayed(){return MATCH.res.filter(x=>x!==undefined&&x!==null).length;}
-function statusLong(up,thru){const r=MATCH.r?first(MATCH.r.name):'Rival';if(!up)return'All square'+(thru?' thru '+thru:'');return(up>0?'You':r)+' '+Math.abs(up)+' UP'+(thru?' thru '+thru:'');}
-function statusShort(up){const r=MATCH.r?first(MATCH.r.name):'Rival';return up===0?'AS':up>0?'You '+up+' UP':r+' '+(-up)+' UP';}
+function statusLong(up,thru){const r=MATCH.r?rn(MATCH.r):'Rival';if(!up)return'All square'+(thru?' thru '+thru:'');return(up>0?'You':r)+' '+Math.abs(up)+' UP'+(thru?' thru '+thru:'');}
+function statusShort(up){const r=MATCH.r?rn(MATCH.r):'Rival';return up===0?'AS':up>0?'You '+up+' UP':r+' '+(-up)+' UP';}
 function endMatchMode(){$('game').classList.remove('inmatch');MATCH.on=false;G.aiTurn=false;G.ai=null;G.cm=null;G.look=null;$('matchTag').hidden=true;}
 function freshMatch(r){return{rid:r.id,hi:0,res:[],sy:[],so:[],honor:0,extra:0,ps:3,earn:{holes:0,birdie:0,eagle:0,hio:0,perfect:0,chip:0,putt:0}};}
 function startMatch(rid,resume){const r=RV(rid);if(!r)return;
@@ -1893,7 +1893,7 @@ function matchStartHole(i){MATCH.hi=i;startHole(i%TB.length);
   $('iEyebrow').textContent='Match vs '+r.name+' · '+(n?statusLong(up,n):'18-hole match play');
   if(i>=18){$('iNum').textContent=(i+1)+' (playoff)';$('iTip').textContent='All square after 18 — sudden death. Win this hole and the match is yours. '+G.hole.tip;}
   $('howto').hidden=true;$('iFine').hidden=true;
-  $('teeBtn').textContent=MATCH.honor===1?'Watch '+first(r.name)+' tee off':'Tee off';
+  $('teeBtn').textContent=MATCH.honor===1?'Watch '+rn(r)+' tee off':'Tee off';
   $('matchTag').hidden=false;$('game').classList.add('inmatch');}
 // copy a player's ball in and out of the single-ball engine
 function mLoad(k){const p=MATCH.P[k];MATCH.turn=k;G.ball={...p.ball};G.prev={...p.prev};G.strokes=p.strokes;G.inCup=false;G.aiTurn=k===1;G.aiSkip=false;
@@ -1903,14 +1903,14 @@ function afterShot(){if(!MATCH.on){prepareShot();return;}
   mStore();const p=MATCH.P[MATCH.turn],pin=G.hole.pin;
   // tap-ins inside two feet are conceded in match play
   if(!p.done&&lieAt(p.ball.x,p.ball.y)==='green'&&hyp(p.ball.x-pin[0],p.ball.y-pin[1])<.68&&p.strokes<10){p.strokes++;p.done=true;p.ball={x:pin[0],y:pin[1]};
-    toast('GIMME',(MATCH.turn===1?first(MATCH.r.name):'You')+' · '+scoreName(p.strokes,G.hole.par).replace('!','').toLowerCase(),'#8ee6a8');later(1.3,mNextTurn);return;}
+    toast('GIMME',(MATCH.turn===1?rn(MATCH.r):'You')+' · '+scoreName(p.strokes,G.hole.par).replace('!','').toLowerCase(),'#8ee6a8');later(1.3,mNextTurn);return;}
   mNextTurn();}
 function mHoled(){mStore();const p=MATCH.P[MATCH.turn];p.done=true;p.ball={...G.hole.pin};later(.2,mNextTurn);}
 function mPickUp(){mStore();const p=MATCH.P[MATCH.turn];p.done=true;p.strokes=10;later(1.2,mNextTurn);}
 function mNextTurn(){const P=MATCH.P,r=MATCH.r;
   // a player who can no longer halve the hole concedes it
   for(const k of[0,1]){const a=P[k],b=P[1-k];if(a.done&&!b.done&&b.strokes+1>a.strokes){b.done=true;b.conceded=true;b.strokes=Math.max(b.strokes+1,a.strokes+1);
-    toast(k===0?first(r.name).toUpperCase()+' CONCEDES':'HOLE CONCEDED',k===0?'You win the hole':first(r.name)+' wins the hole',k===0?'#ffc93c':'#fff6dc');later(1.6,endHoleMatch);return;}}
+    toast(k===0?rn(r).toUpperCase()+' CONCEDES':'HOLE CONCEDED',k===0?'You win the hole':rn(r)+' wins the hole',k===0?'#ffc93c':'#fff6dc');later(1.6,endHoleMatch);return;}}
   if(P[0].done&&P[1].done){later(.4,endHoleMatch);return;}
   let k;
   if(P[0].strokes===0&&P[1].strokes===0)k=MATCH.honor;
@@ -1922,7 +1922,7 @@ function mNextTurn(){const P=MATCH.P,r=MATCH.r;
   if(G.state!=='aim')return;
   if(switched){const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];
     const d=pinDist(),dt=G.lie==='green'?Math.round(d*3)+' ft':Math.round(d)+' yds';
-    if(k===1)toast(first(r.name).toUpperCase(),'Stroke '+(G.strokes+1)+' · '+dt,'#bfe3ff');else if(P[1].strokes>0||P[0].strokes>0)toast('YOUR SHOT','Stroke '+(G.strokes+1)+' · '+dt,'#ffc93c');}
+    if(k===1)toast(rn(r).toUpperCase(),'Stroke '+(G.strokes+1)+' · '+dt,'#bfe3ff');else if(P[1].strokes>0||P[0].strokes>0)toast('YOUR SHOT','Stroke '+(G.strokes+1)+' · '+dt,'#ffc93c');}
   if(k===1)aiPlan();}
 function endHoleMatch(){const P=MATCH.P,r=MATCH.r,i=MATCH.hi,sy=P[0].strokes,so=P[1].strokes,res=sy<so?1:sy>so?-1:0;
   MATCH.res[i]=res;MATCH.sy[i]=sy;MATCH.so[i]=so;if(res)MATCH.honor=res>0?0:1;
@@ -1942,7 +1942,7 @@ function matchPoints(won){const r=MATCH.r,E=MATCH.earn,again=CAR.beaten.includes
 function finishMatch(up,left,i){const r=MATCH.r,won=up>0;const pts=matchPoints(won);MATCH.pts=pts;
   CAR.pts+=pts.total;if(won&&!CAR.beaten.includes(r.id))CAR.beaten.push(r.id);
   const rec=CAR.record[r.id]||{w:0,l:0};if(won)rec.w++;else rec.l++;CAR.record[r.id]=rec;
-  MATCH.result=i>=18?(won?'You win on the '+ord(i+1):first(r.name)+' wins on the '+ord(i+1)):(left===0?(won?'You win ':first(r.name)+' wins ')+Math.abs(up)+' UP':(won?'You win ':first(r.name)+' wins ')+Math.abs(up)+' & '+left);
+  MATCH.result=i>=18?(won?'You win on the '+ord(i+1):rn(r)+' wins on the '+ord(i+1)):(left===0?(won?'You win ':rn(r)+' wins ')+Math.abs(up)+' UP':(won?'You win ':rn(r)+' wins ')+Math.abs(up)+' & '+left);
   CAR.match=null;saveCareer();}
 const ord=n=>n+(n%10===1&&n!==11?'st':n%10===2&&n!==12?'nd':n%10===3&&n!==13?'rd':'th');
 function matchTable(from){const r=MATCH.r,idx=[...Array(9)].map((_,k)=>from+k);let run=0;for(let i=0;i<from;i++)run+=MATCH.res[i]||0;
@@ -1950,8 +1950,8 @@ function matchTable(from){const r=MATCH.r,idx=[...Array(9)].map((_,k)=>from+k);l
   const par='<tr><td>Par</td>'+idx.map(i=>'<td>'+TB[i].par+'</td>').join('')+'</tr>';
   const row=(lab,arr,sgn)=>'<tr><td>'+lab+'</td>'+idx.map(i=>{const s=arr[i];if(!s)return'<td></td>';const won=MATCH.res[i]===sgn;return'<td'+(won?' class="won"':'')+'><span class="sc '+scClass(s,TB[i].par)+'">'+(s>=10?'X':s)+'</span></td>';}).join('')+'</tr>';
   const st='<tr class="mrow"><td>Match</td>'+idx.map(i=>{if(MATCH.res[i]===undefined||MATCH.res[i]===null)return'<td></td>';run+=MATCH.res[i];return'<td class="'+(run>0?'up':run<0?'dn':'')+'">'+(run===0?'AS':Math.abs(run))+'</td>';}).join('')+'</tr>';
-  return head+'<tbody>'+par+row('You',MATCH.sy,1)+row(first(r.name),MATCH.so,-1)+st+'</tbody>';}
-function showMatchCard(res,over){const r=MATCH.r,i=MATCH.hi,rf=first(r.name);
+  return head+'<tbody>'+par+row('You',MATCH.sy,1)+row(rn(r),MATCH.so,-1)+st+'</tbody>';}
+function showMatchCard(res,over){const r=MATCH.r,i=MATCH.hi,rf=rn(r);
   for(const e of document.querySelectorAll('#cardM .scwrap'))e.hidden=false;$('cardM').querySelector('.legend').hidden=true;$('cardPick').hidden=true;
   $('sc').innerHTML=matchTable(0);$('sc2').innerHTML=matchTable(9);
   const note=$('cNote');note.hidden=false;
@@ -2022,7 +2022,7 @@ function renderCareer(){const c=$('careerBody');$('careerPts').textContent=CAR.p
     h+='<p class="rvblurb">'+r.blurb+'</p>';
     h+='<div class="rvstats"><span>Power</span>'+bar((sk.pow-.8)/.3)+'<span>Accuracy</span>'+bar((.07-sk.acc)/.055)+'<span>Putting</span>'+bar(sk.putt)+'<span>Nerve</span>'+bar(1-sk.miss*12)+'</div>';
     h+='<div class="msub">18-hole match play at '+C.name+' · win '+(again?Math.round(r.reward*.5)+' pts (rematch)':r.reward+' pts')+(rec?' · your record '+rec.w+'–'+rec.l:'')+'</div>';
-    if(mid){const up=mid.res.reduce((a,b)=>a+(b||0),0);h+='<button class="primary disp" data-act="resume">Continue match</button><div class="msub">Hole '+(mid.hi+1)+' · '+(up===0?'All square':(up>0?'You ':first(r.name)+' ')+Math.abs(up)+' UP')+'</div><button class="ghost disp" data-act="restart">Start over</button>';}
+    if(mid){const up=mid.res.reduce((a,b)=>a+(b||0),0);h+='<button class="primary disp" data-act="resume">Continue match</button><div class="msub">Hole '+(mid.hi+1)+' · '+(up===0?'All square':(up>0?'You ':rn(r)+' ')+Math.abs(up)+' UP')+'</div><button class="ghost disp" data-act="restart">Start over</button>';}
     else h+='<button class="primary disp" data-act="start">Start match</button>';
     if(CAR.match&&!mid)h+='<div class="msub warn">Starting this match abandons your match against '+RV(CAR.match.rid).name+'.</div>';
     h+='<button class="textbtn" data-act="back">All rivals</button>';}
@@ -2053,7 +2053,7 @@ function renderCareer(){const c=$('careerBody');$('careerPts').textContent=CAR.p
 // a small portrait: hat, face and shirt in the rival's colours
 function face(L){return'<svg class="face" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#e3dccb"/><path d="M6 40c1-9 7-13 14-13s13 4 14 13z" fill="'+L.top+'"/><circle cx="20" cy="18" r="8" fill="'+L.skin+'"/>'+
   (L.beard?'<path d="M12.5 18c0 6 3.5 9 7.5 9s7.5-3 7.5-9c-1.5 3-4 4-7.5 4s-6-1-7.5-4z" fill="'+L.beard+'"/>':'')+
-  (L.hatType==='cap'?'<path d="M11.5 16c0-6 3.8-8.5 8.5-8.5s8.5 2.5 8.5 8.5z" fill="'+L.hat+'"/><path d="M20 15.5h11c0 1.6-1.5 2.2-3 2.2h-8z" fill="'+L.hat+'"/>':'<path d="M11.5 17c0-7 3.8-10 8.5-10s8.5 3 8.5 10z" fill="'+L.hat+'"/><rect x="11.3" y="14" width="17.4" height="3.4" rx="1.4" fill="'+L.hat+'" opacity=".8"/>')+'</svg>';}
+  (L.hatType==='flat'?'<path d="M10.5 15.5c0-5 4.3-7 9.5-7s9.5 2 9.5 7z" fill="'+L.hat+'"/><path d="M19 15h10.5c0 1.4-1.2 2-2.6 2H19z" fill="'+L.hat+'" opacity=".85"/>':L.hatType==='visor'?'<path d="M11.8 17c0-6 3.7-9 8.2-9s8.2 3 8.2 9c-1-2.5-3-3.5-8.2-3.5s-7.2 1-8.2 3.5z" fill="'+(L.hair||'#3a2a20')+'"/><rect x="11.6" y="12.6" width="16.8" height="2.6" rx="1.2" fill="'+L.hat+'"/><path d="M20 13.4h11.5c0 1.8-1.6 2.4-3.2 2.4H20z" fill="'+L.hat+'"/>':L.hatType==='cap'?'<path d="M11.5 16c0-6 3.8-8.5 8.5-8.5s8.5 2.5 8.5 8.5z" fill="'+L.hat+'"/><path d="M20 15.5h11c0 1.6-1.5 2.2-3 2.2h-8z" fill="'+L.hat+'"/>':'<path d="M11.5 17c0-7 3.8-10 8.5-10s8.5 3 8.5 10z" fill="'+L.hat+'"/><rect x="11.3" y="14" width="17.4" height="3.4" rx="1.4" fill="'+L.hat+'" opacity=".8"/>')+'</svg>';}
 
 /* ---------- camera (behind the golfer) ---------- */
 function camTarget(){
@@ -2385,7 +2385,10 @@ function drawGolfer3D(ga){
   for(const s2 of[-1,1]){sphAt(W(HP(.103,s2*.042,.022)),.013,.013,.008,hexc('#1e1712'),Wd(Sd),Wd(Up),Wd(Fd));   // eyes
     sphAt(W(HP(.1,s2*.044,.043)),.024,.007,.01,hexc('#3a2a20'),Wd(Sd),Wd(Up),Wd(Fd));                             // brows
     sphAt(W(HP(-.005,s2*.118,-.005)),.018,.034,.024,C_SK2,Wd(Sd),Wd(Up),Wd(Fd));}                        // ears
-  if(LK.hatType==='cap'){sphAt(W(add(headC,[0,.05,0])),.124,.09,.124,C_BEANIE);cylAB(W(add(headC,[0,.02,0])),W(add(headC,[0,.05,0])),.126,C_BEANIE_D);
+  const bfH=nrm([face[0],0,face[2]]),brim=(w,d,y,col)=>boxAt(W(add(headC,add([0,y,0],mul(bfH,.1+d*.5)))),Wd(mul(nrm(cross([0,1,0],bfH)),w)),Wd([0,.014,0]),Wd(mul(bfH,d)),col);
+  if(LK.hatType==='flat'){sphAt(W(add(headC,[0,.06,0])),.13,.068,.138,C_BEANIE,Wd(nrm(cross([0,1,0],bfH))),[0,1,0],Wd(bfH));brim(.2,.07,.05,C_BEANIE_D);}
+  else if(LK.hatType==='visor'){sphAt(W(add(headC,[0,.04,0])),.123,.1,.123,hexc(LK.hair||'#3a2a20'));cylAB(W(add(headC,[0,.035,0])),W(add(headC,[0,.065,0])),.127,C_BEANIE);brim(.2,.12,.045,C_BEANIE);}
+  else if(LK.hatType==='cap'){sphAt(W(add(headC,[0,.05,0])),.124,.09,.124,C_BEANIE);cylAB(W(add(headC,[0,.02,0])),W(add(headC,[0,.05,0])),.126,C_BEANIE_D);
     const bf=nrm([face[0],0,face[2]]);boxAt(W(add(headC,add([0,.035,0],mul(bf,.14)))),Wd(mul(nrm(cross([0,1,0],bf)),.19)),Wd([0,.014,0]),Wd(mul(bf,.12)),C_BEANIE_D);}
   else{sphAt(W(add(headC,[0,.045,0])),.126,.105,.126,C_BEANIE);
   cylAB(W(add(headC,[0,-.005,0])),W(add(headC,[0,.05,0])),.129,C_BEANIE_D);}
@@ -2527,7 +2530,7 @@ function renderScene(){
   if(G.trail.length>1){sctx.lineCap='round';let prev=null;G.trail.forEach((p,i)=>{const s=proj(p.x,p.Y+.05,p.y);if(s&&prev){sctx.strokeStyle='rgba(255,255,255,'+(i/G.trail.length*.7)+')';sctx.lineWidth=clamp(.08*s[3],1,4)*(.4+i/G.trail.length);sctx.beginPath();sctx.moveTo(prev[0],prev[1]);sctx.lineTo(s[0],s[1]);sctx.stroke();}prev=s;});}
   drawPinLabel();
   if(MATCH.on&&MATCH.P&&G.state!=='intro'&&G.state!=='card'&&!G.overview){const o=MATCH.P[1-MATCH.turn];if(o&&!o.done&&o.strokes>0){const q=proj(o.ball.x,hAt(o.ball.x,o.ball.y)+.3,o.ball.y);
-    if(q&&q[2]<450&&q[1]>topH&&q[1]<H-botH){const tx=MATCH.turn===0?first(MATCH.r.name):'You';sctx.font='700 12px "Barlow Semi Condensed",system-ui,sans-serif';const w=sctx.measureText(tx).width+12;
+    if(q&&q[2]<450&&q[1]>topH&&q[1]<H-botH){const tx=MATCH.turn===0?rn(MATCH.r):'You';sctx.font='700 12px "Barlow Semi Condensed",system-ui,sans-serif';const w=sctx.measureText(tx).width+12;
       sctx.fillStyle=MATCH.turn===0?'rgba(120,30,40,.85)':'rgba(12,30,46,.85)';sctx.beginPath();sctx.roundRect(q[0]-w/2,q[1]-24,w,17,8.5);sctx.fill();sctx.fillStyle='#fff6dc';sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText(tx,q[0],q[1]-15.5);}}}
   if(G.overview){sctx.fillStyle='rgba(9,24,36,.8)';const tx='Whole hole · tap to return';sctx.font='700 13px "Barlow Semi Condensed",system-ui,sans-serif';const w=sctx.measureText(tx).width+24;sctx.beginPath();sctx.roundRect(W/2-w/2,topH+6,w,26,13);sctx.fill();sctx.fillStyle='#fff6dc';sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText(tx,W/2,topH+19);}
 }
@@ -2569,7 +2572,7 @@ function updHud(){
   $('cardReplay').hidden=!G.canReplay;
   setT('hNum',String(G.hi+1));setT('hPar','Par '+h.par+' · '+h.len+' yds');
   const sn=Math.min(10,G.strokes+(G.state==='holed'||G.state==='card'?0:1));
-  if(MATCH.on){setT('hStroke',(G.aiTurn?first(MATCH.r.name):'You')+' \u00b7 stroke '+sn);const up=matchUp(),n=holesPlayed();setT('matchTag',(G.state==='card'||G.state==='intro'?'vs '+first(MATCH.r.name):G.aiTurn?first(MATCH.r.name)+'\u2019s shot':'Your shot')+' \u00b7 '+statusShort(up)+(n?' thru '+Math.min(18,n):''));}
+  if(MATCH.on){setT('hStroke',(G.aiTurn?rn(MATCH.r):'You')+' \u00b7 stroke '+sn);const up=matchUp(),n=holesPlayed();setT('matchTag',(G.state==='card'||G.state==='intro'?'vs '+rn(MATCH.r):G.aiTurn?rn(MATCH.r)+'\u2019s shot':'Your shot')+' \u00b7 '+statusShort(up)+(n?' thru '+Math.min(18,n):''));}
   else setT('hStroke','Stroke '+sn+(G.mode==='practice'?' \u00b7 Practice':' \u00b7 Round '+fmtDiff(roundDiff())));
   setT('windV',String(G.wind.mph));
   $('windArrow').style.transform='rotate('+((G.wind.a-V.yaw)*180/Math.PI)+'deg)';
@@ -2592,7 +2595,7 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   if(G.aiTurn){sw.disabled=G.aiSkip||!(st==='aim'||st==='power'||st==='acc'||ffActive());setT('swing',G.aiSkip?'SKIPPING\u2026':'SKIP \u25b8\u25b8');sw.classList.remove('power','acc');}
   else{sw.disabled=!(st==='aim'||st==='power'||st==='acc');setT('swing',st==='power'?'POWER':st==='acc'?'IMPACT!':'SWING');
   sw.classList.toggle('power',st==='power');sw.classList.toggle('acc',st==='acc');}
-  setT('hint',G.aiTurn?first(MATCH.r.name)+(G.aiSkip?' \u00b7 skipping ahead':' is playing \u00b7 tap Skip to jump ahead'):st==='aim'?(G.overview?'Tap anywhere to return to your ball':c.putter?'Watch the dots on the green — they flow downhill':(G.stype==='full'?'Drag to aim · Tap Swing to start':SHOTS[G.stype].hint)):st==='power'?'Tap to set power':st==='acc'?'Tap on the white line':' ');
+  setT('hint',G.aiTurn?rn(MATCH.r)+(G.aiSkip?' \u00b7 skipping ahead':' is playing \u00b7 tap Skip to jump ahead'):st==='aim'?(G.overview?'Tap anywhere to return to your ball':c.putter?'Watch the dots on the green — they flow downhill':(G.stype==='full'?'Drag to aim · Tap Swing to start':SHOTS[G.stype].hint)):st==='power'?'Tap to set power':st==='acc'?'Tap on the white line':' ');
   const m=G.meter,w=perfectWin();
   $('mCursor').style.left=(m.pos*100)+'%';
   const fillTo=st==='power'?m.pos:(st==='acc'?IMPACT+m.power*(1-IMPACT):IMPACT);
