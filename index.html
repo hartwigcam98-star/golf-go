@@ -453,11 +453,14 @@ const SHOTS={
  flop:{c:.42,a:1.6,r:.12,w:1.3,e:1.5,win:.7,clubs:ids('GW','SW','LW'),hint:'Flop — sky-high and stops dead; tight timing'},
 };
 const shotOK=(t,ci)=>SHOTS[t].clubs.includes(ci);
-const MU={green:2.4,fairway:4.5,tee:4.5,rough:11,sand:28,fescue:17};
+// green speed from the stimpmeter: the ramp releases the ball at 6 ft/s and it rolls STIMP feet on a flat green, so the rolling deceleration is v^2/(2d)
+const STIMP=11,STIMP_V=2,MU_GREEN=STIMP_V*STIMP_V/(2*STIMP/3);
+const CAPV=Math.sqrt(2*MU_GREEN*2.1);   // a ball that would have run on about 2 yards past still drops
+const MU={green:MU_GREEN,fairway:4.5,tee:4.5,rough:11,sand:28,fescue:17};
 const SURF={green:.9,fairway:1,tee:1,rough:.35,sand:.05,fescue:.15};
 const LIE_NAME={tee:'Tee box',fairway:'Fairway',rough:'Rough',sand:'Bunker',green:'Green',fescue:'Fescue',water:'Water',ob:'Out of bounds'};
 const LIE_COL={tee:'#7cc257',fairway:'#6db14a',rough:'#3f7d35',sand:'#f4efe2',green:'#9ad873',fescue:'#c9b35f'};
-const CUP=.22, CAPV=3.2, IMPACT=.12;
+const CUP=.16, IMPACT=.12;
 
 /* ---------- Troy Burne (tips) — unofficial re-creation ----------
    Per hole: segs = [length, turn°] (turn + = right), features as [s along, lateral offset (+ right), rx lateral, ry along, rot°]. */
@@ -704,17 +707,42 @@ function rawH(h,x,y){
   for(const w of h.water){const q=polyDist(w,x,y,8);if(q<6){if(w.lvl===undefined){let m=1e9;for(const p of w.pts)m=Math.min(m,demRel(h,p[0],p[1]));w.lvl=m-.7;}const ww=1-smooth(-2,6,q);H=H*(1-ww)+w.lvl*ww;}}
   return H;
 }
+/* hole location, set up the way a course superintendent cuts the cup:
+   start from the mapped pin, and keep it if the ground round the cup is gentle enough to hold a ball at this green speed
+   and it sits well in from the edge; otherwise move it to the nearest spot on the same green that is. */
+const PIN_MAX_SLOPE=.028,PIN_EDGE=5;
+function cupSlope(h,x,y){let m=0;const gr=(a,b)=>{const gx=(hFineH(h,a+.5,b)-hFineH(h,a-.5,b)),gy=(hFineH(h,a,b+.5)-hFineH(h,a,b-.5));return Math.hypot(gx,gy);};
+  m=gr(x,y);for(let k=0;k<8;k++){const a=k/8*TAU,c=Math.cos(a),s=Math.sin(a);m=Math.max(m,gr(x+c*.7,y+s*.7),gr(x+c*1.4,y+s*1.4));}return m;}
+function placePin(h){const g=h.green,p0=h.pin0||(h.pin0=[h.pin[0],h.pin[1]]);
+  let maxE=0;for(let x=g.bb[0];x<=g.bb[2];x+=1)for(let y=g.bb[1];y<=g.bb[3];y+=1){const e=-polyDist(g,x,y,40);if(e>maxE)maxE=e;}
+  const E=Math.min(PIN_EDGE,maxE*.55),ok=(x,y)=>-polyDist(g,x,y,40)>=E;
+  const s0=cupSlope(h,p0[0],p0[1]);h.pinMoved=0;h.pinSlope=s0;
+  if(ok(p0[0],p0[1])&&s0<=PIN_MAX_SLOPE){h.pin=[p0[0],p0[1]];return;}
+  let best=null,bestS=null;
+  for(let x=g.bb[0];x<=g.bb[2];x+=.5)for(let y=g.bb[1];y<=g.bb[3];y+=.5){if(!ok(x,y))continue;const d=Math.hypot(x-p0[0],y-p0[1]);
+    if(best&&d>=best.d&&bestS&&bestS.s<=PIN_MAX_SLOPE)continue;const s=cupSlope(h,x,y);
+    if(s<=PIN_MAX_SLOPE){if(!best||d<best.d)best={x,y,d,s};}
+    const sc=s*100*2+d*.3;if(!bestS||sc<bestS.sc)bestS={x,y,d,s,sc};}
+  const c=best||bestS;if(!c){h.pin=[p0[0],p0[1]];return;}
+  h.pin=[c.x,c.y];h.pinMoved=c.d;h.pinSlope=c.s;}
 function buildHeights(h){
   for(const w of h.water)if(w.lvl===undefined){let m=1e9;for(const p of w.pts)m=Math.min(m,demRel(h,p[0],p[1]));w.lvl=m-.7;}
   const b=h.bounds,st=2,nx=Math.ceil((b[2]-b[0])/st)+1,ny=Math.ceil((b[3]-b[1])/st)+1,data=new Float32Array(nx*ny);
   for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)data[j*nx+i]=rawH(h,b[0]+i*st,b[1]+j*st);
   h.hg={x0:b[0],y0:b[1],st,nx,ny,data};
+  { const g=h.green,m=6,fs=.5,gx0=g.bb[0]-m,gy0=g.bb[1]-m,gnx=Math.ceil((g.bb[2]-g.bb[0]+2*m)/fs)+1,gny=Math.ceil((g.bb[3]-g.bb[1]+2*m)/fs)+1,gd=new Float32Array(gnx*gny);
+    for(let j=0;j<gny;j++)for(let i=0;i<gnx;i++)gd[j*gnx+i]=rawH(h,gx0+i*fs,gy0+j*fs);
+    h.gg={x0:gx0,y0:gy0,st:fs,nx:gnx,ny:gny,data:gd}; }
+  placePin(h);
   h.allTrees.forEach(t=>t.gh=hAtH(h,t.x,t.y));(h.farTrees||[]).forEach(t=>t.gh=hAtH(h,t.x,t.y));(h.houses||[]).forEach(q=>q.gh=hAtH(h,q.x,q.y));
   h.buildings.forEach(q=>q.gh=Math.min(...q.pts.map(p=>hAtH(h,p[0],p[1]))));
 }
+// fine surface around the green: used for how the ball breaks (slope), while drawn heights stay on the mesh grid
+function hFineH(h,x,y){const q=h.gg;if(q){const fx=(x-q.x0)/q.st,fy=(y-q.y0)/q.st;if(fx>=0&&fy>=0&&fx<q.nx-1&&fy<q.ny-1){const i=fx|0,j=fy|0,tx=fx-i,ty=fy-j,d=q.data,n=q.nx;return(d[j*n+i]*(1-tx)+d[j*n+i+1]*tx)*(1-ty)+(d[(j+1)*n+i]*(1-tx)+d[(j+1)*n+i+1]*tx)*ty;}}return hAtH(h,x,y);}
 function hAtH(h,x,y){const g=h.hg;if(!g)return 0;const fx=(x-g.x0)/g.st,fy=(y-g.y0)/g.st;if(fx<0||fy<0||fx>=g.nx-1||fy>=g.ny-1)return demRel(h,x,y);const i=fx|0,j=fy|0,tx=fx-i,ty=fy-j,d=g.data,n=g.nx;const a=d[j*n+i],b2=d[j*n+i+1],c=d[(j+1)*n+i],e=d[(j+1)*n+i+1];return(a*(1-tx)+b2*tx)*(1-ty)+(c*(1-tx)+e*tx)*ty;}
 const hAt=(x,y)=>hAtH(G.hole,x,y);
-const gradAt=(x,y)=>[(hAt(x+.6,y)-hAt(x-.6,y))/1.2,(hAt(x,y+.6)-hAt(x,y-.6))/1.2];
+const hFine=(x,y)=>hFineH(G.hole,x,y);
+const gradAt=(x,y)=>[(hFine(x+.5,y)-hFine(x-.5,y))/1.0,(hFine(x,y+.5)-hFine(x,y-.5))/1.0];
 function lieAt(x,y){const c=lieCodeAt(G.hole,x,y);return c<0?'ob':LIE_CODES[c];}
 const onGreen=(x,y)=>inPoly(G.hole.green,x,y);
 
@@ -1473,7 +1501,8 @@ function pinDist(){const p=G.hole.pin;return hyp(G.ball.x-p[0],G.ball.y-p[1]);}
 function pinRise(){const p=G.hole.pin;return hAt(p[0],p[1])-hAt(G.ball.x,G.ball.y);}
 function previewDist(){const c=curClub();return c.putter?G.puttMax:clubCarry(c)*lieMul(c,G.lie)*SHOTS[G.stype].c;}
 const shotApex=(c,carry)=>c.apex*SHOTS[G.stype].a*Math.sqrt(clamp(carry/(c.carry*SHOTS[G.stype].c),.2,1))*(G.imp.y>0?1-.22*G.imp.y:1-.14*G.imp.y);
-function calcPuttMax(){const d=pinDist();return G.lie==='green'?clamp(d*1.3+1,3,40):clamp(d*1.5+2,4,45);}
+// the putter's full stroke is sized from what this putt needs (so the target sits around three-quarters of the meter, uphill or down)
+function calcPuttMax(){const q=puttNeed(),n=Math.max(0,q.need);return G.lie==='green'?clamp(Math.max(n*1.35+1,q.d*.6+1),3,80):clamp(Math.max(n*1.35+1.5,q.d*.6+2),4,80);}
 function aimTarget(){const h=G.hole,s=alongCl(h,G.ball.x,G.ball.y);if(h.len-s>300){const p=h.at(s+255);return[p[0],p[1]];}return h.pin;}
 function autoClub(d){
   if(G.lie==='green')return PUTTER;
@@ -1496,15 +1525,18 @@ function shotMods(){const c=curClub();if(c.putter)return{carry:1,apex:1,roll:1,c
     curve:ix*.085-clamp(S.side,-.15,.15)*.55-clamp(S.along,-.15,.15)*.12,
     win:(ps?.72:1)*(tj?.9:1)*clamp(1-(Math.abs(S.along)+Math.abs(S.side))*2.2,.6,1),back:iy<-.5?(-iy-.5)*2:0};}
 function perfectWin(){if(!curClub().putter)return perfectWinBase()*shotMods().win*cmod().win(curClub());return perfectWinBase()*cmod().win(curClub());}
-function perfectWinBase(){if(curClub().putter)return .026;return((G.lie==='rough'||G.lie==='sand'||G.lie==='fescue')?.018:.024)*SHOTS[G.stype].win;}
+// the player's window is 20% tighter than the rivals' (their timing spread was tuned against the original width)
+function perfectWinBase(){const k=G.aiTurn?1:.8;if(curClub().putter)return .026*k;return((G.lie==='rough'||G.lie==='sand'||G.lie==='fescue')?.018:.024)*SHOTS[G.stype].win*k;}
 // touch screens show the cursor a frame or two late; judge the tap against what the player saw
 // what you see is what you get: the tap is judged exactly where the cursor is drawn
 try{localStorage.removeItem('troyburne-tap-lag');}catch(e){}
 // putting: meter power that sends the ball just past the cup (friction along the line, plus the rise or fall)
-function puttTargetPower(){const b=G.ball,p=G.hole.pin,d=hyp(p[0]-b.x,p[1]-b.y);if(d<.3)return null;
+// how far this putt would roll on flat ground to finish just past the cup: friction along the line plus the rise or fall
+// (on stimp-11 greens every foot of rise costs about 5 yards of roll, so the rise matters as much as the distance)
+function puttNeed(){const b=G.ball,p=G.hole.pin,d=hyp(p[0]-b.x,p[1]-b.y);
   const n=Math.max(4,Math.ceil(d/.5));let work=0;for(let i=0;i<n;i++){const t=(i+.5)/n,L=lieAt(b.x+(p[0]-b.x)*t,b.y+(p[1]-b.y)*t);work+=(MU[L]||MU.fairway)*d/n;}
-  const mu0=MU[G.lie]||MU.fairway,dz=hAt(p[0],p[1])-hAt(b.x,b.y),need=(work+GACC*dz+.5)/mu0;
-  return Math.max(0,need/G.puttMax);}
+  const mu0=MU[G.lie]||MU.fairway,dz=hAt(p[0],p[1])-hAt(b.x,b.y);return{d,need:(work+GACC*dz+MU_GREEN*.45)/mu0};}
+function puttTargetPower(){const q=puttNeed();if(q.d<.3)return null;return Math.max(0,q.need/G.puttMax);}
 function roundDiff(){let d=0;G.scores.forEach((s,i)=>{if(s)d+=s-TB[i].par;});return d;}
 const fmtDiff=d=>d===0?'E':d>0?'+'+d:'−'+(-d);
 const aimingState=()=>G.state==='aim'||G.state==='power'||G.state==='acc';
@@ -1675,11 +1707,15 @@ function executeShot(power,e){
   G.ff=1;G.strokes++;G.prev={...G.ball};G.fromLie=lie;G.trail=[];G.shotRot=G.aim;G.state='flight';G.followT=.001;G.bY=hAt(G.ball.x,G.ball.y)+.03;G.launchAt=club.putter?PUTT_IMPACT:IMPACT_T;G.swingBack=Math.max(.15,G.meter.power);G.swingType=club.putter?'putt':G.stype;G.swingClub=G.clubIdx;
   G.golferAt={x:G.ball.x,y:G.ball.y,aim:G.aim};
   const miss=e===null;let perfect=false,q=.05;G.missBy=0;
-  if(miss){e=(Math.random()<.5?-1:1)*(.07+Math.random()*.08);power*=.45;toast('MISHIT!','Timing missed the impact line','#ff6a48');}
-  else{const w=perfectWin(),ae=Math.abs(e);q=ae<=w*.5?1:ae<=w?.86-.1*(ae-w*.5)/(w*.5):clamp(.62-(ae-w)/.06*.55,.06,.62);if(ae<=w){perfect=ae<=w*.5?2:1;e=0;}else{G.missBy=ae-w;e=Math.sign(e)*(.012+(ae-w)*1.6);}} // no jump in error just outside the window
+  // the player's timing is judged more strictly than the rivals' (their difficulty is tuned through their own timing spread)
+  const HARSH=!G.aiTurn;
+  if(miss){e=(Math.random()<.5?-1:1)*(HARSH?.09+Math.random()*.1:.07+Math.random()*.08);power*=HARSH?.3+Math.random()*.15:.45;G.missBy=HARSH?.06:0;toast('MISHIT!','Timing missed the impact line','#ff6a48');}
+  else{const w=perfectWin(),ae=Math.abs(e);q=ae<=w*.5?1:ae<=w?.86-.1*(ae-w*.5)/(w*.5):clamp(.62-(ae-w)/.06*.55,.06,.62);
+    if(ae<=w){perfect=ae<=w*.5?2:1;e=HARSH&&perfect===1?Math.sign(e)*(ae-w*.5)*.45:0;}   // a "nice" strike still drifts a touch; only dead centre flies dead straight
+    else{G.missBy=ae-w;e=HARSH?Math.sign(e)*(.018+(ae-w)*2.6)+(Math.random()-.5)*(ae-w)*1.4:Math.sign(e)*(.012+(ae-w)*1.6);}} // no jump in error just outside the window
   if(club.putter){
-    const D=Math.max(.3,G.puttMax*power);const mu=MU[lie]||MU.fairway;
-    const a=G.aim-e*1.1*cmod().putt;const[dx,dy]=dirOf(a);const v=Math.sqrt(2*mu*D);
+    const D=Math.max(.3,G.puttMax*power*(HARSH?1-Math.min(.22,G.missBy*2.4):1));const mu=MU[lie]||MU.fairway;
+    const a=G.aim-e*(HARSH?1.45:1.1)*cmod().putt;const[dx,dy]=dirOf(a);const v=Math.sqrt(2*mu*D);
     G.roll={vx:dx*v,vy:dy*v,t:0,lip:false};G.state='roll';G.flame=null;setTimeout(()=>sfx.puttQ(q),G.launchAt*1000);
     if(perfect===2)toast('PURE STROKE','','#ffe27a');
     return;
@@ -1687,13 +1723,13 @@ function executeShot(power,e){
   const ST=SHOTS[G.stype];if(MATCH.on&&!G.aiTurn&&perfect===2)MATCH.earn.perfect++;
   const lm=lieMul(club,lie),em=(lie==='rough'?1.4:lie==='sand'?1.6:lie==='fescue'?1.8:1)*ST.e;
   const M=shotMods();
-  const carry=Math.max(2,clubCarry(club)*power*lm*ST.c*M.carry*(perfect===2?1.03:1)*(1-Math.min(.16,G.missBy*1.6)));
+  const carry=Math.max(2,clubCarry(club)*power*lm*ST.c*M.carry*(perfect===2?1.03:1)*(1-(HARSH?Math.min(.32,G.missBy*3.6):Math.min(.16,G.missBy*1.6))));
   const[dx,dy]=dirOf(G.aim),px=-dy,py=dx;
   const lat=-e*1.8*em*carry*cmod().err(club)+M.curve*cmod().curve*carry;
   const w=dirOf(G.wind.a),wk=G.wind.mph*.85*(carry/200)*club.loft*ST.w*M.wind*cmod().wind;
-  const apex=shotApex(club,carry)*M.apex;
+  const thin=HARSH?Math.min(1,G.missBy/.06):0;const apex=shotApex(club,carry)*M.apex*(1-.3*thin);
   const usedPower=G.pshot;if(G.pshot){G.psLeft=Math.max(0,G.psLeft-1);G.pshot=false;}
-  G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll,back:M.back*cmod().spin};
+  G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll*(1+.7*thin),back:M.back*cmod().spin*(1-.8*thin)};
   // perfect contact lights the ball up: red flames at full power, blue otherwise
   G.flame=perfect===2?(power>=.95||usedPower?'red':'blue'):null;
   const lieNow=lie,kind=club.kind,fl=G.flame;
@@ -1793,7 +1829,7 @@ function stepRoll(dt){
     if(hyp(r.vx,r.vy)<Math.max(.1,mu*h*1.5)&&smag<mu*.95){stopBall();return;}
     b.x+=r.vx*h;b.y+=r.vy*h;
   }
-  if(r.t>18)stopBall();
+  if(r.t>30)stopBall();
 }
 function endRec(holedIt){if(!G.recOn)return;G.recOn=false;G.rec.push({t:G.recT+.02,x:G.ball.x,y:G.ball.y,Y:hAt(G.ball.x,G.ball.y)});G.recHoled=!!holedIt;
   G.lastShot={rec:G.rec,golferAt:G.golferAt,launchAt:G.launchAt,holed:!!holedIt,putt:G.swingType==='putt',flame:G.flame};G.canReplay=G.rec.length>6;}
@@ -2544,7 +2580,7 @@ function drawMeshContent(shadow){
   // cup, flagstick and flag (scaled up with distance so the pin is always readable)
   const px=h.pin[0],pz=h.pin[1],gp=hAt(px,pz);
   const pc=proj(px,gp,pz),ps=pc?Math.max(1,30/(2.6*pc[3])):1;
-  sphAt([px,gp+.005,pz],.2,.012,.2,[.03,.06,.04]);
+  sphAt([px,gp+.005,pz],.15,.012,.15,[.03,.06,.04]);
   cylAB([px,gp,pz],[px,gp+2.5*ps,pz],.028*ps,[.96,.96,.96]);
   const wave=Math.sin(T*3)*.25,fl=[Math.cos(wave),0,Math.sin(wave)];
   boxAt([px+fl[0]*.33*ps,gp+2.28*ps,pz+fl[2]*.33*ps],mul(fl,.64*ps),[0,.4*ps,0],mul(nrm(cross(fl,[0,1,0])),.015*ps),hexc('#ff6a48'));
