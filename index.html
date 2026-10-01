@@ -2702,7 +2702,7 @@ function r3bBackT(c,x){const t=clamp(x,0,1)*20,i=Math.floor(t),a=t-i;return i>=2
 const R3B_GRIP=8.5;   // cm from the lead palm down the grip to the trail palm
 const R3B_CFG={full:['drive',1,1],flop:['drive',1,1],punch:['drive',.6,.5],pitch:['chip',1,1],chip:['chip',.62,.62]};
 // returns false when the character is not available (the old figure is drawn instead)
-function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh)return false;
+function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||G.aiTurn)return false;   // rivals keep their own jointed figure for now
   const club=G.state==='aim'||aimingState()?G.clubIdx:(G.swingClub??G.clubIdx),putt=club===PUTTER,type=aimingState()?G.stype:(G.swingType||'full');
   const[ck,back,end]=putt?['putt',1,1]:(R3B_CFG[type]||R3B_CFG.full);const c=R3B.clips[ck],m=G.meter;
   const Lm=putt?.86:CLUB_LEN[club]*.9,Lc=Lm*100/.94;const S=r3bClub(ck,Math.round(Lc));
@@ -2805,7 +2805,7 @@ function r3RoutineCam(){const R=R3R,P=R.post;
   else if(sg.cam==='read'){E=[h[0]-u[0]*2.6+f[0]*.7,b[1]+1.25,h[2]-u[2]*2.6+f[2]*.7];L=[h[0]+u[0]*3.5,b[1]+.35,h[2]+u[2]*3.5];zoom=1.1;}
   else return null;
   E[1]=Math.max(E[1],hAt(E[0],E[2])+.5);const o={E,L,cut:!!R.cutPending,zoom};R.cutPending=false;return o;}
-function r3PostCutTime(base){const ok=R3.on&&R3B.mesh&&G.fromLie==='tee'&&G.swingType!=='putt'&&!G.aiSkip&&!(G.ff>1)&&G.golferAt;
+function r3PostCutTime(base){const ok=R3.on&&R3B.mesh&&!G.aiTurn&&G.fromLie==='tee'&&G.swingType!=='putt'&&!G.aiSkip&&!(G.ff>1)&&G.golferAt;
   if(!ok)return base;R3R.post={on:true,t:0,E:null,aim:G.golferAt.aim};return 3.4;}
 
 /* ===================== Three.js renderer (v2) =====================
