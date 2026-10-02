@@ -2901,8 +2901,9 @@ const R3BOSS={"names":["Hips","Spine","Spine1","Spine2","Neck","Neck1","Head","H
    it at impact. Rig space is Mixamo's: centimetres, y up, target along +z, ball on the -x side. */
 const R3B={};
 function r3b64(s,T){const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer);}
-function r3GolferInit(){if(typeof R3BOSS==='undefined')return;r3GolferBuild(R3BOSS,null);
-  try{const id=localStorage.getItem('golf-char');if(id&&id!=='boss')r3GolferSet(id,ok=>{if(!ok){try{CHAR_ID='boss';localStorage.setItem('golf-char','boss');golferRow();}catch(e){}}});}catch(e){}}
+function r3GolferInit(){if(typeof R3BOSS==='undefined')return;r3GolferBuild(R3BOSS,null);}
+// the saved golfer is loaded once the renderer is switched on (r3GolferSet needs R3.on)
+function r3GolferRestore(){try{const id=localStorage.getItem('golf-char');if(id&&id!=='boss')r3GolferSet(id,ok=>{if(!ok){try{CHAR_ID='boss';localStorage.setItem('golf-char','boss');golferRow();toast('COULD NOT LOAD','Your golfer did not download, playing as The Boss.','#ff9b6a');}catch(e){}}});}catch(e){}}
 // build (or rebuild) the skinned golfer from a character record; clips come from the Boss, retargeted when needed
 function r3GolferBuild(D,cid){const T=THREE,nb=D.names.length;
   if(R3B.mesh){R3.scene.remove(R3B.mesh);R3.scene.remove(R3B.root);R3B.mesh.geometry.dispose();for(const k of['map','normalMap'])if(R3B.mat[k])R3B.mat[k].dispose();R3B.mat.dispose();}
@@ -2964,8 +2965,13 @@ window.R3CHAR=R3CHAR;
 function r3GolferSet(id,cb){if(!R3.on||typeof R3BOSS==='undefined')return;
   if(id==='boss'||!id){if(R3B.cid!=='boss')r3GolferBuild(R3BOSS,null);cb&&cb(true);return;}
   if(R3CHARS[id]){if(R3B.cid!==id)try{r3GolferBuild(R3CHARS[id],id);}catch(e){console.error('[golfer]',e);r3GolferBuild(R3BOSS,null);}R3CHAR_WANT=null;cb&&cb(true);return;}
-  R3CHAR_WANT=id;R3CHAR_CB=cb||null;if(document.getElementById('chs_'+id))return;const s=document.createElement('script');s.id='chs_'+id;s.src='char_'+id+'.js';
-  s.onerror=()=>{s.remove();R3CHAR_WANT=null;R3CHAR_CB=null;cb&&cb(false);};document.head.appendChild(s);}
+  R3CHAR_WANT=id;R3CHAR_CB=cb||null;if(document.getElementById('chs_'+id))return;
+  // phones sometimes rename uploads (char_brute.js -> "char brute.js"), so try the usual spellings in turn
+  const names=['char_'+id+'.js','char%20'+id+'.js','char'+id+'.js','char-'+id+'.js'];let k=0;
+  const tryNext=()=>{const s=document.createElement('script');s.id='chs_'+id;s.src=names[k];
+    s.onerror=()=>{s.remove();if(++k<names.length&&R3CHAR_WANT===id){tryNext();return;}if(R3CHAR_WANT===id){const c=R3CHAR_CB;R3CHAR_WANT=null;R3CHAR_CB=null;c&&c(false);}};
+    document.head.appendChild(s);};
+  tryNext();}
 // pose of a clip at time t (clip seconds) into q (bone quaternions) and h (hips translation)
 function r3bPose(c,t,q,h){const f=clamp((t-c.t0)*c.fps,0,c.n-1),i0=Math.floor(f),i1=Math.min(c.n-1,i0+1),a=f-i0,nb=R3B.nb;
   for(let k=0;k<nb;k++){q[k*4]=c.QS[k*4]/32767;q[k*4+1]=c.QS[k*4+1]/32767;q[k*4+2]=c.QS[k*4+2]/32767;q[k*4+3]=c.QS[k*4+3]/32767;}
@@ -3666,7 +3672,7 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   r3PostInit();
   skyC.style.visibility='hidden';GL.slOK=true;
   try{const v=localStorage.getItem('golf-gfx');if(v==='fast')R3.q='fast';}catch(e){}
-  R3.on=true;r3Resize();r3RoundWx();return true;}
+  R3.on=true;r3Resize();r3RoundWx();try{r3GolferRestore();}catch(e){}return true;}
 // image-based light from the current sky (rebuilt when the weather changes)
 function r3EnvBuild(){const T=THREE,keep=R3.U.E.value.clone();R3.U.E.value.set(0,0,0);R3.U.cloudOn.value=CLOUDS_COV;const pm=new T.PMREMGenerator(R3.renderer);
   const old=R3.envRT;R3.envRT=pm.fromScene(R3.envScene,.02,.1,200);R3.scene.environment=R3.envRT.texture;pm.dispose();if(old)old.dispose();R3.U.E.value.copy(keep);}
