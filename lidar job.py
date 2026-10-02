@@ -6,8 +6,9 @@ import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
 JOB = {"name": "iron range", "search": [47.40, -92.60, 48.00, -92.00],
-       "want": {"wilderness": r"wilderness", "quarry": r"quarry", "legend": r"legend"},
-       "holes": {"wilderness": r"wilderness", "quarry": r"quarry", "legend": r"legend"}}
+       "want": {"wilderness": r"wilderness", "quarry": r"quarry", "legend": r"le+d?gend"},
+       "holes": {"wilderness": r"wilderness", "quarry": r"quarry", "legend": r"le+d?gend"},
+       "steps": {"legend": "all", "wilderness": "greens"}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -203,6 +204,16 @@ def greens_points(key, b, osm, resources, rings):
     for g in greens:
         x0, y0, x1, y1 = g['bbox']; pts = [(x0, y0), (x1, y0), (x0, y1), (x1, y1), ((x0 + x1) / 2, (y0 + y1) / 2)]
         g['cand'] = [f['properties']['name'] for f in resources if any(pip(q, r) for q in pts for r in rings_of(f['geometry']))]
+    try:
+        base = 'https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer/24/query'
+        for g in greens:
+            x0, y0, x1, y1 = g['bbox']; q = get(base, dict(geometry=f'{(x0+x1)/2},{(y0+y1)/2}', geometryType='esriGeometryPoint', inSR=4326, spatialRel='esriSpatialRelIntersects', outFields='workunit,project,collect_start,collect_end,ql', returnGeometry='false', f='json')).json()
+            g['wesm'] = [ft['attributes'] for ft in q.get('features', [])]
+            names = {f['properties']['name'] for f in resources}
+            for a in g['wesm']:
+                for nm in (a.get('workunit'), a.get('project')):
+                    if nm and nm in names and nm not in g['cand']: g['cand'].append(nm)
+    except Exception as e: err(f'wesm {key}', e)
     SUM['courses'][key]['greens'] = greens; save()
     jobs = [(key, gi, r, g['bbox'], epsg) for gi, g in enumerate(greens) for r in g['cand']]
     pack = {}; info_all = {}
@@ -221,7 +232,7 @@ def main():
     import subprocess   # keep the earlier courses' files on the results branch
     try:
         subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('mkdir -p out/earlier && cp -n /tmp/prev/* out/earlier/ 2>/dev/null; true', shell=True)
+        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_iron1.json; [ -f out/run.log ] && mv out/run.log out/run_iron1.log; true', shell=True)
     except Exception as e: SUM['errors'].append(f'keep old: {e}')
     try: res = discover()
     except Exception as e: err('discover', e); return
@@ -243,7 +254,9 @@ def main():
         except Exception as e: err('osm_all', e)
         for key in g['k']:
             c = res[key]; SUM['courses'][key] = {k: v for k, v in c.items() if k != 'rings'}; save(); b = c['bbox']
-            for step in (ned_grids, naip, dem_ll, dem_utm):
+            mode = JOB['steps'].get(key)
+            if not mode: continue
+            for step in ((ned_grids, naip, dem_ll, dem_utm) if mode == 'all' else ()):
                 try: step(key, b)
                 except Exception as e: err(f'{step.__name__} {key}', e)
                 save()
