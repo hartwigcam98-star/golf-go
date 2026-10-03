@@ -1754,10 +1754,10 @@ function shortPlan(){const b=G.ball,key=[G.clubIdx,G.stype,G.aim.toFixed(4),b.x.
   else for(let i=0;i<15;i++){const m=(lo+hi)/2;if(along(shortFinish(m,G.aim))<want)lo=m;else hi=m;}
   const carry=over?mx:(lo+hi)/2,F=shortFinish(carry,G.aim,true);
   return G.shortP={key,carry,over,land:[F.lx,F.ly],landL:F.L,fin:[F.x,F.y],pts:F.pts,bad:!!F.bad};}
-/* chips and flops: the meter is sized from the distance to the pin (the same for every club), so the flag shows how big a swing
-   each club needs: less loft runs out more and needs a smaller swing. Pitches use the club's natural pitch distance and no flag,
-   judged like a full shot. */
-function setShortMax(){if(!isShort()||!(G.stype==='chip'||G.stype==='flop')){G.swMax=0;G.shortP=null;return;}G.swMax=0;G.shortP=null;const mx=natMax();
+/* chips, pitches and spinners: the meter is sized from the distance to the pin (the same for every club), so the flag shows how big
+   a swing each club needs: less loft runs out more and needs a smaller swing. Flops (and bunker shots) use the club's natural
+   distance and no flag, judged like a full shot. There's no preview of the run-out: you read the roll yourself. */
+function setShortMax(){if(!isShort()||!(G.stype==='chip'||G.stype==='pitch'||G.stype==='spin')){G.swMax=0;G.shortP=null;return;}G.swMax=0;G.shortP=null;const mx=natMax();
   G.swMax=clamp(pinDist()*1.15/shotMods().carry+1.5,Math.min(6,mx),mx);G.shortP=null;}
 // pick the short-game shot: chip when it can land on the green and run, pitch when it has to carry more, the club that finishes closest
 function chooseShort(){const d=pinDist(),L=G.lie;if(bunkerSide()){G.stype='splash';G.clubIdx=CI('SW');G.shortP=null;setShortMax();return true;}if(L==='sand'||L==='green'||d>70)return false;
@@ -2798,10 +2798,6 @@ function lookEnd(){const f=G.fc;if(!f)return;sfx.tick();
   // where the address camera wants to be now (the aim may have changed while scouting)
   let from=f.from0;try{G.fc=null;const t=camTarget();from={E:[...t.E],L:[...t.L]};}catch(e){}G.fc=f;
   if(!f.fly)f.fly={t:1,dir:-1,dur:.5+Math.min(.45,scoutCarry()/550),from:from||{E:[...cam.E],L:[...cam.L]},bx:G.ball.x,bz:G.ball.y};else{f.fly.dir=-1;if(from)f.fly.from=from;}}
-// the run-out after landing for chips and pitches, drawn while scouting
-let SCR=null;function scoutRoll(){if(!isShort())return null;if(G.swMax){const P=shortPlan();return{pts:P.pts,fin:P.fin};}
-  const key=[G.clubIdx,G.stype,G.aim.toFixed(3),G.ball.x.toFixed(1),G.ball.y.toFixed(1),G.imp.x,G.imp.y,G.traj].join('|');if(SCR&&SCR.key===key)return SCR;
-  const F=shortFinish(previewDist()*shotMods().carry,G.aim,true);return SCR={key,pts:F.pts,fin:[F.x,F.y]};}
 function lookPan(px,py){const f=G.fc;if(!f)return;if(f.follow){f.pan+=Math.hypot(px,py);if(f.pan<26)return;f.follow=false;}const s=f.dist/V.f,sp=Math.max(Math.sin(lookPitch(f.dist)),.3),[fx,fz]=dirOf(f.yaw);
   f.tx+=fz*px*s+fx*py*s/sp;f.tz+=-fx*px*s+fz*py*s/sp;lookClamp();}
 // pinch / wheel: steps between the three views once the gesture has gone far enough
@@ -4526,9 +4522,6 @@ function renderScene(){
       landD=hyp(mx-G.ball.x,mz-G.ball.y);
     }
     G.landPt=[mx,mz];const e=groundEllipse(mx,mz,club.putter?.35:3,13);G.landE=e;
-    if(G.fc&&G.fc.follow&&!club.putter){const R=scoutRoll();if(R&&R.pts&&R.pts.length>1){let acc=0;sctx.fillStyle='rgba(255,246,220,.95)';
-      for(let i=1;i<R.pts.length;i++){const a=R.pts[i-1],b2=R.pts[i],sl=hyp(b2[0]-a[0],b2[1]-a[1]);acc+=sl;if(acc<.8)continue;acc=0;const p=proj(b2[0],hAt(b2[0],b2[1])+.04,b2[1]);if(p){sctx.beginPath();sctx.arc(p[0],p[1],clamp(.07*p[3],1.6,3.2),0,TAU);sctx.fill();}}
-      const fe=groundEllipse(R.fin[0],R.fin[1],.45,5);if(fe){sctx.lineWidth=3;sctx.strokeStyle='#0f2233';sctx.beginPath();sctx.ellipse(fe.x,fe.y,fe.rx+1,fe.ry+1,0,0,TAU);sctx.stroke();sctx.lineWidth=2;sctx.strokeStyle='#fff6dc';sctx.beginPath();sctx.ellipse(fe.x,fe.y,fe.rx,fe.ry,0,0,TAU);sctx.stroke();}}}
     if(e){const pulse=1+Math.sin(T*4)*.08;sctx.lineWidth=3.5;sctx.strokeStyle='#0f2233';sctx.beginPath();sctx.ellipse(e.x,e.y,e.rx*pulse+1,e.ry*pulse+1,0,0,TAU);sctx.stroke();
       sctx.lineWidth=2.5;sctx.strokeStyle='#ffc93c';sctx.beginPath();sctx.ellipse(e.x,e.y,e.rx*pulse,e.ry*pulse,0,0,TAU);sctx.stroke();
       const txt=G.fc&&G.fc.follow&&!club.putter?'':club.putter?Math.round(landD*3)+' ft':Math.round(landD)+' y';sctx.font='700 13px "Barlow Semi Condensed",system-ui,sans-serif';sctx.textAlign='left';sctx.textBaseline='middle';
