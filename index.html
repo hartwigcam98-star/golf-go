@@ -1847,7 +1847,10 @@ function chooseShort(){const d=pinDist(),L=G.lie;if(bunkerSide()){G.stype='splas
 function puttLineClean(){const b=G.ball,p=G.hole.pin,d=pinDist();for(let i=1;i<20;i++){const t=i/20,L=lieAt(b.x+(p[0]-b.x)*t,b.y+(p[1]-b.y)*t);if(L!=='green'&&L!=='fairway'&&L!=='tee')return false;}return true;}
 const shotApex=(c,carry)=>c.apex*SHOTS[G.stype].a*Math.sqrt(clamp(carry/(c.carry*SHOTS[G.stype].c),.2,1))*(G.imp.y>0?1-.22*G.imp.y:1-.14*G.imp.y);
 // the putter's full stroke is sized from what this putt needs (so the target sits around three-quarters of the meter, uphill or down)
-function calcPuttMax(){const q=puttNeed(),n=Math.max(0,q.need);return G.lie==='green'?clamp(Math.max(n*1.35+1,q.d*.6+1),3,80):clamp(Math.max(n*1.35+1.5,q.d*.6+2),4,80);}
+// putter meter length (yards of roll on the starting surface). Off the green the ball starts on slower grass, so the yards
+// it needs there are a fraction of the distance to the hole: size the meter from that, so the flag sits around 40-70% of
+// the meter instead of near the bottom (which took three quick taps)
+function calcPuttMax(){const q=puttNeed(),n=Math.max(0,q.need);return G.lie==='green'?clamp(Math.max(n*1.35+1,q.d*.6+1),3,80):clamp(n*1.25+.6,1.2,80);}
 function aimTarget(){const h=G.hole,s=alongCl(h,G.ball.x,G.ball.y);if(h.len-s>300){const p=h.at(s+255);return[p[0],p[1]];}return h.pin;}
 /* the driver is a tee club. Brick and El Chupacabra (the two biggest hitters) can also take it off the fairway, shorter and wilder */
 const DECK_DRIVER={brute:1,ch43:1};
