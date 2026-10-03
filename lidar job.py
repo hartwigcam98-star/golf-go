@@ -7,9 +7,10 @@ import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
 JOB = {"name": "pawleys island 2", "search": [33.36, -79.25, 33.55, -79.05],
-       "want": {"pawplant": r"pawleys plantation", "heritage": r"heritage"},
-       "holes": {"pawplant": r"pawleys", "heritage": r"heritage"},
-       "steps": {"pawplant": "all", "heritage": "all"}}
+       "want": {"pawplant": r"pawleys plantation"},
+       "holes": {"pawplant": r"pawleys"},
+       "ids": {"pawplant": "relation/18995919"},   # the outline round Pawleys Plantation has no name in OSM
+       "steps": {"pawplant": "all"}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -65,6 +66,11 @@ def discover():
             area = lambda b: (b[2] - b[0]) * (b[3] - b[1])
             f, el = min(m, key=lambda t: area(t[0][2]))
             res[key] = dict(osm=[f[1]], names=[f[0]], bbox=f[2], rings=rings_el(el), via='course outline')
+        elif key in JOB.get('ids', {}):
+            el = next((el for f, el in zip(found, gc) if f[1] == JOB['ids'][key]), None)
+            if el is not None:
+                f = next(f for f in found if f[1] == JOB['ids'][key])
+                res[key] = dict(osm=[f[1]], names=[f[0] or 'unnamed outline'], bbox=f[2], rings=rings_el(el), via='osm id')
         else:   # no named outline: use the holes named after the course
             hs = [h for h in holes if re.search(JOB['holes'][key], (h.get('tags', {}).get('name', '') or '').lower())]
             if hs:
