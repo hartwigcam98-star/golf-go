@@ -90,13 +90,14 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .spin svg{width:22px;height:22px}
 .spin span{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
 
-.shots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) minmax(0,.7fr);gap:4px;background:var(--panel2);border-radius:12px;padding:3px}
+.shots{display:grid;grid-template-columns:repeat(6,minmax(0,1fr)) minmax(0,.7fr);gap:4px;background:var(--panel2);border-radius:12px;padding:3px}
 .psbtn{color:#ffb36b}.psbtn.on{background:linear-gradient(180deg,#ff9a3c,#ff5a2a)!important;color:#fff!important;opacity:1}.psbtn:disabled{opacity:.22}
 .imppop{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);background:var(--paper);color:var(--paperInk);border-radius:18px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.35);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:5;touch-action:none}
 .imppop{width:210px}.imphead{display:flex;flex-direction:column;align-items:center;gap:0}.imphead b{font-size:20px;white-space:nowrap}.imphead span{font-size:13px;opacity:.75}
 #impBall{touch-action:none;cursor:crosshair}.trajseg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%;background:#e3dccb;border-radius:10px;padding:3px}.trajseg button{padding:5px 0;border-radius:8px;font-weight:700;font-size:13px}.trajseg button.on{background:#12283b;color:var(--sun)}
 .impbtns{display:flex;gap:8px}.impbtns button{padding:6px 14px;border-radius:10px;border:2px solid #12283b;font-weight:700}.impbtns button.on{background:#12283b;color:var(--sun)}
 .meter.power .track{background:linear-gradient(90deg,#63231a 0 12%,#7a2d12 12%,#c2531e 45%,#ff8a3c 80%,#ff4a2a 100%)!important;opacity:.7}
+.shots .bk{display:none}.shots.bunker{grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,.7fr)}.shots.bunker .bk{display:block}.shots.bunker #st_punch,.shots.bunker #st_pitch,.shots.bunker #st_chip,.shots.bunker #st_flop,.shots.bunker #st_spin{display:none}
 .shots button{height:30px;border-radius:9px;font-weight:700;font-size:14px;letter-spacing:.04em;opacity:.85}
 .shots button.on{background:var(--sun);color:var(--ink);opacity:1}
 .shots button:disabled{opacity:.22;cursor:default}
@@ -345,7 +346,7 @@ td.won{background:rgba(255,201,60,.38)}
         </button>
       </div>
       <div class="shots" id="shots" role="group" aria-label="Shot type">
-        <button data-t="full" id="st_full">Full</button><button data-t="punch" id="st_punch">Punch</button><button data-t="pitch" id="st_pitch">Pitch</button><button data-t="chip" id="st_chip">Chip</button><button data-t="flop" id="st_flop">Flop</button><button id="psBtn" class="psbtn" aria-label="Power shot">\u26a13</button>
+        <button data-t="full" id="st_full">Full</button><button data-t="punch" id="st_punch">Punch</button><button data-t="pitch" id="st_pitch">Pitch</button><button data-t="chip" id="st_chip">Chip</button><button data-t="flop" id="st_flop">Flop</button><button data-t="spin" id="st_spin">Spin</button><button data-t="splash" id="st_splash" class="bk">Splash</button><button data-t="pick" id="st_pick" class="bk">Pick</button><button data-t="blast" id="st_blast" class="bk">Blast</button><button id="psBtn" class="psbtn" aria-label="Power shot">\u26a13</button>
       </div>
       <div class="imppop" id="impPop" hidden>
         <div class="imphead"><b class="disp">Strike point</b><span id="impDesc">Centre</span></div>
@@ -364,7 +365,7 @@ td.won{background:rgba(255,201,60,.38)}
         <div class="tapmark" id="mTap" hidden></div>
         <div class="cursor" id="mCursor" style="left:12%"></div>
       </div>
-      <div class="mlabels"><span>Impact</span><span>25</span><span>50</span><span>75</span><span>Max</span></div>
+      <div class="mlabels"><span>Impact</span><span id="ml1">25</span><span id="ml2">50</span><span id="ml3">75</span><span>Max</span></div>
       <div class="row controls">
         <button class="sq" id="mapBtn" aria-label="View whole hole"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" fill="none" stroke="#fff6dc" stroke-width="2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff6dc" stroke-width="2"/></svg></button>
         <button class="sq" id="aimL" aria-label="Aim left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="#fff6dc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -565,7 +566,15 @@ const SHOTS={
  pitch:{c:.62,a:.85,r:.55,w:.8,e:1,win:1,clubs:ids('9I','PW','GW','SW','LW'),hint:'Pitch — soft, medium height, checks up'},
  chip:{c:.33,a:.22,r:0,w:.3,e:.7,win:1.25,clubs:ids('7I','8I','9I','PW','GW','SW','LW'),hint:'Chip — low hop, then rolls like a putt'},
  flop:{c:.42,a:1.6,r:.12,w:1.3,e:2.1,win:.55,clubs:ids('GW','SW','LW'),hint:'Flop — sky-high and stops dead; tight timing'},
+ spin:{c:.58,a:.6,r:.1,w:.8,e:1.05,win:.85,clubs:ids('PW','GW','SW','LW'),hint:'Spinner — a pitch with lots of spin: one hop and it checks up (fairway lies only)'},
+ // greenside bunker shots (offered in the sand within 45 yards of the pin)
+ splash:{c:.36,a:.34,r:.4,w:.7,e:1,win:1,clubs:ids('GW','SW','LW'),hint:'Splash — the standard bunker shot: up, out and a little release'},
+ pick:{c:.43,a:.28,r:.15,w:.8,e:1.5,win:.6,clubs:ids('GW','SW','LW'),hint:'Pick — clean off the top of the sand: lands soft and stops; tight timing'},
+ blast:{c:.3,a:.13,r:1.5,w:.5,e:.7,win:1.3,clubs:ids('PW','GW','SW','LW'),hint:'Blast — forgiving: comes out low and runs out'},
 };
+/* short-game meter: power = position^1.8, so a 15% chip sits a third of the way along and gives time to tap */
+const SG_K=1.8,mK=()=>isShort()?SG_K:1,m2p=f=>Math.pow(clamp(f,0,1),mK()),p2m=p=>Math.pow(clamp(p,0,1),1/mK());
+const BUNKER_T={splash:1,pick:1,blast:1},bunkerSide=()=>G.lie==='sand'&&!!G.hole&&pinDist()<=45;
 const shotOK=(t,ci)=>SHOTS[t].clubs.includes(ci);
 // green speed from the stimpmeter: the ramp releases the ball at 6 ft/s and it rolls STIMP feet on a flat green, so the rolling deceleration is v^2/(2d)
 const STIMP=11,STIMP_V=2,MU_GREEN=STIMP_V*STIMP_V/(2*STIMP/3);
@@ -1672,7 +1681,7 @@ function setCourse(id,persist=true){const C=COURSES[id]||COURSES.troy;if(C===CUR
   buildHoleGrid();}
 function later(t,fn){G.waitT=t;G.waitFn=fn;}
 function curClub(){return CLUBS[G.clubIdx];}
-function lieMul(c,lie){const k=c.kind;
+function lieMul(c,lie){const k=c.kind;if(lie==='sand'&&BUNKER_T[G.stype])return 1;
   if(lie==='sand')return c.id==='SW'?.9:c.id==='LW'?.86:k==='wedge'?.74:k==='wood'?.45:.6;
   if(lie==='rough')return k==='wedge'?.9:k==='hybrid'?.9:k==='wood'?.8:.86;
   if(lie==='fescue')return c.id==='SW'||c.id==='LW'?.8:k==='wedge'?.74:k==='hybrid'?.72:k==='wood'?.55:.68;return 1;}
@@ -1682,10 +1691,11 @@ function natMax(){const c=curClub();return clubCarry(c)*lieMul(c,G.lie)*SHOTS[G.
 function previewDist(){const c=curClub();return c.putter?G.puttMax:isShort()&&G.swMax?G.swMax:natMax();}
 /* ---- short game: chips run out by club (a 7-iron rolls about 3x its carry, a lob wedge well under its carry), pitches release a little,
    flops stop. The meter is sized round the shot like the putter's, and the planner finds the carry that finishes at the cup. ---- */
-const SHORT_T={chip:1,pitch:1,flop:1},isShort=()=>!!SHORT_T[G.stype]&&!curClub().putter;
+const SHORT_T={chip:1,pitch:1,flop:1,spin:1,splash:1,pick:1,blast:1},isShort=()=>!!SHORT_T[G.stype]&&!curClub().putter;
 const CHIP_R={'7I':3,'8I':2.5,'9I':2,'PW':1.6,'GW':1.25,'SW':1,'LW':.7},PITCH_R={'9I':.5,'PW':.42,'GW':.34,'SW':.27,'LW':.2};
 const SHORT_SURF={green:1,fairway:.7,tee:.7,rough:.28,fescue:.12,sand:0};
-function shortRoll(c,st,L){const k=st==='chip'?(CHIP_R[c.id]??1):st==='pitch'?(PITCH_R[c.id]??.3):.22;return k*(SHORT_SURF[L]??.5);}
+const SHORT_RK={spin:.035,splash:.42,pick:.16,blast:1.15};
+function shortRoll(c,st,L){const k=st==='chip'?(CHIP_R[c.id]??1):st==='pitch'?(PITCH_R[c.id]??.3):SHORT_RK[st]??.22;return k*(SHORT_SURF[L]??.5);}
 // roll from a point with a starting speed over the real ground; returns where it stops and the path
 function simRollP(x,y,dx,dy,v,path){let vx=dx*v,vy=dy*v;const h=1/240,pts=path?[[x,y]]:null;let lx=x,ly=y;
   for(let t=0;t<20;t+=h){const L=lieAt(x,y);if(L==='water'||L==='ob')return{x,y,pts,bad:true};
@@ -1723,10 +1733,10 @@ function shortPlan(){const b=G.ball,key=[G.clubIdx,G.stype,G.aim.toFixed(4),b.x.
 /* chips and flops: the meter is sized from the distance to the pin (the same for every club), so the flag shows how big a swing
    each club needs: less loft runs out more and needs a smaller swing. Pitches use the club's natural pitch distance and no flag,
    judged like a full shot. */
-function setShortMax(){if(!isShort()||G.stype==='pitch'){G.swMax=0;G.shortP=null;return;}G.swMax=0;G.shortP=null;const mx=natMax();
+function setShortMax(){if(!isShort()||!(G.stype==='chip'||G.stype==='flop')){G.swMax=0;G.shortP=null;return;}G.swMax=0;G.shortP=null;const mx=natMax();
   G.swMax=clamp(pinDist()*1.15/shotMods().carry+1.5,Math.min(6,mx),mx);G.shortP=null;}
 // pick the short-game shot: chip when it can land on the green and run, pitch when it has to carry more, the club that finishes closest
-function chooseShort(){const d=pinDist(),L=G.lie;if(L==='sand'||L==='green'||d>70)return false;
+function chooseShort(){const d=pinDist(),L=G.lie;if(bunkerSide()){G.stype='splash';G.clubIdx=CI('SW');G.shortP=null;setShortMax();return true;}if(L==='sand'||L==='green'||d>70)return false;
   const p=G.hole.pin,cands=[];if(d<=40)for(const id of['7I','8I','9I','PW','GW','SW','LW'])cands.push(['chip',id]);for(const id of['PW','GW','SW','LW'])cands.push(['pitch',id]);
   let best=null;const keep=[G.stype,G.clubIdx];
   for(const[st,id]of cands){G.stype=st;G.clubIdx=CI(id);G.swMax=0;G.shortP=null;const P=shortPlan();if(P.over||P.bad)continue;
@@ -1936,7 +1946,7 @@ function tap(){
   if(G.fc&&G.state==='aim'){lookEnd();return;}
   const m=G.meter;
   if(G.state==='aim'){G.state='power';m.pos=IMPACT;m.power=0;m.dir=1;G.tapMark=null;sfx.tick();}
-  else if(G.state==='power'){m.power=clamp((m.pos-IMPACT)/(1-IMPACT),0,1);G.state='acc';sfx.tick();}
+  else if(G.state==='power'){m.power=m2p((m.pos-IMPACT)/(1-IMPACT));G.state='acc';sfx.tick();}
   else if(G.state==='acc'){const e=m.pos-IMPACT;G.tapMark=clamp(m.pos,0,1);executeShot(m.power,clamp(e,-.12,.4));}
 }
 function executeShot(power,e){
@@ -1963,7 +1973,7 @@ function executeShot(power,e){
   const lm=lieMul(club,lie),em=(lie==='rough'?1.4:lie==='sand'?1.6:lie==='fescue'?1.8:1)*ST.e;
   const M=shotMods();
   // short-game mishits: early (fat) chunks it short and dead; late (thin) blades it low and long and it runs
-  let mis=null;if(isShort()&&!miss&&G.missBy>0){const amp=(G.stype==='flop'?1.45:G.stype==='pitch'?1.15:1)*(cmod().mis??1);
+  let mis=null;if(isShort()&&!miss&&G.missBy>0){const amp=({flop:1.45,pitch:1.15,spin:1.2,pick:1.5,splash:1,blast:.8}[G.stype]??1)*(cmod().mis??1);
     mis=e>0?{k:'chunk',c:1-clamp((.1+G.missBy*10)*amp,.1,.75),a:.75,r:.5}:{k:'blade',c:1+clamp((.14+G.missBy*9)*amp,.14,.9),a:.3,r:G.stype==='chip'?1.6:2.2};}
   const carry=(mis?mis.c:1)*Math.max(isShort()&&G.swMax?.5:2,(isShort()&&G.swMax?G.swMax:clubCarry(club)*lm*ST.c)*power*M.carry*(perfect===2&&!isShort()?(cmod().perf??1.03):1)*(1-(HARSH?Math.min(.32,G.missBy*3.6*(cmod().misFull??1)):Math.min(.16,G.missBy*1.6))));
   const[dx,dy]=dirOf(G.aim),px=-dy,py=dx;
@@ -2584,7 +2594,7 @@ function aiPlan(){const r=MATCH.r,sk=r.sk,b=G.ball;
 function aiStep(dt){const A=G.ai;if(!G.aiTurn||!A)return;const m=G.meter,fast=G.aiSkip;
   if(G.state==='aim'){if(R3.on&&r3RoutineBusy())return;A.t+=dt;G.aim+=(A.aim-G.aim)*Math.min(1,dt*4);
     if(A.t>(fast?0:A.think)){G.aim=A.aim;G.state='power';m.pos=IMPACT;m.power=0;m.dir=1;G.tapMark=null;sfx.tick();}}
-  else if(G.state==='power'){const tgt=IMPACT+A.power*(1-IMPACT);if(fast||m.pos>=tgt){m.pos=tgt;m.power=A.power;G.state='acc';sfx.tick();}}
+  else if(G.state==='power'){const tgt=IMPACT+p2m(A.power)*(1-IMPACT);if(fast||m.pos>=tgt){m.pos=tgt;m.power=A.power;G.state='acc';sfx.tick();}}
   else if(G.state==='acc'){const tgt=IMPACT+(A.e===null?-1:A.e);if(fast||m.pos<=tgt){G.tapMark=clamp(IMPACT+(A.e||0),0,1);G.ai=null;executeShot(m.power,A.e);}}}
 function skipAI(){if(!G.aiTurn)return;G.aiSkip=true;if(ffActive())G.ff=8;}
 
@@ -2641,17 +2651,12 @@ function face(L){return'<svg class="face" viewBox="0 0 40 40" aria-hidden="true"
 /* ---------- camera (behind the golfer) ---------- */
 /* address views for full shots: 0 the standard view, 1 and 2 closer down-the-line views that keep the whole golfer in frame */
 let CAMV=0;try{CAMV=Math.max(0,Math.min(2,+localStorage.getItem('golf-camv')||0));}catch(e){}
-const CAMV_SET=[null,{back:8.2,ht:3.0,look:16,ly:.35},{back:5.2,ht:2.0,look:9,ly:.65}];
-// the golfer's hips at address, relative to the ball (along the aim, to the side, height); measured live while aiming, then held through the swing
-const CAM_HIP={al:-.13,sd:-1.48,h:1.24};
-function camAddress(x,y,aim){const V2=CAMV_SET[CAMV];if(!V2)return null;const[dx,dz]=dirOf(aim),px=-dz,pz=dx,g0=hAt(x,y);
-  const hw=(typeof R3B!=='undefined'&&R3.on&&R3B.hipW)?R3B.hipW:null;
-  if(hw&&G.state==='aim'&&!(typeof R3R!=='undefined'&&R3R.on)){const rx=hw[0]-x,rz=hw[2]-y,al=rx*dx+rz*dz,sd=rx*px+rz*pz;
-    if(Math.abs(al)<.8&&Math.abs(sd)>.6&&Math.abs(sd)<2.2){CAM_HIP.al+=(al-CAM_HIP.al)*.2;CAM_HIP.sd+=(sd-CAM_HIP.sd)*.2;CAM_HIP.h+=((hw[1]-g0)-CAM_HIP.h)*.2;}}
-  // frame the golfer: the middle of the body sits in the middle of the view, the camera straight down the target line behind them
-  const cx=x+dx*CAM_HIP.al+px*CAM_HIP.sd,cz=y+dz*CAM_HIP.al+pz*CAM_HIP.sd,cy=g0+CAM_HIP.h*.82;
-  const ex=cx-dx*V2.back,ez=cz-dz*V2.back,ey=Math.max(hAt(ex,ez)+.7,g0+V2.ht),k=V2.look/V2.back;
-  return{E:[ex,ey,ez],L:[cx+(cx-ex)*k,cy+(cy-ey)*k,cz+(cz-ez)*k]};}
+const CAMV_SET=[null,{back:8.6,ht:3.4,lk:.6},{back:6.2,ht:2.5,lk:.4}];
+/* the closer address views frame the shot exactly like the standard view (camera straight behind the ball, target line in the
+   middle, golfer to the left), just nearer and lower; the look point comes in a little so the golfer stays well in frame */
+function camAddress(x,y,aim){const V2=CAMV_SET[CAMV];if(!V2)return null;const[dx,dz]=dirOf(aim),g0=hAt(x,y),D=Math.max(previewDist(),2);
+  const look=Math.max(8,Math.min(70,D*.6)*V2.lk),lx=x+dx*look,lz=y+dz*look,ex=x-dx*V2.back,ez=y-dz*V2.back;
+  return{E:[ex,Math.max(hAt(ex,ez)+.7,g0+V2.ht),ez],L:[lx,hAt(lx,lz)*.6+g0*.4,lz]};}
 function camCycle(){CAMV=(CAMV+1)%3;try{localStorage.setItem('golf-camv',String(CAMV));}catch(e){}sfx.tick();}
 function camTarget(){
   if(G.replay)return replayCam();
@@ -2946,10 +2951,10 @@ function swingState(type,putt){
   const m=G.meter,maxB=SWING_BACK[type]||1;
   const backAt=b=>{const e=smooth(0,1,b);return{alpha:166*DEG*e*maxB,beta:110*DEG*smooth(.12,.62,b*maxB)*Math.min(1,maxB*1.4),ts:98*DEG*b*maxB,th:46*DEG*b*maxB,tilt:(35-4*b*maxB)*DEG,heel:0,shift:-.04*b*maxB,look:0,fin:0};};
   if(putt){let a=0;
-    if(aimingState()){const b=G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?m.power:0;a=(b>0?4+12*b:0)*DEG;}
+    if(aimingState()){const b=G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?p2m(m.power):0;a=(b>0?4+12*b:0)*DEG;}
     else if(G.followT>0){const t=Math.min(1,G.followT/.6),b0=G.swingBack||.5,amp=(4+12*b0)*DEG;a=amp*(1-smooth(0,.3,t))-amp*1.15*smooth(.28,.85,t);}
     s.alpha=a;s.ts=0;return s;}
-  if(aimingState()){const b=G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?m.power:0;return{...s,...backAt(clamp(b,0,1))};}
+  if(aimingState()){const b=G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?p2m(m.power):0;return{...s,...backAt(clamp(b,0,1))};}
   if(G.followT>0){
     const top=backAt(G.swingBack||1),end=SWING_END[type]||1;
     const t=Math.min(end,G.followT/SWING_DUR);
@@ -3261,7 +3266,7 @@ function r3bClub(ck,Lc){const key=ck+'|'+Lc;if(R3B.cache[key])return R3B.cache[k
   return R3B.cache[key]={dI:r3bT(I.R,I.d),dA:r3bT(A.R,A.d),fI:r3bT(I.R,tI),fA:r3bT(A.R,tA),Pimp};}
 function r3bBackT(c,x){const t=clamp(x,0,1)*20,i=Math.floor(t),a=t-i;return i>=20?c.bt[20]:c.bt[i]*(1-a)+c.bt[i+1]*a;}
 const R3B_GRIP=8.5;   // cm from the lead palm down the grip to the trail palm
-const R3B_CFG={full:['drive',1,1],flop:['drive',1,1],punch:['drive',.6,.5],pitch:['chip',1,1],chip:['chip',.62,.62]};
+const R3B_CFG={full:['drive',1,1],flop:['drive',1,1],punch:['drive',.6,.5],pitch:['chip',1,1],chip:['chip',.62,.62],spin:['chip',1,1],splash:['drive',.8,.85],pick:['chip',1,1],blast:['drive',.65,.7]};
 // returns false when the character is not available (the old figure is drawn instead)
 function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||G.aiTurn)return false;   // rivals keep their own jointed figure for now
   const club=G.state==='aim'||aimingState()?G.clubIdx:(G.swingClub??G.clubIdx),putt=club===PUTTER,type=aimingState()?G.stype:(G.swingType||'full');
@@ -3279,7 +3284,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||G.aiTurn)return false;   // 
   else if(R3R.post.on&&G.state==='wait'&&!putt){R3R.post.t+=dtR;const pc=R3B.clips.postswing;
     if(!R3R.post.X){const fin=r3bHipAt(ck,c.fin),st=r3bHipAt('postswing',pc.t0+.6);R3R.post.X=r3bAlign(st,fin);}
     r3bPose(pc,pc.t0+.6+R3R.post.t,qa,ha);r3bXf(qa,ha,R3R.post.X);wI=1;post=true;}
-  else if(aimingState()){const b=G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?m.power:0;const tb=r3bBackT(c,bFrac(clamp(b,0,1)));r3bPose(c,tb,qa,ha);}
+  else if(aimingState()){const b=G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?(typeof p2m==='function'?p2m(m.power):m.power):0;const tb=r3bBackT(c,bFrac(clamp(b,0,1)));r3bPose(c,tb,qa,ha);}
   else if(G.followT>0){const fT=G.followT,la=G.launchAt||(putt?PUTT_IMPACT:IMPACT_T),b0=clamp(G.swingBack||1,0,1),x=bFrac(b0),tb=r3bBackT(c,x);
     if(fT<la){const u=fT/la;r3bPose(c,tb+(c.imp-tb)*u,qa,ha);r3bPose(c,tb+(c.addr-tb)*u,qb,hb);r3bBlend(qa,ha,qb,hb,1-smooth(.35,.85,x));wI=smooth(.2,1,u);}
     else{const tEnd=c.imp+(c.fin-c.imp)*(putt?.3+.7*b0:end);r3bPose(c,Math.min(c.imp+(fT-la),tEnd),qa,ha);wI=1;}}
@@ -3291,7 +3296,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||G.aiTurn)return false;   // 
   hd.H=r3bArms(hd.H,cdR,!!(routine||post));const push={length:()=>R3B.lastPush};
   // place the rig so that the impact point lands on the ball: rig x -> away from the ball, y up, z -> target
   const[ax,az]=dirOf(ga.aim),u=[ax,0,az],f=[-az,0,ax],k=.94/100;const P=S.Pimp;
-  const bx=ga.x,bz=ga.y,ox=bx-(P[0]*-f[0]+P[2]*u[0])*k,oz=bz-(P[0]*-f[2]+P[2]*u[2])*k,oy=hAt(bx,bz)-.02;
+  const bx=ga.x,bz=ga.y,ox=bx-(P[0]*-f[0]+P[2]*u[0])*k,oz=bz-(P[0]*-f[2]+P[2]*u[2])*k,oy=hAt(bx,bz)-.02;R3B.org=[ox,oy,oz,bx,bz];
   const X=[-f[0]*k,0,-f[2]*k],Y=[0,k,0],Z=[u[0]*k,0,u[2]*k];
   R3B.root.matrix.set(X[0],Y[0],Z[0],ox, X[1],Y[1],Z[1],oy, X[2],Y[2],Z[2],oz, 0,0,0,1);R3B.root.matrixWorld.copy(R3B.root.matrix);R3B.bones[0].updateMatrixWorld(true);
   R3B.mesh.visible=true;{const e=R3B.bones[0].matrixWorld.elements;R3B.hipW=[e[12],e[13],e[14]];}
@@ -4477,7 +4482,8 @@ function updHud(){
 $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   const d=pinDist();setT('pinTxt',(G.lie==='green'||d<20)?'Cup '+Math.round(d*3)+' ft':'Pin '+Math.round(d)+' yds'+(Math.abs(pinRise())>=1.5?(pinRise()>0?' \u25b2':' \u25bc')+Math.round(Math.abs(pinRise())*3)+' ft':''));
   const aiming=G.state==='aim'&&!G.aiTurn;
-  for(const t in SHOTS){const b=$('st_'+t);b.disabled=!aiming||c.putter||!shotOK(t,G.clubIdx)&&!SHOTS[t].clubs.length;b.classList.toggle('on',!c.putter&&G.stype===t);b.setAttribute('aria-pressed',String(!c.putter&&G.stype===t));}
+  { const bk=bunkerSide();$('shots').classList.toggle('bunker',bk); }
+  for(const t in SHOTS){const b=$('st_'+t);b.disabled=!aiming||c.putter||!shotOK(t,G.clubIdx)&&!SHOTS[t].clubs.length||(t==='spin'&&!(G.lie==='fairway'||G.lie==='tee'))||(BUNKER_T[t]&&!bunkerSide());b.classList.toggle('on',!c.putter&&G.stype===t);b.setAttribute('aria-pressed',String(!c.putter&&G.stype===t));}
   $('clubPrev').disabled=$('clubNext').disabled=!aiming||G.lie==='green';$('clubName').disabled=!aiming||G.lie==='green';
   $('spinBtn').disabled=!aiming||c.putter;
   if(G.state!=='aim'||c.putter)$('impPop').hidden=true;
@@ -4502,14 +4508,15 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   setT('hint',G.aiTurn?rn(MATCH.r)+(G.aiSkip?' \u00b7 skipping ahead':' is playing \u00b7 tap Skip to jump ahead'):st==='aim'?(G.fc?(G.fc.follow?'Scouting your shot \u00b7 change club or aim \u00b7 drag to turn \u00b7 pinch to zoom':'Free look \u00b7 tap Landing to follow your shot again'):G.overview?'Tap anywhere to return to your ball':c.putter?(GL.slOK?'Grid lines: red is steep, green is gentle \u00b7 the glow runs downhill':'Watch the dots on the green — they flow downhill'):(G.stype==='full'?'Drag to aim · Tap Swing to start':SHOTS[G.stype].hint)):st==='power'?'Tap to set power':st==='acc'?'Tap on the white line':' ');
   const m=G.meter,w=perfectWin();
   $('mCursor').style.left=(m.pos*100)+'%';
-  const fillTo=st==='power'?m.pos:(st==='acc'?IMPACT+m.power*(1-IMPACT):IMPACT);
+  { const sh=isShort()&&!c.putter,mx=sh?(G.swMax||natMax())*shotMods().carry:0,lb=f=>sh?Math.max(1,Math.round(mx*m2p(f)))+'y':String(Math.round(f*100));setT('ml1',lb(.25));setT('ml2',lb(.5));setT('ml3',lb(.75)); }
+  const fillTo=st==='power'?m.pos:(st==='acc'?IMPACT+p2m(m.power)*(1-IMPACT):IMPACT);
   $('mFill').style.width=Math.max(0,(fillTo-IMPACT)*100)+'%';
-  const lk=$('mLock');lk.hidden=st!=='acc';lk.style.left=((IMPACT+m.power*(1-IMPACT))*100)+'%';
+  const lk=$('mLock');lk.hidden=st!=='acc';lk.style.left=((IMPACT+p2m(m.power)*(1-IMPACT))*100)+'%';
   const sweet=$('mSweet');sweet.style.left=((IMPACT-w)*100)+'%';sweet.style.width=(w*200)+'%';
   const tm=$('mTap');tm.hidden=G.tapMark==null||st==='power'||st==='acc';if(!tm.hidden){tm.style.left=(G.tapMark*100)+'%';tm.classList.toggle('good',Math.abs(G.tapMark-IMPACT)<=perfectWin());}
   const fl=$('mFlag'),shortF=!c.putter&&isShort()&&G.swMax>0,showF=(c.putter||shortF)&&(st==='aim'||st==='power'||st==='acc')&&!G.overview&&!G.aiTurn;fl.hidden=!showF;
   if(showF){if(st==='aim'||G.flagP===undefined)G.flagP=shortF?(()=>{const P=shortPlan();return P.carry/(G.swMax*shotMods().carry);})():puttTargetPower();const tp=G.flagP;
-    if(tp===null)fl.hidden=true;else{const over=tp>1;fl.classList.toggle('over',over);fl.style.left=((IMPACT+Math.min(1,tp)*(1-IMPACT))*100)+'%';setT('mFlagTxt',over?'Beyond max':shortF?Math.round(pinDist())+' y':Math.round(pinDist()*3)+' ft');fl.classList.toggle('flip',tp>.8);}}
+    if(tp===null)fl.hidden=true;else{const over=tp>1;fl.classList.toggle('over',over);fl.style.left=((IMPACT+p2m(Math.min(1,tp))*(1-IMPACT))*100)+'%';setT('mFlagTxt',over?'Beyond max':shortF?Math.round(pinDist())+' y':Math.round(pinDist()*3)+' ft');fl.classList.toggle('flip',tp>.8);}}
 }
 
 /* ---------- loop ---------- */
@@ -4532,10 +4539,10 @@ function update(dt){
     if(!L)holdL=0;if(!R)holdR=0;
   }
   const m=G.meter,putt=curClub().putter;
-  if(G.state==='power'){m.pos+=(m.dir||1)*dt*(putt?.7:1.0);
+  if(G.state==='power'){m.pos+=(m.dir||1)*dt*(putt?.7:isShort()?.85:1.0);
     if(m.pos>=1){m.pos=1;m.dir=-1;}
     else if(m.dir<0&&m.pos<=IMPACT){m.pos=IMPACT;m.dir=1;G.state='aim';toast('NO POWER SET','Tap once more during the backswing','#fff6dc');sfx.miss();}}
-  else if(G.state==='acc'){m.pos-=dt*(putt?.6:.95*(G.pshot?1.2:1));if(m.pos<=0){m.pos=0;executeShot(m.power,null);}}
+  else if(G.state==='acc'){m.pos-=dt*(putt?.6:isShort()?.8:.95*(G.pshot?1.2:1));if(m.pos<=0){m.pos=0;executeShot(m.power,null);}}
   if(G.followT>0)G.followT+=dt;
   const launched=!(G.followT>0&&G.followT<(G.launchAt||0));
   if(G.divotQ&&launched){spawnDivot(G.divotQ);G.divotQ=null;}stepDivots(dt);
@@ -4619,7 +4626,7 @@ function openBag(){if((G.state!=='aim'||G.aiTurn))return;A();const g=$('bagGrid'
   $('bagM').hidden=false;}
 function pickClub(i){if((G.state!=='aim'||G.aiTurn))return;G.clubIdx=clamp(i,0,PUTTER);if(G.clubIdx===PUTTER){G.puttMax=calcPuttMax();G.spin=0;}else if(!shotOK(G.stype,G.clubIdx))G.stype='full';setShortMax();sfx.tick();}
 function changeClub(d){if((G.state!=='aim'||G.aiTurn)||G.lie==='green')return;G.clubIdx=clamp(G.clubIdx+d,0,PUTTER);if(G.clubIdx===PUTTER){G.puttMax=calcPuttMax();G.spin=0;}else if(!shotOK(G.stype,G.clubIdx))G.stype='full';setShortMax();sfx.tick();}
-function setShot(t){if((G.state!=='aim'||G.aiTurn)||curClub().putter)return;if(!shotOK(t,G.clubIdx)){const c=SHOTS[t].clubs;G.clubIdx=G.clubIdx<c[0]?c[0]:c[c.length-1];}G.stype=t;setShortMax();sfx.tick();}
+function setShot(t){if((G.state!=='aim'||G.aiTurn)||curClub().putter)return;if(BUNKER_T[t]&&!bunkerSide())return;if(t==='spin'&&!(G.lie==='fairway'||G.lie==='tee')){toast('NO SPINNER','Needs a clean lie: fairway or tee','#fff6dc');return;}if(!shotOK(t,G.clubIdx)){const c=SHOTS[t].clubs;G.clubIdx=G.clubIdx<c[0]?c[0]:c[c.length-1];}G.stype=t;setShortMax();sfx.tick();}
 document.querySelectorAll('#shots button[data-t]').forEach(b=>b.addEventListener('click',()=>setShot(b.dataset.t)));
 $('clubPrev').addEventListener('click',()=>changeClub(-1));
 $('clubName').addEventListener('click',openBag);$('bagClose').addEventListener('click',()=>{$('bagM').hidden=true;});$('bagM').addEventListener('click',e=>{if(e.target.id==='bagM')$('bagM').hidden=true;});
