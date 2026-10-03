@@ -279,6 +279,9 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
 .rv.next{background:#12283b;color:var(--paper)}
 .rv.locked{opacity:.45;cursor:default}
 .face{width:40px;height:40px;flex:0 0 auto;display:block}
+img.face{border-radius:50%;object-fit:cover;background:#e3dccb}
+.rv.locked img.face{filter:grayscale(1) brightness(.35)}
+.gfl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.gfl button{border:2px solid #12283b;border-radius:14px;padding:4px 4px 6px;background:none;color:#12283b;font:inherit;text-align:center}.gfl button.on{background:#12283b;color:#f6c344}.gfl button:disabled{opacity:.55}.gfl img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block}.gfl button:disabled img{filter:grayscale(1) brightness(.35)}.gfl b{display:block;font-size:13px;margin-top:3px}.gfl span{display:block;font-size:11px;opacity:.7}.st10{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;font-size:14px;margin:8px 0}.st10 em{font-style:normal;font-weight:700;font-size:13px}
 .rvn{flex:1;min-width:0;display:flex;flex-direction:column}
 .rvn b{font-size:16px}
 .rvn span{font-size:12px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -497,8 +500,8 @@ td.won{background:rgba(255,201,60,.38)}
   <div class="modal" id="careerM" hidden>
     <div class="card">
       <div class="eyebrow">Challenge · <span id="careerPts">0 pts</span></div>
-      <h1 class="disp">Challenge</h1>
-      <div class="ctabs" id="careerTabs" role="tablist" aria-label="Challenge sections"><button data-tab="rivals">Rivals</button><button data-tab="skills">Skills</button><button data-tab="gear">Gear</button><button data-tab="look">Look</button></div>
+      <h1 class="disp" id="careerH">Challenge</h1>
+      <div class="ctabs" id="careerTabs" role="tablist" aria-label="Challenge sections"><button data-tab="rivals">Rivals</button><button data-tab="golfers" hidden>Golfers</button><button data-tab="skills">Skills</button><button data-tab="gear">Gear</button><button data-tab="look">Look</button></div>
       <div id="careerBody"></div>
       <button class="textbtn" id="careerBack">Back to menu</button>
     </div>
@@ -539,6 +542,8 @@ td.won{background:rgba(255,201,60,.38)}
         <div class="msub" id="mDailySub"></div>
         <button class="primary disp careerbtn" id="mCareer">Challenge <span id="mCareerN">vs rivals</span></button>
         <div class="msub" id="mCareerSub"></div>
+        <button class="primary disp careerbtn" id="mCareer2">Challenge V2 <span id="mCareer2N">unlock the golfers</span></button>
+        <div class="msub" id="mCareer2Sub"></div>
         <button class="primary disp careerbtn" id="mMatchCont" hidden>Continue match</button>
         <div class="msub" id="mMatchSub" hidden></div>
       </div>
@@ -2500,7 +2505,10 @@ function dailyShare(){const me=dailyToday();if(!me||!me.done)return;
   const txt='Golf Go daily \u00b7 '+dailyNice(me.day)+'\n'+C.name+': '+me.total+' ('+fmtDiff(me.toPar)+')\n'+em.slice(0,9).join('')+'\n'+em.slice(9).join('')+'\n'+location.href.split('#')[0].split('?')[0];
   if(navigator.share)navigator.share({text:txt}).catch(()=>{});else{navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>toast('COPIED','Paste it to your friends','#8ee6a8'),()=>{});}}
 function menuPlay(){const cid=dailyCourse(dailyDay()),img=courseImg(cid),el=$('mDailyImg');if(img)el.src=img;else el.removeAttribute('src');$('mDailyName').textContent=COURSES[cid].name;
-  $('mCareerN').textContent='vs '+RIVALS.length+' rivals';const nb=CAR.beaten.length;$('mCareerSub').textContent=nb>=RIVALS.length?'Every rival beaten \u00b7 rematch anyone for points':nb?nb+' of '+RIVALS.length+' beaten \u00b7 next: '+RIVALS[nextRivalIdx()].name:'Beat each rival to unlock the next';}
+  {const C1=carOf(1),nb=C1.beaten.length,nx=RIVALS1.find(r=>!C1.beaten.includes(r.id));$('mCareerN').textContent='vs '+RIVALS1.length+' rivals';
+   $('mCareerSub').textContent=nb>=RIVALS1.length?'Every rival beaten \u00b7 rematch anyone for points':nb?nb+' of '+RIVALS1.length+' beaten \u00b7 next: '+nx.name:'Beat each rival to unlock the next';}
+  {const C2=carOf(2),nb=C2.beaten.length,nx=RIVALS2.find(r=>!C2.beaten.includes(r.id));$('mCareer2N').textContent=C2.unlocked.length+' of '+CHARS.length+' golfers';
+   $('mCareer2Sub').textContent=nb>=RIVALS2.length?'Every golfer unlocked \u00b7 rematch anyone for points':'Start as Gary and win golfers \u00b7 next: '+nx.name+' at '+COURSES[nx.course].name;}}
 function dailyMenuLine(){const day=dailyDay(),cid=dailyCourse(day),me=dailyToday();$('mDailyCourse').textContent=COURSES[cid].name;
   $('mDailySub').textContent=dailyNice(day)+' \u00b7 '+(me&&me.done?'You shot '+me.total+' ('+fmtDiff(me.toPar)+') \u00b7 tap for the leaderboard':me&&(me.hi>0||me.mid)?'In progress \u00b7 hole '+((me.hi||0)+1):'Same course for everyone today');
   if(me&&me.done&&!me.posted)dailyPost();}
@@ -2513,7 +2521,7 @@ function openMenu(fromGame){G.paused=true;$('menuM').hidden=false;try{menuHero()
     $('mContinueSub').textContent='Hole '+(sv.hi+1)+(sv.mid?' \u00b7 stroke '+(sv.strokes+1):'')+' \u00b7 '+(n?fmtDiff(d)+' through '+n:'no holes finished yet')+' \u00b7 saved '+new Date(sv.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'});}
   $('mNew').className=sv?'ghost disp':'primary disp';
   $('mClose').hidden=!(fromGame&&G.hole)||G.mode==='spectate';
-  const cmx=CAR.match,showM=!!cmx&&!MATCH.on&&!!RV(cmx.rid);$('mMatchCont').hidden=!showM;$('mMatchSub').hidden=!showM;
+  const pv=pendingMatchV(),cmx=pv?carOf(pv).match:null,showM=!!cmx&&!MATCH.on&&!!RV(cmx.rid);$('mMatchCont').hidden=!showM;$('mMatchSub').hidden=!showM;
   if(showM){const r=RV(cmx.rid),up=(cmx.res||[]).reduce((a,b)=>a+(b||0),0),cu=cmx.cur&&cmx.cur.hi===cmx.hi?cmx.cur:null;
     $('mMatchCont').innerHTML='Continue match <span>vs '+rn(r)+'</span>';
     $('mMatchSub').textContent=COURSES[matchCid(cmx,r)].name+' \u00b7 hole '+(cmx.hi+1)+(cu?' \u00b7 stroke '+(cu.P[0].strokes+1):'')+' \u00b7 '+(up===0?'all square':(up>0?'you ':rn(r)+' ')+Math.abs(up)+' up')+(cmx.ts?' \u00b7 saved '+new Date(cmx.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'');}
@@ -2540,7 +2548,7 @@ const OUTFITS=[
  {id:'sunday',name:'Sunday red',top:'#a8262f',hat:'#1c1c1e',cost:250},
  {id:'sand',name:'Links',top:'#c7b68f',hat:'#3b5a6e',cost:250}];
 // fictional rivals, two per course; sk: pow = carry multiplier, acc = timing spread (smaller is better), putt 0-1, miss = mishit chance, wind = how well they allow for it, perr = power spread
-const RIVALS=[
+const RIVALS1=[
  {id:'gus',name:'Dave Kowalski',nick:'Dave from Accounting',course:'troy',reward:300,blurb:'Takes Friday afternoons off for golf and keeps score very generously. Talks through your backswing.',
   sk:{pow:0.86,acc:0.052,putt:0.35,miss:0.045,wind:0.3,perr:0.09},look:{top:'#c9a13b',pants:'#4b4f58',skin:'#e8b996',hat:'#2f3b52',hatType:'cap',beard:null,boot:'#e9e6df'}},
  {id:'kelly',name:'Kelly Brandt',nick:'The Club Pro',course:'stoneridge',reward:380,blurb:'Gives lessons all week and finally gets to play. Textbook swing, shaky putter.',
@@ -2579,7 +2587,7 @@ const RIVALS=[
   sk:{pow:1.12,acc:0.0122,putt:0.968,miss:0.0032,wind:0.995,perr:0.0325},look:{top:'#c9b98a',pants:'#3c4a5a',skin:'#b98260',hat:'#2e4a5a',hatType:'cap',hair:'#2a1d16',beard:'#2a1d16',boot:'#3a2a20'}},
  {id:'loon',name:'Elias Northwind',short:'Elias',nick:'The Last Legend',course:'wilderness',reward:2000,blurb:'Seven majors, one quiet cabin on Lake Vermilion, and no interest in your excuses. Beat him at the Wilderness and there is no one left.',
   sk:{pow:1.1,acc:0.012,putt:0.97,miss:0.003,wind:1.0,perr:0.032},look:{top:'#2f4a3a',pants:'#d8d2c2',skin:'#e0a98a',hat:'#6b5a45',hatType:'flat',hair:'#d9d4ca',beard:'#d9d4ca',boot:'#3a2a20'}}];
-const RV=id=>RIVALS.find(r=>r.id===id);
+const RV=id=>RIVALS1.find(r=>r.id===id)||(typeof RIVALS2!=='undefined'?RIVALS2.find(r=>r.id===id):null);
 const first=n=>n.split(' ')[0],rn=r=>r.short||first(r.name);
 const SKILLS=[
  {k:'pow',name:'Power',d:'+1.8% carry on every full shot'},
@@ -2666,10 +2674,39 @@ const CAREER_KEY='golf-career-v1';
 function blankCareer(){return{v:1,pts:0,st:{pow:0,ctl:0,imp:0,spin:0,putt:0},gear:{drv:0,irn:0,wdg:0,ptr:0,ball:0},look:'classic',owned:['classic'],beaten:[],record:{},match:null};}
 let CAR=blankCareer();
 function loadCareer(){try{const d=JSON.parse(localStorage.getItem(CAREER_KEY)||'null');if(d&&d.v===1){CAR={...blankCareer(),...d,st:{...blankCareer().st,...d.st},gear:{...blankCareer().gear,...d.gear}};}}catch(e){}}
-function saveCareer(){try{localStorage.setItem(CAREER_KEY,JSON.stringify(CAR));}catch(e){}}
+function saveCareer(){try{localStorage.setItem(CV===2?CAREER2_KEY:CAREER_KEY,JSON.stringify(CAR));}catch(e){}}
 loadCareer();
-function myLook(){const o=OUTFITS.find(x=>x.id===CAR.look)||OUTFITS[0];return{...LOOK_ME,top:o.top,hat:o.hat};}
-function careerMods(){const s=CAR.st,g=CAR.gear;return{
+/* ---------- Challenge V2: you start as Gary with the worst stats and unlock each golfer by beating them on their course.
+   Stats here run 1-10 (they map onto the same -2..+2 range as the Play Now 1-5 stats); Master Ko, last, is maxed out.
+   No skill upgrades: points buy knock-off equipment. Progress is kept apart from the original Challenge. ---------- */
+const CH2_START='ch01',CH2_ORDER=['ch01', 'remy', 'ch12', 'ch08', 'ch42', 'ch23', 'ch31', 'ch28', 'ch06', 'ch17', 'ch09', 'granny', 'brute', 'peasant', 'ty', 'vegas', 'ch24', 'boss', 'ch43', 'ch39'];
+const CH2_COURSE={'remy':'troy','ch12':'stoneridge','ch08':'quarry','ch42':'legend','ch23':'wilderness','ch31':'sandvalley','ch28':'mammoth','ch06':'sedge','ch17':'lido','ch09':'heritage','granny':'pawplant','brute':'caledonia','peasant':'trueblue','ty':'crsc','vegas':'crls','ch24':'senator','boss':'legislator','ch43':'judge','ch39':'rossbridge'};
+const CH2_ST={ch01:{pow:1,ctl:1,imp:1,sg:1,putt:1,spin:1},remy:{pow:1,ctl:1,imp:1,sg:1,putt:4,spin:1},ch12:{pow:1,ctl:1,imp:1,sg:4,putt:4,spin:1},ch08:{pow:5,ctl:2,imp:4,sg:1,putt:1,spin:2},ch42:{pow:5,ctl:1,imp:5,sg:2,putt:1,spin:3},ch23:{pow:3,ctl:7,imp:3,sg:3,putt:3,spin:1},ch31:{pow:4,ctl:6,imp:4,sg:4,putt:4,spin:1},ch28:{pow:7,ctl:7,imp:4,sg:2,putt:4,spin:2},ch06:{pow:7,ctl:7,imp:5,sg:2,putt:3,spin:5},ch17:{pow:10,ctl:3,imp:6,sg:3,putt:5,spin:5},ch09:{pow:3,ctl:6,imp:10,sg:6,putt:6,spin:3},granny:{pow:2,ctl:10,imp:6,sg:9,putt:8,spin:2},brute:{pow:10,ctl:5,imp:5,sg:6,putt:6,spin:8},peasant:{pow:10,ctl:7,imp:5,sg:7,putt:7,spin:7},ty:{pow:2,ctl:8,imp:10,sg:10,putt:8,spin:8},vegas:{pow:10,ctl:3,imp:9,sg:9,putt:9,spin:9},ch24:{pow:9,ctl:9,imp:10,sg:9,putt:5,spin:9},boss:{pow:9,ctl:9,imp:9,sg:9,putt:9,spin:9},ch43:{pow:10,ctl:9,imp:10,sg:9,putt:9,spin:10},ch39:{pow:10,ctl:10,imp:10,sg:10,putt:10,spin:10}};
+const GEAR2_TIERS={drv:['Callawhy Big Birtha','TaylorMaid Stealthy','Titlelist TS-Wee','Pong G-430 Max'],irn:['Mizunope Forged','Srixxon ZX-Ish','Titlelist T-Hundred','Mizunope Pro Blades'],
+  wdg:['Clevelund RTX-ish','Vokay SM-Nein','Titlelist Vokay Raw','Vokay Tour Grind'],ptr:['Odysee White Hot','Pong Anser-ish','Scotty Camerone','Scotty Camerone Circle Tee'],
+  ball:['Top-Fight','Bridgestoned Tour','Taylor-Maid TP-Five','Pro V-Won']};
+const d10=v=>(v-1)/9*4-2;
+const RIVALS2=CH2_ORDER.slice(1).map((cid,i)=>{const c=CHARS.find(x=>x.id===cid),s=CH2_ST[cid],o=RIVALS1[i].sk;
+  return{id:'c2_'+cid,cid,name:c.name,short:c.name,nick:c.nick,blurb:c.blurb,course:CH2_COURSE[cid],reward:RIVALS1[i].reward,look:null,
+    sk:{pow:o.pow*(1+.02*d10(s.pow)),acc:o.acc*(1-.06*d10(s.ctl)),putt:clamp(o.putt+.03*d10(s.putt),.2,.99),miss:o.miss*clamp(1-.12*d10(s.imp),.5,1.5),wind:o.wind,perr:o.perr*(1-.05*d10(s.ctl))}};});
+let RIVALS=RIVALS1;
+const CAREER2_KEY='golf-challenge2-v1';
+function blankCareer2(){return{v:1,pts:0,gear:{drv:0,irn:0,wdg:0,ptr:0,ball:0},beaten:[],record:{},match:null,char:CH2_START,unlocked:[CH2_START]};}
+let CAR1=CAR,CAR2=blankCareer2(),CV=1;
+try{const d=JSON.parse(localStorage.getItem(CAREER2_KEY)||'null');if(d&&d.v===1)CAR2={...blankCareer2(),...d,gear:{...blankCareer2().gear,...d.gear}};}catch(e){}
+const carOf=v=>v===CV?CAR:v===2?CAR2:CAR1;
+function careerUse(v){if(v===CV)return;if(CV===1)CAR1=CAR;else CAR2=CAR;CV=v;CAR=v===2?CAR2:CAR1;RIVALS=v===2?RIVALS2:RIVALS1;}
+const ch2Char=id=>CHARS.find(x=>x.id===id)||CHARS.find(x=>x.id===CH2_START);
+// your V2 golfer (1-10 stats and their trait) plus the equipment you have bought
+function careerMods2(){const c=ch2Char(CAR.char),s=CH2_ST[c.id]||CH2_ST[CH2_START],st={};for(const k in s)st[k]=3+d10(s[k]);
+  const B=charMods({st,fx:c.fx}),g=CAR.gear;return{...B,
+    carry:cl=>B.carry(cl)+(cl.kind==='wood'?.02*g.drv:0)+.01*g.ball,
+    err:cl=>Math.max(.45,B.err(cl)-((cl.kind==='iron'||cl.kind==='hybrid')?.05*g.irn:0)),
+    win:cl=>B.win(cl)+(cl.putter?.1*g.ptr:(cl.kind==='wedge'&&G.stype!=='full'?.07*g.wdg:0)),
+    spin:B.spin+.1*g.wdg,wind:B.wind*(1-.04*g.ball),putt:Math.max(.5,B.putt-.06*g.ptr)};}
+function myLook(){if(CV===2)return null;const o=OUTFITS.find(x=>x.id===CAR.look)||OUTFITS[0];return{...LOOK_ME,top:o.top,hat:o.hat};}
+function careerMods(){return CV===2?careerMods2():careerMods1();}
+function careerMods1(){const s=CAR.st,g=CAR.gear;return{
   carry:c=>1+.018*s.pow+(c.kind==='wood'?.02*g.drv:0)+.01*g.ball,
   err:c=>Math.max(.45,1-.06*s.ctl-((c.kind==='iron'||c.kind==='hybrid')?.05*g.irn:0)),
   win:c=>c.putter?1+.08*s.putt+.1*g.ptr:1+.05*s.imp+(c.kind==='wedge'&&G.stype!=='full'?.07*g.wdg:0),
@@ -2686,11 +2723,13 @@ function matchUp(){return MATCH.res.reduce((a,b)=>a+(b||0),0);}
 function holesPlayed(){return MATCH.res.filter(x=>x!==undefined&&x!==null).length;}
 function statusLong(up,thru){const r=MATCH.r?rn(MATCH.r):'Rival';if(!up)return'All square'+(thru?' thru '+thru:'');return(up>0?'You':r)+' '+Math.abs(up)+' UP'+(thru?' thru '+thru:'');}
 function statusShort(up){const r=MATCH.r?rn(MATCH.r):'Rival';return up===0?'AS':up>0?'You '+up+' UP':r+' '+(-up)+' UP';}
-function endMatchMode(){if(R3.on&&MATCH.on)r3RoundWx();$('game').classList.remove('inmatch');MATCH.on=false;G.aiTurn=false;G.ai=null;G.cm=null;G.look=null;$('matchTag').hidden=true;}
+function endMatchMode(){if(R3.on&&MATCH.on)r3RoundWx();$('game').classList.remove('inmatch');MATCH.on=false;G.aiTurn=false;G.ai=null;G.cm=null;G.look=null;$('matchTag').hidden=true;
+  if(CV===2&&typeof r3GolferSet==='function'&&R3.on)r3GolferSet(CHAR_ID);}   // back to your Play Now golfer
 /* a match stays on the course it started on (saves from before the 8-course ladder kept the old pairings) */
 function matchCid(m,r){if(m&&m.cid&&COURSES[m.cid])return m.cid;if(m&&((m.res&&m.res.length)||m.cur))return ({gus:'troy',kelly:'troy',hank:'stoneridge',priya:'stoneridge',beau:'caledonia',marisol:'caledonia',theo:'trueblue',rex:'trueblue'})[r.id]||r.course;return r.course;}
 function freshMatch(r){return{rid:r.id,hi:0,res:[],sy:[],so:[],honor:0,extra:0,ps:3,earn:{holes:0,birdie:0,eagle:0,hio:0,perfect:0,chip:0,putt:0}};}
-function startMatch(rid,resume){const r=RV(rid);if(!r)return;
+function startMatch(rid,resume){careerUse(String(rid).startsWith('c2_')?2:1);const r=RV(rid);if(!r)return;
+  if(CV===2&&typeof r3CharLoad==='function'){r3CharLoad(r.cid);r3CharLoad(CAR.char);}
   let m=resume&&CAR.match&&CAR.match.rid===rid?CAR.match:freshMatch(r);CAR.match=m;saveCareer();
   m.cid=matchCid(m,r);saveCareer();
   if(R3.on){if(!(m.wx>=0)){m.wx=r3RandWx();saveCareer();}r3ApplyWx(m.wx,!resume);}
@@ -2712,7 +2751,8 @@ function matchStartHole(i){MATCH.hi=i;startHole(i%TB.length);
   $('matchTag').hidden=false;$('game').classList.add('inmatch');}
 // copy a player's ball in and out of the single-ball engine
 function mLoad(k){const p=MATCH.P[k];MATCH.turn=k;G.ball={...p.ball};G.prev={...p.prev};G.strokes=p.strokes;G.inCup=false;G.aiTurn=k===1;G.aiSkip=false;
-  G.look=k===1?MATCH.r.look:myLook();G.cm=k===1?rivalMods(MATCH.r):careerMods();}
+  G.look=k===1?MATCH.r.look:myLook();G.cm=k===1?rivalMods(MATCH.r):careerMods();
+  if(CV===2&&typeof r3GolferSet==='function'&&R3.on)r3GolferSet(k===1?MATCH.r.cid:CAR.char);}   // V2: each player is their own golfer
 function mStore(){const p=MATCH.P[MATCH.turn];p.ball={...G.ball};p.prev={...G.prev};p.strokes=G.strokes;}
 function afterShot(){if(!MATCH.on){prepareShot();return;}
   mStore();const p=MATCH.P[MATCH.turn],pin=G.hole.pin;
@@ -2760,6 +2800,7 @@ function matchPoints(won){const r=MATCH.r,E=MATCH.earn,again=CAR.beaten.includes
   return{items,total:items.reduce((a,b)=>a+b[1],0)};}
 function finishMatch(up,left,i){const r=MATCH.r,won=up>0;const pts=matchPoints(won);MATCH.pts=pts;
   CAR.pts+=pts.total;if(won&&!CAR.beaten.includes(r.id))CAR.beaten.push(r.id);
+  MATCH.unlock=null;if(CV===2&&won&&r.cid&&!CAR.unlocked.includes(r.cid)){CAR.unlocked.push(r.cid);MATCH.unlock=r.cid;}
   const rec=CAR.record[r.id]||{w:0,l:0};if(won)rec.w++;else rec.l++;CAR.record[r.id]=rec;
   MATCH.result=i>=18?(won?'You win on the '+ord(i+1):rn(r)+' wins on the '+ord(i+1)):(left===0?(won?'You win ':rn(r)+' wins ')+Math.abs(up)+' UP':(won?'You win ':rn(r)+' wins ')+Math.abs(up)+' & '+left);
   CAR.match=null;saveCareer();}
@@ -2776,7 +2817,7 @@ function showMatchCard(res,over){const r=MATCH.r,i=MATCH.hi,rf=rn(r);
   const note=$('cNote');note.hidden=false;
   $('cEyebrow').textContent=(i>=18?'Playoff hole '+(i-17):'Hole '+(i+1))+' · You '+(MATCH.sy[i]>=10?'X':MATCH.sy[i])+', '+rf+' '+(MATCH.so[i]>=10?'X':MATCH.so[i]);
   if(over){const won=matchUp()>0;$('cTitle').textContent=won?'Match won!':'Match lost';
-    note.innerHTML='<b>'+MATCH.result+'.</b> '+(won?'':'Upgrade your game and try '+rf+' again. ')+'<span class="earn">'+MATCH.pts.items.map(x=>x[0]+' <b>+'+x[1]+'</b>').join(' · ')+'</span><br><b class="ptot">+'+MATCH.pts.total+' points</b> · '+CAR.pts+' to spend';
+    note.innerHTML='<b>'+MATCH.result+'.</b> '+(MATCH.unlock?'<b>'+ch2Char(MATCH.unlock).name+' unlocked</b>: pick them on the Golfers tab. ':'')+(won?'':(CV===2?'Better equipment helps: try '+rf+' again. ':'Upgrade your game and try '+rf+' again. '))+'<span class="earn">'+MATCH.pts.items.map(x=>x[0]+' <b>+'+x[1]+'</b>').join(' · ')+'</span><br><b class="ptot">+'+MATCH.pts.total+' points</b> · '+CAR.pts+' to spend';
     $('nextBtn').textContent='Challenge';if(won)setTimeout(sfx.fanfare,200);}
   else{$('cTitle').textContent=res>0?'You win the hole':res<0?rf+' wins the hole':'Hole halved';
     const up=matchUp(),left=18-Math.min(18,i+1);note.textContent=i>=17&&up===0?'All square after 18 — sudden-death playoff next.':statusLong(up)+(left?' with '+left+' to play.':'.')+(left===Math.abs(up)&&up?(up>0?' Dormie — halve one more and it’s yours.':' Dormie — you need to win every hole left.'):'');
@@ -2828,37 +2869,50 @@ function skipAI(){if(!G.aiTurn)return;G.aiSkip=true;if(ffActive())G.ff=8;}
 let careerTab='rivals',careerSel=null;
 function openCareer(){G.paused=true;$('menuM').hidden=true;$('careerM').hidden=false;careerSel=null;renderCareer();}
 function closeCareer(){$('careerM').hidden=true;openMenu(!!G.hole);}
+function pendingMatchV(){const v=[1,2].filter(v=>{const m=carOf(v).match;return m&&RV(m.rid);}).sort((a,b)=>(carOf(b).match.ts||0)-(carOf(a).match.ts||0));return v[0]||0;}
+const faceOf=r=>r.cid?'<img class="face" alt="" src="'+CHAR_PIC[r.cid]+'">':face(r.look);
+const gearName=(g,t)=>CV===2?GEAR2_TIERS[g.k][t]:g.tiers[t];
+function stats10(cid){const s=CH2_ST[cid];let h='<div class="st10">';for(const[k,n]of CHAR_STATS)h+='<span>'+n+'</span>'+bar(s[k]/10)+'<em>'+s[k]+'</em>';return h+'</div>';}
 function nextRivalIdx(){return RIVALS.findIndex(r=>!CAR.beaten.includes(r.id));}
 function rivalOpen(i){const n=nextRivalIdx();return n<0||i<=n;}
 function pips(n,max){let h='';for(let i=0;i<max;i++)h+='<i class="'+(i<n?'on':'')+'"></i>';return'<span class="pips">'+h+'</span>';}
 function bar(v){return'<span class="sbar"><i style="width:'+Math.round(clamp(v,0,1)*100)+'%"></i></span>';}
 function renderCareer(){const c=$('careerBody');$('careerPts').textContent=CAR.pts.toLocaleString()+' pts';
+  if(CV===2&&(careerTab==='skills'||careerTab==='look'))careerTab='rivals';if(CV===1&&careerTab==='golfers')careerTab='rivals';
+  $('careerH').textContent=CV===2?'Challenge V2':'Challenge';document.querySelectorAll('#careerTabs button').forEach(b=>{const t=b.dataset.tab;b.hidden=CV===2?(t==='skills'||t==='look'):t==='golfers';});
   document.querySelectorAll('#careerTabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===careerTab));
   let h='';
   if(careerSel){const i=RIVALS.findIndex(r=>r.id===careerSel),r=RIVALS[i],rec=CAR.record[r.id],C=COURSES[CAR.match&&CAR.match.rid===r.id?matchCid(CAR.match,r):r.course],again=CAR.beaten.includes(r.id);
     const sk=r.sk,mid=CAR.match&&CAR.match.rid===r.id?CAR.match:null;
-    h+='<div class="rvhead">'+face(r.look)+'<div><b class="disp">'+r.name+'</b><span>“'+r.nick+'” · '+C.name+'</span></div></div>';
+    h+='<div class="rvhead">'+faceOf(r)+'<div><b class="disp">'+r.name+'</b><span>“'+r.nick+'” · '+C.name+'</span></div></div>';
     h+='<p class="rvblurb">'+r.blurb+'</p>';
-    h+='<div class="rvstats"><span>Power</span>'+bar((sk.pow-.8)/.3)+'<span>Accuracy</span>'+bar((.07-sk.acc)/.055)+'<span>Putting</span>'+bar(sk.putt)+'<span>Nerve</span>'+bar(1-sk.miss*12)+'</div>';
+    if(r.cid){const ch=ch2Char(r.cid);h+=stats10(r.cid)+'<div class="chtrait"><b>'+ch.trait.name+'</b>'+ch.trait.d+'</div><div class="msub">'+(CAR.unlocked.includes(r.cid)?'Unlocked: you can play as '+ch.name+'.':'Win to unlock '+ch.name+' as your golfer.')+'</div>';}
+    else h+='<div class="rvstats"><span>Power</span>'+bar((sk.pow-.8)/.3)+'<span>Accuracy</span>'+bar((.07-sk.acc)/.055)+'<span>Putting</span>'+bar(sk.putt)+'<span>Nerve</span>'+bar(1-sk.miss*12)+'</div>';
     h+='<div class="msub">18-hole match play at '+C.name+' · win '+(again?Math.round(r.reward*.5)+' pts (rematch)':r.reward+' pts')+(rec?' · your record '+rec.w+'–'+rec.l:'')+'</div>';
     if(mid){const up=mid.res.reduce((a,b)=>a+(b||0),0);h+='<button class="primary disp" data-act="resume">Continue match</button><div class="msub">Hole '+(mid.hi+1)+' · '+(up===0?'All square':(up>0?'You ':rn(r)+' ')+Math.abs(up)+' UP')+'</div><button class="ghost disp" data-act="restart">Start over</button>';}
     else h+='<button class="primary disp" data-act="start">Start match</button>';
     if(CAR.match&&!mid)h+='<div class="msub warn">Starting this match abandons your match against '+RV(CAR.match.rid).name+'.</div>';
     h+='<button class="textbtn" data-act="back">All rivals</button>';}
   else if(careerTab==='rivals'){const n=nextRivalIdx();
-    h+='<div class="msub">'+(n<0?'You’ve beaten every rival. Rematch anyone for points.':'Beat each rival to unlock the next. '+(CAR.beaten.length)+' of '+RIVALS.length+' beaten.')+'</div><div class="rvlist">';
+    h+='<div class="msub">'+(n<0?'You’ve beaten every rival. Rematch anyone for points.':CV===2?'You play as '+ch2Char(CAR.char).name+'. Beat each golfer to unlock them and the next match. '+(CAR.beaten.length)+' of '+RIVALS.length+' beaten.':'Beat each rival to unlock the next. '+(CAR.beaten.length)+' of '+RIVALS.length+' beaten.')+'</div><div class="rvlist">';
     RIVALS.forEach((r,i)=>{const open=rivalOpen(i),beat=CAR.beaten.includes(r.id),mid=CAR.match&&CAR.match.rid===r.id;
-      h+='<button class="rv'+(open?'':' locked')+(i===n?' next':'')+'" data-rv="'+r.id+'"'+(open?'':' disabled')+'>'+face(r.look)+'<span class="rvn"><b>'+(open?r.name:'???')+'</b><span>'+(open?'“'+r.nick+'” · ':'')+COURSES[mid?matchCid(CAR.match,r):r.course].name+'</span></span><span class="rvs">'+(mid?'In progress':beat?'Beaten ✓':open?r.reward+' pts':'🔒')+'</span></button>';});
+      h+='<button class="rv'+(open?'':' locked')+(i===n?' next':'')+'" data-rv="'+r.id+'"'+(open?'':' disabled')+'>'+faceOf(r)+'<span class="rvn"><b>'+(open?r.name:'???')+'</b><span>'+(open?'“'+r.nick+'” · ':'')+COURSES[mid?matchCid(CAR.match,r):r.course].name+'</span></span><span class="rvs">'+(mid?'In progress':beat?'Beaten ✓':open?r.reward+' pts':'🔒')+'</span></button>';});
     h+='</div>';}
+  else if(careerTab==='golfers'){const me=ch2Char(CAR.char);
+    h+='<div class="msub">Pick who you play as. Beat a golfer to unlock them. '+CAR.unlocked.length+' of '+CHARS.length+' unlocked.</div><div class="gfl">';
+    for(const cid of CH2_ORDER){const ch=ch2Char(cid),own=CAR.unlocked.includes(cid),rv=RIVALS2.find(x=>x.cid===cid);
+      h+='<button data-gf="'+cid+'"'+(own?'':' disabled')+(cid===CAR.char?' class="on"':'')+'><img alt="" src="'+CHAR_PIC[cid]+'"><b>'+(own?ch.name:'???')+'</b><span>'+(cid===CAR.char?'Playing':own?'Tap to play':'Beat at '+COURSES[rv.course].name)+'</span></button>';}
+    h+='</div><div class="rvhead"><img class="face" alt="" src="'+CHAR_PIC[me.id]+'"><div><b class="disp">'+me.name+'</b><span>'+me.nick+'</span></div></div>'+stats10(me.id)+'<div class="chtrait"><b>'+me.trait.name+'</b>'+me.trait.d+'</div>';}
   else if(careerTab==='skills'){h+='<div class="msub">Spend points on your golfer. Each skill has five levels.</div>';
     for(const s of SKILLS){const L=CAR.st[s.k],cost=SKILL_COST[L];h+='<div class="shoprow"><div><b>'+s.name+'</b> '+pips(L,5)+'<span>'+s.d+'</span></div>'+(L>=5?'<em>Max</em>':'<button data-buy="st:'+s.k+'"'+(CAR.pts<cost?' disabled':'')+'>'+cost+'</button>')+'</div>';}}
   else if(careerTab==='gear'){h+='<div class="msub">Better equipment, one slot at a time.</div>';
-    for(const g of GEAR){const t=CAR.gear[g.k],cost=GEAR_COST[t];h+='<div class="shoprow"><div><b>'+g.name+'</b> '+pips(t,3)+'<span>'+g.tiers[t]+' · '+g.d+'</span></div>'+(t>=3?'<em>Max</em>':'<button data-buy="gear:'+g.k+'"'+(CAR.pts<cost?' disabled':'')+'>'+g.tiers[t+1]+' · '+cost+'</button>')+'</div>';}}
+    for(const g of GEAR){const t=CAR.gear[g.k],cost=GEAR_COST[t];h+='<div class="shoprow"><div><b>'+g.name+'</b> '+pips(t,3)+'<span>'+gearName(g,t)+' · '+g.d+'</span></div>'+(t>=3?'<em>Max</em>':'<button data-buy="gear:'+g.k+'"'+(CAR.pts<cost?' disabled':'')+'>'+gearName(g,t+1)+' · '+cost+'</button>')+'</div>';}}
   else if(careerTab==='look'){h+='<div class="msub">Your beanie and hoodie on the course.</div><div class="looks">';
     for(const o of OUTFITS){const own=CAR.owned.includes(o.id),on=CAR.look===o.id;h+='<button class="lk'+(on?' on':'')+'" data-look="'+o.id+'"'+(!own&&CAR.pts<o.cost?' disabled':'')+'>'+face({...LOOK_ME,top:o.top,hat:o.hat})+'<b>'+o.name+'</b><span>'+(on?'Wearing':own?'Owned':o.cost+' pts')+'</span></button>';}
     h+='</div>';}
   c.innerHTML=h;
   c.querySelectorAll('[data-rv]').forEach(b=>b.addEventListener('click',()=>{careerSel=b.dataset.rv;sfx.tick();renderCareer();}));
+  c.querySelectorAll('[data-gf]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.gf;if(!CAR.unlocked.includes(id))return;CAR.char=id;saveCareer();if(MATCH.on&&!G.aiTurn){G.cm=careerMods();if(R3.on)r3GolferSet(id);}sfx.tick();renderCareer();}));
   c.querySelectorAll('[data-act]').forEach(b=>b.addEventListener('click',()=>{const a=b.dataset.act;A();
     if(a==='back'){careerSel=null;renderCareer();}
     else if(a==='start'||a==='restart'){if(a==='restart')CAR.match=null;startMatch(careerSel,false);}
@@ -3352,7 +3406,7 @@ function r3GolferInit(){if(typeof R3BOSS==='undefined')return;r3GolferBuild(R3BO
 function r3GolferRestore(){try{const id=localStorage.getItem('golf-char');if(id&&id!=='boss')r3GolferSet(id,ok=>{if(!ok){try{CHAR_ID='boss';localStorage.setItem('golf-char','boss');golferRow();toast('COULD NOT LOAD','Your golfer did not download, playing as The Boss.','#ff9b6a');}catch(e){}}});}catch(e){}}
 // build (or rebuild) the skinned golfer from a character record; clips come from the Boss, retargeted when needed
 function r3GolferBuild(D,cid){const T=THREE,nb=D.names.length;
-  if(R3B.mesh){R3.scene.remove(R3B.mesh);R3.scene.remove(R3B.root);R3B.mesh.geometry.dispose();for(const k of['map','normalMap'])if(R3B.mat[k])R3B.mat[k].dispose();R3B.mat.dispose();}
+  if(R3B.mesh){R3.scene.remove(R3B.mesh);R3.scene.remove(R3B.root);R3B.mesh.geometry.dispose();for(const k of['map','normalMap'])if(R3B.mat[k]&&!R3B.mat[k].userData.keep)R3B.mat[k].dispose();R3B.mat.dispose();}
   const lt=r3b64(D.lt,Float32Array),inv=r3b64(D.inv,Float32Array);
   const bones=[];for(let k=0;k<nb;k++){const b=new T.Bone();b.name=D.names[k];b.position.set(lt[k*3],lt[k*3+1],lt[k*3+2]);bones.push(b);if(D.parent[k]>=0)bones[D.parent[k]].add(b);}
   const root=new T.Group();root.matrixAutoUpdate=false;root.add(bones[0]);R3.scene.add(root);
@@ -3371,12 +3425,14 @@ function r3GolferBuild(D,cid){const T=THREE,nb=D.names.length;
   const pm=D.pmean||[[.5,.5,.5]],pmk=k=>pm[k]||pm[0];
   const TU={tTop:{value:new T.Vector4(1,1,1,0)},tPants:{value:new T.Vector4(1,1,1,0)},tHat:{value:new T.Vector4(1,1,1,0)},tSkin:{value:new T.Vector4(1,1,1,0)},
     pmTop:{value:new T.Vector3(...pmk(0))},pmPants:{value:new T.Vector3(...pmk(9))},pmHat:{value:new T.Vector3(...pmk(5))},pmSkin:{value:new T.Vector3(...pmk(3))}};
-  const mo={map:tex(D.tex.d,true),roughness:.72,metalness:0};if(D.tex.n)mo.normalMap=tex(D.tex.n,false);if(D.alpha){mo.alphaTest=.5;mo.side=T.DoubleSide;}
+  // the diffuse map is kept per character so swapping golfers between turns (Challenge V2) does not flash untextured
+  if(!D._map){D._map=tex(D.tex.d,true);D._map.userData.keep=true;}
+  const mo={map:D._map,roughness:.72,metalness:0};if(D.tex.n)mo.normalMap=tex(D.tex.n,false);if(D.alpha){mo.alphaTest=.5;mo.side=T.DoubleSide;}
   const mat=r3Patch(new T.MeshStandardMaterial(mo),{golfer:true,uniforms:TU});
   const mesh=new T.SkinnedMesh(g,mat);mesh.frustumCulled=false;mesh.castShadow=true;mesh.receiveShadow=true;
   const sk=new T.Skeleton(bones,invs);mesh.bind(sk,new T.Matrix4());R3.scene.add(mesh);mesh.visible=false;root.visible=true;
   // clips
-  const src=cid?r3Retarget(D):R3BOSS.clips;
+  const src=cid?(D._rt||(D._rt=r3Retarget(D))):R3BOSS.clips;   // retargeted once per character
   const clips={};for(const k in src){const c=src[k];clips[k]={...c,Q:c.Q||r3b64(c.q,Int16Array),QS:c.QS||r3b64(c.qs,Int16Array),HIP:c.HIP||r3b64(c.hip,Float32Array),na:c.anim.length};}
   Object.assign(R3B,{root,bones,mesh,mat,TU,clips,nb,cid:cid||'boss',idx:Object.fromEntries(D.names.map((s,i)=>[s,i])),pa:new Float32Array(nb*4),pb:new Float32Array(nb*4),ha:[0,0,0],hb:[0,0,0],cache:{},tor:null,torH:null});
   R3.boss=R3B;if(typeof R3R!=='undefined')R3R.key=null;}
@@ -3417,6 +3473,13 @@ function r3GolferSet(id,cb){if(!R3.on||typeof R3BOSS==='undefined')return;
   const tryNext=()=>{const s=document.createElement('script');s.id='chs_'+id;s.src=names[k];
     s.onerror=()=>{s.remove();if(++k<names.length&&R3CHAR_WANT===id){tryNext();return;}if(R3CHAR_WANT===id){const c=R3CHAR_CB;R3CHAR_WANT=null;R3CHAR_CB=null;c&&c(false);}};
     document.head.appendChild(s);};
+  tryNext();}
+// load a character's file without switching to it (Challenge V2 preloads the rival and your golfer)
+function r3CharLoad(id,cb){if(!id||id==='boss'||R3CHARS[id]){cb&&cb(true);return;}
+  if(document.getElementById('chs_'+id)){const t0=Date.now(),w=()=>{if(R3CHARS[id])cb&&cb(true);else if(Date.now()-t0>20000)cb&&cb(false);else setTimeout(w,200);};w();return;}
+  const names=['char_'+id+'.js','char%20'+id+'.js','char'+id+'.js','char-'+id+'.js'];let k=0;
+  const tryNext=()=>{const s=document.createElement('script');s.id='chs_'+id;s.src=names[k];s.onload=()=>{cb&&cb(!!R3CHARS[id]);};
+    s.onerror=()=>{s.remove();if(++k<names.length){tryNext();return;}cb&&cb(false);};document.head.appendChild(s);};
   tryNext();}
 // pose of a clip at time t (clip seconds) into q (bone quaternions) and h (hips translation)
 function r3bPose(c,t,q,h){const f=clamp((t-c.t0)*c.fps,0,c.n-1),i0=Math.floor(f),i1=Math.min(c.n-1,i0+1),a=f-i0,nb=R3B.nb;
@@ -4946,8 +5009,9 @@ $('mPractice').addEventListener('click',()=>{$('mMain').hidden=true;$('mHoles').
 $('mGolfer').addEventListener('click',()=>{A();sfx.tick();openChars();});$('chGo').addEventListener('click',()=>{A();pickChar();});$('chBack').addEventListener('click',()=>{A();sfx.tick();$('charM').hidden=true;$('menuM').hidden=false;});golferRow();
 $('mHolesBack').addEventListener('click',()=>{$('mHoles').hidden=true;$('mMain').hidden=false;});
 $('mClose').addEventListener('click',closeMenu);
-$('mMatchCont').addEventListener('click',()=>{A();if(CAR.match)startMatch(CAR.match.rid,true);});
-$('mCareer').addEventListener('click',()=>{A();openCareer();sfx.tick();});
+$('mMatchCont').addEventListener('click',()=>{A();const v=pendingMatchV();if(v)startMatch(carOf(v).match.rid,true);});
+$('mCareer2').addEventListener('click',()=>{A();careerUse(2);openCareer();sfx.tick();});
+$('mCareer').addEventListener('click',()=>{A();careerUse(1);openCareer();sfx.tick();});
 $('mDaily').addEventListener('click',()=>{A();sfx.tick();const me=dailyToday();if(me&&me.done)openDailyBoard(false);else if(me||dailyName())openDailyBoard(false);else openDailyName();});
 $('dNameGo').addEventListener('click',dailyNameGo);$('dNameIn').addEventListener('keydown',e=>{if(e.key==='Enter')dailyNameGo();});
 $('dPlay').addEventListener('click',()=>{A();dailyPlay();});
