@@ -234,6 +234,7 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
 .lb .nm small{display:block;white-space:normal;line-height:1.25}.lb .w{width:2.4em;text-align:right;color:#2f6b3a}.lb .wide{width:2.8em;text-align:right;color:#51606b;font-weight:600}
 .lb li.tap{cursor:pointer}.lb li.tap .nm:after{content:' \203A';color:#9aa6ae}
 #dCardV th.tap{cursor:pointer;background:#2c5d86;text-decoration:underline;text-underline-offset:3px}
+.flycam{position:absolute;left:12px;z-index:3;height:38px;padding:0 14px;border-radius:999px;background:var(--panel);color:#fff6dc;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.28)}
 .specbar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);display:flex;gap:10px;z-index:4}
 .specbar button{white-space:nowrap;height:46px;padding:0 20px;border-radius:14px;font-size:19px;background:var(--panel);color:#fff6dc;box-shadow:0 3px 0 rgba(0,0,0,.3)}
 .specbar #specExit{background:#ffc93c;color:#0f2233}
@@ -318,6 +319,7 @@ td.won{background:rgba(255,201,60,.38)}
 
   <button id="replayBtn" class="replaybtn disp" hidden>▶ Replay</button>
   <button id="ffBtn" class="replaybtn ffbtn disp" hidden aria-label="Fast forward">⏩ Speed up</button>
+  <button id="flyCamBtn" class="flycam disp" hidden aria-label="Switch the ball-flight camera">📺 TV view</button>
   <div id="specBar" class="specbar" hidden><button id="specNext" class="disp">Next hole ›</button><button id="specExit" class="disp">✕ Done</button></div>
   <div id="toast"><div class="t1 disp"></div><div class="t2"></div></div>
   <div id="shotStats" class="shotstats" hidden></div>
@@ -2650,6 +2652,7 @@ function face(L){return'<svg class="face" viewBox="0 0 40 40" aria-hidden="true"
 
 /* ---------- camera (behind the golfer) ---------- */
 /* address views for full shots: 0 the standard view, 1 and 2 closer down-the-line views that keep the whole golfer in frame */
+let FLY_TV=false;try{FLY_TV=localStorage.getItem('golf-flycam')==='tv';}catch(e){}
 let CAMV=0;try{CAMV=Math.max(0,Math.min(2,+localStorage.getItem('golf-camv')||0));}catch(e){}
 const CAMV_SET=[null,{back:8.6,ht:3.4,lk:.6},{back:6.2,ht:2.5,lk:.4}];
 /* the closer address views frame the shot exactly like the standard view (camera straight behind the ball, target line in the
@@ -2685,8 +2688,8 @@ function camTarget(){
   if((G.state==='flight'||G.state==='roll')&&G.golferAt&&G.followT>0&&G.followT<(G.launchAt||0)+.4){const ga=G.golferAt,[ax,az]=dirOf(ga.aim),g0=hAt(ga.x,ga.y);if(G.fromLie!=='green'){const ca=camAddress(ga.x,ga.y,ga.aim);if(ca)return ca;}return{E:[ga.x-ax*13,g0+5.4,ga.y-az*13],L:[ga.x+ax*40,g0,ga.y+az*40]};}
   const[dx,dz]=dirOf(G.shotRot);
   if(G.state==='holed'){const p=h.pin,gp=hAt(p[0],p[1]);return{E:[p[0]-dx*4.5,gp+2.2,p[1]-dz*4.5],L:[p[0],gp,p[1]]};}
-  if(G.state==='flight')return{E:[b.x-dx*24,G.bY*.55+gb*.45+7,b.y-dz*24],L:[b.x+dx*6,G.bY*.85+gb*.15,b.y+dz*6]};
-  const putt=G.fromLie==='green';const back=putt?6:15,ht=putt?2.8:5.5;
+  if(G.state==='flight')return{E:[b.x-dx*31,G.bY*.55+gb*.45+9,b.y-dz*31],L:[b.x+dx*8,G.bY*.85+gb*.15,b.y+dz*8]};   // trailing the ball, a little wider
+  const putt=G.fromLie==='green';const back=putt?6:20,ht=putt?2.8:7;
   return{E:[b.x-dx*back,gb+ht,b.y-dz*back],L:[b.x,gb,b.y]};
 }
 function stepCam(dt){
@@ -4285,6 +4288,7 @@ function r3TvCam(){const tv=R3.tv,st=G.state;
   if(G.flight&&G.flight!==tv.f){const f=G.flight;tv.f=f;tv.cutDone=false;tv.trail=f;tv.fade=1;tv.hole=G.hole;
     const pl=r3TvPlan(f);tv.plan=pl.carry>95&&!f.club.putter?pl:null;}
   if(st==='aim'||st==='power'||st==='acc'||st==='intro'||st==='card'){tv.cam=null;tv.f=G.flight||null;return null;}
+  if(typeof FLY_TV!=='undefined'&&!FLY_TV){tv.cam=null;return null;}   // trailing the ball: the game's own camera follows it all the way
   const pl=tv.plan;if(!pl||!tv.f||!(st==='flight'||st==='bounce'||st==='roll'||st==='wait'))return null;
   const f=tv.f;if(!tv.cutDone&&G.flight===f&&f.u<=.34&&G.golferAt&&G.followT>=(G.launchAt||0)+.25){
     // down the line: stay behind the player and watch the ball climb away, tracer drawing behind it
@@ -4468,6 +4472,7 @@ function impName(){const x=G.imp.x,y=G.imp.y,h=G.traj>0?'High':G.traj<0?'Low':''
 function updHud(){
   const h=G.hole;if(!h)return;
   $('replayBtn').hidden=!(G.state==='aim'&&G.canReplay&&!G.overview&&!G.aiTurn&&!G.fc);
+  { const fb=$('flyCamBtn'),on=(G.state==='flight'||G.state==='bounce'||G.state==='roll')&&G.fromLie!=='green'&&!G.replay&&!(typeof SPEC!=='undefined'&&SPEC.on);fb.hidden=!on;if(on){fb.style.bottom=(botH+4)+'px';setT('flyCamBtn',FLY_TV?'\ud83c\udfaf Trail view':'\ud83d\udcfa TV view');} }
   const ffOk=ffActive();$('ffBtn').hidden=!ffOk;if(ffOk){setT('ffBtn',G.ff>1?'\u23e9 '+G.ff+'\u00d7 speed':'\u23e9 Speed up');$('ffBtn').classList.toggle('on',G.ff>1);}
   $('cardReplay').hidden=!G.canReplay;
   setT('hNum',String(G.hi+1));setT('hPar','Par '+h.par+' · '+h.len+' yds');
@@ -4603,6 +4608,7 @@ const endDrag=e=>{PTS.delete(e.pointerId);if(drag&&e.pointerId===drag.id)drag=nu
 cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',endDrag);
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('wheel',e=>{if(G.state!=='aim'||G.aiTurn||G.overview)return;e.preventDefault();if(!G.fc&&!lookStart())return;lookZoom(Math.exp(clamp(e.deltaY,-120,120)*.0025));},{passive:false});
+$('flyCamBtn').addEventListener('click',e=>{e.stopPropagation();A();FLY_TV=!FLY_TV;try{localStorage.setItem('golf-flycam',FLY_TV?'tv':'trail');}catch(_){}if(typeof R3!=='undefined'&&R3.tv){R3.tv.cam=null;R3.tv.cutDone=false;}sfx.tick();});
 $('camBtn').addEventListener('click',e=>{e.stopPropagation();A();camCycle();});
 $('lookBtn').addEventListener('click',e=>{e.stopPropagation();A();if(G.fc&&!(G.fc.fly&&G.fc.fly.dir<0))lookEnd();else lookStart();});
 $('lookGreen').addEventListener('click',e=>{e.stopPropagation();lookGreen();});
