@@ -399,7 +399,7 @@ td.won{background:rgba(255,201,60,.38)}
         <div class="tapmark" id="mTap" hidden></div>
         <div class="cursor" id="mCursor" style="left:12%"></div>
       </div>
-      <div class="mlabels"><span>Impact</span><span id="ml1">25</span><span id="ml2">50</span><span id="ml3">75</span><span>Max</span></div>
+      <div class="mlabels"><span>Impact</span><span id="ml1">25</span><span id="ml2">50</span><span id="ml3">75</span><span id="ml4">Max</span></div>
       <div class="row controls">
         <button class="sq" id="mapBtn" aria-label="View whole hole"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" fill="none" stroke="#fff6dc" stroke-width="2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#fff6dc" stroke-width="2"/></svg></button>
         <button class="sq" id="aimL" aria-label="Aim left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="#fff6dc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -4852,7 +4852,9 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   setT('hint',G.aiTurn?rn(MATCH.r)+(G.aiSkip?' \u00b7 skipping ahead':' is playing \u00b7 tap Skip to jump ahead'):st==='aim'?(G.fc?(G.fc.follow?'Scouting your shot \u00b7 change club or aim \u00b7 drag to turn \u00b7 pinch to zoom':'Free look \u00b7 tap Landing to follow your shot again'):G.overview?'Tap anywhere to return to your ball':c.putter?(GL.slOK?'Grid lines: red is steep, green is gentle \u00b7 the glow runs downhill':'Watch the dots on the green — they flow downhill'):(G.stype==='full'||G.stype==='spin'?'Drag to aim · Tap Swing to start':SHOTS[G.stype].hint)):st==='power'?'Tap to set power':st==='acc'?'Tap on the white line':' ');
   const m=G.meter,w=perfectWin();
   $('mCursor').style.left=(m.pos*100)+'%';
-  { const sh=isShort()&&!c.putter,mx=sh?(G.swMax||natMax())*shotMods().carry:0,lb=f=>sh?Math.max(1,Math.round(mx*m2p(f)))+'y':String(Math.round(f*100));setT('ml1',lb(.25));setT('ml2',lb(.5));setT('ml3',lb(.75)); }
+  // meter scale in distance: carry yards for full and short shots, feet of roll for putts on the green (percent for putts off it)
+  { const pg=c.putter&&G.lie==='green',pct=c.putter&&!pg,sh=isShort()&&!c.putter,mx=c.putter?G.puttMax*3:(sh?(G.swMax||natMax()):natMax())*shotMods().carry;
+    const lb=f=>pct?String(Math.round(f*100)):Math.max(1,Math.round(mx*(sh?m2p(f):f)))+(pg?' ft':'y');setT('ml1',lb(.25));setT('ml2',lb(.5));setT('ml3',lb(.75));setT('ml4',pct?'Max':lb(1)); }
   const fillTo=st==='power'?m.pos:(st==='acc'?IMPACT+p2m(m.power)*(1-IMPACT):IMPACT);
   $('mFill').style.width=Math.max(0,(fillTo-IMPACT)*100)+'%';
   const lk=$('mLock');lk.hidden=st!=='acc';lk.style.left=((IMPACT+p2m(m.power)*(1-IMPACT))*100)+'%';
