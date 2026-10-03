@@ -260,6 +260,8 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
 .lb li.tap{cursor:pointer}.lb li.tap .nm:after{content:' \203A';color:#9aa6ae}
 #dCardV th.tap{cursor:pointer;background:#2c5d86;text-decoration:underline;text-underline-offset:3px}
 .flycam{position:absolute;left:12px;z-index:3;height:38px;padding:0 14px;border-radius:999px;background:var(--panel);color:#fff6dc;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.28)}
+.rpbar{position:absolute;right:12px;z-index:3;display:flex;gap:8px}.rpbar button{height:38px;padding:0 14px;border-radius:999px;background:var(--panel);color:#fff6dc;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.28)}.rpbar button.on{background:#ffc93c;color:#0f2233}
+.hlrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(18,40,59,.12)}.hlrow div{flex:1;min-width:0}.hlrow b{display:block;font-size:16px}.hlrow span{display:block;font-size:13px;opacity:.7}.hlrow button{height:36px;min-width:40px;padding:0 10px;border-radius:12px;border:2px solid #12283b;color:#12283b;font-size:15px}.hlrow button.go{background:#12283b;color:#ffc93c}
 .relopt{display:block;width:100%;text-align:left;padding:10px 14px;border-radius:14px;border:2px solid #12283b;margin:0 0 8px;background:transparent;color:#12283b}
 .relopt b{display:block;font-size:18px}.relopt span{display:block;font-size:13px;color:#51606b;margin-top:2px;line-height:1.3}
 .relopt.best{background:#12283b;color:var(--sun)}.relopt.best span{color:#c9d3da}
@@ -352,6 +354,7 @@ td.won{background:rgba(255,201,60,.38)}
   <button id="ffBtn" class="replaybtn ffbtn disp" hidden aria-label="Fast forward">⏩ Speed up</button>
   <button id="flagBtn" class="flycam disp" hidden aria-label="Flagstick in or out">⛳ Flag out</button>
   <button id="flyCamBtn" class="flycam disp" hidden aria-label="Switch the ball-flight camera">📺 TV view</button>
+  <div id="rpBar" class="rpbar" hidden><button id="rpSave" class="disp">☆ Save</button><button id="rpVideo" class="disp">⬇ Video</button></div>
   <div id="specBar" class="specbar" hidden><button id="specNext" class="disp">Next hole ›</button><button id="specExit" class="disp">✕ Done</button></div>
   <div id="toast"><div class="t1 disp"></div><div class="t2"></div></div>
   <div id="shotStats" class="shotstats" hidden></div>
@@ -435,6 +438,23 @@ td.won{background:rgba(255,201,60,.38)}
     </div>
   </div>
 
+  <div class="modal" id="hlM" hidden>
+    <div class="card">
+      <div class="eyebrow">Replays</div>
+      <h1 class="disp">Saved shots</h1>
+      <div id="hlList"></div>
+      <button class="textbtn" id="hlBack">Back to menu</button>
+    </div>
+  </div>
+  <div class="modal" id="vidM" hidden>
+    <div class="card">
+      <div class="eyebrow">Replay video</div>
+      <h1 class="disp" id="vidTitle">Your video is ready</h1>
+      <p class="msub" id="vidSub">Save it to your phone or send it to someone.</p>
+      <button class="primary disp" id="vidSave">Save video</button>
+      <button class="textbtn" id="vidClose">Close</button>
+    </div>
+  </div>
   <div class="modal" id="charM" hidden>
     <div class="card">
       <div class="eyebrow">Golfers</div>
@@ -529,6 +549,7 @@ td.won{background:rgba(255,201,60,.38)}
           <button class="ghost disp" id="mNew">New round</button>
           <div class="msub warn" id="mNewWarn" hidden>Tap again to start over. Your saved round will be replaced.</div>
           <button class="ghost disp" id="mPractice">Play a hole</button>
+          <button class="ghost disp" id="mHl" hidden>Saved shots <span id="mHlN"></span></button>
         </div>
         <div id="mHoles" hidden>
           <div class="msub">Pick a hole to play on its own. It won’t affect your saved round.</div>
@@ -1025,7 +1046,7 @@ function cupPad(h,x,y){const q=h.gg;if(!q)return;const R=3,st=q.st,d=q.data,n=q.
   let ax=(cxz*cyy-cyz*cxy)/det,ay=(cyz*cxx-cxz*cxy)/det;const t=Math.hypot(ax,ay),cap=.02;if(t>cap){ax*=cap/t;ay*=cap/t;}const z0=mz-ax*mx-ay*my;
   for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const px=q.x0+i*st-x,py=q.y0+j*st-y,r=Math.hypot(px,py);if(r>R)continue;const w=r<=1.6?1:1-smooth(1.6,R,r);d[j*n+i]=d[j*n+i]*(1-w)+(z0+ax*px+ay*py)*w;}}
 // which of the three hole locations is in today: the same for everyone on the daily round and in a match; fixed for a saved round
-function pinIndex(i){let seed;
+function pinIndex(i){let seed;if(G.mode==='highlight'&&G.hlPin!=null)return G.hlPin;
   if(G.mode==='daily'||G.mode==='spectate'){if(G.dailyDay&&dailyNum(G.dailyDay)<DAILY_N3)return 1;seed=(G.dailySeed|0)*31+i*7919+17;}   // rounds before Oct 4 2026 keep the mapped pin
   else if(MATCH.on&&typeof CAR!=='undefined'&&CAR.match){if(!CAR.match.pseed){CAR.match.pseed=1+Math.floor(Math.random()*1e9);try{saveCareer();}catch(e){}}seed=CAR.match.pseed+i*7919;}
   else if(G.mode==='round'){if(!G.pinSeed)G.pinSeed=1+Math.floor(Math.random()*1e9);seed=G.pinSeed+i*7919;}
@@ -2252,7 +2273,7 @@ function stepRoll(dt){
   if(r.t>30)stopBall();
 }
 function endRec(holedIt){if(!G.recOn)return;G.recOn=false;G.rec.push({t:G.recT+.02,x:G.ball.x,y:G.ball.y,Y:hAt(G.ball.x,G.ball.y)});G.recHoled=!!holedIt;
-  G.lastShot={rec:G.rec,golferAt:G.golferAt,launchAt:G.launchAt,holed:!!holedIt,putt:G.swingType==='putt',flame:G.flame};G.canReplay=G.rec.length>6;
+  G.lastShot={rec:G.rec,golferAt:G.golferAt,launchAt:G.launchAt,holed:!!holedIt,putt:G.swingType==='putt',flame:G.flame,club:G.swingClub,type:G.swingType,back:G.swingBack,strokes:G.strokes};G.canReplay=G.rec.length>6;
   if(G.mode==='daily')try{dailyRecShot();}catch(e){}}
 /* daily replays: each shot is kept as its swing (club, type, backswing, aim, where the golfer stood) and the ball's path,
    resampled to 10 per second and stored as whole-number deltas (time in 1/100 s, positions in 1/10 yd) */
@@ -2468,6 +2489,7 @@ async function openDailyCard(i){const r=DAILY.rows&&DAILY.rows[i];if(!r)return;c
 function closeDailyCard(){DCARD.tok=(DCARD.tok||0)+1;openDailyBoard(false,DAILY.view.day,'day');}
 // spectating: load the course and hole, then play each recorded shot through the replay camera
 const SPEC={on:false};
+var REC={on:false,blob:null};   // replay video recorder (see recStart)
 function specStart(hi){const S=DCARD.shots;if(!S)return;const holes=[...new Set(S.s.map(x=>x.h))].sort((a,b)=>a-b);if(!holes.length)return;A();
   endMatchMode();Object.assign(SPEC,{on:true,S,holes,name:DCARD.r.name,sc:DCARD.sc,back:{day:DCARD.day,pid:DCARD.r.player_id}});
   G.mode='spectate';G.dailyDay=DCARD.day;G.dailySeed=dailyNum(DCARD.day)*7919;
@@ -2524,6 +2546,7 @@ function dailyMenuLine(){const day=dailyDay(),cid=dailyCourse(day),me=dailyToday
 function holeLen(i){const L=COURSE.holes[i].line;let d=0;for(let k=1;k<L.length;k++)d+=hyp(L[k][0]-L[k-1][0],L[k][1]-L[k-1][1]);return Math.round(d);}
 function openMenu(fromGame){G.paused=true;$('menuM').hidden=false;try{menuHero();if(MSTATE)showState(MSTATE);else showMap();menuPlay();}catch(e){console.error(e);}$('dailyM').hidden=true;$('charM').hidden=true;try{dailyMenuLine();}catch(e){}$('mHoles').hidden=true;$('mMain').hidden=false;$('mNewWarn').hidden=true;newArmed=false;
   const sv=loadSave();$('mContinue').hidden=!sv;$('mContinueSub').hidden=!sv;
+  {const n=hlList().length;$('mHl').hidden=!n;$('mHlN').textContent=n?'('+n+')':'';}
   if(sv){let d=0,n=0;(sv.scores||[]).forEach((x,i)=>{if(x){d+=x-TB[i].par;n++;}});
     $('mContinueSub').textContent='Hole '+(sv.hi+1)+(sv.mid?' \u00b7 stroke '+(sv.strokes+1):'')+' \u00b7 '+(n?fmtDiff(d)+' through '+n:'no holes finished yet')+' \u00b7 saved '+new Date(sv.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'});}
   $('mNew').className=sv?'ghost disp':'primary disp';
@@ -3710,7 +3733,7 @@ const R3_REACT={tee:{clip:'postswing',t0:.6,dur:3.4,dist:4.2,ly:.2},
   robot:{clip:'robot',t0:0,dur:5.6,face:1,dist:4.8,ly:.2},uprock:{clip:'uprock',t0:0,dur:3.6,face:1,dist:4.2,ly:.3,loop:1},freeze:{clip:'freeze',t0:0,dur:4.8,face:1,dist:5,ly:.1},
   break90:{clip:'break90',t0:0,dur:2,face:1,dist:4.2,ly:.3,loop:1},strut:{clip:'strut',t0:0,dur:2.8,face:1,dist:4,ly:.4,loop:1},
   rejected:{clip:'rejected',t0:0,dur:4.6,face:1,dist:3.6,ly:.4},thinkshake:{clip:'thinkshake',t0:0,dur:3,face:1,dist:3.2,ly:.5}};
-function r3ReactOK(){return!!(R3.on&&R3B.mesh&&!G.aiTurn&&!G.aiSkip&&!(G.ff>1)&&G.golferAt&&G.mode!=='spectate'&&!G.replay);}
+function r3ReactOK(){return!!(R3.on&&R3B.mesh&&!G.aiTurn&&!G.aiSkip&&G.golferAt&&G.mode!=='spectate'&&G.mode!=='highlight'&&!G.replay);}   // still plays (at normal speed) after a fast-forwarded shot
 // start a reaction after `delay` seconds; returns how long it holds the screen (0 when it won't play)
 function r3React(kind,delay){const r=R3_REACT[kind];if(!r||!r3ReactOK()||!R3B.clips[r.clip])return 0;delay=delay||0;
   R3R.post={on:true,t:-delay,E:null,aim:G.golferAt.aim,r,kind};return delay+r.dur;}
@@ -4800,7 +4823,8 @@ function render(){
   r3Render();renderScene();
   if(stash){Object.assign(G,stash);G.state='replay';
     sctx.setTransform(dpr,0,0,dpr,0,0);sctx.font='700 13px "Barlow Semi Condensed",system-ui,sans-serif';const tx=SPEC.on?'\u25B6 '+SPEC.name+' \u00b7 hole '+(SPEC.hi+1)+' \u00b7 shot '+(SPEC.k+1)+' \u00b7 tap to skip':'\u25B6 REPLAY \u00b7 tap to skip',w=sctx.measureText(tx).width+26;
-    sctx.fillStyle='rgba(180,34,58,.9)';sctx.beginPath();sctx.roundRect(W/2-w/2,topH+6,w,26,13);sctx.fill();sctx.fillStyle='#fff';sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText(tx,W/2,topH+19);}
+    if(!REC.on){sctx.fillStyle='rgba(180,34,58,.9)';sctx.beginPath();sctx.roundRect(W/2-w/2,topH+6,w,26,13);sctx.fill();sctx.fillStyle='#fff';sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText(tx,W/2,topH+19);}}
+  if(REC.on)recFrame();
 }
 
 /* ---------- hud ---------- */
@@ -4811,7 +4835,8 @@ function updHud(){
   const h=G.hole;if(!h)return;
   $('replayBtn').hidden=!(G.state==='aim'&&G.canReplay&&!G.overview&&!G.aiTurn&&!G.fc);
   { const gb=$('flagBtn'),on=G.state==='aim'&&!G.aiTurn&&curClub().putter&&G.lie==='green';gb.hidden=!on;if(on){gb.style.bottom=(botH+52)+'px';setT('flagBtn',G.flagOut?'\u26f3 Flag out \u00b7 tap to put it in':'\u26f3 Flag in \u00b7 tap to pull it');} }
-  { const fb=$('flyCamBtn'),on=(G.state==='flight'||G.state==='bounce'||G.state==='roll')&&G.fromLie!=='green'&&!G.replay&&!(typeof SPEC!=='undefined'&&SPEC.on);fb.hidden=!on;if(on){fb.style.bottom=(botH+4)+'px';setT('flyCamBtn',FLY_TV?'\ud83c\udfaf Trail view':'\ud83d\udcfa TV view');} }
+  { const rb=$('rpBar'),rv=!!G.replay&&!REC.on&&!SPEC.on;rb.hidden=!rv;if(rv){rb.style.bottom=(botH+4)+'px';const sv=$('rpSave');sv.hidden=G.mode==='highlight';sv.textContent=G.lastShot&&G.lastShot.saved?'\u2605 Saved':'\u2606 Save';sv.classList.toggle('on',!!(G.lastShot&&G.lastShot.saved));$('rpVideo').hidden=!recOK();} }
+  { const fb=$('flyCamBtn'),on=G.replay?(!REC.on&&!G.lastShot.putt):(G.state==='flight'||G.state==='bounce'||G.state==='roll')&&G.fromLie!=='green'&&!(typeof SPEC!=='undefined'&&SPEC.on);fb.hidden=!on;if(on){fb.style.bottom=(botH+4)+'px';setT('flyCamBtn',FLY_TV?'\ud83c\udfaf Trail view':'\ud83d\udcfa TV view');} }
   const ffOk=ffActive();$('ffBtn').hidden=!ffOk;if(ffOk){setT('ffBtn',G.ff>1?'\u23e9 '+G.ff+'\u00d7 speed':'\u23e9 Speed up');$('ffBtn').classList.toggle('on',G.ff>1);}
   $('cardReplay').hidden=!G.canReplay;
   setT('hNum',String(G.hi+1));setT('hPar','Par '+h.par+' · '+h.len+' yds');
@@ -4908,10 +4933,79 @@ function perfCheck(raw){if(PERF.level>=3||G.state==='intro'||G.state==='card'||r
 function replayPoint(t){const r=G.lastShot.rec;if(t<=0)return r[0];for(let i=1;i<r.length;i++){if(r[i].t>=t){const a=r[i-1],b=r[i],k=(t-a.t)/((b.t-a.t)||1);return{t,x:a.x+(b.x-a.x)*k,y:a.y+(b.y-a.y)*k,Y:a.Y+(b.Y-a.Y)*k};}}return r[r.length-1];}
 function startReplay(done){const L=G.lastShot;if(!L||!L.rec||L.rec.length<6)return done&&done();G.ff=1;
   $('cardM').hidden=true;G.replay={t:-.55,dur:L.rec[L.rec.length-1].t,done,prev:G.state,prevFollow:G.followT,prevGolfer:G.golferAt};G.state='replay';G.overview=false;G.golferAt=L.golferAt;const c=replayCam();cam.E=[...c.E];cam.L=[...c.L];}
+/* ---------- saved shots: the replay data kept on this phone, and replays recorded to video ---------- */
+const HL_KEY='golf-highlights',HL_MAX=40;
+const hlList=()=>{try{const a=JSON.parse(localStorage.getItem(HL_KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return[];}};
+function hlEnc(L){const R=L.rec,p=[];let lt=-1,o=[0,0,0,0];
+  for(let i=0;i<R.length;i++){const r=R[i];if(i>0&&i<R.length-1&&r.t-lt<.05)continue;lt=r.t;const q=[Math.round(r.t*100),Math.round(r.x*10),Math.round(r.y*10),Math.round(r.Y*10)];p.push(q[0]-o[0],q[1]-o[1],q[2]-o[2],q[3]-o[3]);o=q;}
+  const ga=L.golferAt||{x:R[0].x,y:R[0].y,aim:G.shotRot};
+  return{c:L.club??G.swingClub,k:L.putt?'putt':(L.type||G.swingType),b:+(L.back??G.swingBack??1).toFixed(2),l:+(L.launchAt||0).toFixed(3),a:+ga.aim.toFixed(4),gx:+ga.x.toFixed(1),gy:+ga.y.toFixed(1),o:L.holed?1:0,f:L.flame==='red'?2:L.flame?1:0,p};}
+function hlSave(){const L=G.lastShot;if(!L||!L.rec||L.saved||G.mode==='highlight')return;
+  const R=L.rec,a=R[0],e=R[R.length-1],d=hyp(e.x-a.x,e.y-a.y),c=CLUBS[L.club??G.swingClub]||curClub(),par=G.hole.par;
+  const res=L.holed?(L.strokes===1?'Hole in one':scoreName(L.strokes||G.strokes,par).replace('!','').toLowerCase().replace(/^./,m=>m.toUpperCase())):'';
+  const sub=(L.putt?Math.round(d*3)+' ft putt':c.name+' \u00b7 '+Math.round(d)+' yds')+(res?' \u00b7 '+res:L.holed?' \u00b7 in the hole':'');
+  const it={id:Date.now(),ts:Date.now(),cid:CUR.id,hi:G.hi,pin:G.hole.pinIx??1,ch:(typeof R3B!=='undefined'&&R3B.cid)||CHAR_ID,title:CUR.name+' \u00b7 hole '+(G.hi+1),sub,s:hlEnc(L)};
+  const a2=hlList();a2.unshift(it);while(a2.length>HL_MAX)a2.pop();
+  try{localStorage.setItem(HL_KEY,JSON.stringify(a2));L.saved=true;toast('SHOT SAVED','Find it under Saved shots in the menu','#8ee6a8');sfx.nice();}
+  catch(err){toast('COULD NOT SAVE','This phone is out of space for saved shots','#ff9b6a');}}
+function hlDelete(id){const a=hlList().filter(x=>x.id!==id);try{localStorage.setItem(HL_KEY,JSON.stringify(a));}catch(e){}renderHl();}
+function openHl(){$('menuM').hidden=true;$('hlM').hidden=false;renderHl();}
+function renderHl(){const a=hlList(),el=$('hlList');
+  if(!a.length){el.innerHTML='<p class="msub">No saved shots yet. During a replay, tap \u2606 Save to keep it here.</p>';return;}
+  el.innerHTML=a.map(x=>'<div class="hlrow"><div><b>'+x.title+'</b><span>'+x.sub+' \u00b7 '+new Date(x.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'})+'</span></div>'+
+    '<button class="go" data-hlw="'+x.id+'" aria-label="Watch">\u25B6</button>'+(recOK()?'<button data-hlv="'+x.id+'" aria-label="Save as video">\u2B07</button>':'')+'<button data-hld="'+x.id+'" aria-label="Delete">\u2715</button></div>').join('');
+  el.querySelectorAll('[data-hlw]').forEach(b=>b.addEventListener('click',()=>{A();hlPlay(+b.dataset.hlw,false);}));
+  el.querySelectorAll('[data-hlv]').forEach(b=>b.addEventListener('click',()=>{A();hlPlay(+b.dataset.hlv,true);}));
+  el.querySelectorAll('[data-hld]').forEach(b=>{let armed=false;b.addEventListener('click',()=>{A();if(!armed){armed=true;b.textContent='Delete?';setTimeout(()=>{armed=false;b.textContent='\u2715';},2500);return;}hlDelete(+b.dataset.hld);});});}
+const HL={on:false};
+function hlPlay(id,video){const e=hlList().find(x=>x.id===id);if(!e||!COURSES[e.cid])return;
+  if(MATCH.on){toast('IN A MATCH','Finish or leave your match to watch saved shots','#fff6dc');return;}
+  if(SPEC.on)specEnd(false);
+  Object.assign(HL,{on:true,e,video});G.mode='highlight';G.hlPin=e.pin;
+  $('hlM').hidden=true;$('menuM').hidden=true;G.paused=false;$('game').classList.add('spec');resize();
+  setCourse(e.cid,false);G.scores=[];startHole(e.hi);$('introM').hidden=true;
+  if(e.ch&&typeof r3GolferSet==='function'&&R3.on)try{r3GolferSet(e.ch);}catch(err){}
+  const s=e.s,rec=dailyDecShot(s);while(rec.length<6){const q=rec[rec.length-1];rec.push({...q,t:q.t+.05});}
+  G.ball={x:rec[0].x,y:rec[0].y};G.prev={...G.ball};G.strokes=1;G.fromLie=lieAt(s.gx,s.gy);G.lie=G.fromLie;G.shotRot=s.a;G.aim=s.a;
+  G.swingClub=s.c;G.swingType=s.k;G.swingBack=s.b;G.inCup=false;
+  G.lastShot={rec,golferAt:{x:s.gx,y:s.gy,aim:s.a},launchAt:s.l||(s.k==='putt'?PUTT_IMPACT:IMPACT_T),holed:!!s.o,putt:s.k==='putt',flame:s.f===2?'red':s.f===1?'blue':null,saved:true};
+  later(1,()=>{if(!HL.on)return;if(video)recStart(e.title,e.sub);startReplay(()=>{if(REC.on)recStop();hlEnd();});});}
+function hlEnd(){if(!HL.on)return;HL.on=false;G.waitFn=null;$('game').classList.remove('spec');resize();
+  if(typeof r3GolferSet==='function'&&R3.on)try{r3GolferSet(CHAR_ID);}catch(e){}
+  G.state='intro';G.paused=true;G.hlPin=null;if(!REC.blob||$('vidM').hidden)openHl();}
+// video: draw each rendered frame (3D scene + overlay) into a small canvas and record it with MediaRecorder
+const recMime=()=>{if(typeof MediaRecorder==='undefined')return null;for(const m of['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'])try{if(MediaRecorder.isTypeSupported(m))return m;}catch(e){}return null;};
+let REC_OK=null;const recOK=()=>REC_OK??(REC_OK=!!recMime()&&!!HTMLCanvasElement.prototype.captureStream);
+function recStart(title,sub){const mime=recMime();if(!mime)return false;const gl=$('gl'),k=Math.min(1,720/Math.min(gl.width,gl.height)),w=Math.round(gl.width*k/2)*2,h=Math.round(gl.height*k/2)*2;
+  const cc=document.createElement('canvas');cc.width=w;cc.height=h;const ctx=cc.getContext('2d');ctx.fillStyle='#000';ctx.fillRect(0,0,w,h);
+  let mr;try{mr=new MediaRecorder(cc.captureStream(30),{mimeType:mime,videoBitsPerSecond:6e6});}catch(e){return false;}
+  const chunks=[];mr.ondataavailable=ev=>{if(ev.data&&ev.data.size)chunks.push(ev.data);};
+  mr.onstop=()=>{REC.blob=new Blob(chunks,{type:mime.split(';')[0]});$('vidTitle').textContent='Your video is ready';$('vidSub').textContent=(title||'')+(sub?' \u00b7 '+sub:'');$('vidM').hidden=false;};
+  Object.assign(REC,{on:true,mr,cc,ctx,w,h,title:title||'',sub:sub||'',blob:null});mr.start(200);return true;}
+function recFrame(){const R=REC,gl=$('gl'),c=$('c');try{R.ctx.drawImage(gl,0,0,R.w,R.h);R.ctx.drawImage(c,0,0,R.w,R.h);}catch(e){}
+  const s=R.h/900;R.ctx.font='700 '+Math.round(26*s)+'px "Lilita One",system-ui,sans-serif';R.ctx.textAlign='left';R.ctx.textBaseline='bottom';R.ctx.fillStyle='rgba(0,0,0,.45)';
+  R.ctx.fillText(R.title,22*s+2,R.h-46*s+2);R.ctx.fillStyle='#fff6dc';R.ctx.fillText(R.title,22*s,R.h-46*s);R.ctx.font='600 '+Math.round(20*s)+'px "Barlow Semi Condensed",system-ui,sans-serif';R.ctx.fillText(R.sub,22*s,R.h-20*s);}
+function recStop(){if(!REC.on)return;REC.on=false;try{REC.mr.stop();}catch(e){}}
+async function recSave(){const b=REC.blob;if(!b)return;const ext=b.type.includes('mp4')?'mp4':'webm',f=new File([b],'golf-go-shot.'+ext,{type:b.type});
+  if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'Golf Go shot'});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=f.name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},5000);}
+// record the replay that is on screen now: start it again from the top with the recorder running
+function recThisReplay(){if(!G.replay||REC.on)return;const done=G.replay.done,L=G.lastShot,R=L.rec,a=R[0],e=R[R.length-1],d=hyp(e.x-a.x,e.y-a.y);
+  G.replay.done=null;endReplay();const title=HL.on?HL.e.title:CUR.name+' \u00b7 hole '+(G.hi+1),sub=HL.on?HL.e.sub:(L.putt?Math.round(d*3)+' ft putt':Math.round(d)+' yds');
+  if(!recStart(title,sub)){toast('NO VIDEO','This browser can\u2019t record video','#ff9b6a');done&&done();return;}
+  startReplay(()=>{recStop();done&&done();});}
 function endReplay(){const r=G.replay;if(!r)return;G.replay=null;G.state=r.prev;G.followT=r.prevFollow;G.golferAt=r.prevGolfer;G.trail=[];if(r.done)r.done();}
 function stepReplay(dt){const r=G.replay,L=G.lastShot;const slow=L.holed&&r.t>r.dur-1.1?.5:1;r.t+=dt*slow;
   G.golferAt=L.golferAt;G.followT=Math.max(.001,L.launchAt+r.t);if(r.t>r.dur+.9)endReplay();}
-function replayCam(){const L=G.lastShot,r=G.replay,rp=replayPoint(Math.max(0,r.t)),s0=L.rec[0],s1=L.rec[L.rec.length-1],ga=L.golferAt||{x:s0.x,y:s0.y,aim:G.shotRot};
+// replays use the same camera as a live shot (trailing the ball); the TV button switches to the broadcast-style view
+function replayCam(){return FLY_TV?replayCamTV():replayCamTrail();}
+function replayCamTrail(){const L=G.lastShot,r=G.replay,rp=replayPoint(Math.max(0,r.t)),s0=L.rec[0],ga=L.golferAt||{x:s0.x,y:s0.y,aim:G.shotRot};
+  const[dx,dz]=dirOf(ga.aim),g0=hAt(ga.x,ga.y),gb=hAt(rp.x,rp.y);
+  if(L.putt){if(r.t<.3)return{E:[ga.x-dx*2.6,g0+1.4,ga.y-dz*2.6],L:[ga.x+dx*4,g0,ga.y+dz*4]};return{E:[rp.x-dx*6,gb+2.8,rp.y-dz*6],L:[rp.x,gb,rp.y]};}
+  if(r.t<.4){const ca=camAddress(ga.x,ga.y,ga.aim);if(ca)return ca;return{E:[ga.x-dx*13,g0+5.4,ga.y-dz*13],L:[ga.x+dx*40,g0,ga.y+dz*40]};}
+  if(rp.Y>gb+.25)return{E:[rp.x-dx*31,rp.Y*.55+gb*.45+9,rp.y-dz*31],L:[rp.x+dx*8,rp.Y*.85+gb*.15,rp.y+dz*8]};
+  return{E:[rp.x-dx*20,gb+7,rp.y-dz*20],L:[rp.x,gb,rp.y]};}
+function replayCamTV(){const L=G.lastShot,r=G.replay,rp=replayPoint(Math.max(0,r.t)),s0=L.rec[0],s1=L.rec[L.rec.length-1],ga=L.golferAt||{x:s0.x,y:s0.y,aim:G.shotRot};
   const[dx,dz]=dirOf(ga.aim),g0=hAt(ga.x,ga.y);
   if(L.putt)return{E:[rp.x-dx*3.6,hAt(rp.x,rp.y)+1.5,rp.y-dz*3.6],L:[rp.x,rp.Y,rp.y]};
   if(r.t<Math.min(1.2,r.dur*.35))return{E:[ga.x-dx*7,g0+2.4,ga.y-dz*7],L:[rp.x,rp.Y,rp.y]};
@@ -5052,6 +5146,10 @@ $('careerBack').addEventListener('click',()=>{A();closeCareer();});
 document.querySelectorAll('#careerTabs button').forEach(b=>b.addEventListener('click',()=>{careerTab=b.dataset.tab;careerSel=null;sfx.tick();renderCareer();}));
 $('nextBtn').addEventListener('click',nextFromCard);
 $('ffBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();A();cycleFF();});
+$('rpSave').addEventListener('pointerdown',e=>e.stopPropagation());$('rpVideo').addEventListener('pointerdown',e=>e.stopPropagation());
+$('rpSave').addEventListener('click',e=>{e.stopPropagation();A();hlSave();});$('rpVideo').addEventListener('click',e=>{e.stopPropagation();A();recThisReplay();});
+$('mHl').addEventListener('click',()=>{A();sfx.tick();openHl();});$('hlBack').addEventListener('click',()=>{A();$('hlM').hidden=true;openMenu(!!G.hole&&G.mode!=='highlight');});
+$('vidSave').addEventListener('click',()=>{A();recSave();});$('vidClose').addEventListener('click',()=>{A();$('vidM').hidden=true;REC.blob=null;if(G.mode==='highlight'&&!HL.on)openHl();});
 $('replayBtn').addEventListener('click',()=>{A();if(G.state==='aim'&&G.canReplay)startReplay(()=>{G.state='aim';});});
 $('cardReplay').addEventListener('click',()=>{A();startReplay(()=>{G.state='card';$('cardM').hidden=false;});});
 $('soundBtn').addEventListener('click',()=>{S.on=!S.on;$('soundWaves').style.opacity=S.on?1:.15;if(S.on){unlockAudio();setTimeout(()=>sfx.strike(1,1,'wood','tee'),60);}else if(S.tag)S.tag.pause();});
