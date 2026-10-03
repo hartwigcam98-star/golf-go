@@ -1924,7 +1924,7 @@ function scoreName(strokes,par){const d=strokes-par;if(strokes===1)return'HOLE I
 /* ---------- save file (this device) ---------- */
 let SAVE_KEY=CUR.saveKey;
 function saveGame(o={}){if(G.mode==='daily'){dailySave(o);return;}if(G.mode!=='round')return;
-  const d={v:1,ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,ts:Date.now()};
+  const d={v:1,ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,pend:o.pend||null,ts:Date.now()};
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(d));}catch(e){}}
 function loadSave(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d&&d.v===1&&Number.isInteger(d.hi)&&d.hi>=0&&d.hi<TB.length)return d;}catch(e){}return null;}
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
@@ -1973,6 +1973,7 @@ function prepareShot(){
 }
 function tap(){
   A();
+  if(G.pendRes)return;
   if(G.aiTurn){skipAI();return;}
   if(G.overview){G.overview=false;return;}
   if(R3.on&&r3RoutineSkip())return;
@@ -1982,7 +1983,22 @@ function tap(){
   else if(G.state==='power'){m.power=m2p((m.pos-IMPACT)/(1-IMPACT));G.state='acc';sfx.tick();}
   else if(G.state==='acc'){const e=m.pos-IMPACT;G.tapMark=clamp(m.pos,0,1);executeShot(m.power,clamp(e,-.12,.4));}
 }
-function executeShot(power,e){
+/* no mulligans from closing the app: the swing is saved the moment it's struck (power, timing, aim, club and a dice seed),
+   and on reopening that same swing is played out before anything else */
+function pendSave(power,e,seed){const P={s:G.strokes,bx:G.ball.x,by:G.ball.y,p:power,e,sd:seed,aim:G.aim,c:G.clubIdx,st:G.stype,sp:G.spin,imp:{...G.imp},tr:G.traj,ps:!!G.pshot,mp:G.meter.power,fo:!!G.flagOut,w:{...G.wind}};
+  if(MATCH.on){const m=CAR.match;if(m&&m.cur){m.cur.pend={...P,k:MATCH.turn};m.ts=Date.now();saveCareer();}return;}
+  if(G.mode==='round'||G.mode==='daily')saveGame({mid:true,pend:P});}
+function pendResume(P){if(!P||G.state!=='aim'||G.strokes!==P.s||hyp(G.ball.x-P.bx,G.ball.y-P.by)>.1)return false;
+  const set=()=>{G.aim=P.aim;G.clubIdx=P.c;G.stype=P.st||'full';G.spin=P.sp||0;G.imp={...(P.imp||{x:0,y:0})};G.traj=P.tr||0;G.pshot=!!P.ps;G.meter.power=P.mp||0;G.flagOut=!!P.fo;if(P.w)G.wind={...P.w};G.shortP=null;setShortMax();};
+  set();pendSave(P.p,P.e,P.sd);
+  if(G.aiTurn){G.ai={aim:P.aim,power:P.p,e:P.e,sd:P.sd,t:0,think:.6};return true;}
+  G.pendRes=true;toast('FINISHING YOUR SHOT','Closing the game mid-shot doesn\u2019t give you a mulligan','#fff6dc');
+  setTimeout(()=>{G.pendRes=false;if(G.state!=='aim'||G.strokes!==P.s)return;set();G.state='acc';executeShot(P.p,P.e,P.sd);},1200);return true;}
+function executeShot(power,e,seed){
+  if(!Number.isInteger(seed))seed=(Math.random()*2147483647)|0;
+  if(G.mode!=='spectate'&&!G.replay)try{pendSave(power,e,seed);}catch(_){}
+  const R0=Math.random;Math.random=rng(seed);try{strikeShot(power,e);}finally{Math.random=R0;}}
+function strikeShot(power,e){
   const club=curClub(),lie=G.lie;
   G.rec=[];G.recT=0;G.recOn=true;G.canReplay=false;G.recHoled=false;
   G.shotInfo=null;$('shotStats').hidden=true;
@@ -2148,6 +2164,7 @@ function stopBall(){
   showShotStats();
   endRec(false);G.roll=null;G.hop=null;G.state='wait';G.trail=[];
   const p=G.hole.pin;if(hyp(G.ball.x-p[0],G.ball.y-p[1])<CUP){holed();return;}
+  if(!MATCH.on&&G.mode!=='practice')saveGame({mid:true});
   const L=lieAt(G.ball.x,G.ball.y);
   if(L==='green'&&G.fromLie!=='green'){const reg=G.strokes<=G.hole.par-2;toast(reg?'NICE ON!':'ON THE GREEN',Math.round(pinDist()*3)+' ft to the cup','#8ee6a8');}
   else if(L==='sand'&&G.fromLie!=='sand')toast('BUNKER','','#f0e0ab');
@@ -2198,7 +2215,7 @@ function reliefAsk(o){if(G.aiTurn||G.aiSkip||o.length===1){reliefApply(reliefBes
   $('reliefM').hidden=false;}
 function holed(kind){
   const p=G.hole.pin;G.ball={x:p[0],y:p[1]};endRec(true);G.roll=null;G.flight=null;G.hop=null;G.inCup=true;G.state='holed';G.trail=[];
-  if(!MATCH.on)G.scores[G.hi]=G.strokes;
+  if(!MATCH.on){G.scores[G.hi]=G.strokes;if(G.mode!=='practice'&&G.hi<TB.length-1)saveGame({hi:G.hi+1,strokes:0,mid:false,ball:{x:0,y:0},prev:{x:0,y:0}});}
   const name=scoreName(G.strokes,G.hole.par);
   let sub=kind||'';
   if(!sub&&G.fromLie!=='green'&&G.strokes>1)sub='Chip-in';
@@ -2270,7 +2287,7 @@ function dailyToday(){const day=dailyDay(),d=dailyLoad();return d&&d.day===day?d
 function dailyPid(){let id=null;try{id=localStorage.getItem('golf-pid');}catch(e){}if(!id){id='p'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);try{localStorage.setItem('golf-pid',id);}catch(e){}}return id;}
 function dailyName(){try{return localStorage.getItem('golf-name')||'';}catch(e){return'';}}
 function dailySave(o={}){const d=dailyLoad()||{};if(d.day!==G.dailyDay)return;
-  Object.assign(d,{ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,ts:Date.now()});dailyStore(d);}
+  Object.assign(d,{ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,pend:o.pend||null,ts:Date.now()});dailyStore(d);}
 function dailyWeather(day){if(typeof R3==='undefined'||!R3.on||typeof r3ApplyWx!=='function')return;r3ApplyWx(Math.floor(rng(dailyNum(day)*31+7)()*4)%4,true);}
 function dailyLeave(){if(G.mode!=='daily'&&G.mode!=='spectate')return;G.mode='round';let c=null;try{c=localStorage.getItem('golf-course');}catch(e){}if(c&&COURSES[c]&&c!==CUR.id)setCourse(c,false);
   if(typeof R3!=='undefined'&&R3.on&&typeof r3RoundWx==='function')r3RoundWx();}
@@ -2282,8 +2299,8 @@ function dailyPlay(){const day=dailyDay(),cid=dailyCourse(day);let d=dailyToday(
   if(!d){d={v:1,day,cid,hi:0,scores:[],strokes:0,mid:false,ps:3,done:false,posted:false,ts:Date.now()};dailyStore(d);}
   G.mode='daily';G.dailyDay=day;G.dailySeed=dailyNum(day)*7919;setCourse(d.cid,false);dailyWeather(day);
   G.psLeft=Number.isInteger(d.ps)?d.ps:3;G.scores=Array.isArray(d.scores)?d.scores:[];closeMenu();startHole(d.hi||0);
-  if(d.mid&&d.strokes>0&&d.ball){$('introM').hidden=true;G.strokes=d.strokes;G.ball={x:d.ball.x,y:d.ball.y};G.prev=d.prev?{x:d.prev.x,y:d.prev.y}:{...G.ball};if(d.wind)G.wind=d.wind;
-    prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];toast('WELCOME BACK','Daily round \u00b7 hole '+(d.hi+1),'#8ee6a8');}}
+  if(((d.mid&&d.strokes>0)||d.pend)&&d.ball){$('introM').hidden=true;G.strokes=d.strokes;G.ball={x:d.ball.x,y:d.ball.y};G.prev=d.prev?{x:d.prev.x,y:d.prev.y}:{...G.ball};if(d.wind)G.wind=d.wind;
+    prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];if(!pendResume(d.pend))toast('WELCOME BACK','Daily round \u00b7 hole '+(d.hi+1),'#8ee6a8');}}
 function dailyFinish(){const d=dailyLoad();if(!d||d.day!==G.dailyDay)return;d.scores=G.scores.slice();d.done=true;d.mid=false;d.total=G.scores.reduce((a,b)=>a+(b||0),0);d.toPar=roundDiff();dailyStore(d);dailyPost();}
 async function dailyPost(){const d=dailyLoad();if(!d||!d.done||d.posted||!DAILY.url)return false;
   const body={day:d.day,course:d.cid,player_id:dailyPid(),name:dailyName()||'Golfer',strokes:d.total,to_par:d.toPar,holes:d.scores};
@@ -2404,8 +2421,8 @@ let newArmed=false;
 function newRound(){endMatchMode();if(R3.on)r3NewWx();dailyLeave();G.mode='round';G.scores=[];G.psLeft=3;clearSave();closeMenu();startHole(0);}
 function continueRound(){endMatchMode();dailyLeave();const sv=loadSave();if(!sv){newRound();return;}G.psLeft=Number.isInteger(sv.ps)?sv.ps:3;
   G.mode='round';G.scores=Array.isArray(sv.scores)?sv.scores:[];closeMenu();startHole(sv.hi);
-  if(sv.mid&&sv.strokes>0&&sv.ball){$('introM').hidden=true;G.strokes=sv.strokes;G.ball={x:sv.ball.x,y:sv.ball.y};G.prev=sv.prev?{x:sv.prev.x,y:sv.prev.y}:{...G.ball};if(sv.wind)G.wind=sv.wind;
-    prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];toast('WELCOME BACK','Hole '+(sv.hi+1)+' \u00b7 stroke '+(sv.strokes+1),'#8ee6a8');}}
+  if(((sv.mid&&sv.strokes>0)||sv.pend)&&sv.ball){$('introM').hidden=true;G.strokes=sv.strokes;G.ball={x:sv.ball.x,y:sv.ball.y};G.prev=sv.prev?{x:sv.prev.x,y:sv.prev.y}:{...G.ball};if(sv.wind)G.wind=sv.wind;
+    prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];if(!pendResume(sv.pend))toast('WELCOME BACK','Hole '+(sv.hi+1)+' \u00b7 stroke '+(sv.strokes+1),'#8ee6a8');}}
 function playHole(i){endMatchMode();if(R3.on)r3NewWx();dailyLeave();G.mode='practice';G.scores=[];G.psLeft=3;closeMenu();startHole(i);}
 function buildHoleGrid(){const g=$('holeGrid');let h='';for(let i=0;i<TB.length;i++){if(i===0||i===9)h+='<div class="nine">'+(i?'Back nine':'Front nine')+'</div>';
   h+='<button data-h="'+i+'" aria-label="Hole '+(i+1)+', par '+TB[i].par+'"><b>'+(i+1)+'</b><span>Par '+TB[i].par+'</span><span>'+holeLen(i)+'y</span></button>';}g.innerHTML=h;
@@ -2545,7 +2562,7 @@ function startMatch(rid,resume){const r=RV(rid);if(!r)return;
   matchStartHole(m.hi);
   const cu=resume&&m.cur&&m.cur.hi===m.hi&&m.cur.P&&m.cur.P.length===2?m.cur:null;
   if(cu&&!(cu.P[0].done&&cu.P[1].done)){MATCH.P=cu.P.map(p=>({ball:{...p.ball},prev:{...p.prev},strokes:p.strokes|0,done:!!p.done,conceded:!!p.conceded}));if(cu.wind)G.wind={...cu.wind};
-    $('introM').hidden=true;MATCH.turn=-1;G.state='wait';mNextTurn();
+    $('introM').hidden=true;MATCH.turn=-1;G.state='wait';const pd=cu.pend;mNextTurn();if(pd&&MATCH.turn===pd.k)pendResume(pd);
     const up=matchUp();setTimeout(()=>{if(MATCH.on)toast('WELCOME BACK',(m.hi>=18?'Playoff hole':'Hole '+(m.hi+1))+' \u00b7 '+statusLong(up),'#8ee6a8');},1700);}}
 function matchStartHole(i){MATCH.hi=i;startHole(i%TB.length);
   MATCH.P=[{ball:{x:0,y:0},prev:{x:0,y:0},strokes:0,done:false},{ball:{x:0,y:0},prev:{x:0,y:0},strokes:0,done:false}];MATCH.turn=0;G.aiTurn=false;G.look=myLook();G.cm=careerMods();
@@ -2666,7 +2683,7 @@ function aiStep(dt){const A=G.ai;if(!G.aiTurn||!A)return;const m=G.meter,fast=G.
   if(G.state==='aim'){if(R3.on&&r3RoutineBusy())return;A.t+=dt;G.aim+=(A.aim-G.aim)*Math.min(1,dt*4);
     if(A.t>(fast?0:A.think)){G.aim=A.aim;G.state='power';m.pos=IMPACT;m.power=0;m.dir=1;G.tapMark=null;sfx.tick();}}
   else if(G.state==='power'){const tgt=IMPACT+p2m(A.power)*(1-IMPACT);if(fast||m.pos>=tgt){m.pos=tgt;m.power=A.power;G.state='acc';sfx.tick();}}
-  else if(G.state==='acc'){const tgt=IMPACT+(A.e===null?-1:A.e);if(fast||m.pos<=tgt){G.tapMark=clamp(IMPACT+(A.e||0),0,1);G.ai=null;executeShot(m.power,A.e);}}}
+  else if(G.state==='acc'){const tgt=IMPACT+(A.e===null?-1:A.e);if(fast||m.pos<=tgt){G.tapMark=clamp(IMPACT+(A.e||0),0,1);G.ai=null;executeShot(m.power,A.e,A.sd);}}}
 function skipAI(){if(!G.aiTurn)return;G.aiSkip=true;if(ffActive())G.ff=8;}
 
 /* ---- career screens ---- */
