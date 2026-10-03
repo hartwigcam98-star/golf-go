@@ -1,3 +1,4 @@
+# Cambrian Ridge (RTJ Golf Trail, Greenville AL: Sherling, Canyon and Loblolly nines).
 # Fetches everything the golf game needs for new courses, on GitHub Actions (see .github/workflows/lidar.yml).
 # Same sources as the original 8 courses: OpenStreetMap (Overpass), USGS NED 10 m (opentopodata), NAIP aerial photos,
 # USGS 3DEP 1 m elevation, and the raw USGS lidar ground points around every green (AWS EPT archive).
@@ -5,10 +6,10 @@
 import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
-JOB = {"name": "iron range", "search": [47.40, -92.60, 48.00, -92.00],
-       "want": {"wilderness": r"wilderness", "quarry": r"quarry", "legend": r"le+d?gend"},
-       "holes": {"wilderness": r"wilderness", "quarry": r"quarry", "legend": r"le+d?gend"},
-       "steps": {"legend": "all", "wilderness": "greens"}}
+JOB = {"name": "cambrian ridge", "search": [31.70, -86.85, 32.00, -86.45],
+       "want": {"cambrian": r"cambrian"},
+       "holes": {"cambrian": r"cambrian|canyon|sherling|loblolly"},
+       "steps": {"cambrian": "all"}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -232,7 +233,7 @@ def main():
     import subprocess   # keep the earlier courses' files on the results branch
     try:
         subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_iron1.json; [ -f out/run.log ] && mv out/run.log out/run_iron1.log; true', shell=True)
+        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_cr.json; [ -f out/run.log ] && mv out/run.log out/run_prev_cr.log; true', shell=True)
     except Exception as e: SUM['errors'].append(f'keep old: {e}')
     try: res = discover()
     except Exception as e: err('discover', e); return
