@@ -2724,7 +2724,7 @@ function matchUp(){return MATCH.res.reduce((a,b)=>a+(b||0),0);}
 function holesPlayed(){return MATCH.res.filter(x=>x!==undefined&&x!==null).length;}
 function statusLong(up,thru){const r=MATCH.r?rn(MATCH.r):'Rival';if(!up)return'All square'+(thru?' thru '+thru:'');return(up>0?'You':r)+' '+Math.abs(up)+' UP'+(thru?' thru '+thru:'');}
 function statusShort(up){const r=MATCH.r?rn(MATCH.r):'Rival';return up===0?'AS':up>0?'You '+up+' UP':r+' '+(-up)+' UP';}
-function endMatchMode(){if(R3.on&&MATCH.on)r3RoundWx();$('game').classList.remove('inmatch');MATCH.on=false;G.aiTurn=false;G.ai=null;G.cm=null;G.look=null;$('matchTag').hidden=true;
+function endMatchMode(){if(R3.on&&MATCH.on)r3RoundWx();$('game').classList.remove('inmatch');MATCH.on=false;G.aiTurn=false;G.aiChar=false;G.ai=null;G.cm=null;G.look=null;$('matchTag').hidden=true;
   if(CV===2&&typeof r3GolferSet==='function'&&R3.on)r3GolferSet(CHAR_ID);}   // back to your Play Now golfer
 /* a match stays on the course it started on (saves from before the 8-course ladder kept the old pairings) */
 function matchCid(m,r){if(m&&m.cid&&COURSES[m.cid])return m.cid;if(m&&((m.res&&m.res.length)||m.cur))return ({gus:'troy',kelly:'troy',hank:'stoneridge',priya:'stoneridge',beau:'caledonia',marisol:'caledonia',theo:'trueblue',rex:'trueblue'})[r.id]||r.course;return r.course;}
@@ -2753,7 +2753,7 @@ function matchStartHole(i){MATCH.hi=i;startHole(i%TB.length);
 // copy a player's ball in and out of the single-ball engine
 function mLoad(k){const p=MATCH.P[k];MATCH.turn=k;G.ball={...p.ball};G.prev={...p.prev};G.strokes=p.strokes;G.inCup=false;G.aiTurn=k===1;G.aiSkip=false;
   G.look=k===1?MATCH.r.look:myLook();G.cm=k===1?rivalMods(MATCH.r):careerMods();
-  if(CV===2&&typeof r3GolferSet==='function'&&R3.on)r3GolferSet(k===1?MATCH.r.cid:CAR.char);}   // V2: each player is their own golfer
+  G.aiChar=CV===2&&k===1;if(CV===2&&typeof r3GolferSet==='function'&&R3.on)r3GolferSet(k===1?MATCH.r.cid:CAR.char);}   // V2: each player is their own golfer
 function mStore(){const p=MATCH.P[MATCH.turn];p.ball={...G.ball};p.prev={...G.prev};p.strokes=G.strokes;}
 function afterShot(){if(!MATCH.on){prepareShot();return;}
   mStore();const p=MATCH.P[MATCH.turn],pin=G.hole.pin;
@@ -3555,7 +3555,7 @@ function r3bBackT(c,x){const t=clamp(x,0,1)*20,i=Math.floor(t),a=t-i;return i>=2
 const R3B_GRIP=8.5;   // cm from the lead palm down the grip to the trail palm
 const R3B_CFG={full:['drive',1,1],flop:['drive',1,1],punch:['drive',.6,.5],pitch:['chip',1,1],chip:['chip',.62,.62],spin:['chip',1,1],splash:['drive',.8,.85],pick:['chip',1,1],blast:['drive',.65,.7]};
 // returns false when the character is not available (the old figure is drawn instead)
-function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||G.aiTurn)return false;   // rivals keep their own jointed figure for now
+function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return false;   // original-ladder rivals keep their jointed figure; Challenge V2 rivals are golfers
   const club=G.state==='aim'||aimingState()?G.clubIdx:(G.swingClub??G.clubIdx),putt=club===PUTTER,type=aimingState()?G.stype:(G.swingType||'full');
   const[ck,back,end]=putt?['putt',1,1]:(R3B_CFG[type]||R3B_CFG.full);const c=R3B.clips[ck],m=G.meter;
   const Lm=putt?.86:CLUB_LEN[club]*.9,Lc=Lm*100/.94;const S=r3bClub(ck,Math.round(Lc));
