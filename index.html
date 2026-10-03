@@ -618,6 +618,10 @@ const shotOK=(t,ci)=>SHOTS[t].clubs.includes(ci);
 const STIMP=11,STIMP_V=2,MU_GREEN=STIMP_V*STIMP_V/(2*STIMP/3);
 const CAPV=Math.sqrt(2*MU_GREEN*2.1);   // a ball that would have run on about 2 yards past still drops
 const MU={green:MU_GREEN,fairway:4.5,tee:4.5,rough:11,sand:28,fescue:17};
+// a slow ball on a green: the grass holds it less as it dies, so it trickles on down a slope instead of parking on it.
+// Below 0.4 yd/s the green's rolling resistance eases to 45% (fully by 0.15 yd/s): a ball comes to rest only on slopes under
+// about 3% (the cup-slope rule); on anything steeper it keeps trickling downhill at a walking-pace crawl. Faster rolls are unchanged.
+const MU_REST=.45,muRoll=(L,sp)=>{const m=MU[L]||MU.fairway;return L==='green'?m*(MU_REST+(1-MU_REST)*smooth(.15,.4,sp)):m;},muStill=L=>(MU[L]||MU.fairway)*(L==='green'?MU_REST:1);
 const SURF={green:.9,fairway:1,tee:1,rough:.35,sand:.05,fescue:.15};
 const LIE_NAME={tee:'Tee box',fairway:'Fairway',rough:'Rough',sand:'Bunker',green:'Green',fescue:'Fescue',water:'Water',ob:'Out of bounds'};
 const LIE_COL={tee:'#7cc257',fairway:'#6db14a',rough:'#3f7d35',sand:'#f4efe2',green:'#9ad873',fescue:'#c9b35f'};
@@ -1797,8 +1801,8 @@ function shortRoll(c,st,L){const k=st==='chip'?(CHIP_R[c.id]??1):st==='pitch'?(P
 // roll from a point with a starting speed over the real ground; returns where it stops and the path
 function simRollP(x,y,dx,dy,v,path){let vx=dx*v,vy=dy*v;const h=1/240,pts=path?[[x,y]]:null;let lx=x,ly=y;
   for(let t=0;t<20;t+=h){const L=lieAt(x,y);if(L==='water'||L==='ob')return{x,y,pts,bad:true};
-    const sp=hyp(vx,vy),mu=MU[L]||MU.fairway,[gx,gy]=gradAt(x,y),sx=-GACC*gx,sy=-GACC*gy,smag=hyp(sx,sy);let ax=sx,ay=sy;if(sp>1e-6){ax-=mu*vx/sp;ay-=mu*vy/sp;}
-    vx+=ax*h;vy+=ay*h;if(hyp(vx,vy)<Math.max(.1,mu*h*1.5)&&smag<mu*.95)break;x+=vx*h;y+=vy*h;
+    const sp=hyp(vx,vy),mu=muRoll(L,sp),[gx,gy]=gradAt(x,y),sx=-GACC*gx,sy=-GACC*gy,smag=hyp(sx,sy);let ax=sx,ay=sy;if(sp>1e-6){ax-=mu*vx/sp;ay-=mu*vy/sp;}
+    vx+=ax*h;vy+=ay*h;if(hyp(vx,vy)<Math.max(.1,mu*h*1.5)&&smag<muStill(L)*.95)break;x+=vx*h;y+=vy*h;
     if(pts&&hyp(x-lx,y-ly)>.5){pts.push([x,y]);lx=x;ly=y;}}
   if(pts)pts.push([x,y]);return{x,y,pts};}
 // where a short shot of this carry lands (flying over the real ground) and where it finishes
@@ -2214,11 +2218,11 @@ function stepRoll(dt){
       if(sp<vmax){holed();return;}
       if(!r.lip){r.lip=true;const a=(Math.random()<.5?-1:1)*(.35+Math.random()*.4),c=Math.cos(a),s=Math.sin(a);const vx=r.vx,vy=r.vy;r.vx=(vx*c-vy*s)*.62;r.vy=(vx*s+vy*c)*.62;sfx.lip();toast('LIP OUT!','','#ff9b6a');}
     }else if(d>CUP*1.6){r.lip=false;r.cb=undefined;}
-    const mu=MU[L]||MU.fairway;sp=hyp(r.vx,r.vy);
+    sp=hyp(r.vx,r.vy);const mu=muRoll(L,sp);
     const[gx,gy]=gradAt(b.x,b.y);const sx=-GACC*gx,sy=-GACC*gy,smag=hyp(sx,sy);
     let ax=sx,ay=sy;if(sp>1e-6){ax+=-mu*r.vx/sp;ay+=-mu*r.vy/sp;}
     r.vx+=ax*h;r.vy+=ay*h;
-    if(hyp(r.vx,r.vy)<Math.max(.1,mu*h*1.5)&&smag<mu*.95){stopBall();return;}
+    if(hyp(r.vx,r.vy)<Math.max(.1,mu*h*1.5)&&smag<muStill(L)*.95){stopBall();return;}
     b.x+=r.vx*h;b.y+=r.vy*h;
   }
   if(r.t>30)stopBall();
@@ -2735,8 +2739,8 @@ function matchNext(){if(MATCH.over){endMatchMode();openCareer();return;}matchSta
 function simRoll(x,y,a,D){const p=G.hole.pin,mu0=MU[lieAt(x,y)]||MU.fairway,v=Math.sqrt(2*mu0*D),dd=dirOf(a);let vx=dd[0]*v,vy=dd[1]*v;const h=1/120;
   for(let t=0;t<18;t+=h){const L=lieAt(x,y);if(L==='water'||L==='ob')return{d:99};
     const sp=hyp(vx,vy),d=hyp(x-p[0],y-p[1]);if(d<CUP){const cb=sp>1e-6?Math.abs(vx*(p[1]-y)-vy*(p[0]-x))/sp:0;if(sp<CAPV*(.35+.65*Math.sqrt(Math.max(0,1-(cb/CUP)**2)))*(G.flagOut?1:1.35))return{d:0,holed:true};}
-    const mu=MU[L]||MU.fairway,[gx,gy]=gradAt(x,y),sx=-GACC*gx,sy=-GACC*gy,smag=hyp(sx,sy);let ax=sx,ay=sy;if(sp>1e-6){ax-=mu*vx/sp;ay-=mu*vy/sp;}
-    vx+=ax*h;vy+=ay*h;if(hyp(vx,vy)<Math.max(.1,mu*h*1.5)&&smag<mu*.95)break;x+=vx*h;y+=vy*h;}
+    const mu=muRoll(L,sp),[gx,gy]=gradAt(x,y),sx=-GACC*gx,sy=-GACC*gy,smag=hyp(sx,sy);let ax=sx,ay=sy;if(sp>1e-6){ax-=mu*vx/sp;ay-=mu*vy/sp;}
+    vx+=ax*h;vy+=ay*h;if(hyp(vx,vy)<Math.max(.1,mu*h*1.5)&&smag<muStill(L)*.95)break;x+=vx*h;y+=vy*h;}
   return{d:hyp(x-p[0],y-p[1])};}
 function aiPuttPlan(sk){const b=G.ball,p=G.hole.pin,base=angTo(b.x,b.y,p[0],p[1]),tp=puttTargetPower();const D0=Math.max(.3,(tp===null?.1:tp)*G.puttMax);
   let best={s:1e9,a:base,D:D0};const tryA=(a,D)=>{const r=simRoll(b.x,b.y,a,D);const s=r.holed?-1+Math.abs(D/D0-1.08)*.2:r.d;if(s<best.s)best={s,a,D};};
