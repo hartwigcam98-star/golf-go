@@ -796,7 +796,7 @@ function buildHole(d,idx){
     if(dg[k]<=3.2)lg[k]=2;                                             // fringe/collar
     else if(dm[k]<=10||distPl(line,x,y)<=14)lg[k]=1;}                   // rough band and the line of play
   const dp=new Float32Array(nx*ny);for(let k=0;k<dp.length;k++)dp[k]=lg[k]===0?1e4:0;chamfer(dp,nx,ny);
-  h.lg={x0:B[0],y0:B[1],nx,ny,code:lg,dplay:dp};
+  h.lg={x0:B[0],y0:B[1],nx,ny,code:lg,dplay:dp,dmown:dm};
   // trees: front nine is open prairie with lone trees; back nine sits in a wooded hollow
   const links=CUR.scen==='links',low=CUR.scen==='lowcountry',back=!links&&!low&&idx>=9;h.back=back;h.links=links;h.low=low;
   const pickSp=()=>{const q=R();if(low)return q<.5?'lpine':q<.85?'liveoak':'oak';return back?(q<.3?'oak':q<.55?'maple':q<.75?'birch':'pine'):(q<.55?'oak':q<.8?'pine':'birch');};
@@ -961,8 +961,8 @@ const COURSES={
   // the two Cambrian Ridge 18s share their lidar ground, green surfaces and trees (data:'cambrian')
   crsc:{id:'crsc',data:'cambrian',name:'Sherling/Canyon',town:'Cambrian Ridge, AL',tees:'Purple tees',tb:TB_CRSC,course:COURSE_CRSC,dem:DEM_CR,saveKey:'crsc-save-v1',scen:'prairie',wide:WIDE_CR,surr:SURR_CR},
   crls:{id:'crls',data:'cambrian',name:'Loblolly/Sherling',town:'Cambrian Ridge, AL',tees:'Purple tees',tb:TB_CRLS,course:COURSE_CRLS,dem:DEM_CR,saveKey:'crls-save-v1',scen:'prairie',wide:WIDE_CR,surr:SURR_CR},
-  heritage:{id:'heritage',name:'The Heritage Club',town:'Pawleys Island, SC',tees:'Gold tees',tb:TB_HER,course:COURSE_HER,dem:DEM_HER,saveKey:'heritage-save-v1',scen:'lowcountry',wide:WIDE_HER,surr:SURR_HER},
-  pawplant:{id:'pawplant',name:'Pawleys Plantation',town:'Pawleys Island, SC',tees:'Golden Bear tees',tb:TB_PWP,course:COURSE_PWP,dem:DEM_PWP,saveKey:'pawplant-save-v1',scen:'lowcountry',wide:WIDE_PWP,surr:SURR_PWP}};
+  heritage:{treeClear:.8,id:'heritage',name:'The Heritage Club',town:'Pawleys Island, SC',tees:'Gold tees',tb:TB_HER,course:COURSE_HER,dem:DEM_HER,saveKey:'heritage-save-v1',scen:'lowcountry',wide:WIDE_HER,surr:SURR_HER},
+  pawplant:{treeClear:.8,id:'pawplant',name:'Pawleys Plantation',town:'Pawleys Island, SC',tees:'Golden Bear tees',tb:TB_PWP,course:COURSE_PWP,dem:DEM_PWP,saveKey:'pawplant-save-v1',scen:'lowcountry',wide:WIDE_PWP,surr:SURR_PWP}};
 let CUR=COURSES.troy,TB=CUR.tb,COURSE=CUR.course,DEM=CUR.dem,WIDE=CUR.wide;
 // course-frame height in yards (Catmull-Rom bicubic over the grid, clamped at the edges)
 function gridH(D,x,y){const fx=clamp((x-D.x0)/D.dx,0,D.nc-1.0001),fy=clamp((y-D.y0)/D.dy,0,D.nr-1.0001),i=fx|0,j=fy|0,tx=fx-i,ty=fy-j;
@@ -3590,7 +3590,7 @@ function r3bIK(side,palmTarget){const I=R3B.idx,B=R3B.bones,up=B[I[side+'Arm']],
   const A=r3bWP(up),E=r3bWP(lo),Wr=r3bWP(hd),palm=Wr.clone().add(r3bWP(mid)).multiplyScalar(.5),off=palm.clone().sub(Wr);
   const T=palmTarget.clone().sub(off);const l1=E.distanceTo(A),l2=Wr.distanceTo(E);let d=T.distanceTo(A);const dmax=(l1+l2)*.999,dmin=Math.abs(l1-l2)+.5;
   const n=T.clone().sub(A);if(d>dmax){n.setLength(dmax);T.copy(A).add(n);d=dmax;}if(d<dmin){n.setLength(dmin);T.copy(A).add(n);d=dmin;}n.normalize();
-  const pole=E.clone().sub(A);pole.sub(n.clone().multiplyScalar(pole.dot(n)));if(pole.lengthSq()<1e-6)pole.set(0,-1,0);pole.normalize();
+  const pole=side==='Right'&&R3B.armPole?R3B.armPole.clone():E.clone().sub(A);pole.sub(n.clone().multiplyScalar(pole.dot(n)));if(pole.lengthSq()<1e-6)pole.set(0,-1,0);pole.normalize();
   const x=(l1*l1-l2*l2+d*d)/(2*d),hh=Math.sqrt(Math.max(l1*l1-x*x,0)),E2=A.clone().add(n.clone().multiplyScalar(x)).add(pole.multiplyScalar(hh));
   r3bAim(up,E,E2);r3bAim(lo,r3bWP(hd),T);
   const lq=lo.getWorldQuaternion(new THREE.Quaternion());hd.quaternion.copy(lq.invert().multiply(hq));hd.updateMatrixWorld(true);}
@@ -3640,14 +3640,32 @@ const R3B_RELAX=1.0;
 const R3B_TWIRL_T=.85,R3B_TWIRL_N=1;   // club twirl after a pure approach that comes down close (G.twirl): seconds, turns
 /* the birdie fist pump: the free (right) hand comes up to shoulder height, two sharp pulls down, a beat, then back.
    Keys are palm offsets from the right shoulder in the body frame [up, forward, out to the side] (cm). */
-const R3B_PUMP=[[0,'rest'],[.38,[6,20,12]],[.52,[-30,16,3]],[.74,[4,20,12]],[.88,[-32,15,3]],[1.55,[-29,16,3]],[2.15,'rest']];
+/* v71 rework, after the classic golf celebration (the "uppercut" fist pump): the fist drops and cocks low by the hip, drives up
+   through an uppercut to chin height in front, then yanks down and back to the hip with the elbow driving into the side; twice,
+   the second the bigger yank, held clenched for a beat. The whole body goes with it: knees bend and the hips drop into a crouch,
+   the chest folds over a little, and each yank bounces the crouch deeper. */
+const R3B_PUMP=[[0,'rest'],[.28,[-34,4,12]],[.46,[2,20,4]],[.6,[-16,15,6]],[.76,[0,19,5]],[.92,[-18,14,7]],[1.6,[-17,14,7]],[2.2,'rest']];
+const R3B_PUMP_DROP=10,R3B_PUMP_FLEX=.2;   // crouch: hip drop (cm) and chest fold (rad) at full weight
+function r3bCrouchW(t){const g=(c,w)=>Math.exp(-(((t-c)/w)**2));return clamp(smooth(.18,.5,t)*(1-smooth(1.55,2.15,t))+.35*g(.62,.07)+.45*g(.94,.08),0,1.4);}
+// two-bone leg IK: put the foot (ankle) back on its spot after the hips drop, knee bending forward
+function r3bLegIK(side,T){const I=R3B.idx,B=R3B.bones,up=B[I[side+'UpLeg']],lo=B[I[side+'Leg']],ft=B[I[side+'Foot']];if(!up||!lo||!ft)return;
+  const fq=ft.getWorldQuaternion(new THREE.Quaternion()),A=r3bWP(up),E=r3bWP(lo),F=r3bWP(ft);
+  const l1=E.distanceTo(A),l2=F.distanceTo(E);let d=T.distanceTo(A);const n=T.clone().sub(A);const dmax=(l1+l2)*.999;if(d>dmax)d=dmax;n.normalize();
+  const fw=new THREE.Vector3(0,0,1).transformDirection(B[I.Spine2].matrixWorld);fw.y=0;fw.normalize();
+  const pole=E.clone().sub(A).addScaledVector(fw,8);pole.sub(n.clone().multiplyScalar(pole.dot(n)));if(pole.lengthSq()<1e-6)pole.copy(fw);pole.normalize();
+  const x=(l1*l1-l2*l2+d*d)/(2*d),hh=Math.sqrt(Math.max(l1*l1-x*x,0)),E2=A.clone().add(n.clone().multiplyScalar(x)).add(pole.multiplyScalar(hh)),Tt=A.clone().add(n.clone().multiplyScalar(d));
+  r3bAim(up,E,E2);r3bAim(lo,r3bWP(ft),Tt);const lq=lo.getWorldQuaternion(new THREE.Quaternion());ft.quaternion.copy(lq.invert().multiply(fq));ft.updateMatrixWorld(true);}
 function r3bPumpW(t){return smooth(.05,.3,t)*(1-smooth(1.6,2.1,t));}
 function r3bPumpHand(Rp,t){const I=R3B.idx,B=R3B.bones,S=r3bWP(B[I.RightArm]),Ls=r3bWP(B[I.LeftArm]);
   const sd=S.clone().sub(Ls);sd.y=0;sd.normalize();const fw=new THREE.Vector3(0,0,1).transformDirection(B[I.Spine2].matrixWorld);fw.y=0;fw.normalize();
   const at=k=>{const v=R3B_PUMP[k][1];return v==='rest'?Rp.clone():S.clone().add(new THREE.Vector3(0,v[0],0)).addScaledVector(fw,v[1]).addScaledVector(sd,v[2]);};
+  R3B.armPole=t>.12&&t<2.1?new THREE.Vector3(0,-1,0).addScaledVector(fw,-.55):null;
   const K=R3B_PUMP;if(t<=0)return Rp;let k=0;while(k<K.length-2&&t>K[k+1][0])k++;const u=smooth(K[k][0],K[k+1][0],Math.min(t,K[K.length-1][0]));
-  const p=at(k).lerp(at(k+1),u);if(t>.9&&t<1.55)p.y+=Math.sin(t*38)*.8;return p;}   // a little shake in the clenched pull
+  const p=at(k).lerp(at(k+1),u);if(t>.95&&t<1.55)p.y+=Math.sin(t*38)*.8;return p;}   // a little shake in the clenched pull
 // clench the right hand (finger curl about each joint's local axis)
+// rotate one bone's local quaternion by a small angle about a local axis (q * dq)
+function r3bRotL(q,k,ax,ang){const s=Math.sin(ang/2),c=Math.cos(ang/2),x=q[k*4],y=q[k*4+1],z=q[k*4+2],ww=q[k*4+3],ux=ax[0]*s,uy=ax[1]*s,uz=ax[2]*s;
+  q[k*4]=ww*ux+x*c+y*uz-z*uy;q[k*4+1]=ww*uy-x*uz+y*c+z*ux;q[k*4+2]=ww*uz+x*uy-y*ux+z*c;q[k*4+3]=ww*c-x*ux-y*uy-z*uz;}
 function r3bFist(q,w){if(w<=0)return;const I=R3B.idx;
   const rot=(k,ax,ang)=>{const s=Math.sin(ang/2),c=Math.cos(ang/2),x=q[k*4],y=q[k*4+1],z=q[k*4+2],ww=q[k*4+3],ux=ax[0]*s,uy=ax[1]*s,uz=ax[2]*s;
     q[k*4]=ww*ux+x*c+y*uz-z*uy;q[k*4+1]=ww*uy-x*uz+y*c+z*ux;q[k*4+2]=ww*uz+x*uy-y*ux+z*c;q[k*4+3]=ww*c-x*ux-y*uy-z*uz;};
@@ -3674,14 +3692,17 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
   const dtR=clamp(T-(R3R.tPrev??T),0,.1);R3R.tPrev=T;
   if(G.state==='aim'&&R3R.on)routine=r3RoutinePose(dtR,ck,S,qa,ha);
   const swingSeg=!!(routine&&routine.swing);if(swingSeg)wI=routine.wI||0;
-  R3B.rpOv=null;
+  R3B.rpOv=null;R3B.armPole=null;
   if(routine){}
   else if(r3PostLive(dtR)){const P=R3R.post,r=P.r,pc=R3B.clips[r.clip];
     if(!P.X){const fin=r3bHipAt(ck,c.fin),st=r3bHipAt(r.clip,pc.t0+r.t0);P.X=r3bAlign(st,fin,r.face?-st.yaw:undefined);}
     const tt=Math.max(0,Math.min(P.t,r.loop?r.dur-.001:1e9)),Lp=(pc.n-1)/pc.fps-r.t0;r3bPose(pc,pc.t0+r.t0+(r.loop?tt%Lp:tt),qa,ha);
     R3B.rpOv=r.pump?(Rp=>r3bPumpHand(Rp,P.t)):null;if(r.pump)r3bFist(qa,r3bPumpW(P.t));
     if(r.travel){const k=Math.floor(tt/Lp),H=pc.HIP,e=(pc.n-1)*3;ha[0]+=k*(H[e]-H[0]);ha[2]+=k*(H[e+2]-H[2]);}
-    r3bXf(qa,ha,P.X);wI=1;post=true;}   // (travel: root motion carries over from loop to loop)
+    r3bXf(qa,ha,P.X);wI=1;post=true;
+    R3B.footT=null;if(r.pump){const cw=r3bCrouchW(P.t);if(cw>.001){const I=R3B.idx,B=R3B.bones;   // feet stay put while he sinks into the crouch
+      r3bApply(qa,ha);R3B.root.matrix.identity();R3B.root.matrixWorld.identity();B[0].updateMatrixWorld(true);R3B.footT=[r3bWP(B[I.LeftFoot]),r3bWP(B[I.RightFoot])];
+      ha[1]-=R3B_PUMP_DROP*cw;r3bRotL(qa,I.Spine,[1,0,0],R3B_PUMP_FLEX*.35*cw);r3bRotL(qa,I.Spine1,[1,0,0],R3B_PUMP_FLEX*.35*cw);r3bRotL(qa,I.Spine2,[1,0,0],R3B_PUMP_FLEX*.3*cw);r3bRotL(qa,I.Neck,[1,0,0],-R3B_PUMP_FLEX*.4*cw);}}}   // (travel: root motion carries over from loop to loop)
   else if(aimingState()){const b=G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?(typeof p2m==='function'?p2m(m.power):m.power):0;
     // the backswing chases the meter on a soft spring (a little lag, a small settle at the top) instead of being scrubbed by it
     if(G.state==='aim'){SP.x=0;SP.v=0;}else{const tg=clamp(b,0,1),K=150,D=2*Math.sqrt(K)*.6;for(let n=Math.ceil(dtR/.008),i=0;i<n;i++){const h=dtR/n;SP.v+=(K*(tg-SP.x)-D*SP.v)*h;SP.x+=SP.v*h;}}
@@ -3700,7 +3721,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
   else{r3bPose(c,c.addr,qa,ha);hold=1;}
   if(!(G.followT>0)||aimingState())SP.X=null;
   if(hold>0&&!swingSeg)r3bBreathe(qa,ha,hold);
-  r3bApply(qa,ha);const hd=r3bHands();
+  r3bApply(qa,ha);const hd0=r3bHands();if(post&&R3B.footT){r3bLegIK('Left',R3B.footT[0]);r3bLegIK('Right',R3B.footT[1]);}const hd=hd0;
   // the club comes from the lead hand's frame; both palms are then put on the grip, pushed clear of the body
   const slerpV=(a,b,w)=>nrm(lerp3(a,b,w));const dl=slerpV(S.dA,S.dI,wI),fl=slerpV(S.fA,S.fI,wI);
   let cdR=r3bR(hd.R,dl);const twirling=twU>0&&twU<1;
@@ -4067,6 +4088,8 @@ function r3NaipApply(h){const N=r3NaipLoad(CUR.data||CUR.id);if(!N)return false;
     const lie=lieCodeAt(h,x,y);if(lie>=2)continue;if(onHouse(x,y))continue;if(d<1&&inCorridor(x,y,cr))continue;
     const sh=((Math.sin(i*12.9898)*43758.5453)%1+1)%1;
     const t={x,y,r:Math.max(3.2,cr/.9),con,shade:sh,naip:1,d};
+    // courses whose photo crowns crowd the fairways (Pawleys Island): no canopy hanging over mown grass
+    if(lie>=0&&CUR.treeClear&&h.lg.dmown){const L2=h.lg,i2=Math.floor(x-L2.x0+.5),j2=Math.floor(y-L2.y0+.5);if(L2.dmown[j2*L2.nx+i2]<t.r*CUR.treeClear)continue;}
     if(lie>=0){const dp=dplayAt(h,x,y);t.gh=hAtH(h,x,y);if(dp<85&&d<1){t.dp=dp;near.push(t);continue;}}else t.gh=demRel(h,x,y)-.35;
     far.push(t);}
   near.sort((a,c)=>a.dp-c.dp);while(near.length>420)far.push(near.pop());
@@ -4475,16 +4498,20 @@ function r3PoolsEnd(){for(const k in R3.pools){const p=R3.pools[k];p.m.count=p.n
 /* ---- Pawleys Plantation 13: the sprinklers come on while you play your second shot ----
    Impact-style heads round the green and two just ahead of the ball; each sweeps its arc and throws droplets on ballistic paths
    (drawn as small stretched spheres from the instanced pool), with the tick-tick-tick of the arm. Purely cosmetic. */
-const R3SPK={on:false,t0:0,heads:null,key:null,tick:0};
-function r3SprinkWanted(){return!!(CUR&&CUR.id==='pawplant'&&G.hi===12&&G.hole&&!G.replay&&!G.overview&&
-  ((G.strokes===1&&(G.state==='aim'||G.state==='power'||G.state==='acc'))||(G.strokes===2&&(G.state==='flight'||G.state==='bounce'||G.state==='roll'))));}
+const R3SPK={on:false,t0:0,heads:null,key:null,tick:0,done:false,shot:false};
+// the shot after the tee shot (also when a tee ball in the marsh means re-hitting): on while he lines it up, through its flight,
+// off once that ball stops
+function r3SprinkWanted(){if(!(CUR&&CUR.id==='pawplant'&&G.hi===12&&G.hole))return false;
+  if(G.strokes===0){R3SPK.done=false;R3SPK.shot=false;return false;}if(R3SPK.done||G.replay||G.overview||G.aiTurn)return false;
+  const aim=G.state==='aim'||G.state==='power'||G.state==='acc',mov=G.state==='flight'||G.state==='bounce'||G.state==='roll';
+  if(aim)return true;if(mov&&R3SPK.on){R3SPK.shot=true;return true;}if(R3SPK.shot&&!mov){R3SPK.done=true;R3SPK.shot=false;}return false;}
 function r3SprinkHeads(h){const p=h.pin,P=h.green,out=[];
   for(let k=0;k<5;k++){const a=k/5*TAU+.4;let r=2;while(r<40&&P&&inPoly(P,p[0]+Math.cos(a)*r,p[1]+Math.sin(a)*r))r+=.5;r+=3.5;out.push({x:p[0]+Math.cos(a)*r,y:p[1]+Math.sin(a)*r,face:a,arc:Math.PI*.9});}
   const[dx,dy]=dirOf(angTo(G.ball.x,G.ball.y,p[0],p[1])),px=-dy,py=dx;
   for(const sd of[-1,1]){const x=G.ball.x+dx*9+px*sd*9,y=G.ball.y+dy*9+py*sd*9;out.push({x,y,face:Math.atan2(-py*sd,-px*sd),arc:Math.PI*1.1});}   // sweeping in toward the line of play
   out.forEach((q,i)=>{q.gh=hAt(q.x,q.y);q.ph=i*1.7;});return out;}
 function r3Sprinklers(){const want=r3SprinkWanted();
-  if(!want){if(R3SPK.on&&G.state!=='flight'&&G.state!=='bounce'&&G.state!=='roll')R3SPK.on=false;if(!R3SPK.on)return;}
+  if(!want){R3SPK.on=false;return;}
   else if(!R3SPK.on){R3SPK.on=true;R3SPK.t0=T;R3SPK.heads=r3SprinkHeads(G.hole);try{toast('SPRINKLERS!','Somebody forgot the timer','#9fd8ff');}catch(e){}}
   const t=T-R3SPK.t0,ramp=Math.min(1,t/1.2),V0=10.5,EL=.42,Gy=10.7,LIFE=1.55,RATE=34,ce=Math.cos(EL),se=Math.sin(EL),col=[.93,.97,1];M3.spec=.3;
   for(const q of R3SPK.heads){sphAt([q.x,q.gh+.05,q.y],.05,.05,.05,[.15,.17,.16]);   // the head
