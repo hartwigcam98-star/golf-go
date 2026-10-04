@@ -1849,6 +1849,7 @@ function previewDist(){const c=curClub();return c.putter?G.puttMax:isShort()&&G.
 /* short-game mishits by shot (from the shot lab): a bladed chip only runs a bit long; thinned high-spin shots (flop,
    spinner, pick, pitch) come off with no spin and release, so the hard shots carry the bigger risk. rel = extra roll as a share
    of carry at the worst blade */
+const R3B_TWIRL_YD=8;   // the twirl: landing within this many yards of the pin
 const BLADE={chipAmp:.6,chipR:1.2,rel:{pitch:.2,flop:1.3,spin:1.2,pick:.5,splash:.2}};
 const SHORT_T={chip:1,pitch:1,flop:1,spin:1,splash:1,pick:1,blast:1},isShort=()=>!!SHORT_T[G.stype]&&!curClub().putter;
 const CHIP_R={'7I':3,'8I':2.5,'9I':2,'PW':1.6,'GW':1.25,'SW':1,'LW':.7},PITCH_R={'9I':.5,'PW':.42,'GW':.34,'SW':.27,'LW':.2};
@@ -2154,7 +2155,7 @@ function strikeShot(power,e){
   G.rec=[];G.recT=0;G.recOn=true;G.canReplay=false;G.recHoled=false;
   G.shotInfo=null;$('shotStats').hidden=true;
   G.ff=1;G.strokes++;G.prev={...G.ball};G.fromLie=lie;G.trail=[];G.shotRot=G.aim;G.state='flight';G.followT=.001;G.bY=hAt(G.ball.x,G.ball.y)+.03;G.launchAt=club.putter?PUTT_IMPACT:IMPACT_T;G.swingBack=Math.max(.15,G.meter.power);G.swingType=club.putter?'putt':G.stype;G.swingClub=G.clubIdx;
-  G.golferAt={x:G.ball.x,y:G.ball.y,aim:G.aim};
+  G.golferAt={x:G.ball.x,y:G.ball.y,aim:G.aim};G.twirl=false;
   const miss=e===null;let perfect=false,q=.05;G.missBy=0;
   // the player's timing is judged more strictly than the rivals' (their difficulty is tuned through their own timing spread)
   const HARSH=!G.aiTurn;
@@ -2188,6 +2189,8 @@ function strikeShot(power,e){
   const thin=HARSH?Math.min(1,G.missBy/.06):0;const apex=shotApex(club,carry)*M.apex*(1-.3*thin)*(mis?mis.a:1);
   const usedPower=G.pshot;if(G.pshot){G.psLeft=Math.max(0,G.psLeft-1);G.pshot=false;}
   G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll*(1+.7*thin)*(mis?mis.r:1)*perfBite,rel:mis&&mis.rel||0,back:mis&&mis.k==='blade'?0:M.back*cmod().spin*(1-.8*thin)};
+  // a pure approach that comes down close: he twirls the club as it drops from the finish (r3golfer.js)
+  {const q=flightPos(G.flight,1),p=G.hole.pin;G.twirl=perfect===2&&!isShort()&&!perfTee&&hyp(q[0]-p[0],q[1]-p[1])<=R3B_TWIRL_YD;}
   // perfect contact lights the ball up: red flames at full power, blue otherwise
   G.flame=perfect===2?(power>=.95||usedPower?'red':'blue'):null;
   queueDivot(club,lie,carry/Math.max(1,clubCarry(club)*lm),miss||(mis&&mis.k==='chunk'),!!(mis&&mis.k==='blade'));
@@ -2390,7 +2393,7 @@ function holed(kind){const gim=kind==='Gimme';
   if(MATCH.on&&!G.aiTurn&&!gim){if(G.fromLie!=='green'&&G.strokes>1)MATCH.earn.chip++;else if(G.fromLie==='green'&&hyp(G.prev.x-p[0],G.prev.y-p[1])*3>25)MATCH.earn.putt++;}
   // celebrations and groans: the bigger the moment, the bigger the dance
   const pick=a=>a[Math.floor(Math.random()*a.length)],dpar=G.strokes-G.hole.par,chipIn=sub==='Chip-in',longPutt=/ft putt/.test(sub);
-  const rk=G.strokes===1||dpar<=-3?'freeze':dpar===-2?pick(['robot','samba']):chipIn&&dpar<=-1?'break90':G.fromLie==='green'&&dpar===-1&&!gim&&hyp(G.prev.x-p[0],G.prev.y-p[1])*3>12?'puttwin':(chipIn||longPutt)?'uprock':dpar===-1?pick(['nod','uprock']):dpar>=2?pick(['rejected','angry']):'';
+  const rk=G.strokes===1||dpar<=-3?'freeze':dpar===-2?pick(['robot','samba']):chipIn&&dpar<=-1?'break90':G.fromLie==='green'&&dpar===-1&&!gim&&hyp(G.prev.x-p[0],G.prev.y-p[1])*3>12?'puttwin':(chipIn||longPutt)?'uprock':dpar===-1?'fistpump':dpar>=2?pick(['rejected','angry']):'';
   const rx=G.aiTurn?0:react(rk,.9);
   // let the celebration play out (it runs on the render clock): hold the replay / card until it is done, 3 s at most
   const t0r=performance.now(),afterR=fn=>()=>{const go=()=>typeof r3ReactBusy==='function'&&r3ReactBusy()&&performance.now()-t0r<(rx+3)*1000?later(.1,go):fn();go();};
@@ -3627,6 +3630,7 @@ const R3B_GRIP=8.5;
 // over the ball with the putter fairly upright instead of reaching for it
 let R3B_PUTT_L=.80,R3B_PUTT_PUSH=0;
 const R3B_RELAX=1.0;
+const R3B_TWIRL_T=.85,R3B_TWIRL_N=1;   // club twirl after a pure approach that comes down close (G.twirl): seconds, turns
 /* the birdie fist pump: the free (right) hand comes up to shoulder height, two sharp pulls down, a beat, then back.
    Keys are palm offsets from the right shoulder in the body frame [up, forward, out to the side] (cm). */
 const R3B_PUMP=[[0,'rest'],[.38,[6,20,12]],[.52,[-30,16,3]],[.74,[4,20,12]],[.88,[-32,15,3]],[1.55,[-29,16,3]],[2.15,'rest']];
@@ -3656,7 +3660,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
   const Lm=putt?R3B_PUTT_L:CLUB_LEN[club]*.9,Lc=Lm*100/.94;const S=r3bClub(ck,Math.round(Lc));
   const qa=R3B.pa,ha=R3B.ha,qb=R3B.pb,hb=R3B.hb;let wI=0;   // wI: club direction blend, address (0) -> impact (1)
   const bFrac=b=>putt?.12+.88*b:b*back;
-  let routine=null,post=false,hold=0;const SP=R3B.bsp||(R3B.bsp={x:0,v:0,T:-9,live:false,xs:1,X:null});
+  let routine=null,post=false,hold=0,twU=-1;const SP=R3B.bsp||(R3B.bsp={x:0,v:0,T:-9,live:false,xs:1,X:null});
   if(G.state==='aim'&&!G.aiTurn&&R3R.on&&Math.abs(G.aim-R3R.aim)>1e-4)R3R.on=false;          // the player started aiming: skip the routine
   if(R3R.on&&G.state==='aim'&&r3RoutineKey()!==R3R.key)R3R.on=false;
   if(G.state==='aim'&&!R3R.on){const want=r3RoutineWanted(),key=r3RoutineKey();if(want&&key!==R3R.key){R3R.key=key;Object.assign(R3R,r3RoutineBuild(want,S,ck),{on:true,t:0,seg:null,aim:G.aim});}}
@@ -3684,7 +3688,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
     else{const tEnd=c.imp+(c.fin-c.imp)*(putt?.3+.7*b0:end),sp=Math.max(tEnd-c.imp,.05),z=(fT-la)/sp,zz=z<.7?z:.7+.3*(1-Math.exp(-(z-.7)/.3));
       r3bPose(c,c.imp+sp*zz,qa,ha);wI=1;const hz=clamp((z-1.4)/1.2,0,1);hold=hz;
       // a full finish is held, then relaxes: club comes down and he watches it (the start of the post-swing clip)
-      const pc=R3B.clips.postswing;if(pc&&!putt&&end===1&&ck==='drive'){const t2=fT-la-sp*1.6-1.2;if(t2>0){if(!SP.X){const fin=r3bHipAt(ck,c.fin),st=r3bHipAt('postswing',pc.t0);SP.X=r3bAlign(st,fin);}
+      const pc=R3B.clips.postswing;if(pc&&!putt&&end===1&&ck==='drive'){const t2=fT-la-sp*1.6-(G.twirl?.55:1.2);if(G.twirl&&t2>0)twU=clamp(t2/R3B_TWIRL_T,0,1);if(t2>0){if(!SP.X){const fin=r3bHipAt(ck,c.fin),st=r3bHipAt('postswing',pc.t0);SP.X=r3bAlign(st,fin);}
         r3bPose(pc,pc.t0+Math.min(t2*.8,R3B_RELAX),qb,hb);r3bXf(qb,hb,SP.X);r3bBlend(qa,ha,qb,hb,smooth(0,.6,t2));}}}}
   else{r3bPose(c,c.addr,qa,ha);hold=1;}
   if(!(G.followT>0)||aimingState())SP.X=null;
@@ -3692,8 +3696,11 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
   r3bApply(qa,ha);const hd=r3bHands();
   // the club comes from the lead hand's frame; both palms are then put on the grip, pushed clear of the body
   const slerpV=(a,b,w)=>nrm(lerp3(a,b,w));const dl=slerpV(S.dA,S.dI,wI),fl=slerpV(S.fA,S.fI,wI);
-  const cdR=r3bR(hd.R,dl);
-  R3B.pushCap=putt&&!post&&!(routine&&!swingSeg)?R3B_PUTT_PUSH:null;hd.H=r3bArms(hd.H,cdR,!!((routine&&!swingSeg)||post));R3B.pushCap=null;const push={length:()=>R3B.lastPush};
+  let cdR=r3bR(hd.R,dl);const twirling=twU>0&&twU<1;
+  // the club twirl: the trail hand lets go and the club spins once round the lead forearm as it comes down from the finish
+  if(twirling){const I=R3B.idx,B=R3B.bones,ax=r3bWP(B[I.LeftHand]).sub(r3bWP(B[I.LeftForeArm])).normalize(),th=TAU*R3B_TWIRL_N*smooth(0,1,twU);
+    const v=new THREE.Vector3(...cdR).applyAxisAngle(ax,th);cdR=[v.x,v.y,v.z];}
+  R3B.pushCap=putt&&!post&&!(routine&&!swingSeg)?R3B_PUTT_PUSH:null;hd.H=r3bArms(hd.H,cdR,!!((routine&&!swingSeg)||post||twirling));R3B.pushCap=null;const push={length:()=>R3B.lastPush};
   // place the rig so that the impact point lands on the ball: rig x -> away from the ball, y up, z -> target
   const[ax,az]=dirOf(ga.aim),u=[ax,0,az],f=[-az,0,ax],k=.94/100;const P=S.Pimp;
   const bx=ga.x,bz=ga.y,ox=bx-(P[0]*-f[0]+P[2]*u[0])*k,oz=bz-(P[0]*-f[2]+P[2]*u[2])*k,oy=hAt(bx,bz)-.02;R3B.org=[ox,oy,oz,bx,bz];
