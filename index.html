@@ -35,16 +35,22 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .top{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none}
 .top>*{pointer-events:auto}
 .plate{background:var(--panel);border-radius:14px;padding:8px 12px;box-shadow:0 3px 0 rgba(0,0,0,.28)}
-.course{white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--sun);opacity:.9;font-weight:700}
+/* the left plate gives way to the wind box: long course titles end in an ellipsis instead of running under it */
+.top>.plate{flex:0 1 auto;min-width:0}
+.hl>div{min-width:0}
+.hl .l1,.hl .l2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.course>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* grid track minmax(0,max-content): the title never makes the plate wider than its hole line needs, but uses any room there is */
+.course{display:grid;grid-template-columns:minmax(0,max-content);font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--sun);opacity:.9;font-weight:700}
 .hl{display:flex;gap:10px;align-items:center;margin-top:2px}
 .hl .n{font-size:34px;line-height:1;color:var(--cream);min-width:26px;text-align:center}
 .hl .l1{font-weight:700;font-size:15px;white-space:nowrap}
 .hl .l2{font-size:13px;opacity:.8;font-variant-numeric:tabular-nums}
-.right{display:flex;gap:8px;align-items:flex-start}
+.right{display:flex;gap:8px;align-items:flex-start;flex-shrink:0}
 .wind{display:flex;align-items:center;gap:8px}
 .dial{width:40px;height:40px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;border:2px solid rgba(255,255,255,.15)}
 .dial svg{width:26px;height:26px;transition:transform .15s linear}
-.wind .v{font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
+.wind .v{font-size:22px;line-height:1;font-variant-numeric:tabular-nums;min-width:2ch}
 .wind .u{font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;font-weight:700}
 .iconbtn{background:var(--panel);border-radius:12px;width:40px;height:40px;display:grid;place-items:center;box-shadow:0 3px 0 rgba(0,0,0,.28)}
 .iconbtn svg{width:20px;height:20px}
@@ -329,7 +335,7 @@ td.won{background:rgba(255,201,60,.38)}
 
   <div class="top">
     <div class="plate">
-      <div class="course" id="courseLbl">Troy Burne · Hudson, WI</div>
+      <div class="course"><span id="courseLbl">Troy Burne · Hudson, WI</span></div>
       <div class="hl">
         <div class="n disp" id="hNum">1</div>
         <div>
@@ -1852,7 +1858,7 @@ const courseLine=()=>CUR.name+' \u00b7 '+CUR.tees+' \u00b7 Par '+TOTAL_PAR;
 function setCourse(id,persist=true){const C=COURSES[id]||COURSES.troy;if(C===CUR&&TB===C.tb)return;CUR=C;TB=C.tb;COURSE=C.course;DEM=C.dem;WIDE=C.wide;SAVE_KEY=C.saveKey;SURR.ready=null;
   HOLES.length=0;for(let i=0;i<TB.length;i++)HOLES[i]=null;G.terrains=[];G.hole=null;TOTAL_PAR=TB.reduce((s,h)=>s+h.par,0);
   if(persist)try{localStorage.setItem('golf-course',C.id);}catch(e){}
-  const cl=$('courseLbl');if(cl)cl.textContent=C.name.toUpperCase()+' \u00b7 '+C.town.toUpperCase();
+  const cl=$('courseLbl');if(cl){cl.textContent=C.name.toUpperCase()+' \u00b7 '+C.town.toUpperCase();cl.title=C.name+' \u00b7 '+C.town;}
   const me=$('mEyebrow');if(me)me.textContent=courseLine();const mt=$('mTitle');if(mt)mt.textContent=C.name;
   document.querySelectorAll('#coursePick button').forEach(b=>{const on=b.dataset.c===C.id;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));});
   buildHoleGrid();}
@@ -2492,8 +2498,20 @@ const DAILY_ORDER2=['sandvalley','troy','quarry','mammoth','stoneridge','lido','
 // from 2026-10-04 the two Cambrian Ridge 18s join the rotation (17 courses; Oct 3 keeps its course)
 const DAILY_ORDER3=['troy','crsc','quarry','mammoth','stoneridge','lido','wilderness','caledonia','sedge','trueblue','crls','heritage','legend','rossbridge','legislator','pawplant','judge','senator','sandvalley'],DAILY_N3=Math.round(Date.UTC(2026,9,4)/864e5);
 // from 2026-10-05: 22 courses, with the Brainerd Lakes three (Deacon's Lodge, The Classic at Madden's, The Lehman 18) spread through it
-const DAILY_ORDER4=['crsc','deacon','quarry','mammoth','pines','stoneridge','lido','maddens','wilderness','caledonia','sedge','preserve','trueblue','crls','heritage','lehman','legend','rossbridge','legislator','pawplant','judge','senator','sandvalley','troy'],DAILY_N4=Math.round(Date.UTC(2026,9,5)/864e5);
-function dailyCourse(day){const n=dailyNum(day);if(n>=DAILY_N4)return DAILY_ORDER4[(n-DAILY_N4)%DAILY_ORDER4.length];if(n>=DAILY_N3)return DAILY_ORDER3[(n-DAILY_N3)%DAILY_ORDER3.length];if(n>=DAILY_N2)return DAILY_ORDER2[(n-DAILY_N2)%DAILY_ORDER2.length];return DAILY.order[((n%DAILY.order.length)+DAILY.order.length)%DAILY.order.length];}
+// From 2026-10-05 the daily course never resets: each day it's the course that has gone longest without being the daily
+// (never-played courses first, ties in DAILY_POOL order). Days before that keep their old lists.
+// To add a course: append [id, first day it may be picked (a future date)] so today's and past days' courses never change.
+const DAILY_N4=Math.round(Date.UTC(2026,9,5)/864e5),DAILY_POOL=[['crsc',0],['deacon',0],['quarry',0],['mammoth',0],['pines',0],['stoneridge',0],['lido',0],['maddens',0],['wilderness',0],['caledonia',0],['sedge',0],['preserve',0],['trueblue',0],['crls',0],['heritage',0],['lehman',0],['legend',0],['rossbridge',0],['legislator',0],['pawplant',0],['judge',0],['senator',0],['sandvalley',0],['troy',0]];
+// one-off swaps of a day's course (Oct 4 2026 was Troy again, two days after Troy; it became Cambrian Ridge Sherling)
+const DAILY_FIX={[Math.round(Date.UTC(2026,9,4)/864e5)]:'crsc'};
+function dailyCourseOld(n){if(DAILY_FIX[n])return DAILY_FIX[n];if(n>=DAILY_N3)return DAILY_ORDER3[(n-DAILY_N3)%DAILY_ORDER3.length];if(n>=DAILY_N2)return DAILY_ORDER2[(n-DAILY_N2)%DAILY_ORDER2.length];return DAILY.order[((n%DAILY.order.length)+DAILY.order.length)%DAILY.order.length];}
+const DAILY_LRU={last:null,list:[]};
+function dailyCourse(day){const n=dailyNum(day);if(n<DAILY_N4)return dailyCourseOld(n);const M=DAILY_LRU;
+  if(!M.last){M.last={};for(let k=DAILY_N4-90;k<DAILY_N4;k++)M.last[dailyCourseOld(k)]=k;}
+  while(DAILY_N4+M.list.length<=n){const k=DAILY_N4+M.list.length;let best=null,bl=0;
+    for(const[id,from]of DAILY_POOL){if(from>k||!COURSES[id])continue;const l=M.last[id]??-1e9;if(best===null||l<bl){best=id;bl=l;}}
+    M.last[best]=k;M.list.push(best);}
+  return M.list[n-DAILY_N4];}
 function dailyLoad(){try{const d=JSON.parse(localStorage.getItem(DAILY.save)||'null');return d&&d.v===1?d:null;}catch(e){return null;}}
 function dailyStore(d){try{localStorage.setItem(DAILY.save,JSON.stringify(d));}catch(e){}}
 function dailyToday(){const day=dailyDay(),d=dailyLoad();return d&&d.day===day?d:null;}
@@ -2509,6 +2527,7 @@ function dailyPlay(){const day=dailyDay(),cid=dailyCourse(day);let d=dailyToday(
   if(d&&d.done){openDailyBoard(false);return;}
   if(!dailyName()){openDailyName();return;}
   endMatchMode();$('dailyM').hidden=true;
+  if(d&&!d.done&&d.cid!==cid)d=null;   // today's course was changed after this round started: start over on the new one
   if(!d){d={v:1,day,cid,hi:0,scores:[],strokes:0,mid:false,ps:3,done:false,posted:false,ts:Date.now()};dailyStore(d);}
   G.mode='daily';G.dailyDay=day;G.dailySeed=dailyNum(day)*7919;setCourse(d.cid,false);dailyWeather(day);
   G.psLeft=Number.isInteger(d.ps)?d.ps:3;G.scores=Array.isArray(d.scores)?d.scores:[];closeMenu();startHole(d.hi||0);
