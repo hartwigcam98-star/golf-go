@@ -274,6 +274,7 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
 .specbar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);display:flex;gap:10px;z-index:4}
 .specbar button{white-space:nowrap;height:46px;padding:0 20px;border-radius:14px;font-size:19px;background:var(--panel);color:#fff6dc;box-shadow:0 3px 0 rgba(0,0,0,.3)}
 .specbar #specExit{background:#ffc93c;color:#0f2233}
+.specbar #specFF{padding:0 14px;min-width:78px}.specbar #specFF.on{background:#2f7d4f}
 #game.spec #bottom,#game.spec #ffBtn,#game.spec #lookBtn,#game.spec #camBtn,#game.spec #replayBtn,#game.spec #mFlag{display:none!important}
 .lb .empty{justify-content:center;color:#51606b;font-weight:600;background:none!important}
 #dNameIn{width:100%;box-sizing:border-box;font:inherit;font-size:20px;font-weight:700;padding:12px 14px;border-radius:14px;border:2px solid #12283b;background:#fff;color:#12283b;margin:4px 0 12px}
@@ -361,7 +362,7 @@ td.won{background:rgba(255,201,60,.38)}
   <button id="flagBtn" class="flycam disp" hidden aria-label="Flagstick in or out">⛳ Flag out</button>
   <button id="flyCamBtn" class="flycam disp" hidden aria-label="Switch the ball-flight camera">📺 TV view</button>
   <div id="rpBar" class="rpbar" hidden><button id="rpSave" class="disp">☆ Save</button><button id="rpVideo" class="disp">⬇ Video</button></div>
-  <div id="specBar" class="specbar" hidden><button id="specNext" class="disp">Next hole ›</button><button id="specExit" class="disp">✕ Done</button></div>
+  <div id="specBar" class="specbar" hidden><button id="specFF" class="disp" aria-label="Playback speed">⏩ 1×</button><button id="specNext" class="disp">Next hole ›</button><button id="specExit" class="disp">✕ Done</button></div>
   <div id="toast"><div class="t1 disp"></div><div class="t2"></div></div>
   <div id="shotStats" class="shotstats" hidden></div>
   <div id="matchTag" class="matchtag" hidden></div>
@@ -2628,7 +2629,11 @@ async function openDailyCard(i){const r=DAILY.rows&&DAILY.rows[i];if(!r)return;c
   else $('dcHint').textContent=err?'Replays aren’t switched on for the leaderboard yet.':'No replays for this round. It was played before replays were saved.';}
 function closeDailyCard(){DCARD.tok=(DCARD.tok||0)+1;openDailyBoard(false,DAILY.view.day,'day');}
 // spectating: load the course and hole, then play each recorded shot through the replay camera
-const SPEC={on:false};
+const SPEC={on:false,ff:1};
+// spectating speed (1x, 2x, 4x) runs the whole round faster: swings, the ball, the pauses between shots and holes; remembered on this phone
+try{const v=+localStorage.getItem('golf-specff');if(v===2||v===4)SPEC.ff=v;}catch(e){}
+function specFFShow(){const b=$('specFF');if(!b)return;b.textContent='\u23e9 '+SPEC.ff+'\u00d7';b.classList.toggle('on',SPEC.ff>1);b.setAttribute('aria-label','Playback speed '+SPEC.ff+' times');}
+function specFFCycle(){SPEC.ff=SPEC.ff===1?2:SPEC.ff===2?4:1;try{localStorage.setItem('golf-specff',String(SPEC.ff));}catch(e){}specFFShow();}
 var REC={on:false,blob:null};   // replay video recorder (see recStart)
 function specStart(hi){const S=DCARD.shots;if(!S)return;const holes=[...new Set(S.s.map(x=>x.h))].sort((a,b)=>a-b);if(!holes.length)return;A();
   endMatchMode();Object.assign(SPEC,{on:true,S,holes,name:DCARD.r.name,sc:DCARD.sc,back:{day:DCARD.day,pid:DCARD.r.player_id}});
@@ -5303,7 +5308,7 @@ function replayCamTV(){const L=G.lastShot,r=G.replay,rp=replayPoint(Math.max(0,r
   if(r.t<Math.min(1.2,r.dur*.35))return{E:[ga.x-dx*7,g0+2.4,ga.y-dz*7],L:[rp.x,rp.Y,rp.y]};
   // landing camera: off to the side of where the ball comes to rest, watching it arrive
   const sx=-dz,sz=dx,ex=s1.x+sx*16-dx*7,ez=s1.y+sz*16-dz*7;return{E:[ex,hAt(ex,ez)+5,ez],L:[rp.x,rp.Y,rp.y]};}
-function frame(now){const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;if(G.hole&&R3.on)perfCheck(raw);if(G.hole){if(!G.paused){const n=G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++)update(dt);}render();}requestAnimationFrame(frame);}
+function frame(now){const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;if(G.hole&&R3.on)perfCheck(raw);if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++)update(dt);}render();}requestAnimationFrame(frame);}
 
 /* ---------- input ---------- */
 let drag=null;const PTS=new Map();
@@ -5428,6 +5433,7 @@ for(const id of['dc1','dc2'])$(id).addEventListener('click',e=>{const th=e.targe
 $('dcWatch').addEventListener('click',()=>specStart(0));
 $('dcList').addEventListener('click',()=>{A();closeDailyCard();});
 $('specNext').addEventListener('click',e=>{e.stopPropagation();specNext();});
+$('specFF').addEventListener('click',e=>{e.stopPropagation();A();specFFCycle();});specFFShow();
 $('specExit').addEventListener('click',e=>{e.stopPropagation();A();specEnd();});
 $('dPrev').addEventListener('click',()=>{A();openDailyBoard(false,dayShift(DAILY.view.day,-1),'day');});
 $('dNext').addEventListener('click',()=>{A();openDailyBoard(false,dayShift(DAILY.view.day,1),'day');});
