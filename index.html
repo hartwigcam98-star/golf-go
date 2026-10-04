@@ -3633,6 +3633,12 @@ function r3bClub(ck,Lc){const key=ck+'|'+Lc;if(R3B.cache[key])return R3B.cache[k
   R3B.pushCap=null;return R3B.cache[key]={dI:r3bT(I.R,I.d),dA:r3bT(A.R,A.d),fI:r3bT(I.R,tI),fA:r3bT(A.R,tA),Pimp};}
 function r3bBackT(c,x){const t=clamp(x,0,1)*20,i=Math.floor(t),a=t-i;return i>=20?c.bt[20]:c.bt[i]*(1-a)+c.bt[i+1]*a;}
 const R3B_GRIP=8.5;
+// backswing shape: wrist set happens between these shares of the backswing; hands pushed out this far (cm) through the takeaway
+const R3B_SET=[.32,.72],R3B_WIDTH=9;
+// address reference for the backswing set: lead forearm orientation and club direction at address (rig space), per clip and club length
+function r3bAddrRef(ck,c,S,Lc){const key='ar|'+ck+'|'+Math.round(Lc);if(R3B.cache[key])return R3B.cache[key];
+  r3bPose(c,c.addr,R3B.pb,R3B.hb);r3bApply(R3B.pb,R3B.hb);const h=r3bHands(),I=R3B.idx;
+  return R3B.cache[key]={q:R3B.bones[I.LeftForeArm].getWorldQuaternion(new THREE.Quaternion()),cd:r3bR(h.R,S.dA)};}
 // putting: arms hang (little torso-clearance push) and a slightly shorter shaft from the lead palm, so he stands
 // over the ball with the putter fairly upright instead of reaching for it
 let R3B_PUTT_L=.80,R3B_PUTT_PUSH=0;
@@ -3686,7 +3692,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
   const Lm=putt?R3B_PUTT_L:CLUB_LEN[club]*.9,Lc=Lm*100/.94;const S=r3bClub(ck,Math.round(Lc));
   const qa=R3B.pa,ha=R3B.ha,qb=R3B.pb,hb=R3B.hb;let wI=0;   // wI: club direction blend, address (0) -> impact (1)
   const bFrac=b=>putt?.12+.88*b:b*back;
-  let routine=null,post=false,hold=0,twU=-1;const SP=R3B.bsp||(R3B.bsp={x:0,v:0,T:-9,live:false,xs:1,X:null});
+  let routine=null,post=false,hold=0,twU=-1,wU=0,wW=0;const SP=R3B.bsp||(R3B.bsp={x:0,v:0,T:-9,live:false,xs:1,X:null});
   if(G.state==='aim'&&!G.aiTurn&&R3R.on&&Math.abs(G.aim-R3R.aim)>1e-4)R3R.on=false;          // the player started aiming: skip the routine
   if(R3R.on&&G.state==='aim'&&r3RoutineKey()!==R3R.key)R3R.on=false;
   if(G.state==='aim'&&!R3R.on){const want=r3RoutineWanted(),key=r3RoutineKey();if(want&&key!==R3R.key){R3R.key=key;Object.assign(R3R,r3RoutineBuild(want,S,ck),{on:true,t:0,seg:null,aim:G.aim});}}
@@ -3709,12 +3715,14 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
   else if(aimingState()){const b=G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?(typeof p2m==='function'?p2m(m.power):m.power):0;
     // the backswing chases the meter on a soft spring (a little lag, a small settle at the top) instead of being scrubbed by it
     if(G.state==='aim'){SP.x=0;SP.v=0;}else{const tg=clamp(b,0,1),K=150,D=2*Math.sqrt(K)*.6;for(let n=Math.ceil(dtR/.008),i=0;i<n;i++){const h=dtR/n;SP.v+=(K*(tg-SP.x)-D*SP.v)*h;SP.x+=SP.v*h;}}
-    SP.T=T;SP.live=false;r3bPose(c,r3bBackT(c,bFrac(clamp(SP.x,0,1.04))),qa,ha);hold=G.state==='aim'?1:G.state==='acc'?.5:0;}
+    SP.T=T;SP.live=false;r3bPose(c,r3bBackT(c,bFrac(clamp(SP.x,0,1.04))),qa,ha);
+    if(!putt){const xb=bFrac(clamp(SP.x,0,1));wU=1-smooth(R3B_SET[0],R3B_SET[1],xb);wW=smooth(.04,.3,xb)*(1-smooth(.72,1,xb));}hold=G.state==='aim'?1:G.state==='acc'?.5:0;}
   else if(G.followT>0){const fT=G.followT,la=G.launchAt||(putt?PUTT_IMPACT:IMPACT_T),b0=clamp(G.swingBack||1,0,1);
     if(!SP.live){SP.live=true;SP.xs=T-SP.T<.3?clamp(SP.x,0,1):b0;}
     const x=bFrac(SP.xs),tb=r3bBackT(c,x);
     // downswing: partial swings drop into the real downswing part-way down (no rewind along the backswing path)
-    if(fT<la){const u=fT/la,tm=c.top+(c.imp-c.top)*clamp(1-x,0,1)*.85;r3bPose(c,tm+(c.imp-tm)*u,qa,ha);r3bPose(c,tb,qb,hb);r3bBlend(qa,ha,qb,hb,1-smooth(0,.4,u));wI=smooth(.2,1,u);}
+    if(fT<la){const u=fT/la,tm=c.top+(c.imp-c.top)*clamp(1-x,0,1)*.85;r3bPose(c,tm+(c.imp-tm)*u,qa,ha);r3bPose(c,tb,qb,hb);r3bBlend(qa,ha,qb,hb,1-smooth(0,.4,u));wI=smooth(.2,1,u);
+      if(!putt){const k=1-smooth(0,.4,u);wU=(1-smooth(R3B_SET[0],R3B_SET[1],x))*k;wW=smooth(.04,.3,x)*(1-smooth(.72,1,x))*k;}}
     // follow-through: real-time out of impact, easing into the finish rather than stopping dead
     else{const tEnd=c.imp+(c.fin-c.imp)*(putt?.3+.7*b0:end),sp=Math.max(tEnd-c.imp,.05),z=(fT-la)/sp,zz=z<.7?z:.7+.3*(1-Math.exp(-(z-.7)/.3));
       r3bPose(c,c.imp+sp*zz,qa,ha);wI=1;const hz=clamp((z-1.4)/1.2,0,1);hold=hz;
@@ -3724,10 +3732,16 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
   else{r3bPose(c,c.addr,qa,ha);hold=1;}
   if(!(G.followT>0)||aimingState())SP.X=null;
   if(hold>0&&!swingSeg)r3bBreathe(qa,ha,hold);
+  const AR=(wU>.001||wW>.001)?r3bAddrRef(ck,c,S,Lc):null;
   r3bApply(qa,ha);const hd0=r3bHands();if(post&&R3B.footT){r3bLegIK('Left',R3B.footT[0]);r3bLegIK('Right',R3B.footT[1]);}const hd=hd0;
   // the club comes from the lead hand's frame; both palms are then put on the grip, pushed clear of the body
   const slerpV=(a,b,w)=>nrm(lerp3(a,b,w));const dl=slerpV(S.dA,S.dI,wI),fl=slerpV(S.fA,S.fI,wI);
   let cdR=r3bR(hd.R,dl);const twirling=twU>0&&twU<1;
+  // backswing width: the club stays set at its address angle to the lead forearm through the takeaway (no early wrist cock)
+  // and only hinges from about halfway back; the hands are pushed out away from the chest so the arc stays wide
+  if(AR){const I=R3B.idx,B=R3B.bones;
+    if(wU>.001){const qN=B[I.LeftForeArm].getWorldQuaternion(new THREE.Quaternion()),dq=qN.multiply(AR.q.clone().invert()),v=new THREE.Vector3(...AR.cd).applyQuaternion(dq);cdR=nrm(lerp3(cdR,[v.x,v.y,v.z],wU));}
+    if(wW>.001){const ch=r3bWP(B[I.Spine2]),d=new THREE.Vector3(hd.H[0]-ch.x,hd.H[1]-ch.y,hd.H[2]-ch.z).normalize();hd.H=[hd.H[0]+d.x*R3B_WIDTH*wW,hd.H[1]+d.y*R3B_WIDTH*wW,hd.H[2]+d.z*R3B_WIDTH*wW];}}
   // the club twirl: the trail hand lets go and the club spins once round the lead forearm as it comes down from the finish
   if(twirling){const I=R3B.idx,B=R3B.bones,ax=r3bWP(B[I.LeftHand]).sub(r3bWP(B[I.LeftForeArm])).normalize(),th=TAU*R3B_TWIRL_N*smooth(0,1,twU);
     const v=new THREE.Vector3(...cdR).applyAxisAngle(ax,th);cdR=[v.x,v.y,v.z];}
