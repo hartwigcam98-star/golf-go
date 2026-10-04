@@ -1856,7 +1856,7 @@ function previewDist(){const c=curClub();return c.putter?G.puttMax:isShort()&&G.
 /* short-game mishits by shot (from the shot lab): a bladed chip only runs a bit long; thinned high-spin shots (flop,
    spinner, pick, pitch) come off with no spin and release, so the hard shots carry the bigger risk. rel = extra roll as a share
    of carry at the worst blade */
-const R3B_TWIRL_YD=8;   // the twirl: landing within this many yards of the pin
+const R3B_TWIRL_YD=15;   // a twirl is possible when a pure approach is landing within this many yards of the pin (it plays if it finishes close)
 const BLADE={chipAmp:.6,chipR:1.2,rel:{pitch:.2,flop:1.3,spin:1.2,pick:.5,splash:.2}};
 const SHORT_T={chip:1,pitch:1,flop:1,spin:1,splash:1,pick:1,blast:1},isShort=()=>!!SHORT_T[G.stype]&&!curClub().putter;
 const CHIP_R={'7I':3,'8I':2.5,'9I':2,'PW':1.6,'GW':1.25,'SW':1,'LW':.7},PITCH_R={'9I':.5,'PW':.42,'GW':.34,'SW':.27,'LW':.2};
@@ -3637,7 +3637,8 @@ const R3B_GRIP=8.5;
 // over the ball with the putter fairly upright instead of reaching for it
 let R3B_PUTT_L=.80,R3B_PUTT_PUSH=0;
 const R3B_RELAX=1.0;
-const R3B_TWIRL_T=.85,R3B_TWIRL_N=1;   // club twirl after a pure approach that comes down close (G.twirl): seconds, turns
+const R3B_TWIRL_FT=10;   // twirl when the pure approach finishes within this many feet
+const R3B_TWIRL_T=.85,R3B_TWIRL_N=1,R3B_TWIRL_HOLD=.6;   // club twirl after a pure approach that comes down close (G.twirl): seconds, turns
 /* the birdie fist pump: the free (right) hand comes up to shoulder height, two sharp pulls down, a beat, then back.
    Keys are palm offsets from the right shoulder in the body frame [up, forward, out to the side] (cm). */
 /* v71 rework, after the classic golf celebration (the "uppercut" fist pump): the fist drops and cocks low by the hip, drives up
@@ -3696,7 +3697,8 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
   if(routine){}
   else if(r3PostLive(dtR)){const P=R3R.post,r=P.r,pc=R3B.clips[r.clip];
     if(!P.X){const fin=r3bHipAt(ck,c.fin),st=r3bHipAt(r.clip,pc.t0+r.t0);P.X=r3bAlign(st,fin,r.face?-st.yaw:undefined);}
-    const tt=Math.max(0,Math.min(P.t,r.loop?r.dur-.001:1e9)),Lp=(pc.n-1)/pc.fps-r.t0;r3bPose(pc,pc.t0+r.t0+(r.loop?tt%Lp:tt),qa,ha);
+    const tt=r.twirl?Math.min(Math.max(0,P.t-R3B_TWIRL_HOLD)*.8,R3B_RELAX):Math.max(0,Math.min(P.t,r.loop?r.dur-.001:1e9)),Lp=(pc.n-1)/pc.fps-r.t0;r3bPose(pc,pc.t0+r.t0+(r.loop?tt%Lp:tt),qa,ha);
+    if(r.twirl)twU=clamp((P.t-R3B_TWIRL_HOLD)/R3B_TWIRL_T,0,1);
     R3B.rpOv=r.pump?(Rp=>r3bPumpHand(Rp,P.t)):null;if(r.pump)r3bFist(qa,r3bPumpW(P.t));
     if(r.travel){const k=Math.floor(tt/Lp),H=pc.HIP,e=(pc.n-1)*3;ha[0]+=k*(H[e]-H[0]);ha[2]+=k*(H[e+2]-H[2]);}
     r3bXf(qa,ha,P.X);wI=1;post=true;
@@ -3717,7 +3719,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
     else{const tEnd=c.imp+(c.fin-c.imp)*(putt?.3+.7*b0:end),sp=Math.max(tEnd-c.imp,.05),z=(fT-la)/sp,zz=z<.7?z:.7+.3*(1-Math.exp(-(z-.7)/.3));
       r3bPose(c,c.imp+sp*zz,qa,ha);wI=1;const hz=clamp((z-1.4)/1.2,0,1);hold=hz;
       // a full finish is held, then relaxes: club comes down and he watches it (the start of the post-swing clip)
-      const pc=R3B.clips.postswing;if(pc&&!putt&&end===1&&ck==='drive'){const t2=fT-la-sp*1.6-(G.twirl?.55:1.2);if(G.twirl&&t2>0)twU=clamp(t2/R3B_TWIRL_T,0,1);if(t2>0){if(!SP.X){const fin=r3bHipAt(ck,c.fin),st=r3bHipAt('postswing',pc.t0);SP.X=r3bAlign(st,fin);}
+      const pc=R3B.clips.postswing;if(pc&&!putt&&end===1&&ck==='drive'){const t2=G.twirl?-1:fT-la-sp*1.6-1.2;if(t2>0){if(!SP.X){const fin=r3bHipAt(ck,c.fin),st=r3bHipAt('postswing',pc.t0);SP.X=r3bAlign(st,fin);}
         r3bPose(pc,pc.t0+Math.min(t2*.8,R3B_RELAX),qb,hb);r3bXf(qb,hb,SP.X);r3bBlend(qa,ha,qb,hb,smooth(0,.6,t2));}}}}
   else{r3bPose(c,c.addr,qa,ha);hold=1;}
   if(!(G.followT>0)||aimingState())SP.X=null;
@@ -3743,7 +3745,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
   const W=p=>[ox+(p[0]*X[0]+p[2]*Z[0]),oy+p[1]*k,oz+(p[0]*X[2]+p[2]*Z[2])],Wd=v=>nrm([v[0]*X[0]+v[2]*Z[0],v[1]*k,v[0]*X[2]+v[2]*Z[2]]);
   let cd=Wd(cdR);const fd0=Wd(r3bR(hd.R,fl)),grip=W(hd.H);
   // routines: carry the club calmly (shaft angled down and ahead, smoothed, never below the turf), easing into the address angle at the end
-  if((routine&&!swingSeg)||post){const e=R3B.bones[0].matrixWorld.elements,fw=nrm([e[8],0,e[10]]);let tgt=nrm(add(mul(fw,.5),[0,-.87,0]));
+  if((routine&&!swingSeg)||(post&&!R3R.post.r.twirl)){const e=R3B.bones[0].matrixWorld.elements,fw=nrm([e[8],0,e[10]]);let tgt=nrm(add(mul(fw,.5),[0,-.87,0]));
     if(routine&&routine.blend){const left=routine.t1-(routine.t0+(R3R.t-routine.at)),w=1-clamp(left/.9,0,1);tgt=nrm(lerp3(tgt,cd,w*w));}
     const k=1-Math.exp(-dtR*7);R3B.cdS=R3B.cdS&&R3B.cdS.on?R3B.cdS:{on:true,v:tgt};R3B.cdS.v=nrm(lerp3(R3B.cdS.v,tgt,k));cd=R3B.cdS.v;
     const gy=hAt(grip[0],grip[2])+.03;if(grip[1]+cd[1]*Lm<gy){const dy=clamp((gy-grip[1])/Lm,-1,1),hz=Math.hypot(cd[0],cd[2])||1,sh=Math.sqrt(1-dy*dy);cd=[cd[0]/hz*sh,dy,cd[2]/hz*sh];}
@@ -3852,6 +3854,8 @@ const R3_REACT={tee:{clip:'postswing',t0:.6,dur:3.4,dist:4.2,ly:.2},
   angry:{clip:'angry',t0:0,dur:2.3,face:1,dist:3.2,ly:.5},
   runman:{clip:'fastrun',t0:0,dur:1.6,face:1,dist:6.5,ly:.45,loop:1,travel:1,blendIn:.3,cams:[1.57,-1.57,1.25,-1.25,1.9,-1.9]},
   fistpump:{clip:'idle',t0:0,dur:2.3,face:1,dist:3.2,ly:.55,pump:1},
+  // the club twirl after a pure approach finishes close: he holds the finish, spins the club once round the lead hand as it comes down
+  twirl:{clip:'postswing',t0:0,dur:2.4,dist:4,ly:.6,twirl:1,blendIn:.5,cams:[0,.35,-.35,.7,-.7]},
   rejected:{clip:'rejected',t0:0,dur:4.6,face:1,dist:3.6,ly:.4},thinkshake:{clip:'thinkshake',t0:0,dur:3,face:1,dist:3.2,ly:.5}};
 function r3ReactOK(){return!!(R3.on&&R3B.mesh&&!G.aiTurn&&!G.aiSkip&&G.golferAt&&G.mode!=='spectate'&&G.mode!=='highlight'&&!G.replay);}   // still plays (at normal speed) after a fast-forwarded shot
 // start a reaction after `delay` seconds; returns how long it holds the screen (0 when it won't play)
@@ -3863,6 +3867,7 @@ function r3ReactBusy(){const P=R3R.post;return!!(P&&P.on&&P.t<P.r.dur-.05&&(G.st
 function r3PostLive(dt){const P=R3R.post;if(!P.on)return false;if(G.state!=='wait'&&G.state!=='holed'){P.on=false;return false;}
   P.t+=dt;if(P.t>P.r.dur+.6){P.on=false;return false;}return P.t>=0;}
 function r3ReactPick(){const L=lieAt(G.ball.x,G.ball.y),fl=G.fromLie,ft=pinDist()*3,coin=Math.random()<.5;
+  if(G.twirl&&G.swingType!=='putt'&&L==='green'&&ft<=R3B_TWIRL_FT)return'twirl';   // pure approach, stuck close
   if(G.swingType==='putt'){const f0=hyp(G.prev.x-G.hole.pin[0],G.prev.y-G.hole.pin[1])*3;return f0<12&&ft>4?['slump','thinkshake','angry'][Math.floor(Math.random()*3)]:null;}   // a makeable putt missed (inside 4 ft is a gimme)
   if((L==='sand'&&fl!=='sand')||(L==='fescue'&&fl!=='fescue'))return coin?'shake':'thinkshake';
   if(G.lastMiss&&fl!=='green')return coin?'badshot':'thinkshake';                       // mishit
