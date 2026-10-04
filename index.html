@@ -2363,7 +2363,48 @@ function dailyRecShot(){const d=dailyLoad();if(!d||d.day!==G.dailyDay||d.done)re
   const ga=G.golferAt||{x:R[0].x,y:R[0].y,aim:G.shotRot};
   (d.shots=d.shots||[]).push({h:G.hi,c:G.swingClub,k:G.swingType,b:+(G.swingBack||1).toFixed(2),l:+(G.launchAt||0).toFixed(3),a:+ga.aim.toFixed(4),gx:+ga.x.toFixed(1),gy:+ga.y.toFixed(1),o:G.recHoled?1:0,f:G.flame==='red'?2:G.flame?1:0,p});dailyStore(d);}
 function dailyDecShot(s){const rec=[];let o=[0,0,0,0];const p=s.p||[];for(let i=0;i+3<p.length;i+=4){o=[o[0]+p[i],o[1]+p[i+1],o[2]+p[i+2],o[3]+p[i+3]];
-    const x=o[1]/10,y=o[2]/10,g=hAt(x,y);let Y=o[3]/10;if(Math.abs(Y-g)<.11)Y=g;rec.push({t:o[0]/100,x,y,Y});}return rec;}
+    const x=o[1]/10,y=o[2]/10,g=hAt(x,y);let Y=o[3]/10;if(Math.abs(Y-g)<.11)Y=g;rec.push({t:o[0]/100,x,y,Y,gr:Y===g});}return recDensify(rec);}
+/* Saved shots keep 10 points a second, and straight lines between them made replays choppy: corners in the flight,
+   bounces that never touched the ground, wobbly rolls. Rebuild the path at 60 a second (v82):
+   - in the air: arcs, with gravity measured from the shot's own points (it differs shot to shot)
+   - a bounce between two points: down to the ground and back up
+   - on the ground: a smooth curve through the points (breaking putts curve) that follows the terrain */
+function recDensify(R){const n=R.length;if(n<3)return R;
+  const gs=[];for(let i=1;i<n-1;i++){const a=R[i-1],b=R[i],c=R[i+1];if(a.gr||b.gr||c.gr)continue;const h1=b.t-a.t,h2=c.t-b.t;if(h1<=0||h2<=0)continue;
+    const acc=2*((c.Y-b.Y)/h2-(b.Y-a.Y)/h1)/(h1+h2);if(acc<-1)gs.push(-acc);}
+  gs.sort((p,q)=>p-q);const gv=gs.length?gs[gs.length>>1]:20;
+  const vEnd=i=>{if(i<1)return null;const a=R[i-1],b=R[i],h=b.t-a.t;if(h<=0||a.gr)return null;return(b.Y-a.Y)/h-.5*gv*h;};   // vertical speed arriving at point i
+  const cr=(p0,p1,p2,p3,k)=>{const k2=k*k,k3=k2*k;return .5*((2*p1)+(-p0+p2)*k+(2*p0-5*p1+4*p2-p3)*k2+(-p0+3*p1-3*p2+p3)*k3);};
+  // rolling stretches: positions are rounded to 1/10 yd, which made a slow roll surge and stall every tenth of a second.
+  // Fit a quadratic through the 7 nearest points of the same roll for a smoothed position and speed (the final point stays exact).
+  const sm=new Array(n);
+  for(let i=0;i<n;i++){if(!R[i].gr)continue;let lo=i,hi=i;while(lo>0&&R[lo-1].gr&&i-lo<3)lo--;while(hi<n-1&&R[hi+1].gr&&hi-i<3)hi++;
+    if(hi-lo<2){sm[i]=null;continue;}const fit=key=>{let S=[0,0,0,0,0],T=[0,0,0];for(let j=lo;j<=hi;j++){const d=R[j].t-R[i].t,v=R[j][key];let p=1;for(let e=0;e<5;e++){S[e]+=p;if(e<3)T[e]+=v*p;p*=d;}}
+      const M=[[S[0],S[1],S[2]],[S[1],S[2],S[3]],[S[2],S[3],S[4]]],det=m=>m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])-m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])+m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+      const D0=det(M);if(Math.abs(D0)<1e-12)return null;const col=(c)=>M.map((r,k)=>r.map((v,q)=>q===c?T[k]:v));return[det(col(0))/D0,det(col(1))/D0];};
+    const fx=fit('x'),fy=fit('y');sm[i]=fx&&fy?{x:fx[0],y:fy[0],vx:fx[1],vy:fy[1]}:null;}
+  for(let i=0;i<n;i++)if(sm[i]&&(i===n-1||i===0||!R[i-1].gr)){sm[i].x=R[i].x;sm[i].y=R[i].y;}   // where a roll starts (landing) and where the ball stops stay exact
+  const out=[R[0]];
+  for(let i=0;i<n-1;i++){const a=R[i],b=R[i+1],h=b.t-a.t;if(h<=0)continue;const m=Math.max(1,Math.round(h*60));
+    const roll=a.gr&&b.gr,P=R[Math.max(0,i-1)],Q=R[Math.min(n-1,i+2)];
+    // a bounce inside this gap: the ball was coming down at a, but a single arc to b would need it going up
+    let tc=null,gc=0;const va=vEnd(i);
+    if(!roll&&!a.gr&&va!==null&&va<0){const vs=(b.Y-a.Y)/h+.5*gv*h;
+      if(vs-va>Math.max(1.5,.25*-va)){const ga=hAt(a.x,a.y),gb=hAt(b.x,b.y),A=-.5*gv,B=va-(gb-ga)/h,C=a.Y-ga,D=B*B-4*A*C;
+        if(D>=0){const r1=(-B-Math.sqrt(D))/(2*A),r2=(-B+Math.sqrt(D))/(2*A),s1=[r1,r2].filter(v=>v>0&&v<h).sort((p,q)=>p-q)[0];if(s1!==undefined){tc=s1;gc=ga+(gb-ga)*s1/h;}}}}
+    for(let j=1;j<=m;j++){const k=j/m,t=a.t+h*k;let x,y,Y;
+      const sa=roll&&sm[i],sb=roll&&sm[i+1];
+      if(sa&&sb){const k2=k*k,k3=k2*k,h00=2*k3-3*k2+1,h10=k3-2*k2+k,h01=-2*k3+3*k2,h11=k3-k2;   // cubic Hermite through the smoothed points and speeds
+        x=h00*sa.x+h10*h*sa.vx+h01*sb.x+h11*h*sb.vx;y=h00*sa.y+h10*h*sa.vy+h01*sb.y+h11*h*sb.vy;}
+      else if(roll||(tc===null&&!P.gr&&!a.gr&&!b.gr&&!Q.gr&&P!==a&&Q!==b)){x=cr(P.x,a.x,b.x,Q.x,k);y=cr(P.y,a.y,b.y,Q.y,k);}else{x=a.x+(b.x-a.x)*k;y=a.y+(b.y-a.y)*k;}   // smooth in flight too (drag slows the ball), straight across a bounce
+      if(j===m&&!(sa&&sb)){x=b.x;y=b.y;}
+      const g=hAt(x,y);
+      if(roll)Y=g;
+      else if(tc!==null){const sx=h*k;if(sx<=tc)Y=a.Y+va*sx-.5*gv*sx*sx;else{const r=sx-tc,H=h-tc,vu=(b.Y-gc)/H+.5*gv*H;Y=gc+vu*r-.5*gv*r*r;}}
+      else Y=a.Y+(b.Y-a.Y)*k+.5*gv*(h*k)*(h-h*k);
+      if(j===m)Y=b.Y;if(Y<g)Y=g;
+      out.push({t,x,y,Y});}}
+  return out;}
 function showShotStats(){const I=G.shotInfo;G.shotInfo=null;if(!I)return;const tot=hyp(G.ball.x-I.sx,G.ball.y-I.sy),el=$('shotStats');
   el.innerHTML='Carry <b>'+Math.round(I.carry)+'</b> \u00b7 Total <b>'+Math.round(tot)+'</b> \u00b7 Peak <b>'+Math.round(I.peak*3)+' ft</b>';el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>{el.hidden=true;},3600);}
 function stopBall(){
