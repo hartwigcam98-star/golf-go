@@ -1297,7 +1297,7 @@ function shadowPass(){
 const RL={det:{},surf:null,leaf:null,fol:null,folProg:null,folU:null,folA:null,folDepth:null,folDU:null,folDA:null,grass:null};
 function wrapDraw(S,fn){for(const ox of[-S,0,S])for(const oy of[-S,0,S])fn(ox,oy);}
 function makeDetail(kind){
-  const S=512,c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d');const R=rng(kind.length*131+7);
+  const S=512,c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d',{willReadFrequently:true});const R=rng(kind.length*131+7);
   const base={short:128,rough:112,fescue:118,sand:128}[kind];g.fillStyle=`rgb(${base},${base},${base})`;g.fillRect(0,0,S,S);g.lineCap='round';
   if(kind==='sand'){
     for(let i=0;i<9;i++){const y0=R()*S,amp=6+R()*10,f=(1+Math.floor(R()*3))*TAU/S;g.strokeStyle=`rgba(${R()<.5?90:170},${R()<.5?90:170},${R()<.5?90:170},.08)`;g.lineWidth=5+R()*8;
@@ -1388,7 +1388,7 @@ const SURR={ready:null};
 function surrPrep(){const C=CUR;if(SURR.ready===C.id)return SURR;const S=C.surr;SURR.ready=C.id;SURR.S=S;
   const[x0,y0,x1,y1]=S.box,ww=x1-x0,hh=y1-y0;
   // woods / yards / water mask at 4 yd per cell for tree placement and the distant canopy
-  const MS=4,mw=Math.ceil(ww/MS),mh=Math.ceil(hh/MS),mc=document.createElement('canvas');mc.width=mw;mc.height=mh;const m=mc.getContext('2d');
+  const MS=4,mw=Math.ceil(ww/MS),mh=Math.ceil(hh/MS),mc=document.createElement('canvas');mc.width=mw;mc.height=mh;const m=mc.getContext('2d',{willReadFrequently:true});
   m.scale(1/MS,1/MS);m.translate(-x0,-y0);const fillP=(list,col)=>{m.fillStyle=col;for(const P of list||[]){m.beginPath();m.moveTo(P[0][0],P[0][1]);for(let i=1;i<P.length;i++)m.lineTo(P[i][0],P[i][1]);m.closePath();m.fill();}};
   fillP(S.polys.res,'rgb(0,255,0)');fillP(S.polys.grass,'rgb(0,0,0)');fillP(S.polys.park,'rgb(0,0,0)');fillP(S.polys.wood,'rgb(255,0,0)');fillP(COURSE.polys.wood,'rgb(255,0,0)');
   fillP(S.polys.wetland,'rgb(0,0,0)');fillP(S.polys.water,'rgb(0,0,255)');fillP(COURSE.polys.water,'rgb(0,0,255)');
@@ -4473,8 +4473,11 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   try{const v=localStorage.getItem('golf-gfx');if(v==='fast')R3.q='fast';}catch(e){}
   R3.on=true;r3Resize();r3RoundWx();try{r3GolferRestore();}catch(e){}return true;}
 // image-based light from the current sky (rebuilt when the weather changes)
-function r3EnvBuild(){const T=THREE,keep=R3.U.E.value.clone();R3.U.E.value.set(0,0,0);R3.U.cloudOn.value=CLOUDS_COV;const pm=new T.PMREMGenerator(R3.renderer);
-  const old=R3.envRT;R3.envRT=pm.fromScene(R3.envScene,.02,.1,200);R3.scene.environment=R3.envRT.texture;pm.dispose();if(old)old.dispose();R3.U.E.value.copy(keep);}
+function r3EnvBuild(){const T=THREE,keep=R3.U.E.value.clone();R3.U.E.value.set(0,0,0);R3.U.cloudOn.value=CLOUDS_COV;const pm=R3.pmrem||(R3.pmrem=new T.PMREMGenerator(R3.renderer));   /* kept for the session: disposing it threw away its shaders, so every new round recompiled them (v81) */
+  /* the sky is drawn into one cube map kept for the session and filtered with fromCubemap: fromScene builds and disposes
+     its own background material on every call, so each new round recompiled a shader mid-start (v81) */
+  if(!R3.envCube){R3.envCube=new T.WebGLCubeRenderTarget(256,{type:T.HalfFloatType,generateMipmaps:false});R3.envCam=new T.CubeCamera(.1,200,R3.envCube);}
+  R3.envCam.update(R3.renderer,R3.envScene);R3.envRT=pm.fromCubemap(R3.envCube.texture,R3.envRT||null);R3.scene.environment=R3.envRT.texture;R3.U.E.value.copy(keep);}
 /* ---- weather: each round draws one of four days, from bright sun to a grey overcast ---- */
 const R3_WX=[{n:'Sunny',sun:1,ex:1,env:1,cov:.3,g:0},                       // the original look
   {n:'Partly cloudy',sun:.68,ex:.94,env:1.05,cov:.56,g:.25},
@@ -4517,13 +4520,37 @@ function r3SetHole(h,canvas){const T=THREE,GU=R3.GU;
   r3Surround(h);
   // green slope map
   buildSlopeTex(h);
-  r3Water(h);r3Warm();}
+  r3Water(h);r3Warm();if(!R3.warmQ&&!R3.warmDone)setTimeout(r3WarmStart,400);}
 function r3Warm(){try{const vis=[];R3.scene.traverse(o=>{if(!o.visible&&(o.isMesh||o.isSkinnedMesh)){vis.push(o);o.visible=true;}});
   if(R3G.lods)for(const l of R3G.lods)l.geo.instanceCount=Math.max(1,l.geo.instanceCount);
   R3.renderer.compile(R3.scene,R3.cam);
   if(R3.water){const rd=R3.renderer,wv=R3.water.visible;R3.water.visible=false;rd.clippingPlanes=[new THREE.Plane(new THREE.Vector3(0,1,0),0)];rd.compile(R3.scene,R3.cam);rd.clippingPlanes=[];R3.water.visible=wv;}
   R3.scene.traverse(o=>{const m=o.material;if(!m)return;for(const k of['map','normalMap'])if(m[k]&&m[k].image&&!m[k].__up){m[k].__up=1;try{R3.renderer.initTexture(m[k]);}catch(e){}}});
   for(const o of vis)o.visible=false;}catch(e){console.warn('[warm]',e);}}
+/* Background shader warm-up (v81). three.js only finishes compiling a shader the first time it's drawn, so a round's first
+   frames (and the first hole with water, whose reflection pass needs clip-plane variants) used to stall for seconds.
+   While the menu is up, draw every mesh into a tiny off-screen target a few at a time per frame, plain and with the
+   reflection clip plane, then every post-processing pass, so the stalls are spread across idle menu frames instead. */
+function r3WarmStart(){if(R3.warmQ||!R3.renderer||!R3.scene)return;const L=[];
+  R3.scene.traverse(o=>{if(o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||o.isPoints||o.isLine)L.push(o);});
+  const jobs=[];for(const clip of[false,true])for(let i=0;i<L.length;i+=3)jobs.push({clip,objs:L.slice(i,i+3)});
+  if(R3.post&&R3.post.m)for(const k in R3.post.m)jobs.push({post:k});
+  R3.warmQ=jobs;R3.warmRT=new THREE.WebGLRenderTarget(16,16,{depthBuffer:true});R3.warmN=jobs.length;
+  const step=()=>{if(!R3.warmQ)return;const t0=performance.now();while(R3.warmQ.length&&performance.now()-t0<12){r3WarmJob(R3.warmQ.shift());}
+    if(R3.warmQ.length)requestAnimationFrame(step);else{R3.warmQ=null;R3.warmDone=1;R3.warmRT.dispose();}};
+  requestAnimationFrame(step);}
+function r3WarmJob(j){const rd=R3.renderer,prev=rd.getRenderTarget(),pc=rd.clippingPlanes;try{
+  if(j.post){const P=R3.post,m=P.m[j.post];P.quad.material=m;rd.setRenderTarget(R3.warmRT);rd.render(P.scene,P.cam);return;}
+  const sv=[];R3.scene.traverse(o=>{if(o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||o.isPoints||o.isLine){sv.push([o,o.visible]);o.visible=false;}});
+  const tw=[];for(const o of j.objs){o.visible=true;let q=o.parent;while(q){if(!q.visible){tw.push(q);q.visible=true;}q=q.parent;}
+    tw.push(['fc',o,o.frustumCulled]);o.frustumCulled=false;
+    if(o.isInstancedMesh&&o.count===0){tw.push(['cnt',o,0]);o.count=1;}
+    if(o.geometry&&o.geometry.isInstancedBufferGeometry&&!o.geometry.instanceCount){tw.push(['ic',o.geometry,o.geometry.instanceCount]);o.geometry.instanceCount=1;}}
+  rd.clippingPlanes=j.clip?[new THREE.Plane(new THREE.Vector3(0,1,0),0)]:[];
+  const sm=rd.shadowMap.autoUpdate;rd.shadowMap.autoUpdate=false;rd.setRenderTarget(R3.warmRT);rd.render(R3.scene,R3.cam);rd.shadowMap.autoUpdate=sm;
+  for(const t of tw){if(Array.isArray(t)){if(t[0]==='fc')t[1].frustumCulled=t[2];else if(t[0]==='cnt')t[1].count=t[2];else t[1].instanceCount=t[2];}else t.visible=false;}
+  for(const[o,v]of sv)o.visible=v;
+ }catch(e){console.warn('[warm]',e);}finally{rd.clippingPlanes=pc;rd.setRenderTarget(prev);}}
 function r3Surround(h){const T=THREE;r3Dispose(R3.skirt);r3Dispose(R3.flat);
   const Wd=WIDE||DEM,T0=h.T0,b=h.bounds;const X0=Wd.x0-T0[0],Y0=Wd.y0-T0[1],X1=X0+Wd.dx*(Wd.nc-1),Y1=Y0+Wd.dy*(Wd.nr-1),st=R3.perf>=3?30:20;
   const nx=Math.floor((X1-X0)/st)+1,ny=Math.floor((Y1-Y0)/st)+1,pos=new Float32Array(nx*ny*3),nor=new Float32Array(nx*ny*3),HH=new Float32Array(nx*ny);const hasS=!!CUR.surr;
