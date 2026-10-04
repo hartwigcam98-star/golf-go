@@ -4484,12 +4484,13 @@ function r3SetGrass(out){r3Dispose(R3.grass);R3.grass=null;if(R3G.lods)return;if
 
 /* ---- immediate-mode primitives (golfer, flag, ball) collected into instanced meshes each frame ---- */
 function r3Pool(kind,variant){const key=kind+variant;let p=R3.pools[key];if(p)return p;
-  const mat=variant==='blob'?R3.mat.blob:variant==='gloss'?R3.mat.gloss:variant==='satin'?R3.mat.satin:R3.mat.matte;
-  const m=new THREE.InstancedMesh(R3.geo[kind],mat,variant==='blob'?16:600);m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.count=0;m.frustumCulled=false;
-  m.castShadow=variant!=='blob';m.receiveShadow=variant!=='blob';if(variant==='blob')m.renderOrder=4;
+  if(variant==='water'&&!R3.mat.spray)R3.mat.spray=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.42,depthWrite:false});
+  const mat=variant==='water'?R3.mat.spray:variant==='blob'?R3.mat.blob:variant==='gloss'?R3.mat.gloss:variant==='satin'?R3.mat.satin:R3.mat.matte;
+  const m=new THREE.InstancedMesh(R3.geo[kind],mat,variant==='blob'?16:variant==='water'?1600:600);m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.count=0;m.frustumCulled=false;
+  m.castShadow=variant!=='blob'&&variant!=='water';m.receiveShadow=variant!=='blob'&&variant!=='water';if(variant==='water')m.renderOrder=6;if(variant==='blob')m.renderOrder=4;
   m.setColorAt(0,new THREE.Color(1,1,1));R3.scene.add(m);p=R3.pools[key]={m,n:0};return p;}
 const R3_M4=[];let R3_COL=null;
-function r3Push(kind,Mx,tint,alpha){if(!R3.on)return;const variant=alpha<1?'blob':(M3.spec||0)>=.5?'gloss':(M3.spec||0)>0?'satin':'matte';
+function r3Push(kind,Mx,tint,alpha){if(!R3.on)return;const variant=M3.water?'water':alpha<1?'blob':(M3.spec||0)>=.5?'gloss':(M3.spec||0)>0?'satin':'matte';
   const p=r3Pool(kind,variant);if(p.n>=p.m.instanceMatrix.count)return;
   const m4=R3_M4[0]||(R3_M4[0]=new THREE.Matrix4());m4.fromArray(Mx);p.m.setMatrixAt(p.n,m4);
   if(variant!=='blob'){R3_COL=R3_COL||new THREE.Color();R3_COL.setRGB(r3sq(tint[0]),r3sq(tint[1]),r3sq(tint[2]));p.m.setColorAt(p.n,R3_COL);}p.n++;}
@@ -4506,21 +4507,21 @@ function r3SprinkWanted(){if(!(CUR&&CUR.id==='pawplant'&&G.hi===12&&G.hole))retu
   const aim=G.state==='aim'||G.state==='power'||G.state==='acc',mov=G.state==='flight'||G.state==='bounce'||G.state==='roll';
   if(aim)return true;if(mov&&R3SPK.on){R3SPK.shot=true;return true;}if(R3SPK.shot&&!mov){R3SPK.done=true;R3SPK.shot=false;}return false;}
 function r3SprinkHeads(h){const p=h.pin,P=h.green,out=[];
-  for(let k=0;k<5;k++){const a=k/5*TAU+.4;let r=2;while(r<40&&P&&inPoly(P,p[0]+Math.cos(a)*r,p[1]+Math.sin(a)*r))r+=.5;r+=3.5;out.push({x:p[0]+Math.cos(a)*r,y:p[1]+Math.sin(a)*r,face:a,arc:Math.PI*.9});}
+  for(let k=0;k<4;k++){const a=k/4*TAU+.4;let r=2;while(r<40&&P&&inPoly(P,p[0]+Math.cos(a)*r,p[1]+Math.sin(a)*r))r+=.5;r+=3.5;out.push({x:p[0]+Math.cos(a)*r,y:p[1]+Math.sin(a)*r,face:a,arc:Math.PI*.9});}
   const[dx,dy]=dirOf(angTo(G.ball.x,G.ball.y,p[0],p[1])),px=-dy,py=dx;
-  for(const sd of[-1,1]){const x=G.ball.x+dx*9+px*sd*9,y=G.ball.y+dy*9+py*sd*9;out.push({x,y,face:Math.atan2(-py*sd,-px*sd),arc:Math.PI*1.1});}   // sweeping in toward the line of play
+  const ga=G.lie==='green'?3:6,gl=G.lie==='green'?5:7;for(const sd of[-1,1]){const x=G.ball.x+dx*ga+px*sd*gl,y=G.ball.y+dy*ga+py*sd*gl;out.push({x,y,face:Math.atan2(-py*sd,-px*sd),arc:Math.PI*1.1});}   // sweeping in toward the line of play
   out.forEach((q,i)=>{q.gh=hAt(q.x,q.y);q.ph=i*1.7;});return out;}
 function r3Sprinklers(){const want=r3SprinkWanted();
   if(!want){R3SPK.on=false;return;}
-  else if(!R3SPK.on){R3SPK.on=true;R3SPK.t0=T;R3SPK.heads=r3SprinkHeads(G.hole);try{toast('SPRINKLERS!','Somebody forgot the timer','#9fd8ff');}catch(e){}}
-  const t=T-R3SPK.t0,ramp=Math.min(1,t/1.2),V0=10.5,EL=.42,Gy=10.7,LIFE=1.55,RATE=34,ce=Math.cos(EL),se=Math.sin(EL),col=[.93,.97,1];M3.spec=.3;
-  for(const q of R3SPK.heads){sphAt([q.x,q.gh+.05,q.y],.05,.05,.05,[.15,.17,.16]);   // the head
+  else if(!R3SPK.on){R3SPK.on=true;R3SPK.t0=T;R3SPK.heads=r3SprinkHeads(G.hole);setTimeout(()=>{try{if(R3SPK.on)toast('SPRINKLERS!','Somebody forgot the timer','#9fd8ff');}catch(e){}},1600);}
+  const t=T-R3SPK.t0,ramp=Math.min(1,t/1.2),V0=12,EL=.6,Gy=10.7,LIFE=1.55,RATE=85,ce=Math.cos(EL),se=Math.sin(EL),col=[.9,.95,1];
+  for(const q of R3SPK.heads){M3.spec=0;M3.water=0;sphAt([q.x,q.gh+.05,q.y],.05,.05,.05,[.15,.17,.16]);M3.water=1;   // the head
     const n=Math.floor(LIFE*RATE);for(let i=0;i<n;i++){const ts=Math.floor(t*RATE)/RATE-i/RATE,age=t-ts;if(ts<0||age>LIFE)continue;
-      const sw=q.face+Math.sin((ts*.9+q.ph))*q.arc*.5,jit=Math.sin(i*12.9898+q.ph*78.233)*.5,v=V0*(.85+.15*jit)*ramp,vx=Math.cos(sw+jit*.05)*v*ce,vz=Math.sin(sw+jit*.05)*v*ce,vy=v*se*(1+.1*jit);
+      const k2=Math.floor(ts*RATE),h1=((Math.sin(k2*12.9898+q.ph*78.233)*43758.55)%1+1)%1,h2=((Math.sin(k2*39.346+q.ph*11.135)*24634.63)%1+1)%1,jit=h1-.5,sw=q.face+Math.sin((ts*.9+q.ph))*q.arc*.5+(h2-.5)*.22,v=V0*(.72+.4*h1)*ramp,vx=Math.cos(sw)*v*ce,vz=Math.sin(sw)*v*ce,vy=v*se*(1+.35*(h2-.5));
       const y=q.gh+.15+vy*age-.5*Gy*age*age;if(y<hAt(q.x+vx*age,q.y+vz*age))continue;const x=q.x+vx*age,z=q.y+vz*age,vyy=vy-Gy*age,sp=Math.hypot(vx,vyy,vz)||1;
-      const d=[vx/sp,vyy/sp,vz/sp],side=nrm(cross(d,[0,1,0])),up=nrm(cross(side,d));const sz=.045+.03*Math.min(1,age);sphAt([x,y,z],sz,sz,sz*3.2,col,side,up,d);}}
-  M3.spec=0;
-  if(want&&T-R3SPK.tick>.13){R3SPK.tick=T;try{if(!G.muted)noise(.04,.035,'highpass',3200);}catch(e){}}}
+      const d=[vx/sp,vyy/sp,vz/sp],side=nrm(cross(d,[0,1,0])),up=nrm(cross(side,d));const sz=(.05+.09*Math.min(1,age))*(.75+.5*h2);sphAt([x,y,z],sz,sz,sz*2.4,col,side,up,d);/* the jet breaks up into a widening mist */}}
+  M3.spec=0;M3.water=0;
+  if(want&&T-R3SPK.tick>.13){R3SPK.tick=T;try{if(!G.muted)noise(.05,.06,'highpass',2800);}catch(e){}}}
 function r3Dynamic(){const h=G.hole;if(R3.boss){R3.boss.mesh.visible=false;R3.boss.ballAt=null;}const bx=G.ball.x,bz=G.ball.y,gB=hAt(bx,bz);
   const camToBall=hyp(bx-V.E[0],gB-V.E[1],bz-V.E[2]);R3.U.r3fade.value=G.overview||G.state==='intro'||G.state==='card'?0:Math.min(60,camToBall-2);
   if(R3.grass)R3.grass.visible=!G.overview&&G.state!=='intro'&&G.state!=='card';
