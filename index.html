@@ -1579,7 +1579,7 @@ function buildStructures(h,out){const ST=STYLE[CUR.scen]||STYLE.prairie,R=rng(42
         boxO(out,x,gy+.55,y,.85,.4,2.2,rot,col);boxO(out,x-Math.sin(rot)*0,gy+1.12,y,.75,.3,1.15,rot,mul(col,.55));}}}
   // flags on the other greens, the range targets, and this hole's tee markers
   const flag=(x,y,col)=>{const g0=hAtH(h,x,y);boxO(out,x,g0+1.25,y,.04,1.25,.04,0,[.95,.95,.95]);pushTri(out,[x,g0+2.45,y],[x+.8,g0+2.2,y],[x,g0+1.95,y],col,[0,0,1],[0,0,1],[0,0,1]);pushTri(out,[x,g0+2.45,y],[x,g0+1.95,y],[x+.8,g0+2.2,y],mul(col,.8),[0,0,-1],[0,0,-1],[0,0,-1]);};
-  COURSE.holes.forEach((H,k)=>{if(k===G.hi)return;const x=H.pin[0]-h.T0[0],y=H.pin[1]-h.T0[1],b=h.bounds;if(x<b[0]-800||x>b[2]+800||y<b[1]-800||y>b[3]+800)return;flag(x,y,hexc('#ff6a48'));});
+  COURSE.holes.forEach((H,k)=>{if(k===G.hi)return;const x=H.pin[0]-h.T0[0],y=H.pin[1]-h.T0[1],b=h.bounds;if(x<b[0]-800||x>b[2]+800||y<b[1]-800||y>b[3]+800)return;flag(x,y,hexc(typeof r3FlagStyle==='function'?r3FlagStyle(CUR.id).bg:'#ff6a48'));});
   for(const P0 of COURSE.polys.range||[]){const P=P0.map(q=>[q[0]-h.T0[0],q[1]-h.T0[1]]),Q=mkPoly(P,'range');let L=0,a0=null,a1=null;
     for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const l=hyp(P[j][0]-P[i][0],P[j][1]-P[i][1]);if(l>L){L=l;a0=P[i];a1=P[j];}}
     const cols=['#ffd23c','#ff6a48','#4db6ff','#ffffff','#6fdc6f'];[.22,.38,.54,.7,.86].forEach((t,i)=>{const x=a0[0]+(a1[0]-a0[0])*t,y=a0[1]+(a1[1]-a0[1])*t;if(inPoly(Q,x,y))flag(x,y,hexc(cols[i]));});}
@@ -4650,13 +4650,105 @@ function r3SetHole(h,canvas){const T=THREE,GU=R3.GU;
   r3Surround(h);
   // green slope map
   buildSlopeTex(h);
-  r3Water(h);r3Warm();if(!R3.warmQ&&!R3.warmDone)setTimeout(r3WarmStart,400);}
+  r3Water(h);r3FlagSet(CUR&&CUR.id);r3Warm();if(!R3.warmQ&&!R3.warmDone)setTimeout(r3WarmStart,400);}
 function r3Warm(){try{const vis=[];R3.scene.traverse(o=>{if(!o.visible&&(o.isMesh||o.isSkinnedMesh)){vis.push(o);o.visible=true;}});
   if(R3G.lods)for(const l of R3G.lods)l.geo.instanceCount=Math.max(1,l.geo.instanceCount);
   R3.renderer.compile(R3.scene,R3.cam);
   if(R3.water){const rd=R3.renderer,wv=R3.water.visible;R3.water.visible=false;rd.clippingPlanes=[new THREE.Plane(new THREE.Vector3(0,1,0),0)];rd.compile(R3.scene,R3.cam);rd.clippingPlanes=[];R3.water.visible=wv;}
   R3.scene.traverse(o=>{const m=o.material;if(!m)return;for(const k of['map','normalMap'])if(m[k]&&m[k].image&&!m[k].__up){m[k].__up=1;try{R3.renderer.initTexture(m[k]);}catch(e){}}});
   for(const o of vis)o.visible=false;}catch(e){console.warn('[warm]',e);}}
+/* ===================== course flags (v88) =====================
+   Each course flies its own original flag: colours and a simple emblem drawn from the place (pines in the north woods,
+   a heron in the lowcountry, a stone cairn at StoneRidge...). None copies a club's real logo, and there is no lettering.
+   The flag is a small cloth that streams downwind and ripples harder in a stronger wind. */
+const R3_FLAGS={
+  troy:{bg:'#1f4e3d',fg:'#f3e9cf',ac:'#d9a441',m:'stream'},      stoneridge:{bg:'#56626c',fg:'#f2f2ee',ac:'#c8b273',m:'cairn'},
+  caledonia:{bg:'#2e5233',fg:'#f4f1e6',ac:'#a7b59a',m:'oak'},     trueblue:{bg:'#1d4f9c',fg:'#ffffff',ac:'#f2c14e',m:'heron'},
+  heritage:{bg:'#6d1f2b',fg:'#f6ead5',ac:'#d8b45a',m:'magnolia'}, pawplant:{bg:'#0f6e6e',fg:'#ffffff',ac:'#e7d39a',m:'palmetto'},
+  rossbridge:{bg:'#33415c',fg:'#e9e4d8',ac:'#b98b4e',m:'bridge'}, legislator:{bg:'#7a1f1f',fg:'#f5ecd9',ac:'#d6b25e',m:'column'},
+  judge:{bg:'#1f2f4f',fg:'#f5ecd9',ac:'#d6b25e',m:'scales'},      senator:{bg:'#2f4a2f',fg:'#f5ecd9',ac:'#d6b25e',m:'dome'},
+  sandvalley:{bg:'#d6b071',fg:'#5a3b1e',ac:'#fff4dc',m:'dunes'},  mammoth:{bg:'#4a3726',fg:'#f1e3c4',ac:'#c9a46a',m:'tusks'},
+  lido:{bg:'#0e3b5c',fg:'#f7f1e3',ac:'#7fb3d5',m:'shell'},        sedge:{bg:'#6f7d33',fg:'#f7f3e0',ac:'#3e4a1c',m:'sedge'},
+  wilderness:{bg:'#203b2b',fg:'#e8efe6',ac:'#9fc3b0',m:'compass'},quarry:{bg:'#3b3b3b',fg:'#e6e2da',ac:'#c0632c',m:'rock'},
+  legend:{bg:'#14324a',fg:'#eef3f6',ac:'#7ea6c2',m:'peaks'},      crsc:{bg:'#8a4b2a',fg:'#f6e7d0',ac:'#e0a35b',m:'canyon'},
+  crls:{bg:'#355e3b',fg:'#f2eedb',ac:'#b7c48c',m:'loblolly'},     deacon:{bg:'#4b2e1e',fg:'#f2e2c4',ac:'#c98a3a',m:'lodge'},
+  lehman:{bg:'#1e5a7a',fg:'#f2f5f0',ac:'#e0b04a',m:'fish'},       maddens:{bg:'#7d2a1d',fg:'#f5ead6',ac:'#e2b261',m:'paddles'},
+  pines:{bg:'#1d3d2a',fg:'#e9f0e4',ac:'#9cbf8d',m:'pines3'},      preserve:{bg:'#2c4a5a',fg:'#f4f4ef',ac:'#9fb8a8',m:'loon'}};
+function r3FlagStyle(id){return R3_FLAGS[id]||{bg:'#ff6a48',fg:'#ffffff',ac:'#ffd23c',m:''};}
+// emblems, drawn in a box about 100 units across centred on the origin
+const R3_EMB={
+  pine(g,c,x=0,y=0,s=1){g.fillStyle=c.fg;g.fillRect(x-3*s,y+24*s,6*s,12*s);for(const[t,w,h]of[[-38,16,22],[-22,24,26],[-4,32,30]]){g.beginPath();g.moveTo(x,y+t*s);g.lineTo(x+w*s,y+(t+h)*s);g.lineTo(x-w*s,y+(t+h)*s);g.closePath();g.fill();}},
+  pines3(g,c){R3_EMB.pine(g,{fg:c.ac},-24,8,.72);R3_EMB.pine(g,{fg:c.ac},24,8,.72);R3_EMB.pine(g,c,0,0,1);},
+  stream(g,c){g.lineCap='round';g.lineWidth=7;[[-18,c.fg],[0,c.ac],[18,c.fg]].forEach(([y,col])=>{g.strokeStyle=col;g.beginPath();for(let x=-40;x<=40;x+=2)g.lineTo(x,y+Math.sin(x*.11)*7);g.stroke();});},
+  cairn(g,c){[[0,30,30,9],[2,13,23,8],[-1,-2,17,7],[1,-15,12,6],[0,-26,7,5]].forEach(([x,y,rx,ry],i)=>{g.fillStyle=i%2?c.ac:c.fg;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill();});},
+  oak(g,c){g.fillStyle=c.fg;g.beginPath();g.moveTo(-6,38);g.lineTo(-4,4);g.lineTo(4,4);g.lineTo(6,38);g.fill();
+    for(const[x,y,r]of[[-24,-6,15],[0,-16,19],[24,-6,15],[-12,6,13],[12,6,13]]){g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill();}
+    g.strokeStyle=c.ac;g.lineWidth=2.4;g.lineCap='round';for(const x of[-30,-20,-6,8,20,30]){g.beginPath();g.moveTo(x,12);g.quadraticCurveTo(x+2,20,x-1,27+Math.abs(x)%7);g.stroke();}},
+  heron(g,c){g.strokeStyle=c.fg;g.fillStyle=c.fg;g.lineCap='round';g.beginPath();g.ellipse(4,8,20,10,-.35,0,Math.PI*2);g.fill();
+    g.lineWidth=6;g.beginPath();g.moveTo(-10,2);g.bezierCurveTo(-26,-6,-4,-20,-14,-32);g.stroke();g.beginPath();g.arc(-14,-33,5,0,Math.PI*2);g.fill();
+    g.strokeStyle=c.ac;g.lineWidth=3;g.beginPath();g.moveTo(-18,-33);g.lineTo(-34,-30);g.stroke();g.beginPath();g.moveTo(2,16);g.lineTo(-2,40);g.moveTo(9,16);g.lineTo(10,40);g.stroke();
+    g.strokeStyle=c.fg;g.lineWidth=4;g.beginPath();g.moveTo(22,10);g.lineTo(36,18);g.stroke();},
+  magnolia(g,c){g.fillStyle=c.fg;for(let k=0;k<5;k++){g.save();g.rotate(k*Math.PI*2/5);g.beginPath();g.ellipse(0,-20,11,20,0,0,Math.PI*2);g.fill();g.restore();}g.fillStyle=c.ac;g.beginPath();g.arc(0,0,9,0,Math.PI*2);g.fill();},
+  palmetto(g,c){g.strokeStyle=c.fg;g.lineCap='round';g.lineWidth=7;g.beginPath();g.moveTo(4,40);g.quadraticCurveTo(-4,10,2,-12);g.stroke();g.lineWidth=5;
+    for(let k=0;k<9;k++){const a=-Math.PI+.15+k*(Math.PI-.3)/8,ex=2+Math.cos(a)*34,ey=-12+Math.sin(a)*24+(Math.abs(Math.cos(a))*14);g.beginPath();g.moveTo(2,-12);g.quadraticCurveTo(2+Math.cos(a)*20,-12+Math.sin(a)*22,ex,ey);g.stroke();}
+    g.fillStyle=c.ac;g.beginPath();g.arc(2,-12,5,0,Math.PI*2);g.fill();},
+  bridge(g,c){g.strokeStyle=c.fg;g.lineCap='round';g.lineWidth=6;g.beginPath();g.arc(0,22,38,Math.PI*1.08,Math.PI*1.92);g.stroke();g.fillStyle=c.fg;g.fillRect(-42,4,84,6);
+    g.lineWidth=2.4;for(let x=-24;x<=24;x+=12){g.beginPath();g.moveTo(x,4);g.lineTo(x,22-Math.sqrt(Math.max(0,38*38-x*x))+2);g.stroke();}
+    g.strokeStyle=c.ac;g.lineWidth=3;for(const y of[24,33]){g.beginPath();for(let x=-34;x<=34;x+=2)g.lineTo(x,y+Math.sin(x*.25)*2);g.stroke();}},
+  column(g,c){g.fillStyle=c.fg;g.fillRect(-20,-36,40,7);g.fillRect(-15,-29,30,4);g.fillRect(-12,-25,24,52);g.fillRect(-17,27,34,5);g.fillRect(-22,32,44,6);
+    g.fillStyle=c.bg;for(const x of[-6,0,6])g.fillRect(x-1.2,-22,2.4,46);g.fillStyle=c.ac;g.beginPath();g.arc(-17,-32,4,0,Math.PI*2);g.arc(17,-32,4,0,Math.PI*2);g.fill();},
+  scales(g,c){g.fillStyle=c.fg;g.fillRect(-3,-30,6,62);g.fillRect(-18,32,36,6);g.fillRect(-34,-26,68,5);g.beginPath();g.arc(0,-33,5,0,Math.PI*2);g.fill();
+    g.strokeStyle=c.fg;g.lineWidth=2;for(const sx of[-1,1]){g.beginPath();g.moveTo(sx*31,-22);g.lineTo(sx*21,6);g.moveTo(sx*31,-22);g.lineTo(sx*41,6);g.stroke();
+      g.fillStyle=c.ac;g.beginPath();g.moveTo(sx*31-13,6);g.quadraticCurveTo(sx*31,20,sx*31+13,6);g.closePath();g.fill();}},
+  dome(g,c){g.fillStyle=c.fg;g.beginPath();g.arc(0,2,26,Math.PI,0);g.fill();g.fillRect(-30,2,60,6);g.fillRect(-34,26,68,7);
+    for(let x=-26;x<=26;x+=10.4)g.fillRect(x-2.5,8,5,18);g.fillRect(-4,-34,8,10);g.beginPath();g.arc(0,-24,6,Math.PI,0);g.fill();
+    g.fillStyle=c.ac;g.beginPath();g.arc(0,-38,3.5,0,Math.PI*2);g.fill();},
+  dunes(g,c){g.fillStyle=c.ac;g.beginPath();g.arc(14,-10,15,0,Math.PI*2);g.fill();g.fillStyle=c.fg;
+    g.beginPath();g.moveTo(-46,34);g.quadraticCurveTo(-18,-14,10,34);g.fill();g.globalAlpha=.75;g.beginPath();g.moveTo(-8,34);g.quadraticCurveTo(22,0,46,34);g.fill();g.globalAlpha=1;},
+  tusks(g,c){g.fillStyle=c.fg;for(const sx of[-1,1]){g.beginPath();g.moveTo(sx*4,34);g.bezierCurveTo(sx*44,30,sx*46,-12,sx*14,-36);g.bezierCurveTo(sx*30,-10,sx*26,20,sx*4,22);g.closePath();g.fill();}
+    g.fillStyle=c.ac;g.beginPath();g.ellipse(0,30,10,7,0,0,Math.PI*2);g.fill();},
+  shell(g,c){g.fillStyle=c.fg;g.beginPath();g.moveTo(0,30);g.arc(0,30,44,Math.PI*1.12,Math.PI*1.88);g.closePath();g.fill();
+    g.strokeStyle=c.bg;g.lineWidth=3;for(let k=1;k<8;k++){const a=Math.PI*1.12+k*(Math.PI*.76)/8;g.beginPath();g.moveTo(0,30);g.lineTo(Math.cos(a)*42,30+Math.sin(a)*42);g.stroke();}
+    g.fillStyle=c.ac;g.fillRect(-9,26,18,9);},
+  sedge(g,c){g.strokeStyle=c.fg;g.lineCap='round';g.lineWidth=4;for(let k=-5;k<=5;k++){const a=k*.17;g.beginPath();g.moveTo(k*2,36);g.quadraticCurveTo(k*7,6,Math.sin(a)*44+k*3,-36+Math.abs(k)*4);g.stroke();}
+    g.fillStyle=c.ac;for(const[x,y]of[[-6,-30],[9,-24],[-18,-18]]){g.beginPath();g.ellipse(x,y,3,7,0,0,Math.PI*2);g.fill();}},
+  compass(g,c){g.strokeStyle=c.ac;g.lineWidth=3;g.beginPath();g.arc(0,0,30,0,Math.PI*2);g.stroke();
+    const star=(r1,r2,rot,col)=>{g.fillStyle=col;g.beginPath();for(let k=0;k<8;k++){const r=k%2?r2:r1,a=rot+k*Math.PI/4;g.lineTo(Math.sin(a)*r,-Math.cos(a)*r);}g.closePath();g.fill();};
+    star(26,6,Math.PI/4,c.ac);star(40,8,0,c.fg);},
+  rock(g,c){const P=[[-30,10],[-18,-24],[10,-30],[32,-6],[26,24],[-6,32]];g.fillStyle=c.fg;g.beginPath();P.forEach(p=>g.lineTo(...p));g.closePath();g.fill();
+    g.strokeStyle=c.ac;g.lineWidth=3;g.beginPath();g.moveTo(-18,-24);g.lineTo(-2,-2);g.lineTo(10,-30);g.moveTo(-2,-2);g.lineTo(32,-6);g.moveTo(-2,-2);g.lineTo(-6,32);g.moveTo(-2,-2);g.lineTo(-30,10);g.stroke();},
+  peaks(g,c){g.fillStyle=c.ac;g.beginPath();g.moveTo(-44,30);g.lineTo(-14,-20);g.lineTo(14,30);g.fill();g.fillStyle=c.fg;g.beginPath();g.moveTo(-18,30);g.lineTo(14,-32);g.lineTo(46,30);g.fill();
+    g.fillStyle=c.bg;g.beginPath();g.moveTo(14,-32);g.lineTo(5,-14);g.lineTo(11,-18);g.lineTo(16,-12);g.lineTo(22,-17);g.closePath();g.fill();},
+  canyon(g,c){g.fillStyle=c.ac;g.beginPath();g.arc(0,4,16,0,Math.PI*2);g.fill();g.fillStyle=c.fg;
+    g.beginPath();g.moveTo(-46,34);g.lineTo(-46,-14);g.lineTo(-30,-14);g.lineTo(-26,4);g.lineTo(-14,6);g.lineTo(-10,34);g.fill();
+    g.beginPath();g.moveTo(46,34);g.lineTo(46,-20);g.lineTo(32,-20);g.lineTo(26,-2);g.lineTo(14,2);g.lineTo(10,34);g.fill();},
+  loblolly(g,c){g.fillStyle=c.fg;g.fillRect(-3,-6,6,44);for(const[x,y,rx,ry]of[[-14,-22,16,8],[12,-28,18,8],[-2,-38,14,7],[16,-14,11,6],[-20,-10,10,5]]){g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill();}
+    g.strokeStyle=c.fg;g.lineWidth=3;g.beginPath();g.moveTo(0,-4);g.lineTo(-16,-12);g.moveTo(0,-14);g.lineTo(14,-18);g.stroke();},
+  lodge(g,c){g.fillStyle=c.fg;g.fillRect(-28,0,56,32);g.beginPath();g.moveTo(-38,4);g.lineTo(0,-30);g.lineTo(38,4);g.fill();g.fillRect(16,-26,8,18);
+    g.fillStyle=c.ac;g.fillRect(-7,12,14,20);g.fillRect(-22,8,9,9);g.fillRect(13,8,9,9);g.fillStyle=c.bg;for(let y=4;y<32;y+=7)g.fillRect(-28,y,56,1.2);g.fillStyle=c.ac;g.fillRect(-7,12,14,20);},
+  fish(g,c){g.fillStyle=c.fg;g.beginPath();g.ellipse(-4,0,30,13,0,0,Math.PI*2);g.fill();g.beginPath();g.moveTo(22,0);g.lineTo(42,-16);g.lineTo(38,0);g.lineTo(42,16);g.closePath();g.fill();
+    g.beginPath();g.moveTo(-14,-11);g.lineTo(-2,-24);g.lineTo(10,-11);g.fill();g.fillStyle=c.ac;g.beginPath();g.arc(-24,-3,3.4,0,Math.PI*2);g.fill();
+    g.strokeStyle=c.ac;g.lineWidth=2;for(const x of[-8,0,8]){g.beginPath();g.moveTo(x,-9);g.lineTo(x+4,8);g.stroke();}},
+  paddles(g,c){for(const sx of[-1,1]){g.save();g.rotate(sx*.62);g.fillStyle=c.fg;g.fillRect(-2.6,-40,5.2,58);g.beginPath();g.ellipse(0,26,9,17,0,0,Math.PI*2);g.fill();g.fillStyle=c.ac;g.fillRect(-6,-42,12,6);g.restore();}},
+  loon(g,c){g.strokeStyle=c.ac;g.lineWidth=3;for(const y of[22,30]){g.beginPath();for(let x=-40;x<=40;x+=2)g.lineTo(x,y+Math.sin(x*.2+y)*2);g.stroke();}
+    g.fillStyle=c.fg;g.beginPath();g.ellipse(4,8,28,11,0,0,Math.PI*2);g.fill();g.beginPath();g.moveTo(-14,4);g.quadraticCurveTo(-22,-10,-16,-16);g.lineTo(-8,-14);g.quadraticCurveTo(-8,-2,-4,2);g.fill();
+    g.beginPath();g.arc(-14,-16,7,0,Math.PI*2);g.fill();g.beginPath();g.moveTo(-20,-17);g.lineTo(-34,-13);g.lineTo(-20,-13);g.fill();
+    g.fillStyle=c.bg;for(let x=0;x<24;x+=6)for(let y=2;y<12;y+=5){g.fillRect(x,y,2.6,2.6);}}};
+function r3FlagCanvas(id){const c=r3FlagStyle(id),cv=document.createElement('canvas');cv.width=256;cv.height=160;const g=cv.getContext('2d');
+  g.fillStyle=c.bg;g.fillRect(0,0,256,160);g.strokeStyle=c.ac;g.lineWidth=5;g.strokeRect(9,9,238,142);
+  const f=R3_EMB[c.m];if(f){g.save();g.translate(128,80);g.scale(1.25,1.25);g.lineJoin='round';f(g,c);g.restore();}return cv;}
+function r3FlagMesh(){if(R3.flag)return R3.flag;const T=THREE,geo=new T.PlaneGeometry(1,1,12,4);geo.translate(.5,0,0);
+  const mat=r3Patch(new T.MeshStandardMaterial({side:T.DoubleSide,roughness:.85,metalness:0}),{twoSided:true});
+  const m=r3Add(geo,mat,{cast:true});m.frustumCulled=false;m.visible=false;R3.flag=m;R3.flagBase=Float32Array.from(geo.attributes.position.array);return m;}
+function r3FlagSet(id){const m=r3FlagMesh();if(R3.flagId===id)return;R3.flagId=id;if(m.material.map)m.material.map.dispose();m.material.map=r3CanvasTex(r3FlagCanvas(id),{srgb:true});m.material.map.flipY=true;   /* canvas rows run top-down */m.material.needsUpdate=true;}
+// place and ripple the flag on the flagstick at (px,top,pz); ps scales it up with distance like the stick
+function r3FlagPose(px,top,pz,ps){const m=r3FlagMesh();r3FlagSet(CUR&&CUR.id);m.visible=true;
+  const w=G.wind||{a:0,mph:0},mph=w.mph||0,calm=clamp(1-mph/4,0,1),sway=Math.sin(T*1.3)*.35*calm+Math.sin(T*.7)*.12;
+  const d=dirOf(w.a),base=Math.atan2(d[1],d[0]),a=mph>0?base+sway:Math.sin(T*.9)*.6;
+  m.position.set(px,top-.2*ps,pz);m.rotation.set(0,-a,0);m.scale.set(.64*ps,.4*ps,.64*ps);
+  const P=m.geometry.attributes.position,B=R3.flagBase,amp=.035+.0075*Math.min(mph,16),fq=6+mph*.35,droop=.18*calm;
+  for(let i=0;i<P.count;i++){const u=B[i*3],v=B[i*3+1];P.array[i*3]=u*(1-.08*calm);P.array[i*3+1]=v-droop*u*u;P.array[i*3+2]=amp*Math.sin(u*7.5-T*fq+v*1.4)*Math.pow(u,.8);}
+  P.needsUpdate=true;m.geometry.computeVertexNormals();}
 /* Background shader warm-up (v81). three.js only finishes compiling a shader the first time it's drawn, so a round's first
    frames (and the first hole with water, whose reflection pass needs clip-plane variants) used to stall for seconds.
    While the menu is up, draw every mesh into a tiny off-screen target a few at a time per frame, plain and with the
@@ -4760,9 +4852,8 @@ function r3Dynamic(){const h=G.hole;if(R3.boss){R3.boss.mesh.visible=false;R3.bo
   // cup, flagstick and flag (scaled up with distance so the pin is always readable)
   M3.spec=0;const px=h.pin[0],pz=h.pin[1],gp=hAt(px,pz);const pc=proj(px,gp,pz),ps=pc?Math.max(1,30/(2.6*pc[3])):1;
   sphAt([px,gp+.005,pz],CUP_R+.004,.012,CUP_R+.004,[.03,.06,.04]);
-  if(!flagPulled()){cylAB([px,gp,pz],[px,gp+2.5*ps,pz],.028*ps,[.96,.96,.96]);
-  const wave=Math.sin(T*3)*.25,fl=[Math.cos(wave),0,Math.sin(wave)];
-  boxAt([px+fl[0]*.33*ps,gp+2.28*ps,pz+fl[2]*.33*ps],mul(fl,.64*ps),[0,.4*ps,0],mul(nrm(cross(fl,[0,1,0])),.015*ps),hexc('#ff6a48'));}
+  if(!flagPulled()){cylAB([px,gp,pz],[px,gp+2.5*ps,pz],.028*ps,[.96,.96,.96]);r3FlagPose(px,gp+2.48*ps,pz,ps);}
+  else if(R3.flag)R3.flag.visible=false;
   if(typeof drawDivots==='function')drawDivots();
   const aiming=aimingState()&&!G.overview;const ga=aiming?{x:bx,y:bz,aim:G.aim}:(G.followT>0&&G.golferAt&&(G.followT<4||(typeof R3R!=='undefined'&&R3R.post.on&&(G.state==='wait'||G.state==='holed')))?G.golferAt:null);
   M3.spec=.06;if(ga&&G.state!=='intro'&&G.state!=='card')drawGolfer3D(ga);M3.spec=0;
