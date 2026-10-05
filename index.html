@@ -4374,8 +4374,8 @@ function lidAt(h,x,y){const L=lidPatches();if(!L)return null;const X=x+h.T0[0],Y
    the Three camera is driven straight from V so the overlay lines up exactly. Everything renders into a linear HDR
    target; our own post chain (bloom, AO, glare, ACES, grade, vignette, FXAA) then writes the screen. */
 const R3={sunK:1,expoK:1,envK:1,on:false,q:'high',perf:0,U:null,pools:{},fol:null,trees:null,far:null,grass:null,terrain:null,skirt:null,flat:null,water:null};
-const R3_QUAL={high:{dpr:2,msaa:4,ao:true,bloom:true,shadow:2048,soft:true,grass:1},fast:{dpr:2,msaa:0,ao:false,bloom:true,shadow:1024,soft:false,grass:.7},low:{dpr:1.75,msaa:0,ao:false,bloom:false,shadow:1024,soft:false,grass:.5},min:{dpr:1.5,msaa:0,ao:false,bloom:false,shadow:1024,soft:false,grass:0}};
-function r3Q(){const base=R3.q==='high'?0:1,l=Math.min(3,base+R3.perf);return R3_QUAL[['high','fast','low','min'][l]];}
+const R3_QUAL={high:{dpr:2,msaa:4,ao:true,bloom:true,shadow:2048,soft:true,grass:1},fast:{dpr:1.75,msaa:0,ao:false,bloom:true,shadow:1024,soft:false,grass:.7},low:{dpr:1.75,msaa:0,ao:false,bloom:false,shadow:1024,soft:false,grass:.5},min:{dpr:1.5,msaa:0,ao:false,bloom:false,shadow:1024,soft:false,grass:0},tiny:{dpr:1.25,msaa:0,ao:false,bloom:false,shadow:1024,soft:false,grass:0}};
+function r3Q(){const base=R3.q==='high'?0:1,l=Math.min(4,base+R3.perf);return R3_QUAL[['high','fast','low','min','tiny'][l]];}
 // our colours are authored in display space and squared into linear light (as the old shaders did)
 const r3sq=v=>v*v;
 function r3CanvasTex(c,{mip=true,repeat=false,srgb=false}={}){const T=THREE,t=new T.CanvasTexture(c);t.flipY=false;t.colorSpace=srgb?T.SRGBColorSpace:T.NoColorSpace;
@@ -4599,6 +4599,7 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   r3PostInit();
   skyC.style.visibility='hidden';GL.slOK=true;
   try{const v=localStorage.getItem('golf-gfx');if(v==='fast')R3.q='fast';}catch(e){}
+  try{const pv=JSON.parse(localStorage.getItem('golf-perf2')||'null');if(pv&&pv.l>0){R3.perf=Math.min(3,pv.l-(Date.now()-(pv.t||0)>2*864e5?1:0));}}catch(e){}   // start where this phone settled last time (eased one step after two days)
   R3.on=true;r3Resize();r3RoundWx();try{r3GolferRestore();}catch(e){}return true;}
 // image-based light from the current sky (rebuilt when the weather changes)
 function r3EnvBuild(){const T=THREE,keep=R3.U.E.value.clone();R3.U.E.value.set(0,0,0);R3.U.cloudOn.value=CLOUDS_COV;const pm=R3.pmrem||(R3.pmrem=new T.PMREMGenerator(R3.renderer));   /* kept for the session: disposing it threw away its shaders, so every new round recompiled them (v81) */
@@ -4618,7 +4619,8 @@ function r3NewWx(){const i=r3RandWx();try{localStorage.setItem('golf-wx',String(
 function r3RoundWx(){let i=null;try{const v=localStorage.getItem('golf-wx');if(v!==null)i=+v;}catch(e){}if(!(i>=0&&i<R3_WX.length)){i=r3RandWx();try{localStorage.setItem('golf-wx',String(i));}catch(e){}}r3ApplyWx(i,false);}
 
 function r3Resize(){if(!R3.renderer)return;const q=r3Q(),pr=Math.min(q.dpr,window.devicePixelRatio||1);R3.renderer.setPixelRatio(pr);R3.renderer.setSize(W,H,false);R3.post.dirty=true;}
-function r3SetQuality(name){R3.q=name;try{localStorage.setItem('golf-gfx',name==='high'?'high':'fast');}catch(e){}
+function r3SetQuality(name,auto){R3.q=name;if(!auto&&R3.renderer){R3.perf=0;try{localStorage.removeItem('golf-perf2');}catch(e){}}   /* choosing a setting by hand starts the automatic step-down afresh (v87) */
+  try{localStorage.setItem('golf-gfx',name==='high'?'high':'fast');}catch(e){}
   document.querySelectorAll('#gfxSeg button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='high')===(name==='high')));r3Resize();}
 function r3SetPerf(level){R3.perf=level;r3Resize();}
 
@@ -4885,7 +4887,7 @@ function r3Reflect(){const q=r3Q(),WU=R3.WU;WU.rfOn.value=0;if(!q.ao||!R3.water|
   // the pond nearest to the view, if it is on screen
   let best=null;for(const w of G.hole.water){const y=(w.lvl!==undefined?w.lvl:-1.1)+.14,c=proj(w.x,y,w.y);const d=Math.min(hyp(w.x-V.E[0],w.y-V.E[2]),polyDist(w,V.E[0],V.E[2],400));if(V.E[1]<y+.5||d>300)continue;
     const on=c&&c[0]>-W&&c[0]<2*W&&c[1]>-H&&c[1]<2*H;const sc=d*(on?1:4);if(!best||sc<best.sc)best={y,sc};}
-  if(!best||best.sc>900)return;R3.rfN=(R3.rfN||0)+1;if(R3.rfHave&&R3.rfY===best.y&&R3.camStill&&R3.rfN%3!==0){WU.rfOn.value=1;return;}R3.rfY=best.y;R3.rfHave=true;
+  if(!best||best.sc>900)return;R3.rfN=(R3.rfN||0)+1;if(R3.rfHave&&R3.rfY===best.y&&(R3.camStill?R3.rfN%3!==0:R3.rfN%2!==0)){WU.rfOn.value=1;return;}R3.rfY=best.y;R3.rfHave=true;
   const l=best.y,T3=THREE,P=R3.post,rd=R3.renderer;
   if(!P.rf||P.rf.width!==P.w>>1){if(P.rf)P.rf.dispose();P.rf=new T3.WebGLRenderTarget(Math.max(1,P.w>>1),Math.max(1,P.h>>1),{type:R3.hf?T3.HalfFloatType:T3.UnsignedByteType,depthBuffer:true,colorSpace:T3.NoColorSpace});}
   const E0=V.E,F0=V.F,R0=V.R;const E1=[E0[0],2*l-E0[1],E0[2]],F1=[F0[0],-F0[1],F0[2]],R1=[R0[0],-R0[1],R0[2]],U1=cross(R1,F1);
@@ -4921,7 +4923,7 @@ function r3Render(){const rd=R3.renderer;if(!G.hole)return;R3.sun.intensity=SUN_
     else if(R3.scOn){R3.scOn=false;GU.slT.value=GL.slTex;GU.SLG.value=1;if(GL.slR)GU.SLB.value.set(...GL.slR);} }
   if(R3.waterN){R3.waterN.offset.set(T*.012,T*.007);}
   if(typeof r3TreeLOD==='function')r3TreeLOD(false);r3GrassUpdate();{const now2=performance.now(),dt2=Math.min(.1,(now2-(R3.tTr||now2))/1000);R3.tTr=now2;r3Tracer(dt2);}r3PostTargets();{const sg=[V.E[0],V.E[1],V.E[2],V.F[0],V.F[1],V.F[2]].map(v=>v.toFixed(3)).join(),still=sg===R3.shSig&&G.state==='aim'&&!(typeof R3R!=='undefined'&&R3R.on)&&!G.fc;
-    R3.shSig=sg;R3.camStill=sg===R3.shSigPrev;R3.shSigPrev=sg;R3.shN=(R3.shN||0)+1;rd.shadowMap.needsUpdate=!still||R3.shN%6===0;}r3Reflect();
+    R3.shSig=sg;R3.camStill=sg===R3.shSigPrev;R3.shSigPrev=sg;R3.shN=(R3.shN||0)+1;rd.shadowMap.needsUpdate=(!still&&(R3.shN%2===0||G.state==='intro'))||R3.shN%6===0;}r3Reflect();
   rd.setRenderTarget(R3.post.rt.scene);rd.setClearColor(0x000000,1);rd.clear(true,true,false);rd.render(R3.scene,R3.cam);
   r3Post();}
 
@@ -5307,8 +5309,10 @@ function update(dt){
 }
 let last=performance.now();
 const PERF={n:0,sum:0,level:0};
-function perfCheck(raw){if(PERF.level>=3||G.state==='intro'||G.state==='card'||raw>.25)return;PERF.n++;PERF.sum+=Math.min(raw,.1);if(PERF.n<120)return;const avg=PERF.sum/PERF.n;PERF.n=0;PERF.sum=0;
-  if(avg>1/28){PERF.slow=(PERF.slow||0)+1;if(PERF.slow>=2){PERF.slow=0;PERF.level++;r3SetPerf(PERF.level);}}else PERF.slow=0;}
+function perfCheck(raw){PERF.level=R3.perf||0;if(PERF.level>=4||G.paused||G.state==='intro'||G.state==='card'||raw>.25)return;(PERF.w=PERF.w||[]).push(raw);if(PERF.w.length<90)return;
+  /* v87: every 90 frames of play, step down a level when the median frame is slower than ~45 fps or more than 1 in 8 frames stutters (>40 ms), two windows running; the level is remembered on this phone */
+  const w=PERF.w.sort((a,b)=>a-b),med=w[w.length>>1],lng=w.filter(v=>v>.04).length/w.length;PERF.w=[];
+  if(med>1/45||lng>.12){PERF.slow=(PERF.slow||0)+1;if(PERF.slow>=2){PERF.slow=0;PERF.level++;r3SetPerf(PERF.level);try{localStorage.setItem('golf-perf2',JSON.stringify({l:PERF.level,t:Date.now()}));}catch(e){}}}else PERF.slow=0;}
 function replayPoint(t){const r=G.lastShot.rec;if(t<=0)return r[0];for(let i=1;i<r.length;i++){if(r[i].t>=t){const a=r[i-1],b=r[i],k=(t-a.t)/((b.t-a.t)||1);return{t,x:a.x+(b.x-a.x)*k,y:a.y+(b.y-a.y)*k,Y:a.Y+(b.Y-a.Y)*k};}}return r[r.length-1];}
 function startReplay(done){const L=G.lastShot;if(!L||!L.rec||L.rec.length<6)return done&&done();G.ff=1;
   $('cardM').hidden=true;G.replay={t:-.55,dur:L.rec[L.rec.length-1].t,done,prev:G.state,prevFollow:G.followT,prevGolfer:G.golferAt};G.state='replay';G.overview=false;G.golferAt=L.golferAt;const c=replayCam();cam.E=[...c.E];cam.L=[...c.L];}
@@ -5572,7 +5576,7 @@ if(window.ResizeObserver)new ResizeObserver(resize).observe(document.querySelect
 /* ---------- boot ---------- */
 function boot(data){
   resize();
-  let ok=false;try{ok=r3Init();if(ok){document.querySelectorAll('#gfxSeg button').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();r3SetQuality(b.dataset.g==='high'?'high':'fast');}));r3SetQuality(R3.q);}}catch(e){console.error(e);ok=false;}
+  let ok=false;try{ok=r3Init();if(ok){document.querySelectorAll('#gfxSeg button').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();r3SetQuality(b.dataset.g==='high'?'high':'fast');}));r3SetQuality(R3.q,true);}}catch(e){console.error(e);ok=false;}
   if(!ok){const d=document.createElement('div');d.className='nogl';d.textContent='This game needs WebGL, which this browser has turned off. Try another browser or device.';$('game').appendChild(d);return;}
   data=data||{};let lc=null;try{lc=localStorage.getItem('golf-course');}catch(e){}if(data.course)lc=data.course;setCourse(lc&&COURSES[lc]?lc:'troy');buildHoleGrid();
   if(Number.isInteger(data.hi)){G.mode=data.mode==='practice'?'practice':'round';if(Array.isArray(data.scores))G.scores=data.scores;startHole(clamp(data.hi,0,TB.length-1));}
