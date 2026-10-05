@@ -517,6 +517,8 @@ td.won{background:rgba(255,201,60,.38)}
         <div class="msub" id="rcSub"></div>
         <div class="scwrap"><table id="rc1"></table></div><div class="scwrap"><table id="rc2"></table></div>
         <div class="legend">○ birdie · ◎ eagle or better · □ bogey · ⧈ double or worse</div>
+        <div class="msub" id="rcHint"></div>
+        <button class="primary disp" id="rcWatch" hidden>▶ Watch round</button>
         <button class="ghost disp" id="rcList">All scores</button>
       </div>
       <button class="textbtn" id="rBack">Back</button>
@@ -1118,6 +1120,7 @@ function cupPad(h,x,y){const q=h.gg;if(!q)return;const R=3,st=q.st,d=q.data,n=q.
   for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const px=q.x0+i*st-x,py=q.y0+j*st-y,r=Math.hypot(px,py);if(r>R)continue;const w=r<=1.6?1:1-smooth(1.6,R,r);d[j*n+i]=d[j*n+i]*(1-w)+(z0+ax*px+ay*py)*w;}}
 // which of the three hole locations is in today: the same for everyone on the daily round and in a match; fixed for a saved round
 function pinIndex(i){let seed;if(G.mode==='highlight'&&G.hlPin!=null)return G.hlPin;
+  if(G.mode==='spectate'&&SPEC.on&&SPEC.pinSeed){seed=SPEC.pinSeed+i*7919;return Math.floor(rng(seed)()*3)%3;}   // a posted Quick play round: its own pins
   if(G.mode==='daily'||G.mode==='spectate'){if(G.dailyDay&&dailyNum(G.dailyDay)<DAILY_N3)return 1;seed=(G.dailySeed|0)*31+i*7919+17;}   // rounds before Oct 4 2026 keep the mapped pin
   else if(MATCH.on&&typeof CAR!=='undefined'&&CAR.match){if(!CAR.match.pseed){CAR.match.pseed=1+Math.floor(Math.random()*1e9);try{saveCareer();}catch(e){}}seed=CAR.match.pseed+i*7919;}
   else if(G.mode==='round'){if(!G.pinSeed)G.pinSeed=1+Math.floor(Math.random()*1e9);seed=G.pinSeed+i*7919;}
@@ -2149,7 +2152,7 @@ function scoreName(strokes,par){const d=strokes-par;if(strokes===1)return'HOLE I
 /* ---------- save file (this device) ---------- */
 let SAVE_KEY=CUR.saveKey;
 function saveGame(o={}){if(G.mode==='daily'){dailySave(o);return;}if(G.mode!=='round')return;
-  const d={v:1,pin:G.pinSeed||0,ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,pend:o.pend||null,ts:Date.now()};
+  const d={v:1,pin:G.pinSeed||0,shots:G.rShots||[],ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,pend:o.pend||null,ts:Date.now()};
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(d));}catch(e){}}
 function loadSave(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d&&d.v===1&&Number.isInteger(d.hi)&&d.hi>=0&&d.hi<TB.length)return d;}catch(e){}return null;}
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
@@ -2382,14 +2385,18 @@ function stepRoll(dt){
 }
 function endRec(holedIt){if(!G.recOn)return;G.recOn=false;G.rec.push({t:G.recT+.02,x:G.ball.x,y:G.ball.y,Y:hAt(G.ball.x,G.ball.y)});G.recHoled=!!holedIt;
   G.lastShot={rec:G.rec,golferAt:G.golferAt,launchAt:G.launchAt,holed:!!holedIt,putt:G.swingType==='putt',flame:G.flame,club:G.swingClub,type:G.swingType,back:G.swingBack,strokes:G.strokes};G.canReplay=G.rec.length>6;
-  if(G.mode==='daily')try{dailyRecShot();}catch(e){}}
+  if(G.mode==='daily')try{dailyRecShot();}catch(e){}
+  else if(G.mode==='round')try{roundRecShot();}catch(e){}}
 /* daily replays: each shot is kept as its swing (club, type, backswing, aim, where the golfer stood) and the ball's path,
    resampled to 10 per second and stored as whole-number deltas (time in 1/100 s, positions in 1/10 yd) */
-function dailyRecShot(){const d=dailyLoad();if(!d||d.day!==G.dailyDay||d.done)return;const R=G.rec;if(!R||R.length<2)return;
+function shotPack(){const R=G.rec;if(!R||R.length<2)return null;
   const p=[];let lt=-1,o=[0,0,0,0];
   for(let i=0;i<R.length;i++){const r=R[i];if(i>0&&i<R.length-1&&r.t-lt<.1)continue;lt=r.t;const q=[Math.round(r.t*100),Math.round(r.x*10),Math.round(r.y*10),Math.round(r.Y*10)];p.push(q[0]-o[0],q[1]-o[1],q[2]-o[2],q[3]-o[3]);o=q;}
   const ga=G.golferAt||{x:R[0].x,y:R[0].y,aim:G.shotRot};
-  (d.shots=d.shots||[]).push({h:G.hi,c:G.swingClub,k:G.swingType,b:+(G.swingBack||1).toFixed(2),l:+(G.launchAt||0).toFixed(3),a:+ga.aim.toFixed(4),gx:+ga.x.toFixed(1),gy:+ga.y.toFixed(1),o:G.recHoled?1:0,f:G.flame==='red'?2:G.flame?1:0,p});dailyStore(d);}
+  return {h:G.hi,c:G.swingClub,k:G.swingType,b:+(G.swingBack||1).toFixed(2),l:+(G.launchAt||0).toFixed(3),a:+ga.aim.toFixed(4),gx:+ga.x.toFixed(1),gy:+ga.y.toFixed(1),o:G.recHoled?1:0,f:G.flame==='red'?2:G.flame?1:0,p};}
+function dailyRecShot(){const d=dailyLoad();if(!d||d.day!==G.dailyDay||d.done)return;const s=shotPack();if(!s)return;(d.shots=d.shots||[]).push(s);dailyStore(d);}
+// Quick play keeps its shots too (saved with the round), so a round posted to the course records can be watched (v86)
+function roundRecShot(){const s=shotPack();if(!s)return;(G.rShots=G.rShots||[]).push(s);}
 function dailyDecShot(s){const rec=[];let o=[0,0,0,0];const p=s.p||[];for(let i=0;i+3<p.length;i+=4){o=[o[0]+p[i],o[1]+p[i+1],o[2]+p[i+2],o[3]+p[i+3]];
     const x=o[1]/10,y=o[2]/10,g=hAt(x,y);let Y=o[3]/10;if(Math.abs(Y-g)<.11)Y=g;rec.push({t:o[0]/100,x,y,Y,gr:Y===g});}return recDensify(rec);}
 /* Saved shots keep 10 points a second, and straight lines between them made replays choppy: corners in the flight,
@@ -2639,22 +2646,23 @@ async function openDailyBoard(fromRound,day,tab){G.paused=true;$('dCardV').hidde
   const el=list.querySelector('.me');if(el)el.scrollIntoView({block:'center'});}
 /* ---------- course records (v85): any finished 18-hole Quick play round can be posted to that course's all-time board.
    Every posted round is kept; the board shows each golfer once, with their best round (fewest strokes, earliest first). ---------- */
-const RECS={cid:null,rows:null,pend:null,tok:0};
+const RECS={cid:null,rows:null,pend:null,tok:0,ctok:0,card:null};
 function recOrder(){return Object.keys(COURSES).sort((a,b)=>stateOf(a).localeCompare(stateOf(b))||COURSES[a].name.localeCompare(COURSES[b].name));}
 function recCanPost(){return G.mode==='round'&&TB.length===18&&G.scores.length>=18&&G.scores.slice(0,18).every(v=>v>0);}
-function recOffer(tot,d){RECS.pend={cid:CUR.id,strokes:tot,to_par:d,holes:G.scores.slice(0,18),done:false};
+function recOffer(tot,d){RECS.pend={cid:CUR.id,strokes:tot,to_par:d,holes:G.scores.slice(0,18),done:false,shots:(G.rShots&&G.rShots.length)?{v:1,ch:CHAR_ID,pin:G.pinSeed||0,wx:(typeof R3!=='undefined'&&R3.wx!=null)?R3.wx:null,s:G.rShots}:null};
   $('cardPostV').hidden=false;const nm=dailyName();$('cardName').hidden=!!nm;if(!nm)$('cardName').value='';
   const b=$('cardPost');b.disabled=false;b.textContent='Post to '+CUR.name+' records';}
 async function recPost(){const P=RECS.pend;if(!P)return;if(P.done){openRecords(P.cid);return;}
   let nm=dailyName();if(!nm){nm=$('cardName').value.replace(/\s+/g,' ').trim().slice(0,16);if(!nm){$('cardName').focus();return;}try{localStorage.setItem('golf-name',nm);}catch(e){}}
   const b=$('cardPost'),note=$('cNote');b.disabled=true;b.textContent='Posting…';
-  let ok=false,st=0;try{const r=await fetch(DAILY.url+'/rest/v1/course_scores',{method:'POST',headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),
-      body:JSON.stringify({course:P.cid,player_id:dailyPid(),name:nm,strokes:P.strokes,to_par:P.to_par,holes:P.holes})});ok=r.ok;st=r.status;}catch(e){}
+  let ok=false,st=0;const body={course:P.cid,player_id:dailyPid(),name:nm,strokes:P.strokes,to_par:P.to_par,holes:P.holes};if(P.shots)body.shots=P.shots;
+  const send=()=>fetch(DAILY.url+'/rest/v1/course_scores',{method:'POST',headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(body)});
+  try{let r=await send();if(!r.ok&&r.status!==404&&body.shots){delete body.shots;r=await send();}ok=r.ok;st=r.status;}catch(e){}   // no shots column yet: post the score alone
   b.disabled=false;
   if(ok){P.done=true;$('cardName').hidden=true;b.textContent='See '+COURSES[P.cid].name+' records';note.hidden=false;note.textContent='Posted to the course records as '+nm+'.';sfx.tick&&sfx.tick();}
   else{b.textContent='Post to '+COURSES[P.cid].name+' records';note.hidden=false;note.textContent=st===404?'Course records aren’t switched on yet.':'Couldn’t post your score. Check your connection and try again.';}}
 async function recFetch(cid){if(!DAILY.url)return{err:0};
-  try{const r=await fetch(DAILY.url+'/rest/v1/course_scores?select=name,player_id,strokes,to_par,holes,created_at&course=eq.'+encodeURIComponent(cid)+'&order=strokes.asc,created_at.asc&limit=2000',{headers:dailyHdr()});
+  try{const r=await fetch(DAILY.url+'/rest/v1/course_scores?select=id,name,player_id,strokes,to_par,holes,created_at&course=eq.'+encodeURIComponent(cid)+'&order=strokes.asc,created_at.asc&limit=2000',{headers:dailyHdr()});
     if(!r.ok)return{err:r.status};const all=await r.json(),seen=new Set(),best=[];for(const x of all){if(seen.has(x.player_id))continue;seen.add(x.player_id);best.push(x);}return{rows:best,n:all.length};}catch(e){return{err:-1};}}
 async function openRecords(cid){G.paused=true;for(const m of['menuM','cardM','introM','dailyM'])$(m).hidden=true;$('recM').hidden=false;$('rBoard').hidden=false;$('rCardV').hidden=true;
   cid=COURSES[cid]?cid:CUR.id;RECS.cid=cid;const C=COURSES[cid],tok=++RECS.tok,par=C.tb.reduce((a,h)=>a+h.par,0);
@@ -2671,7 +2679,14 @@ async function openRecords(cid){G.paused=true;for(const m of['menuM','cardM','in
 function recCard(i){const r=RECS.rows&&RECS.rows[i];if(!r)return;const C=COURSES[RECS.cid],sc=Array.isArray(r.holes)?r.holes.map(v=>+v||0):[],nm=(r.name||'').split(' ')[0].slice(0,9);
   $('rBoard').hidden=true;$('rCardV').hidden=false;$('rTitle').textContent=r.name;
   $('rcSub').textContent=C.name+' \u00b7 '+r.strokes+' strokes \u00b7 '+fmtDiff(r.to_par)+(r.created_at?' \u00b7 '+new Date(r.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'');
-  $('rc1').innerHTML=dcTable(C,sc,0,'Out',false,nm,null);$('rc2').innerHTML=dcTable(C,sc,9,'In',true,nm,null);}
+  const draw=live=>{$('rc1').innerHTML=dcTable(C,sc,0,'Out',false,nm,live);$('rc2').innerHTML=dcTable(C,sc,9,'In',true,nm,live);};draw(null);
+  RECS.card={r,sc,shots:null};$('rcWatch').hidden=true;$('rcHint').textContent=r.id!=null?'Loading replay…':'';if(r.id==null)return;const tok=++RECS.ctok;
+  recShots(r.id).then(S=>{if(tok!==RECS.ctok||$('rCardV').hidden)return;
+    if(S&&Array.isArray(S.s)&&S.s.length){RECS.card.shots=S;draw(new Set(S.s.map(x=>x.h)));$('rcHint').textContent='Tap a hole number to watch it';$('rcWatch').hidden=false;}
+    else $('rcHint').textContent='No replay for this round.';});}
+async function recShots(id){try{const r=await fetch(DAILY.url+'/rest/v1/course_scores?select=shots&id=eq.'+encodeURIComponent(id)+'&limit=1',{headers:dailyHdr()});if(!r.ok)return null;const j=await r.json();return j&&j[0]&&j[0].shots||null;}catch(e){return null;}}
+// watch a posted round: the same spectating as the daily round, with this round's pins and weather
+function recWatch(hi){const c=RECS.card;if(!c||!c.shots)return;Object.assign(DCARD,{shots:c.shots,r:c.r,sc:c.sc,cid:RECS.cid,day:dailyDay(),src:'rec'});specStart(hi);}
 function recStep(k){const L=recOrder(),i=L.indexOf(RECS.cid);A();openRecords(L[(i+k+L.length)%L.length]);}
 /* ---------- a golfer's daily card, and watching their round ---------- */
 const DCARD={};
@@ -2700,10 +2715,11 @@ function specFFShow(){const b=$('specFF');if(!b)return;b.textContent='\u23e9 '+S
 function specFFCycle(){SPEC.ff=SPEC.ff===1?2:SPEC.ff===2?4:1;try{localStorage.setItem('golf-specff',String(SPEC.ff));}catch(e){}specFFShow();}
 var REC={on:false,blob:null};   // replay video recorder (see recStart)
 function specStart(hi){const S=DCARD.shots;if(!S)return;const holes=[...new Set(S.s.map(x=>x.h))].sort((a,b)=>a-b);if(!holes.length)return;A();
-  endMatchMode();Object.assign(SPEC,{on:true,S,holes,name:DCARD.r.name,sc:DCARD.sc,back:{day:DCARD.day,pid:DCARD.r.player_id}});
-  G.mode='spectate';G.dailyDay=DCARD.day;G.dailySeed=dailyNum(DCARD.day)*7919;
-  $('dailyM').hidden=true;$('menuM').hidden=true;G.paused=false;$('game').classList.add('spec');$('specBar').hidden=false;resize();
-  setCourse(DCARD.cid,false);dailyWeather(DCARD.day);
+  const rec=DCARD.src==='rec';
+  endMatchMode();Object.assign(SPEC,{on:true,S,holes,name:DCARD.r.name,sc:DCARD.sc,pinSeed:rec?(S.pin||0):0,back:{day:DCARD.day,pid:DCARD.r.player_id,rec:rec?DCARD.cid:null}});
+  G.mode='spectate';G.dailyDay=DCARD.day;G.dailySeed=rec?((S.pin||1)%1000003):dailyNum(DCARD.day)*7919;
+  $('dailyM').hidden=true;$('recM').hidden=true;$('menuM').hidden=true;G.paused=false;$('game').classList.add('spec');$('specBar').hidden=false;resize();
+  setCourse(DCARD.cid,false);if(rec&&S.wx!=null&&typeof R3!=='undefined'&&R3.on&&typeof r3ApplyWx==='function')r3ApplyWx(S.wx,true);else dailyWeather(DCARD.day);
   if(S.ch&&S.ch!==CHAR_ID&&typeof r3GolferSet==='function')try{r3GolferSet(S.ch);}catch(e){}
   const h0=holes.includes(hi)?hi:(holes.find(h=>h>=hi)??holes[0]);specHole(h0);}
 function specHole(hi){if(!SPEC.on)return;SPEC.hi=hi;SPEC.list=SPEC.S.s.filter(x=>x.h===hi);SPEC.k=0;
@@ -2723,6 +2739,8 @@ function specEnd(back=true){if(!SPEC.on)return;SPEC.on=false;G.waitFn=null;if(G.
   $('game').classList.remove('spec');$('specBar').hidden=true;resize();
   if(SPEC.S&&SPEC.S.ch&&SPEC.S.ch!==CHAR_ID&&typeof r3GolferSet==='function')try{r3GolferSet(CHAR_ID);}catch(e){}
   G.state='intro';G.paused=true;
+  DCARD.src=null;
+  if(back&&SPEC.back.rec){const b=SPEC.back;openRecords(b.rec).then(()=>{const i=(RECS.rows||[]).findIndex(r=>r.player_id===b.pid);if(i>=0)recCard(i);});return;}
   if(back){const b=SPEC.back;openDailyBoard(false,b.day,'day').then(()=>{const i=(DAILY.rows||[]).findIndex(r=>r.player_id===b.pid);if(i>=0)openDailyCard(i);});}}
 // every round ever posted, folded into one table: wins, rounds played, average to par and best round
 async function dailyAllTime(){const list=$('dList');let rows=null;
@@ -2767,8 +2785,8 @@ function openMenu(fromGame){G.paused=true;$('menuM').hidden=false;try{menuHero()
   setTimeout(()=>(showM?$('mMatchCont'):$('mContinue').hidden?$('mNew'):$('mContinue')).focus({preventScroll:true}),50);}
 function closeMenu(){$('menuM').hidden=true;G.paused=false;}
 let newArmed=false;
-function newRound(){endMatchMode();if(R3.on)r3NewWx();dailyLeave();G.mode='round';G.pinSeed=0;G.scores=[];G.psLeft=3;clearSave();closeMenu();startHole(0);}
-function continueRound(){endMatchMode();dailyLeave();const sv=loadSave();if(!sv){newRound();return;}G.pinSeed=sv.pin||0;G.psLeft=Number.isInteger(sv.ps)?sv.ps:3;
+function newRound(){endMatchMode();if(R3.on)r3NewWx();dailyLeave();G.mode='round';G.pinSeed=0;G.rShots=[];G.scores=[];G.psLeft=3;clearSave();closeMenu();startHole(0);}
+function continueRound(){endMatchMode();dailyLeave();const sv=loadSave();if(!sv){newRound();return;}G.pinSeed=sv.pin||0;G.rShots=Array.isArray(sv.shots)?sv.shots:[];G.psLeft=Number.isInteger(sv.ps)?sv.ps:3;
   G.mode='round';G.scores=Array.isArray(sv.scores)?sv.scores:[];closeMenu();startHole(sv.hi);
   if(((sv.mid&&sv.strokes>0)||sv.pend)&&sv.ball){$('introM').hidden=true;G.strokes=sv.strokes;G.ball={x:sv.ball.x,y:sv.ball.y};G.prev=sv.prev?{x:sv.prev.x,y:sv.prev.y}:{...G.ball};if(sv.wind)G.wind=sv.wind;
     prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];if(!pendResume(sv.pend))toast('WELCOME BACK','Hole '+(sv.hi+1)+' \u00b7 stroke '+(sv.strokes+1),'#8ee6a8');}}
@@ -5493,8 +5511,10 @@ $('dNameGo').addEventListener('click',dailyNameGo);$('dNameIn').addEventListener
 $('dPlay').addEventListener('click',()=>{A();dailyPlay();});
 $('dList').addEventListener('click',e=>{const li=e.target.closest('li[data-i]');if(li){A();openDailyCard(+li.dataset.i);}});
 $('dList').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const li=e.target.closest('li[data-i]');if(li){A();openDailyCard(+li.dataset.i);}});
-for(const id of['dc1','dc2'])$(id).addEventListener('click',e=>{const th=e.target.closest('th[data-h]');if(th)specStart(+th.dataset.h);});
-$('dcWatch').addEventListener('click',()=>specStart(0));
+for(const id of['dc1','dc2'])$(id).addEventListener('click',e=>{const th=e.target.closest('th[data-h]');if(th){DCARD.src=null;specStart(+th.dataset.h);}});
+for(const id of['rc1','rc2'])$(id).addEventListener('click',e=>{const th=e.target.closest('th[data-h]');if(th){A();recWatch(+th.dataset.h);}});
+$('rcWatch').addEventListener('click',()=>{A();recWatch(0);});
+$('dcWatch').addEventListener('click',()=>{DCARD.src=null;specStart(0);});
 $('dcList').addEventListener('click',()=>{A();closeDailyCard();});
 $('specNext').addEventListener('click',e=>{e.stopPropagation();specNext();});
 $('specFF').addEventListener('click',e=>{e.stopPropagation();A();specFFCycle();});specFFShow();
