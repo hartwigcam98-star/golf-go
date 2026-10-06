@@ -142,10 +142,10 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .hint{font-size:12px;text-align:center;opacity:.7;letter-spacing:.04em;min-height:1.2em}
 
 /* modals */
-.modal{position:absolute;inset:0;display:grid;place-items:center;padding:16px;background:rgba(6,18,28,.42);overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.modal{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:16px;background:rgba(6,18,28,.42);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 /* menu screens sit on a solid backdrop so the game never shows through (in-round cards keep the course visible behind them) */
 #menuM,#dailyM,#recM,#careerM,#hlM,#charM{background:radial-gradient(120% 80% at 50% 0%,#1d3a52 0%,#0f2233 55%,#0a1824 100%);padding-top:calc(env(safe-area-inset-top,0px) + 16px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 16px)}
-.card{background:var(--paper);color:var(--paperInk);border-radius:22px;width:100%;max-width:420px;padding:22px 20px 20px;box-shadow:0 8px 0 rgba(0,0,0,.28);animation:rise .35s cubic-bezier(.2,.9,.3,1.2)}
+.card{box-sizing:border-box;background:var(--paper);color:var(--paperInk);border-radius:22px;width:100%;max-width:420px;padding:22px 20px 20px;box-shadow:0 8px 0 rgba(0,0,0,.28);animation:rise .35s cubic-bezier(.2,.9,.3,1.2)}
 @keyframes rise{from{transform:translateY(24px) scale(.96);opacity:0}}
 .eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:#c0542f}
 .card h1{margin:4px 0 6px;font-size:44px;line-height:1;text-wrap:balance}
@@ -1966,8 +1966,11 @@ function simRollP(x,y,dx,dy,v,path){let vx=dx*v,vy=dy*v;const h=1/240,pts=path?[
     if(pts&&hyp(x-lx,y-ly)>.5){pts.push([x,y]);lx=x;ly=y;}}
   if(pts)pts.push([x,y]);return{x,y,pts};}
 // where a short shot of this carry lands (flying over the real ground) and where it finishes
-function shortFinish(carry,aim,path){const c=curClub(),[dx,dy]=dirOf(aim),b=G.ball,M=shotMods();
-  const f={sx:b.x,sy:b.y,y0:hAt(b.x,b.y)+.03,dx,dy,px:-dy,py:dx,carry,lat:0,wx:0,wy:0,apex:shotApex(c,carry)*M.apex,club:c,stype:G.stype,rollMul:M.roll,back:M.back*cmod().spin};
+/* v92: the wind's push per yard of carry, exactly as the shot itself applies it (so the meter's pin marker and the landing ring allow for it) */
+function windK(){const c=curClub();if(c.putter)return 0;return G.wind.mph*.85/200*c.loft*SHOTS[G.stype].w*shotMods().wind*cmod().wind;}
+function windAlong(aim){const w=dirOf(G.wind.a),d=dirOf(aim);return windK()*(w[0]*d[0]+w[1]*d[1]);}   // >0 helping, <0 into the wind
+function shortFinish(carry,aim,path){const c=curClub(),[dx,dy]=dirOf(aim),b=G.ball,M=shotMods(),wv=dirOf(G.wind.a),wk=carry*windK();
+  const f={sx:b.x,sy:b.y,y0:hAt(b.x,b.y)+.03,dx,dy,px:-dy,py:dx,carry,lat:0,wx:wv[0]*wk,wy:wv[1]*wk,apex:shotApex(c,carry)*M.apex,club:c,stype:G.stype,rollMul:M.roll,back:M.back*cmod().spin};
   let lx=b.x+dx*carry,ly=b.y+dy*carry,u=.5;for(;u<2.4;u+=.01){const q=flightPos(f,u);lx=q[0];ly=q[1];if(q[2]<=hAt(q[0],q[1])+.03)break;}
   const L=lieAt(lx,ly);if(L==='water'||L==='ob')return{x:lx,y:ly,lx,ly,L,bad:true,pts:path?[[lx,ly]]:null};
   // the same landing, hops and roll the shot itself will use (see land / stepHop / startRoll)
@@ -1985,7 +1988,7 @@ function shortFinish(carry,aim,path){const c=curClub(),[dx,dy]=dirOf(aim),b=G.ba
   let rx,ry;if(rollV<0){rx=-tx;ry=-ty;}else{const l=hyp(hv.vx,hv.vz);if(l>.3){rx=hv.vx/l;ry=hv.vz/l;}else{rx=tx;ry=ty;}}
   const r=simRollP(x,y,rx,ry,Math.abs(rollV),path);if(pts&&r.pts)r.pts=pts.concat(r.pts);return{...r,lx,ly,L};}
 // the carry that finishes level with the cup along the aim line
-function shortPlan(){const b=G.ball,key=[G.clubIdx,G.stype,G.aim.toFixed(4),b.x.toFixed(2),b.y.toFixed(2),G.lie,G.swMax|0,G.imp.x,G.imp.y,G.traj].join('|');
+function shortPlan(){const b=G.ball,key=[G.clubIdx,G.stype,G.aim.toFixed(4),b.x.toFixed(2),b.y.toFixed(2),G.lie,G.swMax|0,G.imp.x,G.imp.y,G.traj,G.wind.a.toFixed(3),G.wind.mph].join('|');
   if(G.shortP&&G.shortP.key===key)return G.shortP;
   const p=G.hole.pin,[dx,dy]=dirOf(G.aim),want=(p[0]-b.x)*dx+(p[1]-b.y)*dy,mx=natMax()*shotMods().carry,along=q=>(q.x-b.x)*dx+(q.y-b.y)*dy;
   let lo=.5,hi=mx,over=false;if(along(shortFinish(hi,G.aim))<want){lo=hi;over=true;}
@@ -1997,7 +2000,8 @@ function shortPlan(){const b=G.ball,key=[G.clubIdx,G.stype,G.aim.toFixed(4),b.x.
    distance and no flag, judged like a full shot. There's no preview of the run-out: you read the roll yourself. */
 // every short-game shot (flop and bunker shots too) gets a meter sized to the pin, with the flag on it
 function setShortMax(){if(!isShort()){G.swMax=0;G.shortP=null;return;}G.swMax=0;G.shortP=null;const mx=natMax();
-  G.swMax=clamp(pinDist()*1.15/shotMods().carry+1.5,Math.min(6,mx),mx);G.shortP=null;}
+  const p=G.hole.pin,ka=windAlong(angTo(G.ball.x,G.ball.y,p[0],p[1]));
+  G.swMax=clamp(pinDist()*1.15/(shotMods().carry*Math.max(.6,1+Math.min(0,ka)))+1.5,Math.min(6,mx),mx);G.shortP=null;}
 // pick the short-game shot: chip when it can land on the green and run, pitch when it has to carry more, the club that finishes closest
 function chooseShort(){const d=pinDist(),L=G.lie;if(bunkerSide()){G.stype='splash';G.clubIdx=CI('SW');G.shortP=null;setShortMax();return true;}if(L==='sand'||L==='green'||d>70)return false;
   const p=G.hole.pin,cands=[];if(d<=40)for(const id of['7I','8I','9I','PW','GW','SW','LW'])cands.push(['chip',id]);for(const id of['PW','GW','SW','LW'])cands.push(['pitch',id]);
@@ -5423,7 +5427,7 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   const tm=$('mTap');tm.hidden=G.tapMark==null||st==='power'||st==='acc';if(!tm.hidden){tm.style.left=(G.tapMark*100)+'%';tm.classList.toggle('good',Math.abs(G.tapMark-IMPACT)<=perfectWin());}
   const fl=$('mFlag'),shortF=!c.putter&&isShort()&&G.swMax>0,showF=(c.putter||shortF)&&(st==='aim'||st==='power'||st==='acc')&&!G.overview&&!G.aiTurn;fl.hidden=!showF;
   if(showF){if(st==='aim'||G.flagP===undefined)G.flagP=shortF?(()=>{const P=shortPlan();return P.carry/(G.swMax*shotMods().carry);})():puttTargetPower();const tp=G.flagP;
-    if(tp===null)fl.hidden=true;else{const over=tp>1;fl.classList.toggle('over',over);fl.style.left=((IMPACT+p2m(Math.min(1,tp))*(1-IMPACT))*100)+'%';setT('mFlagTxt',over?'Beyond max':shortF?Math.round(pinDist())+' y':Math.round(pinDist()*3)+' ft');fl.classList.toggle('flip',tp>.8);}}
+    if(tp===null)fl.hidden=true;else{const over=tp>1;fl.classList.toggle('over',over);fl.style.left=((IMPACT+p2m(Math.min(1,tp))*(1-IMPACT))*100)+'%';setT('mFlagTxt',over?'Beyond max':shortF?(()=>{const d=pinDist(),pl=Math.round(d/Math.max(.5,1+windAlong(G.aim)));return Math.round(d)+' y'+(Math.abs(pl-d)>=2?' \u00b7 plays '+pl:'');})():Math.round(pinDist()*3)+' ft');fl.classList.toggle('flip',tp>.8);}}
 }
 
 /* ---------- loop ---------- */
