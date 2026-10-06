@@ -1921,6 +1921,8 @@ function setCourse(id,persist=true){const C=COURSES[id]||COURSES.troy;if(C===CUR
   buildHoleGrid();}
 function later(t,fn){G.waitT=t;G.waitFn=fn;}
 function curClub(){return CLUBS[G.clubIdx];}
+// v95: a computer with a mouse and keyboard: the hints name the keys
+const DESK=(()=>{try{return matchMedia('(hover:hover) and (pointer:fine)').matches;}catch(e){return false;}})();
 function lieMul(c,lie){const k=c.kind;if(c.id==='1W'&&lie!=='tee'&&!onTeeBox())return lie==='fairway'?.96:.75;if(lie==='sand'&&BUNKER_T[G.stype])return 1;
   if(lie==='sand')return SAND_C[c.id]??.6;
   if(lie==='fescue')return FES_C[c.id]??.6;
@@ -4688,7 +4690,9 @@ function r3ApplyWx(i,announce){const w=R3_WX[i]||R3_WX[0];R3.wx=i;R3.sunK=w.sun;
 function r3NewWx(){const i=r3RandWx();try{localStorage.setItem('golf-wx',String(i));}catch(e){}r3ApplyWx(i,true);}
 function r3RoundWx(){let i=null;try{const v=localStorage.getItem('golf-wx');if(v!==null)i=+v;}catch(e){}if(!(i>=0&&i<R3_WX.length)){i=r3RandWx();try{localStorage.setItem('golf-wx',String(i));}catch(e){}}r3ApplyWx(i,false);}
 
-function r3Resize(){if(!R3.renderer)return;const q=r3Q(),pr=Math.min(q.dpr,window.devicePixelRatio||1);R3.renderer.setPixelRatio(pr);R3.renderer.setSize(W,H,false);R3.post.dirty=true;}
+/* v95: a pixel budget per quality level (High about 3.2 million pixels, a phone uses about 1.3), so a big desktop or Retina laptop
+   window starts at a sensible resolution instead of drawing four times a phone's pixels and waiting for the step-down */
+function r3Resize(){if(!R3.renderer)return;const q=r3Q(),budget=3.2e6*(q.dpr/2)*(q.dpr/2),pr=Math.max(.85,Math.min(q.dpr,window.devicePixelRatio||1,Math.sqrt(budget/Math.max(1,W*H))));R3.renderer.setPixelRatio(pr);R3.renderer.setSize(W,H,false);R3.post.dirty=true;}
 function r3SetQuality(name,auto){R3.q=name;if(!auto&&R3.renderer){R3.perf=0;try{localStorage.removeItem('golf-perf2');}catch(e){}}   /* choosing a setting by hand starts the automatic step-down afresh (v87) */
   try{localStorage.setItem('golf-gfx',name==='high'?'high':'fast');}catch(e){}
   document.querySelectorAll('#gfxSeg button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='high')===(name==='high')));r3Resize();}
@@ -5416,7 +5420,7 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   if(G.aiTurn){sw.disabled=G.aiSkip||!(st==='aim'||st==='power'||st==='acc'||ffActive());setT('swing',G.aiSkip?'SKIPPING\u2026':'SKIP \u25b8\u25b8');sw.classList.remove('power','acc');}
   else{sw.disabled=!(st==='aim'||st==='power'||st==='acc');setT('swing',st==='power'?'POWER':st==='acc'?'IMPACT!':G.fc?'\u21a9 BACK':'SWING');
   sw.classList.toggle('power',st==='power');sw.classList.toggle('acc',st==='acc');}
-  setT('hint',G.aiTurn?rn(MATCH.r)+(G.aiSkip?' \u00b7 skipping ahead':' is playing \u00b7 tap Skip to jump ahead'):st==='aim'?(G.fc?(G.fc.follow?'Scouting your shot \u00b7 change club or aim \u00b7 drag to turn \u00b7 pinch to zoom':'Free look \u00b7 tap Landing to follow your shot again'):G.overview?'Tap anywhere to return to your ball':c.putter?(GL.slOK?'Grid lines: red is steep, green is gentle \u00b7 the glow runs downhill':'Watch the dots on the green — they flow downhill'):(G.stype==='full'||G.stype==='spin'?'Drag to aim · Tap Swing to start':SHOTS[G.stype].hint)):st==='power'?'Tap to set power':st==='acc'?'Tap on the white line':' ');
+  setT('hint',G.aiTurn?rn(MATCH.r)+(G.aiSkip?' \u00b7 skipping ahead':' is playing \u00b7 tap Skip to jump ahead'):st==='aim'?(G.fc?(G.fc.follow?'Scouting your shot \u00b7 change club or aim \u00b7 drag to turn \u00b7 pinch to zoom':'Free look \u00b7 tap Landing to follow your shot again'):G.overview?(DESK?'Click or press M to return to your ball':'Tap anywhere to return to your ball'):c.putter?(GL.slOK?'Grid lines: red is steep, green is gentle \u00b7 the glow runs downhill':'Watch the dots on the green — they flow downhill'):(G.stype==='full'||G.stype==='spin'?(DESK?'Space to swing \u00b7 \u2190 \u2192 aim \u00b7 \u2191 \u2193 club \u00b7 B bag \u00b7 M map':'Drag to aim · Tap Swing to start'):SHOTS[G.stype].hint)):st==='power'?(DESK?'Space to set power':'Tap to set power'):st==='acc'?(DESK?'Space on the white line':'Tap on the white line'):' ');
   const m=G.meter,w=perfectWin();
   $('mCursor').style.left=(m.pos*100)+'%';
   // meter scale in distance: carry yards for full and short shots, feet of roll for putts on the green (percent for putts off it)
