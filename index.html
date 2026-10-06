@@ -260,6 +260,18 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
 .dnav{display:flex;align-items:center;justify-content:space-between;margin:0 0 4px}
 .dnav span{font-weight:700;color:#12283b;font-size:15px;text-align:center;flex:1;padding:0 6px}
 #cardPostV{margin:4px 0 6px}#cardName{width:100%;box-sizing:border-box;height:44px;border-radius:12px;border:2px solid rgba(18,40,59,.2);padding:0 12px;font-size:17px;margin:0 0 8px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:4px 0 2px}
+.cal .wd{font-size:11px;font-weight:700;color:#51606b;text-align:center;padding:2px 0}
+.cal button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 2px 4px;border-radius:10px;background:rgba(18,40,59,.06);color:#12283b;font-size:11px;min-height:54px}
+.cal button .n{align-self:flex-start;font-weight:700;padding-left:3px;line-height:1.1}
+.cal button img{width:84%;max-width:44px;border-radius:3px;box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.cal button .sc{font-weight:800;font-size:11px;color:#2f7d4f;line-height:1}
+.cal button.today{box-shadow:inset 0 0 0 2px #12283b}
+.cal button.sel{background:#ffe7a3}
+.cal button.fut img{opacity:.6}.cal button:disabled{visibility:hidden}
+.calday{display:flex;gap:12px;align-items:center;text-align:left;margin:10px 0 6px;min-height:58px}
+.calday img{width:104px;height:58px;object-fit:cover;border-radius:10px;flex:none;background:rgba(18,40,59,.08)}
+.calday .cdn{font-size:20px;color:#12283b;line-height:1.1}.calday .msub{margin:2px 0 0}
 .dnav button{width:44px;height:36px;border-radius:10px;font-size:26px;line-height:1;color:#12283b;background:rgba(18,40,59,.08)}
 .dnav button:disabled{opacity:.25}
 .dnav span{font-weight:700;font-size:16px;text-align:center;flex:1}
@@ -485,7 +497,13 @@ td.won{background:rgba(255,201,60,.38)}
         <button class="primary disp" id="dNameGo">Tee off</button>
       </div>
       <div id="dBoard" hidden>
-        <div class="dtabs" role="group" aria-label="Leaderboard view"><button id="dTabDay" class="on">By day</button><button id="dTabAll">All-time</button></div>
+        <div class="dtabs" role="group" aria-label="Leaderboard view"><button id="dTabCal">Calendar</button><button id="dTabDay" class="on">By day</button><button id="dTabAll">All-time</button></div>
+        <div id="dCal" hidden>
+          <div class="dnav"><button id="cPrev" aria-label="Previous month">‹</button><span id="cMonth"></span><button id="cNext" aria-label="Next month">›</button></div>
+          <div class="cal" id="cGrid" role="grid" aria-label="Daily round calendar"></div>
+          <div class="calday" id="cDay"><img id="cDayImg" alt=""><div><div class="eyebrow" id="cDayWhen"></div><div class="disp cdn" id="cDayName"></div><div class="msub" id="cDayInfo"></div></div></div>
+          <button class="ghost disp" id="cDayBoard" hidden>Leaderboard</button>
+        </div>
         <div class="dnav" id="dNav"><button id="dPrev" aria-label="Previous day">‹</button><span id="dDate"></span><button id="dNext" aria-label="Next day">›</button></div>
         <div class="msub" id="dStatus"></div>
         <ol class="lb" id="dList"></ol>
@@ -2629,7 +2647,9 @@ const DAILY_START='2026-10-01';
 function dayShift(day,k){const[y,m,d]=day.split('-').map(Number);return new Date(Date.UTC(y,m-1,d)+k*864e5).toISOString().slice(0,10);}
 async function openDailyBoard(fromRound,day,tab){G.paused=true;$('dCardV').hidden=true;$('menuM').hidden=true;$('introM').hidden=true;$('cardM').hidden=true;$('dailyM').hidden=false;$('dName').hidden=true;$('dBoard').hidden=false;
   const today=dailyDay();day=day||today;tab=tab||'day';DAILY.view={day,tab};const me=dailyToday(),isToday=day===today;
-  $('dTabDay').classList.toggle('on',tab==='day');$('dTabAll').classList.toggle('on',tab==='all');$('dNav').hidden=tab!=='day';
+  $('dTabDay').classList.toggle('on',tab==='day');$('dTabAll').classList.toggle('on',tab==='all');$('dTabCal').classList.toggle('on',tab==='cal');$('dNav').hidden=tab!=='day';
+  const cal=tab==='cal';$('dCal').hidden=!cal;$('dList').hidden=cal;$('dStatus').hidden=cal;
+  if(cal){$('dEyebrow').textContent='Daily round';$('dTitle').textContent='Calendar';if(me&&me.done&&!me.posted)dailyPost();calOpen(DAILY.calSel||today);return;}
   $('dPrev').disabled=day<=DAILY_START;$('dNext').disabled=day>=today;$('dDate').textContent=isToday?'Today \u00b7 '+dailyNice(day):new Date(day+'T12:00:00Z').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});
   $('dEyebrow').textContent=tab==='all'?'Daily round \u00b7 all-time':'Daily round \u00b7 '+dailyNice(day);$('dTitle').textContent=tab==='all'?'Standings':COURSES[dailyCourse(day)].name;
   $('dPlay').hidden=!(tab==='day'&&isToday&&!(me&&me.done));$('dPlay').textContent=me&&!me.done?'Continue today’s round':'Play today’s round';$('dShare').hidden=!(tab==='day'&&isToday&&me&&me.done);
@@ -2688,6 +2708,42 @@ async function recShots(id){try{const r=await fetch(DAILY.url+'/rest/v1/course_s
 // watch a posted round: the same spectating as the daily round, with this round's pins and weather
 function recWatch(hi){const c=RECS.card;if(!c||!c.shots)return;Object.assign(DCARD,{shots:c.shots,r:c.r,sc:c.sc,cid:RECS.cid,day:dailyDay(),src:'rec'});specStart(hi);}
 function recStep(k){const L=recOrder(),i=L.indexOf(RECS.cid);A();openRecords(L[(i+k+L.length)%L.length]);}
+/* ---------- daily round calendar (v89): every day's course at a glance, the way back to any past leaderboard,
+   and a look at what's coming up. Future courses follow the rotation (DAILY_POOL), so they hold unless a course is added. ---------- */
+const CAL={month:null,sel:null,tok:0,rows:{},thumbs:{}};
+const CAL_AHEAD=60;
+function calThumb(cid){if(CAL.thumbs[cid])return CAL.thumbs[cid];let u='';try{if(typeof r3FlagCanvas==='function'){const c=r3FlagCanvas(cid),t=document.createElement('canvas');t.width=64;t.height=40;t.getContext('2d').drawImage(c,0,0,64,40);u=t.toDataURL();}}catch(e){}
+  if(!u){const t=document.createElement('canvas');t.width=64;t.height=40;const g=t.getContext('2d');g.fillStyle=typeof r3FlagStyle==='function'?r3FlagStyle(cid).bg:'#ff6a48';g.fillRect(0,0,64,40);u=t.toDataURL();}return CAL.thumbs[cid]=u;}
+async function calMonthRows(m){const k=m,c=CAL.rows[k];if(c&&Date.now()-c.t<60000)return c.r;if(!DAILY.url)return null;
+  const[y,mo]=m.split('-').map(Number),a=m+'-01',b=new Date(Date.UTC(y,mo,0)).toISOString().slice(0,10);
+  try{const r=await fetch(DAILY.url+'/rest/v1/daily_scores?select=day,name,strokes,to_par,player_id&day=gte.'+a+'&day=lte.'+b+'&order=strokes.asc,created_at.asc&limit=5000',{headers:dailyHdr()});if(!r.ok)return null;const rows=await r.json();
+    const by={};for(const x of rows)(by[x.day]=by[x.day]||[]).push(x);CAL.rows[k]={t:Date.now(),r:by};return by;}catch(e){return null;}}
+function calOpen(sel){const today=dailyDay();sel=sel||CAL.sel||today;CAL.sel=sel;CAL.month=sel.slice(0,7);calDraw();}
+async function calDraw(){const today=dailyDay(),m=CAL.month,[y,mo]=m.split('-').map(Number),tok=++CAL.tok,pid=dailyPid(),me=dailyToday();
+  const last=dayShift(today,CAL_AHEAD),first=DAILY_START;
+  $('cMonth').textContent=new Date(Date.UTC(y,mo-1,15)).toLocaleDateString(undefined,{month:'long',year:'numeric',timeZone:'UTC'});
+  $('cPrev').disabled=m<=first.slice(0,7);$('cNext').disabled=m>=last.slice(0,7);
+  const nd=new Date(Date.UTC(y,mo,0)).getUTCDate(),wd0=new Date(Date.UTC(y,mo-1,1)).getUTCDay();
+  const rows=CAL.rows[m]&&CAL.rows[m].r||null;
+  const cell=(day,i)=>{const ok=day>=first&&day<=last,cid=ok?dailyCourse(day):null,fut=day>today;let sc='';
+    if(rows&&rows[day]){const mine=rows[day].find(r=>r.player_id===pid);if(mine)sc=fmtDiff(mine.to_par);}if(day===today&&me&&me.done&&!sc)sc=fmtDiff(me.toPar??0);
+    return'<button role="gridcell" data-d="'+day+'"'+(ok?'':' disabled')+' class="'+(day===today?'today ':'')+(day===CAL.sel?'sel ':'')+(fut?'fut':'')+'" aria-label="'+(ok?dailyNice(day)+', '+escH(COURSES[cid].name):'')+'"><span class="n">'+i+'</span>'+(ok?'<img alt="" src="'+calThumb(cid)+'">':'')+(sc?'<span class="sc">'+sc+'</span>':'')+'</button>';};
+  let h=['S','M','T','W','T','F','S'].map(d=>'<div class="wd">'+d+'</div>').join('');for(let k=0;k<wd0;k++)h+='<div></div>';
+  for(let i=1;i<=nd;i++)h+=cell(m+'-'+String(i).padStart(2,'0'),i);$('cGrid').innerHTML=h;calDetail();
+  if(!rows){await calMonthRows(m);if(tok===CAL.tok&&CAL.rows[m])calDraw();}}
+function calDetail(){const day=CAL.sel,today=dailyDay(),cid=dailyCourse(day),C=COURSES[cid],img=courseImg(cid),me=dailyToday(),pid=dailyPid();
+  const el=$('cDayImg');if(img)el.src=img;else el.removeAttribute('src');
+  const n=Math.round((Date.UTC(...day.split('-').map((v,i)=>i===1?v-1:+v))-Date.UTC(...today.split('-').map((v,i)=>i===1?v-1:+v)))/864e5);
+  $('cDayWhen').textContent=(n===0?'Today':n===1?'Tomorrow':n===-1?'Yesterday':new Date(day+'T12:00:00Z').toLocaleDateString(undefined,{weekday:'long',timeZone:'UTC'}))+' \u00b7 '+dailyNice(day);
+  $('cDayName').textContent=C.name;
+  const rows=CAL.rows[day.slice(0,7)]&&CAL.rows[day.slice(0,7)].r,R=rows&&rows[day]||[],mine=R.find(r=>r.player_id===pid);let info=C.town;
+  if(n>0)info+=' \u00b7 coming up in '+n+(n===1?' day':' days');
+  else if(R.length){const best=R[0].strokes,w=R.filter(r=>r.strokes===best);const meW=w.some(r=>r.player_id===pid);info=(meW?(n===0?(w.length>1?'You’re tied for the lead':'You’re leading'):(w.length>1?'You tied for the win':'You won')):(n===0?'Leading':'Won by')+' '+escH(w[0].name)+(w.length>1?' +'+(w.length-1):''))+' '+fmtDiff(w[0].to_par)+' \u00b7 '+R.length+(R.length===1?' golfer':' golfers')+(mine&&!meW?' \u00b7 you '+fmtDiff(mine.to_par):'');}
+  else if(n<0)info+=' \u00b7 '+(rows?'nobody played this day':'');
+  $('cDayInfo').innerHTML=info;
+  const isToday=n===0;$('cDayBoard').hidden=n>0;$('cDayBoard').textContent=isToday?'Today’s leaderboard':'Leaderboard';
+  $('dPlay').hidden=!(isToday&&!(me&&me.done));$('dPlay').textContent=me&&!me.done?'Continue today’s round':'Play today’s round';$('dShare').hidden=!(isToday&&me&&me.done);
+  for(const b of $('cGrid').querySelectorAll('button'))b.classList.toggle('sel',b.dataset.d===day);}
 /* ---------- a golfer's daily card, and watching their round ---------- */
 const DCARD={};
 function dcTable(C,sc,from,label,withTot,nm,live){const tb=C.tb,tp=tb.reduce((a,h)=>a+h.par,0);let tot=0,ptot=0;const idx=[...Array(9)].map((_,k)=>from+k);
@@ -5601,7 +5657,7 @@ $('mClose').addEventListener('click',closeMenu);
 $('mMatchCont').addEventListener('click',()=>{A();const v=pendingMatchV();if(v)startMatch(carOf(v).match.rid,true);});
 $('mCareer2').addEventListener('click',()=>{A();careerUse(2);openCareer();sfx.tick();});
 $('mCareer').addEventListener('click',()=>{A();careerUse(1);openCareer();sfx.tick();});
-$('mDaily').addEventListener('click',()=>{A();sfx.tick();const me=dailyToday();if(me&&me.done)openDailyBoard(false);else if(me||dailyName())openDailyBoard(false);else openDailyName();});
+$('mDaily').addEventListener('click',()=>{A();sfx.tick();const me=dailyToday();DAILY.calSel=dailyDay();if(me||dailyName())openDailyBoard(false,dailyDay(),'cal');else openDailyName();});
 $('dNameGo').addEventListener('click',dailyNameGo);$('dNameIn').addEventListener('keydown',e=>{if(e.key==='Enter')dailyNameGo();});
 $('dPlay').addEventListener('click',()=>{A();dailyPlay();});
 $('dList').addEventListener('click',e=>{const li=e.target.closest('li[data-i]');if(li){A();openDailyCard(+li.dataset.i);}});
@@ -5616,7 +5672,12 @@ $('specFF').addEventListener('click',e=>{e.stopPropagation();A();specFFCycle();}
 $('specExit').addEventListener('click',e=>{e.stopPropagation();A();specEnd();});
 $('dPrev').addEventListener('click',()=>{A();openDailyBoard(false,dayShift(DAILY.view.day,-1),'day');});
 $('dNext').addEventListener('click',()=>{A();openDailyBoard(false,dayShift(DAILY.view.day,1),'day');});
-$('dTabDay').addEventListener('click',()=>{A();openDailyBoard(false,DAILY.view&&DAILY.view.day,'day');});
+$('dTabDay').addEventListener('click',()=>{A();openDailyBoard(false,(DAILY.view&&DAILY.view.tab==='cal'&&CAL.sel<=dailyDay()?CAL.sel:DAILY.view&&DAILY.view.day),'day');});
+$('dTabCal').addEventListener('click',()=>{A();DAILY.calSel=DAILY.view&&DAILY.view.day;openDailyBoard(false,DAILY.view&&DAILY.view.day,'cal');});
+$('cPrev').addEventListener('click',()=>{A();const[y,m]=CAL.month.split('-').map(Number);CAL.month=new Date(Date.UTC(y,m-2,1)).toISOString().slice(0,7);calDraw();});
+$('cNext').addEventListener('click',()=>{A();const[y,m]=CAL.month.split('-').map(Number);CAL.month=new Date(Date.UTC(y,m,1)).toISOString().slice(0,7);calDraw();});
+$('cGrid').addEventListener('click',e=>{const b=e.target.closest('button[data-d]');if(!b||b.disabled)return;A();CAL.sel=b.dataset.d;DAILY.calSel=CAL.sel;calDetail();});
+$('cDayBoard').addEventListener('click',()=>{A();openDailyBoard(false,CAL.sel,'day');});
 $('dTabAll').addEventListener('click',()=>{A();openDailyBoard(false,DAILY.view&&DAILY.view.day,'all');});$('dShare').addEventListener('click',()=>{A();dailyShare();});
 $('dBack').addEventListener('click',()=>{A();$('dailyM').hidden=true;openMenu(!!G.hole);});
 $('mRec').addEventListener('click',()=>{A();openRecords(CUR.id);});
