@@ -1969,7 +1969,7 @@ function simRollP(x,y,dx,dy,v,path){let vx=dx*v,vy=dy*v;const h=1/240,pts=path?[
 /* v92: the wind's push per yard of carry, exactly as the shot itself applies it (so the meter's pin marker and the landing ring allow for it) */
 function windK(){const c=curClub();if(c.putter)return 0;return G.wind.mph*.85/200*c.loft*SHOTS[G.stype].w*shotMods().wind*cmod().wind;}
 function windAlong(aim){const w=dirOf(G.wind.a),d=dirOf(aim);return windK()*(w[0]*d[0]+w[1]*d[1]);}   // >0 helping, <0 into the wind
-function shortFinish(carry,aim,path){const c=curClub(),[dx,dy]=dirOf(aim),b=G.ball,M=shotMods(),wv=dirOf(G.wind.a),wk=carry*windK();
+function shortFinish(carry,aim,path){const c=curClub(),[dx,dy]=dirOf(aim),b=G.ball,M=shotMods(),wv=[dx,dy],wk=carry*windAlong(aim);   // distance only
   const f={sx:b.x,sy:b.y,y0:hAt(b.x,b.y)+.03,dx,dy,px:-dy,py:dx,carry,lat:0,wx:wv[0]*wk,wy:wv[1]*wk,apex:shotApex(c,carry)*M.apex,club:c,stype:G.stype,rollMul:M.roll,back:M.back*cmod().spin};
   let lx=b.x+dx*carry,ly=b.y+dy*carry,u=.5;for(;u<2.4;u+=.01){const q=flightPos(f,u);lx=q[0];ly=q[1];if(q[2]<=hAt(q[0],q[1])+.03)break;}
   const L=lieAt(lx,ly);if(L==='water'||L==='ob')return{x:lx,y:ly,lx,ly,L,bad:true,pts:path?[[lx,ly]]:null};
@@ -5319,8 +5319,8 @@ function renderScene(){
       for(let i=1;i<=60;i++){const u=i/36,qx=G.ball.x+dx*c2*u,qz=G.ball.y+dz*c2*u,Y=y0+ap*arcH(u);if(u>.5&&Y<=hAt(qx,qz))break;const p=proj(qx,Y,qz);if(p){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
       mx=P.land[0];mz=P.land[1];landD=hyp(mx-G.ball.x,mz-G.ball.y);
     }else{
-      const y0=gB+.03;let u=0;mx=G.ball.x;mz=G.ball.y;
-      for(let i=1;i<=90;i++){u=i/36;const qx=G.ball.x+dx*D*u+pxv*cv*u*u,qz=G.ball.y+dz*D*u+pzv*cv*u*u,Y=y0+shotApex(club,D)*Mv.apex*arcH(u),gnd=hAt(qx,qz);mx=qx;mz=qz;
+      const y0=gB+.03,wv=[dx,dz],wkD=D*windAlong(G.aim);let u=0;mx=G.ball.x;mz=G.ball.y;   // v93: the wind makes it fly longer or shorter (distance only; no sideways drift in the preview)
+      for(let i=1;i<=90;i++){u=i/36;const qx=G.ball.x+dx*D*u+pxv*cv*u*u+wv[0]*wkD*u*u,qz=G.ball.y+dz*D*u+pzv*cv*u*u+wv[1]*wkD*u*u,Y=y0+shotApex(club,D)*Mv.apex*arcH(u),gnd=hAt(qx,qz);mx=qx;mz=qz;
         if(u>.5&&Y<=gnd)break;const p=proj(qx,Y,qz);if(p&&i%1===0){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
       landD=hyp(mx-G.ball.x,mz-G.ball.y);
     }
@@ -5389,7 +5389,7 @@ function updHud(){
   const lr0=c.putter?'':lieRange(c,G.lie);setT('clubInfo',c.putter?'Putter · '+Math.round(G.puttMax*3)+' ft':(lr0?'Lie '+lr0:c.id==='1W'?(onTeeBox()?'Off the tee':'Off the deck'):c.name)+' · '+Math.round(previewDist())+'y');   // rough/fescue: the lie's power range (rolled per shot) in place of the club's name
   const lie=(G.state==='flight'||G.state==='roll'||G.state==='bounce'||G.state==='replay')?G.fromLie:G.lie;
 $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
-  const d=pinDist();setT('pinTxt',(G.lie==='green'||d<20)?'Cup '+Math.round(d*3)+' ft':'Pin '+Math.round(d)+' yds'+(Math.abs(pinRise())>=1.5?(pinRise()>0?' \u25b2':' \u25bc')+Math.round(Math.abs(pinRise())*3)+' ft':''));
+  const d=pinDist(),plw=curClub().putter?Math.round(d):Math.round(d/Math.max(.5,1+windAlong(G.aim)));setT('pinTxt',(G.lie==='green'||d<20)?'Cup '+Math.round(d*3)+' ft':'Pin '+Math.round(d)+(Math.abs(plw-d)>=2?' \u00b7 plays '+plw:' yds')+(Math.abs(pinRise())>=1.5?(pinRise()>0?' \u25b2':' \u25bc')+Math.round(Math.abs(pinRise())*3)+' ft':''));
   const aiming=G.state==='aim'&&!G.aiTurn;
   { const bk=bunkerSide();$('shots').classList.toggle('bunker',bk); }
   for(const t in SHOTS){const b=$('st_'+t);b.disabled=!aiming||c.putter||!shotOK(t,G.clubIdx)&&!SHOTS[t].clubs.length||(t==='spin'&&!(G.lie==='fairway'||G.lie==='tee'))||(BUNKER_T[t]&&!bunkerSide());b.classList.toggle('on',!c.putter&&G.stype===t);b.setAttribute('aria-pressed',String(!c.putter&&G.stype===t));}
@@ -5419,7 +5419,8 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   $('mCursor').style.left=(m.pos*100)+'%';
   // meter scale in distance: carry yards for full and short shots, feet of roll for putts on the green (percent for putts off it)
   { const pg=c.putter&&G.lie==='green',pct=c.putter&&!pg,sh=isShort()&&!c.putter,mx=c.putter?G.puttMax*3:(sh?(G.swMax||natMax()):natMax())*shotMods().carry;
-    const lb=f=>pct?String(Math.round(f*100)):Math.max(1,Math.round(mx*(sh?m2p(f):f)))+(pg?' ft':'y');setT('ml1',lb(.25));setT('ml2',lb(.5));setT('ml3',lb(.75));setT('ml4',pct?'Max':lb(1)); }
+    const wf=c.putter?1:Math.max(.5,1+windAlong(G.aim));   // v93: the yardages along the meter are what the ball flies in this wind
+    const lb=f=>pct?String(Math.round(f*100)):Math.max(1,Math.round(mx*wf*(sh?m2p(f):f)))+(pg?' ft':'y');setT('ml1',lb(.25));setT('ml2',lb(.5));setT('ml3',lb(.75));setT('ml4',pct?'Max':lb(1)); }
   const fillTo=st==='power'?m.pos:(st==='acc'?IMPACT+p2m(m.power)*(1-IMPACT):IMPACT);
   $('mFill').style.width=Math.max(0,(fillTo-IMPACT)*100)+'%';
   const lk=$('mLock');lk.hidden=st!=='acc';lk.style.left=((IMPACT+p2m(m.power)*(1-IMPACT))*100)+'%';
