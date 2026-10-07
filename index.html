@@ -3859,6 +3859,50 @@ function drawDivots(){const h=G.hole;if(!h||G.overview)return;
    The hands travel a circle in a tilted swing plane around the sternum; the club adds wrist hinge (beta)
    that is set on the way back, held through the downswing (lag) and released at impact. */
 const CLUB_LEN=[1.25,1.2,1.16,1.1,1.06,1.045,1.03,1.015,1,.985,.975,.97,.965,.95];
+/* v104 gear you can see: club heads by club and by bag model, shaft length by the actual club, and the ball's finish.
+   Rivals always show stock gear. (chead = head centre, cd = shaft direction toward the head, fd = face/target, toe = toe) */
+const CLEN_ID={'1W':1.25,'MD':1.22,'3W':1.2,'4W':1.18,'5W':1.16,'7W':1.13,'3H':1.12,'DI':1.1,'4H':1.1,'4I':1.075,'5H':1.08,'5I':1.06,'6I':1.045,'7I':1.03,'8I':1.015,'9I':1,'PW':.985,'GW':.975,'52':.973,'54':.971,'SW':.97,'58':.966,'LW':.965,'64':.96,'PT':.95};
+const clubLen=i=>{const c=CLUBS[i];return(c&&CLEN_ID[c.id])||CLUB_LEN[i];};
+const gearMine=()=>!G.aiTurn;
+const gearOf=k=>gearMine()?(BAG[k]||'std'):'std';
+const HX=h=>hexc(h);
+function drawClubHead(chead,cd,fd,toe,c,grip){const at=(a,b,cc)=>add(chead,add(mul(toe,a),add(mul(cd,b),mul(fd,cc))));
+  if(c.putter){const m=gearOf('ptr');
+    if(m==='blade'){boxAt(chead,mul(toe,.1),mul(cd,.024),mul(fd,.016),HX('#b9c3c9'));boxAt(at(0,-.024,0),mul(toe,.004),mul(cd,.001),mul(fd,.012),[1,1,1]);}
+    else if(m==='mallet'||m==='lock'){sphAt(at(0,0,-.026),.062,.022,.056,HX('#2a2e33'),toe,cd,fd);boxAt(at(0,0,.008),mul(toe,.08),mul(cd,.02),mul(fd,.01),HX('#3a3f45'));
+      boxAt(at(0,-.023,-.02),mul(toe,.004),mul(cd,.002),mul(fd,.045),[1,1,1]);
+      if(m==='lock'&&grip)cylAB(grip,add(grip,mul(cd,-.32)),.016,HX('#1d1f22'));}
+    else boxAt(chead,mul(toe,.1),mul(cd,.028),mul(fd,.04),HX('#23292e'));
+    return;}
+  if(c.kind==='wood'){const m=gearOf('drv'),drv=c.id==='1W'||c.id==='MD';
+    let rx=drv?.068:.056,ry=drv?.04:.031,rz=drv?.06:.047;
+    if(c.id==='MD'){rx*=.92;rz*=.92;}if(c.id==='7W'){rx*=.94;ry*=.95;rz*=.94;}
+    let col='#23292e',acc=null;
+    if(m==='bomb'){rx*=1.08;ry*=1.12;rz*=1.15;col='#141618';acc='#e0482f';}
+    else if(m==='max'){rx*=1.12;ry*=.86;rz*=1.16;col='#22344a';acc='#7fc4ff';}
+    else if(m==='shape'){rx*=.9;ry*=1.06;rz*=.86;col='#4a3a2c';acc='#d8b46a';}
+    sphAt(at(0,-.02,0),rx,ry,rz,HX(col),toe,cd,fd);
+    boxAt(at(0,-.02,rz*.9),mul(toe,rx*.78),mul(cd,ry*.62),mul(fd,.004),HX('#5b636b'));   // the face
+    boxAt(at(0,-.02-ry*.93,rz*.05),mul(toe,.005),mul(cd,.003),mul(fd,rz*.75),acc?HX(acc):[.85,.85,.85]);   // crown stripe (model colour)
+    if(acc)sphAt(at(0,-.02+ry*.6,-rz*.12),rx*.55,ry*.28,rz*.5,HX(acc),toe,cd,fd);   // sole plate in the model's colour
+    return;}
+  if(c.kind==='hybrid'){sphAt(at(0,-.016,-.004),.05,.026,.034,HX('#2c3135'),toe,cd,fd);sphAt(at(0,.004,-.004),.04,.008,.026,HX('#9aa5ad'),toe,cd,fd);return;}
+  if(c.kind==='wedge'&&c.id!=='PW'){const m=gearOf('wdg');const col=m==='high'?'#202326':m==='low'?'#8d969c':m==='milled'?'#9a6a48':'#c3cbd0';
+    boxAt(chead,mul(toe,.08),mul(cd,.058),mul(fd,.019),HX(col));
+    if(m==='high')boxAt(at(0,.052,-.016),mul(toe,.07),mul(cd,.008),mul(fd,.012),HX('#3a3e42'));   // the wide sole
+    return;}
+  // irons (and the PW, which comes with the set)
+  const m=gearOf('irn'),di=c.id==='DI';
+  if(di){boxAt(chead,mul(toe,.082),mul(cd,.046),mul(fd,.03),HX('#4a5157'));return;}
+  if(m==='cav'){boxAt(chead,mul(toe,.086),mul(cd,.052),mul(fd,.026),HX('#b8c0c6'));boxAt(at(0,.012,-.024),mul(toe,.06),mul(cd,.024),mul(fd,.006),HX('#3f6f9a'));}
+  else if(m==='forged'){boxAt(chead,mul(toe,.08),mul(cd,.05),mul(fd,.021),HX('#959ea4'));}
+  else if(m==='blade'){boxAt(chead,mul(toe,.078),mul(cd,.046),mul(fd,.013),HX('#e6edf1'));}
+  else boxAt(chead,mul(toe,.08),mul(cd,.05),mul(fd,.02),HX('#aeb8bf'));}
+// the ball: Distance is optic yellow, Low spin is orange, Tour urethane is white with a red band
+function drawBallGear(C,r,mine){const m=mine?gearOf('ball'):'std';
+  sphAt(C,r,r,r,m==='dist'?[1,.93,.28]:m==='low'?[1,.52,.14]:[1,1,1]);
+  if(m==='ure')sphAt(C,r*1.06,r*.38,r*1.06,[.9,.1,.08]);}
+
 const PLANE_V=nrm([0,-.82,.57]),PLANE_N=nrm(cross([1,0,0],PLANE_V));
 const SWING_BACK={full:1,flop:1,punch:.6,pitch:.68,chip:.34};
 const SWING_END={full:1,flop:1,punch:.5,pitch:.72,chip:.42};
@@ -3892,7 +3936,7 @@ function drawGolfer3D(ga){
   const putt=club===PUTTER,type=aimingState()?G.stype:(G.swingType||'full');
   const S=swingState(type==='putt'?'full':type,putt);
   if(putt){S.tilt=34*DEG;S.th=0;S.heel=0;S.shift=0;S.look=0;S.fin=0;S.ts=0;}
-  const L=CLUB_LEN[club];
+  const L=clubLen(club);
   const C0=sternum(PELVIS0,35*DEG),H0=add(C0,mul(PLANE_V,ARM_R));
   const dy=-H0[1]/L,D0=[0,dy,Math.sqrt(Math.max(0,1-dy*dy))];
   let zBall=H0[2]+D0[2]*L;
@@ -3988,9 +4032,7 @@ function drawGolfer3D(ga){
   // club
   cylAB(W(add(hand,mul(cdir,-.06))),W(chead),.012,C_SHAFT);
   const faceDir=nrm(cross(cdir,PLANE_N));
-  if(putt)boxAt(W(chead),Wd(mul(nrm(cross(cdir,faceDir)),.1)),Wd(mul(cdir,.03)),Wd(mul(faceDir,.04)),C_HEAD);
-  else if(CLUBS[club].kind==='wood'||CLUBS[club].kind==='hybrid')sphAt(W(add(chead,mul(cdir,-.02))),.06,.035,.05,C_HEAD,Wd(nrm(cross(cdir,faceDir))),Wd(cdir),Wd(faceDir));
-  else boxAt(W(chead),Wd(mul(nrm(cross(cdir,faceDir)),.08)),Wd(mul(cdir,.05)),Wd(mul(faceDir,.02)),hexc('#aeb8bf'));
+  drawClubHead(W(chead),Wd(cdir),Wd(faceDir),Wd(nrm(cross(cdir,faceDir))),CLUBS[club],W(add(hand,mul(cdir,-.06))));
 }
 function buildWaterMesh(h){const gl=GL.gl,out=[];
   for(const w of h.water){const y=(w.lvl!==undefined?w.lvl:-1.1)+.14;for(const[a,b,c]of earClip(w.pts))out.push(a[0],y,a[1],b[0],y,b[1],c[0],y,c[1]);}
@@ -4029,9 +4071,9 @@ function drawMeshContent(shadow){
     if(!shadow){gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);
     const ah=Y-gB;sphAt([bx,gB+.01,bz],r*1.1*(1+ah*.01),.005,r*1.1*(1+ah*.01),[0,0,0],[1,0,0],[0,1,0],[0,0,1],clamp(.3-ah*.01,.08,.3));
     gl.depthMask(true);gl.disable(gl.BLEND);}
-    M3.spec=.7;sphAt([bx,Y+r,bz],r,r,r,[1,1,1]);M3.spec=0;
+    M3.spec=.7;drawBallGear([bx,Y+r,bz],r,!G.aiTurn);M3.spec=0;
   }
-  if(MATCH.on&&MATCH.P&&G.state!=='intro'&&G.state!=='card'){const o=MATCH.P[1-MATCH.turn];if(o&&!o.done&&o.strokes>0){const ox=o.ball.x,oz=o.ball.y,og=hAt(ox,oz),oc=proj(ox,og,oz),orr=oc?Math.max(.03,2.6/oc[3]):.05;M3.spec=.7;sphAt([ox,og+orr,oz],orr,orr,orr,[1,1,1]);M3.spec=0;}}
+  if(MATCH.on&&MATCH.P&&G.state!=='intro'&&G.state!=='card'){const o=MATCH.P[1-MATCH.turn];if(o&&!o.done&&o.strokes>0){const ox=o.ball.x,oz=o.ball.y,og=hAt(ox,oz),oc=proj(ox,og,oz),orr=oc?Math.max(.03,2.6/oc[3]):.05;M3.spec=.7;drawBallGear([ox,og+orr,oz],orr,MATCH.turn===1);M3.spec=0;}}
 }
 
 /* ---------- render ---------- */
@@ -4252,7 +4294,7 @@ const R3B_CFG={full:['drive',1,1],flop:['drive',1,1],punch:['drive',.6,.5],pitch
 function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return false;   // original-ladder rivals keep their jointed figure; Challenge V2 rivals are golfers
   const club=G.state==='aim'||aimingState()?G.clubIdx:(G.swingClub??G.clubIdx),putt=club===PUTTER,type=aimingState()?G.stype:(G.swingType||'full');
   const[ck,back,end]=putt?['putt',1,1]:(R3B_CFG[type]||R3B_CFG.full);const c=R3B.clips[ck],m=G.meter;
-  const Lm=putt?R3B_PUTT_L:CLUB_LEN[club]*.9,Lc=Lm*100/.94;const S=r3bClub(ck,Math.round(Lc));
+  const Lm=putt?R3B_PUTT_L:clubLen(club)*.9,Lc=Lm*100/.94;const S=r3bClub(ck,Math.round(Lc));
   const qa=R3B.pa,ha=R3B.ha,qb=R3B.pb,hb=R3B.hb;let wI=0;   // wI: club direction blend, address (0) -> impact (1)
   const bFrac=b=>putt?.12+.88*b:b*back;
   let routine=null,post=false,hold=0,twU=-1,wU=0,wW=0;const SP=R3B.bsp||(R3B.bsp={x:0,v:0,T:-9,live:false,xs:1,X:null});
@@ -4334,9 +4376,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
   R3B.dbg={grip,chead,ball:[bx,hAt(bx,bz),bz],wI,S,push:push.length()};const fd=nrm(sub(fd0,mul(cd,dot3(fd0,cd))));const C_SHAFT=hexc('#c9d3da'),C_HEAD=hexc('#23292e');
   cylAB(add(grip,mul(cd,-.04)),chead,.011,C_SHAFT);cylAB(add(grip,mul(cd,-.045)),add(grip,mul(cd,.2)),.015,hexc('#1d1f22'));
   const toe=nrm(cross(cd,fd));
-  if(putt)boxAt(chead,mul(toe,.1),mul(cd,.028),mul(fd,.04),C_HEAD);
-  else if(CLUBS[club].kind==='wood'||CLUBS[club].kind==='hybrid')sphAt(add(chead,mul(cd,-.02)),.06,.035,.05,C_HEAD,toe,cd,fd);
-  else boxAt(chead,mul(toe,.08),mul(cd,.05),mul(fd,.02),hexc('#aeb8bf'));
+  drawClubHead(chead,cd,fd,toe,CLUBS[club],grip);
   return true;}
 
 /* ===================== pre- and post-shot routines with broadcast cuts =====================
@@ -5269,8 +5309,8 @@ function r3Dynamic(){const h=G.hole;if(R3.boss){R3.boss.mesh.visible=false;R3.bo
   M3.spec=.06;if(ga&&G.state!=='intro'&&G.state!=='card')drawGolfer3D(ga);M3.spec=0;
   r3Sprinklers();
   if(!G.inCup&&R3.boss&&R3.boss.ballAt){const p2=R3.boss.ballAt;M3.spec=.7;sphAt(p2,.03,.03,.03,[1,1,1]);M3.spec=0;}
-  else if(!G.inCup){const Y=(G.state==='flight'||G.state==='bounce')?G.bY:gB;const bc=proj(bx,Y,bz);const r=bc?Math.max(.024,2.6/bc[3]):.05;M3.spec=.7;sphAt([bx,Y+r,bz],r,r,r,[1,1,1]);M3.spec=0;}
-  if(MATCH.on&&MATCH.P&&G.state!=='intro'&&G.state!=='card'){const o=MATCH.P[1-MATCH.turn];if(o&&!o.done&&o.strokes>0){const ox=o.ball.x,oz=o.ball.y,og=hAt(ox,oz),oc=proj(ox,og,oz),orr=oc?Math.max(.03,2.6/oc[3]):.05;M3.spec=.7;sphAt([ox,og+orr,oz],orr,orr,orr,[1,1,1]);M3.spec=0;}}}
+  else if(!G.inCup){const Y=(G.state==='flight'||G.state==='bounce')?G.bY:gB;const bc=proj(bx,Y,bz);const r=bc?Math.max(.024,2.6/bc[3]):.05;M3.spec=.7;drawBallGear([bx,Y+r,bz],r,!G.aiTurn);M3.spec=0;}
+  if(MATCH.on&&MATCH.P&&G.state!=='intro'&&G.state!=='card'){const o=MATCH.P[1-MATCH.turn];if(o&&!o.done&&o.strokes>0){const ox=o.ball.x,oz=o.ball.y,og=hAt(ox,oz),oc=proj(ox,og,oz),orr=oc?Math.max(.03,2.6/oc[3]):.05;M3.spec=.7;drawBallGear([ox,og+orr,oz],orr,MATCH.turn===1);M3.spec=0;}}}
 
 /* ---- camera straight from V, sun shadow box following the view ---- */
 function r3Camera(){const c=R3.cam,n=.3,f=30000,Kx=2*V.f/W,Ky=2*V.f/H,Kz=1-2*V.cy/H;
@@ -6102,6 +6142,10 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:'2026-10-07-gearlook',date:'Oct 7, 2026',title:'See your gear',items:[
+    'Your clubs now look like the models in your bag: the Bomber driver has a big black head with a red stripe, Max forgiveness a wide blue head, the Shaper a smaller brown one. Hybrids get their own shape.',
+    'Irons: Cavity backs are chunky with a blue back, Forged are satin, Blades are thin and mirror bright. Wedges come in chrome, black (High bounce), satin (Low bounce) or copper (Milled spin). Putters: a thin Blade, a half-moon Mallet, or the Arm-lock with its long grip.',
+    'The ball shows too: Distance is optic yellow, Low spin is orange and Tour urethane has a red band. Each club is now its own length, from the driver down to a 64\u00b0 wedge. Rivals still play stock gear.']},
   {id:'2026-10-07-bag',date:'Oct 7, 2026',title:'Build your bag',items:[
     'New on the Golfers screen: pick your equipment. Driver & woods, irons, wedges, putter and ball each come in a few models, and every one trades a strength for a weakness: a Bomber driver flies further but strays wider, Blades bite and shape but have a smaller window, a Mallet holds its line but the pace is harder to judge. Standard is balanced. Everything is available now.',
     'Swap clubs: trade the 3 wood for a 4 wood or mini driver, the 5 wood for a 7 wood or 3 hybrid, the 4 hybrid for a 3 or 5 hybrid, a 4 iron or a driving iron, the 5 iron for a 5 hybrid, and pick 52\u00b0, 54\u00b0, 58\u00b0 or 64\u00b0 wedges.',
