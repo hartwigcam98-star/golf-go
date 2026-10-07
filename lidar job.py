@@ -6,12 +6,15 @@
 import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
-JOB = {"name": "sc midlands", "search": [33.40, -81.00, 33.66, -80.10],
-       "want": {"santee": r"^santee national$", "wyboo": r"wyboo|players course", "orangeburg": r"orangeburg"},
-       "holes": {"santee": r"santee", "wyboo": r"wyboo", "orangeburg": r"orangeburg"},
-       # Santee National's outline has no name in OpenStreetMap (way/573216038, next to Santee Cooper CC)
+JOB = {"name": "sc midlands 2", "search": [33.40, -81.00, 33.66, -80.10],
+       "want": {"santee": r"^santee national$", "wyboo": r"^zzz$"},
+       "holes": {"santee": r"^zzz$", "wyboo": r"^zzz$"},
+       # Santee National's outline has no name in OpenStreetMap (way/573216038); its greens are traced from the photo
        "ids": {"santee": "way/573216038"},
-       "steps": {"santee": "all"}}
+       # Wyboo: the OSM outline misses the holes south of the clubhouse, so use a wider box
+       "boxes": {"wyboo": [-80.2385, 33.5765, -80.2105, 33.6012]},
+       "greens": {"santee": [[-80.491132, 33.486173, -80.490748, 33.486488], [-80.496421, 33.487075, -80.496125, 33.487323], [-80.495515, 33.489754, -80.49518, 33.490118], [-80.498765, 33.488133, -80.498361, 33.488472], [-80.500675, 33.489399, -80.500222, 33.489754], [-80.496884, 33.490664, -80.49646, 33.491028], [-80.493968, 33.49035, -80.493574, 33.49068], [-80.493683, 33.487885, -80.49323, 33.488241], [-80.492304, 33.491185, -80.491969, 33.49145], [-80.489014, 33.485479, -80.488561, 33.485859], [-80.489438, 33.482618, -80.489024, 33.482857], [-80.485498, 33.480211, -80.485124, 33.480517], [-80.483548, 33.4827, -80.483095, 33.483006], [-80.486089, 33.482196, -80.485774, 33.48251], [-80.486286, 33.484859, -80.485912, 33.485231], [-80.483213, 33.486827, -80.482957, 33.487108], [-80.482583, 33.488762, -80.482278, 33.489043], [-80.488768, 33.490317, -80.488423, 33.49068]]},
+       "steps": {"santee": "points", "wyboo": "all"}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -203,8 +206,8 @@ def pip(pt, r):
     return c
 def greens_points(key, b, osm, resources, rings):
     W, S_, E, N = grow(b, 60); epsg = UTMZ((W + E) / 2)
-    greens = []
-    for el in osm['elements']:
+    greens = [dict(id=f'traced/{i}', bbox=grow(list(bb), 25)) for i, bb in enumerate(JOB.get('greens', {}).get(key, []))]
+    for el in ([] if greens else osm['elements']):
         if el.get('tags', {}).get('golf') != 'green': continue
         bb = bbox_of(el)
         if not bb: continue
@@ -242,7 +245,7 @@ def main():
     import subprocess   # keep the earlier courses' files on the results branch
     try:
         subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_sc1.json; [ -f out/run.log ] && mv out/run.log out/run_prev_sc1.log; true', shell=True)
+        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_sc2.json; [ -f out/run.log ] && mv out/run.log out/run_prev_sc2.log; true', shell=True)
     except Exception as e: SUM['errors'].append(f'keep old: {e}')
     try: res = discover()
     except Exception as e: err('discover', e); return
@@ -266,7 +269,7 @@ def main():
             c = res[key]; SUM['courses'][key] = {k: v for k, v in c.items() if k != 'rings'}; save(); b = c['bbox']
             mode = JOB['steps'].get(key)
             if not mode: continue
-            for step in ((ned_grids, naip, dem_ll, dem_utm) if mode == 'all' else ()):
+            for step in ((ned_grids, naip, dem_ll, dem_utm) if mode == 'all' else ()):   # mode 'points': green point clouds only
                 try: step(key, b)
                 except Exception as e: err(f'{step.__name__} {key}', e)
                 save()
