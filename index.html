@@ -777,6 +777,15 @@ const MU={green:MU_GREEN,fairway:3.2,tee:3.2,rough:11,sand:28,fescue:17};   // f
 const MU_REST=.45,MU_REST_FW=.65,muRoll=(L,sp)=>{const m=MU[L]||MU.fairway;return L==='green'?m*(MU_REST+(1-MU_REST)*smooth(.15,.4,sp)):(L==='fairway'||L==='tee')?m*(MU_REST_FW+(1-MU_REST_FW)*smooth(.2,.9,sp)):m;},
   muStill=L=>(MU[L]||MU.fairway)*(L==='green'?MU_REST:(L==='fairway'||L==='tee')?MU_REST_FW:1);
 const SURF={green:.9,fairway:1.08,tee:1.08,rough:.35,sand:.05,fescue:.15};
+/* v100 roll-out: how well a green holds a full shot, by club (rolls on a green vs the fairway). Low-spin woods still release,
+   hybrids and irons check up: a 3 wood runs about 17 yd on, a hybrid 9, a 5 iron 6, a 7 iron 4 (good-amateur numbers) */
+const GREEN_HOLD={'1W':.76,'3W':.67,'5W':.64,'4H':.53,'5I':.47,'6I':.48,'7I':.5,'8I':.5,'9I':.5,'PW':.5,'GW':.5,'SW':.5,'LW':.5};
+// a softer swing still lands shallow with little spin: roll is figured from a carry between this shot's and the full swing's
+const PART_K={wood:.8,hybrid:.5,iron:.35,wedge:0};
+// out of the rough the grass gets between club and ball: no spin, so it lands running (a flyer). Woods spin little anyway
+const FLYER={rough:{wood:1.15,hyb:1.4,long:1.7,mid:2.1,short:2.6,gap:2.6,sand:2.6},fescue:{wood:1.2,hyb:1.5,long:1.85,mid:2.3,short:2.8,gap:2.8,sand:2.8}};   // short irons and wedges lose the most spin
+// short game out of the rough / fescue: distance range, extra release (chips run a bit more, pitches and flops a lot more), spin kept, fescue grabs
+const SG_LIE={rough:{v:.07,r:1.3,chip:1.12,back:.5},fescue:{v:.11,r:1.5,chip:1.22,back:0,chunk:.1}};
 const LIE_NAME={tee:'Tee box',fairway:'Fairway',rough:'Rough',sand:'Bunker',green:'Green',fescue:'Fescue',water:'Water',ob:'Out of bounds'};
 const LIE_COL={tee:'#7cc257',fairway:'#6db14a',rough:'#3f7d35',sand:'#f4efe2',green:'#9ad873',fescue:'#c9b35f'};
 const CUP_R=.059, CUP=.068, IMPACT=.12;   // the cup is 4.25 in across (0.059 yd radius); the ball drops once its centre is just inside the rim
@@ -2035,7 +2044,7 @@ function lieMul(c,lie){const k=c.kind;if(c.id==='1W'&&lie!=='tee'&&!onTeeBox())r
    of sand and the 7-iron the longest iron out of fescue. Each club now goes a little shorter than the next-longer one, the
    hybrid advances it furthest, and the woods are a poor bet */
 const SAND_C={'1W':.4,'3W':.45,'5W':.45,'4H':.62,'5I':.6,'6I':.63,'7I':.66,'8I':.69,'9I':.72,'PW':.75,'GW':.8,'SW':.88,'LW':.86};
-const FES_C={'1W':.4,'3W':.42,'5W':.45,'4H':.62,'5I':.6,'6I':.62,'7I':.645,'8I':.67,'9I':.7,'PW':.725,'GW':.76,'SW':.8,'LW':.83};   // the 5-wood's extra loft gets it up out of grass a little better
+const FES_C={'1W':.4,'3W':.42,'5W':.45,'4H':.65,'5I':.63,'6I':.655,'7I':.68,'8I':.7,'9I':.735,'PW':.76,'GW':.79,'SW':.83,'LW':.855};   // v100: a touch more from the hybrid and irons   // the 5-wood's extra loft gets it up out of grass a little better
 /* tough lies by club (golf instruction + launch-monitor tests): grass grabs long, low-lofted clubs and shuts the face, so fairway woods
    and long irons come out short and wild; hybrids cut through medium rough best of the long clubs; from deep rough and fescue the
    lofted, heavy clubs (short irons, wedges) are the reliable way out. [carry factor, extra dispersion] */
@@ -2147,7 +2156,7 @@ function autoClub(d){
   if(d<14&&(G.lie==='fairway'||G.lie==='tee'))return PUTTER;
   if(teeDriver())return 0;
   if(G.lie==='sand'){for(let i=PUTTER-1;i>=CI('5I');i--){const c=CLUBS[i];if(clubCarry(c)*lieMul(c,G.lie)>=d*.97)return i;}return CI('5I');}
-  const lo=driverOK()?0:1;for(let i=PUTTER-1;i>=lo;i--){const c=CLUBS[i];if(clubCarry(c)*lieMul(c,G.lie)>=d*.97&&lieErr(c,G.lie)<2.4)return i;}
+  const lo=driverOK()?0:1;for(let i=PUTTER-1;i>=lo;i--){const c=CLUBS[i];if(clubCarry(c)*lieMul(c,G.lie)>=d*(G.lie==='fescue'?.93:.97)&&lieErr(c,G.lie)<2.4)return i;}   // from fescue a straighter club a few yards short beats a wild one
   if(G.lie==='rough'||G.lie==='fescue'){let bi=lo,bs=-1;for(let i=lo;i<PUTTER;i++){const c=CLUBS[i],sc=clubCarry(c)*lieMul(c,G.lie)/(1+(lieErr(c,G.lie)-1)*.5);if(sc>bs){bs=sc;bi=i;}}return bi;}
   return lo;
 }
@@ -2394,13 +2403,18 @@ function strikeShot(power,e){
   let mis=null;if(isShort()&&!miss&&G.missBy>0){const amp=({chip:BLADE.chipAmp,flop:1.5,pitch:.85,spin:1.6,pick:1.5,splash:1,blast:.8}[G.stype]??1)*(cmod().mis??1);
     const bs=clamp((.14+G.missBy*9)*amp,.14,.9);
     mis=e>0?{k:'chunk',c:1-clamp((.1+G.missBy*10)*amp,.1,.75),a:.75,r:.5}:{k:'blade',c:1+bs,a:.3,r:G.stype==='chip'?BLADE.chipR:2.2,rel:(BLADE.rel[G.stype]??0)*bs/.9};}
-  const carry=(mis?mis.c:1)*Math.max(isShort()&&G.swMax?.5:2,(isShort()&&G.swMax?G.swMax:clubCarry(club)*lm*ST.c)*power*M.carry*(perfTee?(cmod().perf??1.03):1)*(1-(HARSH?Math.min(.32,G.missBy*3.6*(cmod().misFull??1)):Math.min(.16,G.missBy*1.6))));
+  const sgl=isShort()&&!miss?SG_LIE[lie]:null;let sgv=1,sgChunk=false;
+  if(sgl){sgv=1+(Math.random()*2-1)*sgl.v*(G.stype==='flop'?.7:1);
+    if(sgl.chunk&&!mis&&Math.random()<sgl.chunk){sgChunk=true;sgv*=.62+Math.random()*.16;if(!G.aiTurn)setTimeout(()=>toast('GRABBED!','The fescue caught the club','#ffb46a'),300);}}
+  const flyer=!isShort()&&G.stype!=='punch'&&FLYER[lie]?FLYER[lie][clubGroup(club)]:1;
+  const carry=sgv*(mis?mis.c:1)*Math.max(isShort()&&G.swMax?.5:2,(isShort()&&G.swMax?G.swMax:clubCarry(club)*lm*ST.c)*power*M.carry*(perfTee?(cmod().perf??1.03):1)*(1-(HARSH?Math.min(.32,G.missBy*3.6*(cmod().misFull??1)):Math.min(.16,G.missBy*1.6))));
   const[dx,dy]=dirOf(G.aim),px=-dy,py=dx;
   const lat=-e*1.8*em*carry*cmod().err(club)+M.curve*cmod().curve*carry;
   const w=dirOf(G.wind.a),wk=G.wind.mph*.85*(carry/200)*club.loft*ST.w*M.wind*cmod().wind;
   const thin=HARSH?Math.min(1,G.missBy/.06):0;const apex=shotApex(club,carry)*M.apex*(1-.3*thin)*(mis?mis.a:1);
   const usedPower=G.pshot;if(G.pshot){G.psLeft=Math.max(0,G.psLeft-1);G.pshot=false;}
-  G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll*(1+.7*thin)*(mis?mis.r:1)*perfBite,rel:mis&&mis.rel||0,back:mis&&mis.k==='blade'?0:M.back*cmod().spin*(1-.8*thin)};
+  G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll*(1+.7*thin)*(mis?mis.r:1)*(flyer>1?1-(1-perfBite)*.5:perfBite)*flyer*(sgl?(G.stype==='chip'?sgl.chip:sgl.r):1)*(sgChunk?.5:1),rel:mis&&mis.rel||0,back:mis&&mis.k==='blade'?0:M.back*cmod().spin*(1-.8*thin)*(sgl?sgl.back:1),
+    fly:flyer>1,full:isShort()?0:clubCarry(club)*lm*ST.c*M.carry};
   // a pure approach that comes down close: he twirls the club as it drops from the finish (r3golfer.js)
   {const q=flightPos(G.flight,1),p=G.hole.pin;G.twirl=perfect===2&&!isShort()&&!(perfTee&&onTeeBox()&&G.hole.par>=4)&&hyp(q[0]-p[0],q[1]-p[1])<=R3B_TWIRL_YD;}
   // perfect contact lights the ball up: red flames at full power, blue otherwise
@@ -2444,6 +2458,15 @@ function stepFlight(dt){
   if((u>.5&&Y<=gnd+.03)||u>2.4)land(u);
 }
 function travelDir(f,u){const s=flightS(u),tx=f.dx*f.carry+2*s*(f.px*f.lat+f.wx),ty=f.dy*f.carry+2*s*(f.py*f.lat+f.wy);const l=hyp(tx,ty)||1;return[tx/l,ty/l];}
+/* v100 full-shot roll-out: club roll x the surface (greens hold irons far better than woods), soft swings judged nearer the
+   full swing, a helping wind lands it flatter and hotter (into the wind steeper and softer), and a ball dropping well
+   below where it was hit comes in steeper and stops sooner (an uphill approach lands flatter and runs) */
+function fullRoll(f,L,tx,ty){const c=f.club,ST=SHOTS[f.stype||'full'];
+  const Ce=f.full?f.carry+Math.max(0,f.full-f.carry)*(PART_K[c.kind]??0):f.carry;
+  const surf=L==='green'?(GREEN_HOLD[c.id]??.5):(SURF[L]||1);
+  const w=dirOf(G.wind.a),along=G.wind.mph*(w[0]*tx+w[1]*ty),wind=clamp(1+.014*along,.75,1.35);
+  const drop=(f.y0??0)-hAt(G.ball.x,G.ball.y),fall=clamp(1-.012*drop,.8,1.2);
+  return Ce*c.roll*ST.r*surf*(f.rollMul??1)*wind*fall;}
 function land(u){
   const f=G.flight;G.flight=null;G.shotInfo={carry:hyp(G.ball.x-f.sx,G.ball.y-f.sy),peak:f.apex,sx:f.sx,sy:f.sy};
   const L=lieAt(G.ball.x,G.ball.y);
@@ -2451,10 +2474,10 @@ function land(u){
   const p=G.hole.pin;if(hyp(G.ball.x-p[0],G.ball.y-p[1])<.35){holed('Slam dunk');return;}
   const[tx,ty]=travelDir(f,u);
   const ST=SHOTS[f.stype||'full'];
-  let R=SHORT_T[f.stype]?f.carry*shortRoll(f.club,f.stype,L)*(f.rollMul??1):(f.stype==='punch'?f.carry*.22:f.carry*f.club.roll*ST.r)*(SURF[L]||1)*(f.rollMul??1);
+  let R=SHORT_T[f.stype]?f.carry*shortRoll(f.club,f.stype,L)*(f.rollMul??1):f.stype==='punch'?f.carry*.22*(SURF[L]||1)*(f.rollMul??1):fullRoll(f,L,tx,ty);
   if(f.rel)R+=f.carry*f.rel*(SURF[L]||1);   // a thinned spinner / flop / pitch has no spin on it: it lands running
   // wedges into the green check up; with backspin selected they zip back
-  const spinBack=L==='green'&&((f.back>0)||(f.club.loft>=1.15&&f.stype==='full'&&f.carry>45));
+  const spinBack=L==='green'&&((f.back>0)||(f.club.loft>=1.15&&f.stype==='full'&&f.carry>45&&!f.fly));
   if(spinBack)R=f.back>0?-Math.min(3.5,f.carry*.03)*f.back:Math.min(R,f.carry*.012);
   const mu=SHORT_T[f.stype]?MU.green:(MU[L]||MU.fairway);
   // bounce and roll use the original landing model (independent of the longer hang time)
@@ -5960,6 +5983,13 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:'2026-10-07-rollout',date:'Oct 7, 2026',title:'Roll-out and rough rework',items:[
+    'Greens hold irons better: a hybrid now runs about 9 yards on the green instead of 15, a 5 iron 6, a 7 iron 4. Woods still release (a 3 wood about 17).',
+    'A softer swing with a wood no longer stops short: a three-quarter 3 wood runs out about as much as a full one.',
+    'Wind and elevation matter after landing: downwind shots release more and into the wind they stop sooner; approaches to a green well below you land steeper and stop quicker, and uphill greens let it run.',
+    'Flyers: full shots out of the rough come off with little spin and run out, most with short irons and wedges (no more check-up). Out of fescue even more.',
+    'Chips, pitches and flops from the rough or fescue now vary in distance and release more. Fescue can grab the club and leave it short.',
+    'Fescue is a little kinder: the hybrid and irons get more out of it, and the club pick favours a straighter club a few yards short over a wild one.']},
   {id:'2026-10-07-perfect',date:'Oct 7, 2026',title:'Perfect strikes by club',items:[
     'A perfect strike with any wood (driver, 3 wood or 5 wood) now adds +3% carry everywhere: off any tee, from the fairway or out of the rough. It used to be only off the tee on par 4s and 5s.',
     'A perfect strike with an iron, hybrid or wedge keeps the distance you dialled in and comes off with extra spin, so it rolls out less on the green.']},
