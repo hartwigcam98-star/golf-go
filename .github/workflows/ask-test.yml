@@ -1,0 +1,18 @@
+name: Ask test
+# Asks the live Ask function a few questions and shows the answers as notices. Run from the Actions tab or via dispatch.
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ask
+        run: |
+          K=$(grep -o "key:'eyJ[^']*'" index.html | head -1 | cut -d"'" -f2)
+          ask(){ R=$(curl -sS --max-time 60 -X POST https://rgzpfjstfgygqdfmiqdh.supabase.co/functions/v1/ask -H "apikey: $K" -H "Authorization: Bearer $K" -H "Content-Type: application/json" -d "$(jq -nc --arg q "$1" '{q:$q,pid:"ci-test"}')");
+            echo "::notice title=Q: $1::$(echo "$R" | jq -r '.a // .error // .' | tr '\n' ' ')"; }
+          ask "Why did my wedge from the rough roll off the green?"
+          ask "Does the game adjust my yardage for wind?"
+          ask "Which driver should I use on a tight course with lots of trees?"
+          ask "Can you write me a poem about pizza?"
