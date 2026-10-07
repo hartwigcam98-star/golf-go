@@ -8,16 +8,16 @@ if not KEY.startswith('sb_'): hdr['Authorization'] = 'Bearer ' + KEY
 out = 'fb'; os.makedirs(out, exist_ok=True)
 subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'feedback', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY')}", 'prev'], check=False)
 if os.path.isdir('prev'): subprocess.run('cp -rn prev/. fb/; rm -rf fb/.git', shell=True)
-rows, off = [], 0
+rows, off, status = [], 0, 'ok'
 while True:
     req = urllib.request.Request(f'{URL}/rest/v1/feedback?select=*&order=id.desc&limit=200&offset={off}', headers=hdr)
     try: batch = json.load(urllib.request.urlopen(req, timeout=60))
-    except Exception as e: print('fetch failed', e); batch = None
+    except Exception as e: print('fetch failed', e); status = f'fetch failed: {e}'; batch = None
     if not batch: break
     rows += batch; off += len(batch)
     if len(batch) < 200: break
 print(len(rows), 'notes')
-lines = ['# Golf Go feedback', '', f'Pulled {time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())}: {len(rows)} notes, newest first.', '']
+lines = ['# Golf Go feedback', '', f'Pulled {time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())}: {len(rows)} notes, newest first. Database: {status}.', '']
 for r in rows:
     d = f"{out}/{r['id']:05d}"; os.makedirs(d, exist_ok=True)
     shot = r.pop('shot', None)
