@@ -349,6 +349,23 @@ td.won{background:rgba(255,201,60,.38)}
 .legend{font-size:12px;color:var(--muted);margin-bottom:14px}
 @media (prefers-reduced-motion:reduce){#toast.show{animation-duration:1.8s;animation-timing-function:linear}.card{animation:none}}
 </style>
+<style>/* What's New: update history + one-time card after an update */
+#menuBtn{position:relative}
+#menuBtn.hasnew::after,#mNews.hasnew::after{content:"";position:absolute;width:10px;height:10px;border-radius:50%;background:#ff5a4e;box-shadow:0 0 0 2px #fff6dc}
+#menuBtn.hasnew::after{top:-3px;right:-3px}
+#mNews{position:relative;display:block;margin:2px auto 6px}
+#mNews.hasnew::after{top:6px;right:-2px}
+.newscard h2{margin:0 0 4px;font-size:28px;color:#12283b;text-align:center}
+.newscard .nsub{font-size:14px;color:#51606b;text-align:center;margin:0 0 14px}
+.newslist{display:flex;flex-direction:column;gap:12px;max-height:55dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.newsitem{background:rgba(18,40,59,.06);border-radius:14px;padding:12px 14px}
+.newsitem.fresh{background:rgba(255,184,0,.18);box-shadow:inset 0 0 0 2px rgba(214,140,0,.55)}
+.newsitem .nd{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6d7f8c}
+.newsitem .nt{font-size:20px;color:#12283b;margin:2px 0 4px}
+.newsitem ul{margin:0;padding-left:18px;font-size:15px;line-height:1.35;color:#24384a}
+.newsitem li+li{margin-top:4px}
+#newsM .primary{margin-top:14px}
+</style>
 
 <div id="game">
   <canvas id="sky"></canvas>
@@ -626,9 +643,18 @@ td.won{background:rgba(255,201,60,.38)}
         <button class="primary disp careerbtn" id="mMatchCont" hidden>Continue match</button>
         <div class="msub" id="mMatchSub" hidden></div>
       </div>
+      <button class="textbtn" id="mNews">What’s new</button>
       <div class="gfxrow"><span>Graphics</span><div class="trajseg gfxseg" id="gfxSeg" role="group" aria-label="Graphics quality"><button data-g="high">High</button><button data-g="fast">Fast</button></div></div>
       <button class="textbtn" id="mClose" hidden>Back to the game</button>
       <p class="fine">Your round saves on this device after every shot. Unofficial re-creation (course and surroundings © OpenStreetMap contributors; elevation: USGS 3DEP; driver sound: Mixkit); not affiliated with any of the clubs.</p>
+    </div>
+  </div>
+  <div class="modal" id="newsM" hidden>
+    <div class="card newscard" role="dialog" aria-labelledby="newsTitle">
+      <h2 class="disp" id="newsTitle">What’s new</h2>
+      <div class="nsub" id="newsSub">Every update to Golf Go, newest first.</div>
+      <div class="newslist" id="newsList"></div>
+      <button class="primary disp" id="newsOk">Got it</button>
     </div>
   </div>
 </div>
@@ -5768,6 +5794,38 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 })();
 </script>
 
+<script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
+(()=>{
+const UPDATES=[
+  {id:'2026-10-07b',date:'Oct 7, 2026',title:'Update history',items:[
+    'Added this “What’s new” list to the menu, so you can see what changed in every update.',
+    'After an update, this card pops up once the next time you open the game. A red dot on the menu means there’s something you haven’t read.']},
+  {id:'2026-10-07a',date:'Oct 7, 2026',title:'Green read view',items:[
+    'Near the green (on it, or within 45 yards of the pin), tapping Look flies to a steep, almost top-down view of the stretch from your ball to the hole.',
+    'Your ball sits at the bottom and the hole at the top, so the slope grid reads like a map: arrows run downhill, red where it’s steep.',
+    'The slope key now sits above the camera button instead of behind it.']}
+];
+const KEY='golf-news-seen',$=id=>document.getElementById(id);
+const get=()=>{try{return localStorage.getItem(KEY)||'';}catch(e){return '';}};
+const set=v=>{try{localStorage.setItem(KEY,v);}catch(e){}};
+const latest=UPDATES[0].id;
+const esc=t=>t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]);
+function render(onlyNew){const seen=get(),idx=UPDATES.findIndex(u=>u.id===seen);
+  const unread=idx<0?UPDATES.length:idx,list=onlyNew?UPDATES.slice(0,Math.max(1,unread)):UPDATES;
+  $('newsTitle').textContent=onlyNew?'New in this update':'What’s new';
+  $('newsSub').textContent=onlyNew?'Here’s what changed since you last played.':'Every update to Golf Go, newest first.';
+  $('newsList').innerHTML=list.map((u,i)=>'<div class="newsitem'+(i<unread?' fresh':'')+'"><div class="nd">'+esc(u.date)+(i<unread?' · New':'')+'</div><div class="nt disp">'+esc(u.title)+'</div><ul>'+u.items.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul></div>').join('');
+  $('newsList').scrollTop=0;}
+function dots(){const on=get()!==latest;$('menuBtn').classList.toggle('hasnew',on);$('mNews').classList.toggle('hasnew',on);}
+function open(onlyNew){render(onlyNew);$('newsM').hidden=false;}
+function close(){$('newsM').hidden=true;set(latest);dots();}
+$('mNews').addEventListener('click',()=>open(false));
+$('newsOk').addEventListener('click',close);
+$('newsM').addEventListener('click',e=>{if(e.target===$('newsM'))close();});
+dots();
+if(get()!==latest)setTimeout(()=>open(true),1200);
+})();
+</script>
 <script>if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});</script>
 </body>
 </html>
