@@ -811,7 +811,7 @@ const MU_REST=.45,MU_REST_FW=.65,muRoll=(L,sp)=>{const m=MU[L]||MU.fairway;retur
 const SURF={green:.9,fairway:1.08,tee:1.08,cut:.8,rough:.35,sand:.05,fescue:.15};
 /* v100 roll-out: how well a green holds a full shot, by club (rolls on a green vs the fairway). Low-spin woods still release,
    hybrids and irons check up: a 3 wood runs about 17 yd on, a hybrid 9, a 5 iron 6, a 7 iron 4 (good-amateur numbers) */
-const GREEN_HOLD={'1W':.76,'3W':.67,'5W':.64,'4H':.53,'5I':.47,'6I':.48,'7I':.5,'8I':.5,'9I':.5,'PW':.5,'GW':.5,'SW':.5,'LW':.5};
+const GREEN_HOLD={'1W':.8,'3W':.74,'5W':.73,'4H':.64,'5I':.62,'6I':.65,'7I':.72,'8I':.74,'9I':.8,'PW':.8,'GW':.8,'SW':.8,'LW':.8};   // v106: eased from v100 (greens were too sticky)
 // a softer swing still lands shallow with little spin: roll is figured from a carry between this shot's and the full swing's
 const PART_K={wood:.8,hybrid:.5,iron:.35,wedge:0};
 // out of the rough the grass gets between club and ball: no spin, so it lands running (a flyer). Woods spin little anyway
@@ -2514,7 +2514,7 @@ function land(u){
   if(f.rel)R+=f.carry*f.rel*(SURF[L]||1);   // a thinned spinner / flop / pitch has no spin on it: it lands running
   // wedges into the green check up; with backspin selected they zip back
   const spinBack=L==='green'&&((f.back>0)||(f.club.loft>=1.15&&f.stype==='full'&&f.carry>45&&!f.fly));
-  if(spinBack)R=f.back>0?-Math.min(3.5,f.carry*.03)*f.back:Math.min(R,f.carry*.012);
+  if(spinBack)R=f.back>0?-Math.min(3.5,f.carry*.03)*f.back:Math.min(R,f.carry*(f.club.loft>=1.25?.012:f.club.loft>=1.19?.018:.024));   // full wedges still check, a PW releases a couple of yards
   const mu=SHORT_T[f.stype]?MU.green:(MU[L]||MU.fairway);
   // bounce and roll use the original landing model (independent of the longer hang time)
   const Tb=Math.max(.8+f.carry/140,.55+Math.sqrt(f.apex)*.28);
@@ -3479,7 +3479,7 @@ function aiPlan(){const r=MATCH.r,sk=r.sk,b=G.ball;
   if(curClub().putter)plan=aiPuttPlan(sk);
   else{const t=aimTarget(),toPin=t===G.hole.pin,w=dirOf(G.wind.a);
     const est=()=>{const c=curClub(),ST=SHOTS[G.stype],M=shotMods(),landL=lieAt(t[0],t[1]);
-      const rf=SHORT_T[G.stype]?shortRoll(c,G.stype,landL):(c.loft>=1.15&&G.stype==='full'&&landL==='green')?.012:c.roll*ST.r*(landL==='green'?(GREEN_HOLD[tidOf(c)]??.5):(SURF[landL]||1));
+      const rf=SHORT_T[G.stype]?shortRoll(c,G.stype,landL):(c.loft>=1.15&&G.stype==='full'&&landL==='green')?.02:c.roll*ST.r*(landL==='green'?(GREEN_HOLD[tidOf(c)]??.5):(SURF[landL]||1));
       return{c,ST,M,rf,max:clubCarry(c)*lieMul(c,G.lie)*ST.c*M.carry};};
     let tx=t[0],ty=t[1],E=est();
     const want=()=>{const d=hyp(tx-b.x,ty-b.y)+clamp(hAt(t[0],t[1])-hAt(b.x,b.y),-25,25)*.9;return toPin?d/(1+E.rf):Math.min(E.max,d/(1+E.rf));};
@@ -6143,6 +6143,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:'2026-10-07-greens',date:'Oct 7, 2026',title:'Greens a little firmer',items:[
+    'Approach shots release more after they land: about 2 yards more with mid irons and hybrids (a 7 iron runs out about 6 yards, a 5 iron 8), and a full pitching wedge now releases 2\u20133 yards instead of stopping dead. Woods run out a touch more too. Perfect strikes still bite harder than normal ones.']},
   {id:'2026-10-07-flagchip',date:'Oct 7, 2026',title:'Flagstick button moved',items:[
     'The flag in / flag out button now sits as a small chip at the top right, under the menu, instead of next to your putter. Tap it to pull or replace the flag.']},
   {id:'2026-10-07-slopekey',date:'Oct 7, 2026',title:'Cleaner putting view',items:[
