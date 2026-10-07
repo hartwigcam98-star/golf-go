@@ -7,9 +7,11 @@ import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
 JOB = {"name": "sc midlands", "search": [33.40, -81.00, 33.66, -80.10],
-       "want": {"santee": r"santee national", "wyboo": r"wyboo|players course", "orangeburg": r"orangeburg"},
+       "want": {"santee": r"^santee national$", "wyboo": r"wyboo|players course", "orangeburg": r"orangeburg"},
        "holes": {"santee": r"santee", "wyboo": r"wyboo", "orangeburg": r"orangeburg"},
-       "steps": {"santee": "all", "wyboo": "all", "orangeburg": "all"}}
+       # Santee National's outline has no name in OpenStreetMap (way/573216038, next to Santee Cooper CC)
+       "ids": {"santee": "way/573216038"},
+       "steps": {"santee": "all"}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -240,7 +242,7 @@ def main():
     import subprocess   # keep the earlier courses' files on the results branch
     try:
         subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_grandview.json; [ -f out/run.log ] && mv out/run.log out/run_prev_grandview.log; true', shell=True)
+        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_sc1.json; [ -f out/run.log ] && mv out/run.log out/run_prev_sc1.log; true', shell=True)
     except Exception as e: SUM['errors'].append(f'keep old: {e}')
     try: res = discover()
     except Exception as e: err('discover', e); return
