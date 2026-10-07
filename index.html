@@ -386,6 +386,20 @@ td.won{background:rgba(255,201,60,.38)}
 #menuBtn.hasnew::after{top:-3px;right:-3px}
 #mNews{position:relative;display:block;margin:2px auto 6px}
 #mNews.hasnew::after{top:6px;right:-2px}
+#faqM{z-index:25}
+.faqcard{max-height:88vh;overflow:auto}
+.faqask{background:rgba(18,40,59,.06);border-radius:14px;padding:10px;margin:0 0 12px}
+.faqask textarea{width:100%;box-sizing:border-box;min-height:64px;border-radius:10px;border:1.5px solid rgba(18,40,59,.3);padding:8px 10px;font:inherit;font-size:15px;color:#12283b;background:#fffdf6;resize:vertical}
+.faqask .primary{margin-top:8px}
+#faqA{font-size:15px;line-height:1.4;color:#12283b;margin-top:8px}
+#faqA .qa{background:#fffdf6;border-radius:10px;padding:8px 10px;margin-top:8px;border:1px solid rgba(18,40,59,.15)}
+#faqA .qa b{display:block;font-size:13px;opacity:.7;margin-bottom:3px}
+#faqA .wait{opacity:.7;font-style:italic}#faqA .err{color:#b0362a;font-weight:700}
+.faqlist details{border-top:1px solid rgba(18,40,59,.14);padding:9px 2px}
+.faqlist summary{font-weight:800;font-size:15px;color:#12283b;cursor:pointer;list-style:none}
+.faqlist summary::-webkit-details-marker{display:none}
+.faqlist summary::before{content:"+ ";color:#c0542f}.faqlist details[open] summary::before{content:"\2212  "}
+.faqlist p{margin:6px 0 2px;font-size:14.5px;line-height:1.4;color:#24323d}
 .newscard h2{margin:0 0 4px;font-size:28px;color:#12283b;text-align:center}
 .newscard .nsub{font-size:14px;color:#51606b;text-align:center;margin:0 0 14px}
 .newslist{display:flex;flex-direction:column;gap:12px;max-height:55dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -676,6 +690,7 @@ td.won{background:rgba(255,201,60,.38)}
         <div class="msub" id="mMatchSub" hidden></div>
       </div>
       <button class="textbtn" id="mNews">What’s new</button>
+      <button class="textbtn" id="mFaq">Help &amp; FAQ</button>
       <div class="gfxrow"><span>Graphics</span><div class="trajseg gfxseg" id="gfxSeg" role="group" aria-label="Graphics quality"><button data-g="high">High</button><button data-g="fast">Fast</button></div></div>
       <button class="textbtn" id="mClose" hidden>Back to the game</button>
       <p class="fine">Your round saves on this device after every shot. Unofficial re-creation (course and surroundings © OpenStreetMap contributors; elevation: USGS 3DEP; driver sound: Mixkit); not affiliated with any of the clubs.</p>
@@ -689,6 +704,7 @@ td.won{background:rgba(255,201,60,.38)}
         <button class="primary disp" id="pResume">Resume</button>
         <div class="pset"><span>Sound</span><div class="pseg" id="pSound"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
         <div class="pset"><span>Graphics</span><div class="pseg" id="pGfx"><button data-g="high">High</button><button data-g="fast">Fast</button></div></div>
+        <button class="ghost disp" id="pFaq">Help &amp; FAQ</button>
         <button class="ghost disp" id="pFb">Send feedback</button>
         <button class="ghost disp" id="pQuit">Quit to home</button>
         <div class="msub" id="pQuitSub">Your round is saved. Continue it any time from the menu.</div>
@@ -706,6 +722,19 @@ td.won{background:rgba(255,201,60,.38)}
     </div>
   </div>
 
+  <div class="modal" id="faqM" hidden>
+    <div class="card newscard faqcard" role="dialog" aria-labelledby="faqTitle">
+      <h2 class="disp" id="faqTitle">Help &amp; FAQ</h2>
+      <div class="nsub">Ask anything about the game, or tap a question below.</div>
+      <div class="faqask">
+        <textarea id="faqQ" maxlength="400" placeholder="e.g. Why did my wedge roll off the green?"></textarea>
+        <button class="primary disp" id="faqGo">Ask</button>
+        <div id="faqA" role="status" aria-live="polite"></div>
+      </div>
+      <div class="faqlist" id="faqList"></div>
+      <button class="primary disp" id="faqClose">Done</button>
+    </div>
+  </div>
   <div class="modal" id="newsM" hidden>
     <div class="card newscard" role="dialog" aria-labelledby="newsTitle">
       <h2 class="disp" id="newsTitle">What’s new</h2>
@@ -3066,6 +3095,47 @@ async function sendFeedback(){const msg=$('fbText').value.trim(),st=$('fbStatus'
   $('fbSend').disabled=false;}
 $('pResume').addEventListener('click',()=>{A();closePause();});
 $('pQuit').addEventListener('click',()=>{A();$('pauseM').hidden=true;openMenu(true);});
+
+/* ---------- v107 Help & FAQ: written answers, plus "Ask" (Claude via the Supabase function; queued as feedback until that's switched on) ---------- */
+const FAQ=[
+ ['How do I hit a perfect shot?','Tap Swing, tap again to set the power, then tap as the bar crosses the Impact line on the way back. Dead centre is a Perfect strike (flames on the ball), close is a Nice shot. Woods get +3% carry on a perfect strike; irons, hybrids and wedges keep your distance and bite more on the green. The window is smaller from the rough, bunkers and fescue, and on power shots.'],
+ ['Why doesn’t the yardage change with the wind?','On purpose: every number on screen (meter, landing ring, pin yardage) is the calm-air distance. Read the wind arrow and allow for it yourself: club up into the wind, down with it, and aim off for a crosswind. High shots feel the wind more, low shots less.'],
+ ['What do the first cut, rough and fescue do?','The first cut is the darker 2½-yard band round every fairway: just 1–3% less carry and slightly wider misses. Rough costs more (woods carry about 80%, wedges about 92%), misses are wider, and the ball comes out with little spin, so it runs out on landing (a flyer). Fescue, the long golden grass, is heavy: about 40–45% with woods, 63–74% with irons. The meter already allows for the lost carry.'],
+ ['Why did my approach run through the green?','Usually one of these: it came out of the rough (a flyer has little spin and releases), the wind was behind you, you hit it lower (Low height or topspin), the green was below you or sloping away, or your ball or irons roll out more (Distance or Low-spin ball, Cavity backs). Land it short and let it run.'],
+ ['How far do approach shots roll on the green?','For a normal full swing: 3 wood about 19 yards, 5 wood 16, 4 hybrid 11, 5 iron 8, 7 iron 6, 9 iron 4, pitching wedge about 3, sand wedge about 1. Perfect strikes with irons roll about 15% less. That’s roughly a normal tour week; real major-championship greens are firmer.'],
+ ['What do the bag models do? Are they fair?','Each slot (woods, irons, wedges, putter, ball) has Standard plus models that trade a strength for a weakness, e.g. the Bomber driver flies 5% further but strays 10% wider. They were tested in hundreds of simulated rounds to be roughly even overall, but some suit some courses: a Bomber helps on open courses and hurts in the trees. Pick them on the Golfers screen.'],
+ ['Can I change the clubs in my bag?','Yes, on the Golfers screen under Clubs & yardages. Slots marked ⇄ can swap: 4 wood or mini driver for the 3 wood, 7 wood or 3 hybrid for the 5 wood, a 3 or 5 hybrid, 4 iron or driving iron for the 4 hybrid, a 5 hybrid for the 5 iron, and 52°, 54°, 58° or 64° wedges. The table shows each club’s carry and the gaps.'],
+ ['What’s a power shot?','The lightning button: +10% distance, but the timing at impact is faster and harder. You get 3 per round.'],
+ ['What do strike point and shot height do?','Strike point (the ball icon): hit the top for topspin (lower, more roll), the bottom for backspin (stops quicker; wedges can spin back), left or right to draw or fade. Shot height: High lands softer and stops quicker but the wind moves it more; Low stays under the wind and runs.'],
+ ['How do I read a putt?','The grid lines on the green show the slope: red is steep, green is gentle, and the glow runs downhill. Aim above the hole on a side slope and hit uphill putts firmer. The flag on the putting meter marks the hole’s distance.'],
+ ['Flag in or flag out?','Inside 15 feet the flag comes out automatically. Tap the small Flag chip at the top right to change it. With the flag in, a firm putt that hits it is more likely to drop.'],
+ ['How does the daily round work?','Everyone plays the same course, pins, wind and weather that day, and you get one official round for the leaderboard. The course order is shuffled and future days are a surprise.'],
+ ['What’s the difference between Challenge and Challenge V2?','Challenge is 18-hole match play up a ladder of rivals, earning points for gear upgrades and outfits. In V2 you start as the weakest golfer and unlock each golfer by beating them on their home course.'],
+ ['Does my golfer matter?','Yes. Each golfer has Power, Control, Impact (timing window), Short game, Putting and Spin rated 1–10, plus a trait. They count in the daily round, full rounds and single holes.'],
+ ['How do I report a bug or suggest something?','Open the menu during a round to pause, then Send feedback. You can attach a screenshot of where you are. Every note gets read.']];
+const FAQX={hist:[]};
+function renderFaq(){const L=$('faqList');if(L.dataset.done)return;L.dataset.done=1;const esc=t=>t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  L.innerHTML=FAQ.map(([q,a])=>'<details><summary>'+esc(q)+'</summary><p>'+esc(a)+'</p></details>').join('');}
+function openFaq(){renderFaq();$('faqM').hidden=false;sfx.tick();}
+function faqShow(){const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  $('faqA').innerHTML=FAQX.hist.slice().reverse().map(h=>'<div class="qa"><b>'+esc(h.q)+'</b>'+(h.wait?'<span class="wait">Thinking…</span>':h.err?'<span class="err">'+esc(h.err)+'</span>':esc(h.a).replace(/\n/g,'<br>'))+'</div>').join('');}
+async function faqAsk(){const q=$('faqQ').value.trim();if(q.length<3){$('faqQ').focus();return;}
+  const h={q,wait:true};FAQX.hist.push(h);faqShow();$('faqQ').value='';$('faqGo').disabled=true;
+  const ctx=G.hole&&CUR&&inRound()?(CUR.name+' hole '+(G.hi+1)+(G.lie?', ball in the '+G.lie:'')):'';
+  const queue=async()=>{try{const r=await fetch(DAILY.url+'/rest/v1/feedback',{method:'POST',headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),
+      body:JSON.stringify({player_id:dailyPid(),name:dailyName()||'',kind:'other',message:('[Question] '+q).slice(0,2000),ctx:{faq:true,where:ctx,ver:window.GOLF_VER||''}})});
+      h.a=r.ok?'Thanks! Instant answers aren’t switched on yet, so your question has been saved. The answer will be added to this FAQ soon.':'';if(!r.ok)h.err='Couldn’t send it just now. Try again in a bit.';}
+    catch(e){h.err='Couldn’t send it. Check your connection and try again.';}};
+  try{const r=await fetch(DAILY.url+'/functions/v1/ask',{method:'POST',headers:dailyHdr({'Content-Type':'application/json'}),body:JSON.stringify({q,pid:dailyPid(),ver:window.GOLF_VER||'',ctx})});
+    let d={};try{d=await r.json();}catch(e){}
+    if(r.ok&&d.a)h.a=d.a;else if(d.queue||r.status===404||r.status>=500)await queue();else h.err=d.error||('Couldn’t get an answer (error '+r.status+').');}
+  catch(e){await queue();}
+  h.wait=false;faqShow();$('faqGo').disabled=false;}
+$('mFaq').addEventListener('click',()=>{A();openFaq();});
+$('pFaq').addEventListener('click',()=>{A();openFaq();});
+$('faqClose').addEventListener('click',()=>{A();$('faqM').hidden=true;sfx.tick();});
+$('faqGo').addEventListener('click',()=>{A();faqAsk();});
+$('faqQ').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();faqAsk();}});
 $('pFb').addEventListener('click',()=>{A();openFeedback();});
 $('fbBack').addEventListener('click',()=>{A();$('pFbView').hidden=true;$('pMain').hidden=false;});
 $('fbSend').addEventListener('click',()=>{A();sendFeedback();});
@@ -6097,6 +6167,7 @@ $('replayBtn').addEventListener('click',()=>{A();if(G.state==='aim'&&G.canReplay
 $('cardReplay').addEventListener('click',()=>{A();startReplay(()=>{G.state='card';$('cardM').hidden=false;});});
 $('soundBtn').addEventListener('click',()=>{S.on=!S.on;$('soundWaves').style.opacity=S.on?1:.15;if(S.on){unlockAudio();setTimeout(()=>sfx.strike(1,1,'wood','tee'),60);}else if(S.tag)S.tag.pause();});
 window.addEventListener('keydown',e=>{
+  if(!$('faqM').hidden){if(e.key==='Escape'){e.preventDefault();$('faqM').hidden=true;}return;}
   if(!$('pauseM').hidden){if(e.key==='Escape'){e.preventDefault();if(!$('pFbView').hidden){$('pFbView').hidden=true;$('pMain').hidden=false;}else closePause();}return;}
   if(e.key==='Escape'&&!G.replay&&$('bagM').hidden&&inRound()&&$('introM').hidden&&$('cardM').hidden){e.preventDefault();openPause();return;}
   if(G.replay&&(e.code==='Space'||e.key==='Escape')){e.preventDefault();endReplay();return;}
@@ -6143,6 +6214,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:'2026-10-07-faq',date:'Oct 7, 2026',title:'Help & FAQ',items:[
+    'New Help & FAQ screen, from the home menu or the pause screen: answers on the swing, wind, the rough and first cut, roll-out on the greens, the bag, putting and the game modes.',
+    'Ask your own question at the top of the screen. Until instant answers are switched on, your question is saved and the answer gets added to the FAQ.']},
   {id:'2026-10-07-greens',date:'Oct 7, 2026',title:'Greens a little firmer',items:[
     'Approach shots release more after they land: about 2 yards more with mid irons and hybrids (a 7 iron runs out about 6 yards, a 5 iron 8), and a full pitching wedge now releases 2\u20133 yards instead of stopping dead. Woods run out a touch more too. Perfect strikes still bite harder than normal ones.']},
   {id:'2026-10-07-flagchip',date:'Oct 7, 2026',title:'Flagstick button moved',items:[
