@@ -6,13 +6,11 @@
 import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
-JOB = {"name": "sc midlands 3", "search": [33.40, -81.00, 33.66, -80.10],
-       "want": {"wyboo": r"^zzz$"},
-       "holes": {"wyboo": r"^zzz$"},
-       # Wyboo: no golf features in OpenStreetMap; greens traced from the photo, wider box than the OSM outline
-       "boxes": {"wyboo": [-80.2385, 33.5765, -80.2105, 33.6012]},
-       "greens": {"wyboo": [[-80.22122, 33.587229, -80.221003, 33.587568], [-80.218893, 33.589875, -80.218548, 33.590107], [-80.214239, 33.58909, -80.213963, 33.589263], [-80.216882, 33.592422, -80.216576, 33.592638], [-80.218144, 33.594325, -80.217878, 33.59449], [-80.220816, 33.597823, -80.22052, 33.598013], [-80.220698, 33.594225, -80.220353, 33.594473], [-80.223331, 33.592117, -80.222995, 33.592323], [-80.225372, 33.589106, -80.225184, 33.58933], [-80.231564, 33.589619, -80.231357, 33.589826], [-80.234887, 33.59076, -80.23467, 33.59105], [-80.234227, 33.595391, -80.233931, 33.595557], [-80.230953, 33.593183, -80.230637, 33.593382], [-80.227038, 33.591207, -80.226851, 33.591372], [-80.225766, 33.590479, -80.22547, 33.590653], [-80.222019, 33.590603, -80.221773, 33.590843], [-80.219978, 33.586973, -80.219702, 33.587213], [-80.21839, 33.586799, -80.218154, 33.586948]]},
-       "steps": {"wyboo": "points"}}
+JOB = {"name": "oxmoor valley", "search": [33.38, -86.95, 33.47, -86.84],
+       # RTJ Golf Trail at Oxmoor Valley, Birmingham AL: the Ridge, the Valley and the Short Course (next to Ross Bridge)
+       "want": {"oxmoor": r"oxmoor"},
+       "holes": {"oxmoor": r"ridge|valley|short|oxmoor"},
+       "steps": {"oxmoor": "all"}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -243,7 +241,7 @@ def main():
     import subprocess   # keep the earlier courses' files on the results branch
     try:
         subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_sc3.json; [ -f out/run.log ] && mv out/run.log out/run_prev_sc3.log; true', shell=True)
+        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_sc4.json; [ -f out/run.log ] && mv out/run.log out/run_prev_sc4.log; true', shell=True)
     except Exception as e: SUM['errors'].append(f'keep old: {e}')
     try: res = discover()
     except Exception as e: err('discover', e); return
