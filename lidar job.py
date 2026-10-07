@@ -1,18 +1,15 @@
-# Grand View Lodge, Nisswa / Pequot Lakes, Minnesota: The Pines (Lakes/Woods, the 18 in OpenStreetMap) and The Preserve.
-# Fetches everything the golf game needs for new courses, on GitHub Actions (workflow .github/workflows/fetch.yml).
-# Same sources as the other courses: OpenStreetMap (Overpass), USGS NED 10 m (opentopodata), NAIP aerial photos,
-# USGS 3DEP 1 m elevation, and the raw USGS lidar ground points around every green (AWS EPT archive), with the
-# WESM scan list per green (so we can tell whether the lidar predates the Lehman 18's 2023 rebuild).
-# Results are pushed to the "course-data" branch. Nothing on main or the live site is touched.
+# South Carolina midlands: Santee National (Santee), The Players Course at Wyboo (Manning, Lake Marion) and the
+# Country Club of Orangeburg. Fetches everything the golf game needs for new courses, on GitHub Actions
+# (workflow .github/workflows/fetch.yml). Same sources as the other courses: OpenStreetMap (Overpass), USGS NED 10 m
+# (opentopodata), NAIP aerial photos, USGS 3DEP 1 m elevation, and the raw USGS lidar ground points around every green
+# (AWS EPT archive), with the WESM scan list per green. Results go to the "course-data" branch; main is untouched.
 import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
-JOB = {"name": "grand view lodge", "search": [46.45, -94.40, 46.62, -94.22],
-       "want": {"pines": r"^the pines$", "preserve": r"^the preserve$"},
-       "holes": {"pines": r"$^", "preserve": r"$^"},
-       # the holes are unnamed in OSM; use their extent (the outlines are tight or partial) for all downloads
-       "boxes": {"pines": [-94.3304, 46.4979, -94.3076, 46.5120], "preserve": [-94.2892, 46.5611, -94.2753, 46.5737]},
-       "steps": {"pines": "all", "preserve": "all"}}
+JOB = {"name": "sc midlands", "search": [33.40, -81.00, 33.66, -80.10],
+       "want": {"santee": r"santee national", "wyboo": r"wyboo|players course", "orangeburg": r"orangeburg"},
+       "holes": {"santee": r"santee", "wyboo": r"wyboo", "orangeburg": r"orangeburg"},
+       "steps": {"santee": "all", "wyboo": "all", "orangeburg": "all"}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -243,7 +240,7 @@ def main():
     import subprocess   # keep the earlier courses' files on the results branch
     try:
         subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_brainerd.json; [ -f out/run.log ] && mv out/run.log out/run_prev_brainerd.log; true', shell=True)
+        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_grandview.json; [ -f out/run.log ] && mv out/run.log out/run_prev_grandview.log; true', shell=True)
     except Exception as e: SUM['errors'].append(f'keep old: {e}')
     try: res = discover()
     except Exception as e: err('discover', e); return
