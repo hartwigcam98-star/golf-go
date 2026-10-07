@@ -2083,7 +2083,9 @@ function simRollP(x,y,dx,dy,v,path){let vx=dx*v,vy=dy*v;const h=1/240,pts=path?[
 // where a short shot of this carry lands (flying over the real ground) and where it finishes
 /* v92: the wind's push per yard of carry, exactly as the shot itself applies it (so the meter's pin marker and the landing ring allow for it) */
 function windK(){const c=curClub();if(c.putter)return 0;return G.wind.mph*.85/200*c.loft*SHOTS[G.stype].w*shotMods().wind*cmod().wind;}
-function windAlong(aim){const w=dirOf(G.wind.a),d=dirOf(aim);return windK()*(w[0]*d[0]+w[1]*d[1]);}   // >0 helping, <0 into the wind
+/* v101: the player judges the wind themselves again: the meter yardages, the landing ring, the "plays X" yardage and the short-game
+   flag no longer allow for it (the ball still feels it). The rivals' planning keeps using it */
+function windAlong(aim){if(!G.aiTurn)return 0;const w=dirOf(G.wind.a),d=dirOf(aim);return windK()*(w[0]*d[0]+w[1]*d[1]);}   // >0 helping, <0 into the wind
 function shortFinish(carry,aim,path){const c=curClub(),[dx,dy]=dirOf(aim),b=G.ball,M=shotMods(),wv=[dx,dy],wk=carry*windAlong(aim);   // distance only
   const f={sx:b.x,sy:b.y,y0:hAt(b.x,b.y)+.03,dx,dy,px:-dy,py:dx,carry,lat:0,wx:wv[0]*wk,wy:wv[1]*wk,apex:shotApex(c,carry)*M.apex,club:c,stype:G.stype,rollMul:M.roll,back:M.back*cmod().spin};
   let lx=b.x+dx*carry,ly=b.y+dy*carry,u=.5;for(;u<2.4;u+=.01){const q=flightPos(f,u);lx=q[0];ly=q[1];if(q[2]<=hAt(q[0],q[1])+.03)break;}
@@ -2103,7 +2105,7 @@ function shortFinish(carry,aim,path){const c=curClub(),[dx,dy]=dirOf(aim),b=G.ba
   let rx,ry;if(rollV<0){rx=-tx;ry=-ty;}else{const l=hyp(hv.vx,hv.vz);if(l>.3){rx=hv.vx/l;ry=hv.vz/l;}else{rx=tx;ry=ty;}}
   const r=simRollP(x,y,rx,ry,Math.abs(rollV),path);if(pts&&r.pts)r.pts=pts.concat(r.pts);return{...r,lx,ly,L};}
 // the carry that finishes level with the cup along the aim line
-function shortPlan(){const b=G.ball,key=[G.clubIdx,G.stype,G.aim.toFixed(4),b.x.toFixed(2),b.y.toFixed(2),G.lie,G.swMax|0,G.imp.x,G.imp.y,G.traj,G.wind.a.toFixed(3),G.wind.mph].join('|');
+function shortPlan(){const b=G.ball,key=[G.clubIdx,G.stype,G.aim.toFixed(4),b.x.toFixed(2),b.y.toFixed(2),G.lie,G.swMax|0,G.imp.x,G.imp.y,G.traj,G.wind.a.toFixed(3),G.wind.mph,!!G.aiTurn].join('|');
   if(G.shortP&&G.shortP.key===key)return G.shortP;
   const p=G.hole.pin,[dx,dy]=dirOf(G.aim),want=(p[0]-b.x)*dx+(p[1]-b.y)*dy,mx=natMax()*shotMods().carry,along=q=>(q.x-b.x)*dx+(q.y-b.y)*dy;
   let lo=.5,hi=mx,over=false;if(along(shortFinish(hi,G.aim))<want){lo=hi;over=true;}
@@ -3359,7 +3361,7 @@ function aiPlan(){const r=MATCH.r,sk=r.sk,b=G.ball;
   if(curClub().putter)plan=aiPuttPlan(sk);
   else{const t=aimTarget(),toPin=t===G.hole.pin,w=dirOf(G.wind.a);
     const est=()=>{const c=curClub(),ST=SHOTS[G.stype],M=shotMods(),landL=lieAt(t[0],t[1]);
-      const rf=SHORT_T[G.stype]?shortRoll(c,G.stype,landL):(c.loft>=1.15&&G.stype==='full'&&landL==='green')?.012:c.roll*ST.r*(SURF[landL]||1);
+      const rf=SHORT_T[G.stype]?shortRoll(c,G.stype,landL):(c.loft>=1.15&&G.stype==='full'&&landL==='green')?.012:c.roll*ST.r*(landL==='green'?(GREEN_HOLD[c.id]??.5):(SURF[landL]||1));
       return{c,ST,M,rf,max:clubCarry(c)*lieMul(c,G.lie)*ST.c*M.carry};};
     let tx=t[0],ty=t[1],E=est();
     const want=()=>{const d=hyp(tx-b.x,ty-b.y)+clamp(hAt(t[0],t[1])-hAt(b.x,b.y),-25,25)*.9;return toPin?d/(1+E.rf):Math.min(E.max,d/(1+E.rf));};
@@ -5983,6 +5985,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:'2026-10-07-wind',date:'Oct 7, 2026',title:'Judge the wind yourself',items:[
+    'The game no longer adjusts distances for the wind. The meter yardages, the landing ring, the pin yardage ("plays X") and the short-game flag now show the calm-air number on every shot.',
+    'The wind still moves the ball just as before, so check the arrow and club up or down yourself.']},
   {id:'2026-10-07-rollout',date:'Oct 7, 2026',title:'Roll-out and rough rework',items:[
     'Greens hold irons better: a hybrid now runs about 9 yards on the green instead of 15, a 5 iron 6, a 7 iron 4. Woods still release (a 3 wood about 17).',
     'A softer swing with a wood no longer stops short: a three-quarter 3 wood runs out about as much as a full one.',
