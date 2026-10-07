@@ -2656,12 +2656,24 @@ const DAILY_ORDER3=['troy','crsc','quarry','mammoth','stoneridge','lido','wilder
 // From 2026-10-05 the daily course never resets: each day it's the course that has gone longest without being the daily
 // (never-played courses first, ties in DAILY_POOL order). Days before that keep their old lists.
 // To add a course: append [id, first day it may be picked (a future date)] so today's and past days' courses never change.
-const DAILY_N4=Math.round(Date.UTC(2026,9,5)/864e5),DAILY_POOL=[['orangeburg',20734],['santee',20735],['wyboo',20736],['crsc',0],['deacon',0],['quarry',0],['mammoth',0],['pines',0],['stoneridge',0],['lido',0],['maddens',0],['wilderness',0],['caledonia',0],['sedge',0],['preserve',0],['trueblue',0],['crls',0],['heritage',0],['lehman',0],['legend',0],['rossbridge',0],['legislator',0],['pawplant',0],['judge',0],['senator',0],['sandvalley',0],['troy',0]];
+const DAILY_N4=Math.round(Date.UTC(2026,9,5)/864e5),DAILY_POOL=[['orangeburg',20734],['santee',20734],['wyboo',20734],['crsc',0],['deacon',0],['quarry',0],['mammoth',0],['pines',0],['stoneridge',0],['lido',0],['maddens',0],['wilderness',0],['caledonia',0],['sedge',0],['preserve',0],['trueblue',0],['crls',0],['heritage',0],['lehman',0],['legend',0],['rossbridge',0],['legislator',0],['pawplant',0],['judge',0],['senator',0],['sandvalley',0],['troy',0]];
 // one-off swaps of a day's course (Oct 4 2026 was Troy again, two days after Troy; it became Cambrian Ridge Sherling)
 const DAILY_FIX={[Math.round(Date.UTC(2026,9,4)/864e5)]:'crsc'};
 function dailyCourseOld(n){if(DAILY_FIX[n])return DAILY_FIX[n];if(n>=DAILY_N3)return DAILY_ORDER3[(n-DAILY_N3)%DAILY_ORDER3.length];if(n>=DAILY_N2)return DAILY_ORDER2[(n-DAILY_N2)%DAILY_ORDER2.length];return DAILY.order[((n%DAILY.order.length)+DAILY.order.length)%DAILY.order.length];}
 const DAILY_LRU={last:null,list:[]};
-function dailyCourse(day){const n=dailyNum(day);if(n<DAILY_N4)return dailyCourseOld(n);const M=DAILY_LRU;
+/* v99 shuffled daily rotation (from 2026-10-08): each day draws at random (seeded by the date, so everyone gets the same
+   course) from the courses not yet played in the current cycle, skipping anything from the last 6 days; once every course
+   has had its day a new cycle starts. A course added later joins the current cycle from its first day; past days never change. */
+const DAILY_N5=Math.round(Date.UTC(2026,9,8)/864e5),DAILY_SH={list:[],used:null,recent:null};
+function dailyRng(n){let s=(Math.imul(n,2654435761)^0x5bd1e995)>>>0;return()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296;};}
+function dailyCourseShuf(n){const M=DAILY_SH;
+  if(!M.used){M.used=new Set();M.recent=[];for(let k=DAILY_N5-6;k<DAILY_N5;k++)M.recent.push(dailyCourse(new Date(k*864e5).toISOString().slice(0,10)));}
+  while(DAILY_N5+M.list.length<=n){const k=DAILY_N5+M.list.length,pool=DAILY_POOL.filter(([id,from])=>from<=k&&COURSES[id]).map(([id])=>id);
+    let rem=pool.filter(id=>!M.used.has(id));if(!rem.length){M.used=new Set();rem=pool;}
+    const last=M.recent.slice(-6);let cand=rem.filter(id=>!last.includes(id));if(!cand.length)cand=rem;
+    const r=dailyRng(k);r();const pick=cand[Math.floor(r()*cand.length)];M.used.add(pick);M.recent.push(pick);M.list.push(pick);}
+  return M.list[n-DAILY_N5];}
+function dailyCourse(day){const n=dailyNum(day);if(n<DAILY_N4)return dailyCourseOld(n);if(n>=DAILY_N5)return dailyCourseShuf(n);const M=DAILY_LRU;
   if(!M.last){M.last={};for(let k=DAILY_N4-90;k<DAILY_N4;k++)M.last[dailyCourseOld(k)]=k;}
   while(DAILY_N4+M.list.length<=n){const k=DAILY_N4+M.list.length;let best=null,bl=0;
     for(const[id,from]of DAILY_POOL){if(from>k||!COURSES[id])continue;const l=M.last[id]??-1e9;if(best===null||l<bl){best=id;bl=l;}}
@@ -2778,6 +2790,9 @@ async function calMonthRows(m){const k=m,c=CAL.rows[k];if(c&&Date.now()-c.t<6000
   const[y,mo]=m.split('-').map(Number),a=m+'-01',b=new Date(Date.UTC(y,mo,0)).toISOString().slice(0,10);
   try{const r=await fetch(DAILY.url+'/rest/v1/daily_scores?select=day,name,strokes,to_par,player_id&day=gte.'+a+'&day=lte.'+b+'&order=strokes.asc,created_at.asc&limit=5000',{headers:dailyHdr()});if(!r.ok)return null;const rows=await r.json();
     const by={};for(const x of rows)(by[x.day]=by[x.day]||[]).push(x);CAL.rows[k]={t:Date.now(),r:by};return by;}catch(e){return null;}}
+function calMystery(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');const gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,'#1d3a52');gr.addColorStop(1,'#0f2233');g.fillStyle=gr;g.fillRect(0,0,w,h);
+  g.fillStyle='#ffc93c';g.font='bold '+Math.round(h*.62)+'px "Lilita One","Arial Rounded MT Bold",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('?',w/2,h*.54);return c.toDataURL();}
+const CAL_MYS={};const calMys=(w,h)=>CAL_MYS[w+'x'+h]||(CAL_MYS[w+'x'+h]=calMystery(w,h));
 function calOpen(sel){const today=dailyDay();sel=sel||CAL.sel||today;CAL.sel=sel;CAL.month=sel.slice(0,7);calDraw();}
 async function calDraw(){const today=dailyDay(),m=CAL.month,[y,mo]=m.split('-').map(Number),tok=++CAL.tok,pid=dailyPid(),me=dailyToday();
   const last=dayShift(today,CAL_AHEAD),first=DAILY_START;
@@ -2785,19 +2800,19 @@ async function calDraw(){const today=dailyDay(),m=CAL.month,[y,mo]=m.split('-').
   $('cPrev').disabled=m<=first.slice(0,7);$('cNext').disabled=m>=last.slice(0,7);
   const nd=new Date(Date.UTC(y,mo,0)).getUTCDate(),wd0=new Date(Date.UTC(y,mo-1,1)).getUTCDay();
   const rows=CAL.rows[m]&&CAL.rows[m].r||null;
-  const cell=(day,i)=>{const ok=day>=first&&day<=last,cid=ok?dailyCourse(day):null,fut=day>today;let sc='';
+  const cell=(day,i)=>{const ok=day>=first&&day<=last,fut=day>today,cid=ok&&!fut?dailyCourse(day):null;let sc='';
     if(rows&&rows[day]){const mine=rows[day].find(r=>r.player_id===pid);if(mine)sc=fmtDiff(mine.to_par);}if(day===today&&me&&me.done&&!sc)sc=fmtDiff(me.toPar??0);
-    return'<button role="gridcell" data-d="'+day+'"'+(ok?'':' disabled')+' class="'+(day===today?'today ':'')+(day===CAL.sel?'sel ':'')+(fut?'fut':'')+'" aria-label="'+(ok?dailyNice(day)+', '+escH(COURSES[cid].name):'')+'"><span class="n">'+i+'</span>'+(ok?'<img alt="" src="'+calThumb(cid)+'">':'')+(sc?'<span class="sc">'+sc+'</span>':'')+'</button>';};
+    return'<button role="gridcell" data-d="'+day+'"'+(ok?'':' disabled')+' class="'+(day===today?'today ':'')+(day===CAL.sel?'sel ':'')+(fut?'fut':'')+'" aria-label="'+(ok?dailyNice(day)+', '+(fut?'mystery course':escH(COURSES[cid].name)):'')+'"><span class="n">'+i+'</span>'+(ok?'<img alt="" src="'+(fut?calMys(64,40):calThumb(cid))+'">':'')+(sc?'<span class="sc">'+sc+'</span>':'')+'</button>';};
   let h=['S','M','T','W','T','F','S'].map(d=>'<div class="wd">'+d+'</div>').join('');for(let k=0;k<wd0;k++)h+='<div></div>';
   for(let i=1;i<=nd;i++)h+=cell(m+'-'+String(i).padStart(2,'0'),i);$('cGrid').innerHTML=h;calDetail();
   if(!rows){await calMonthRows(m);if(tok===CAL.tok&&CAL.rows[m])calDraw();}}
-function calDetail(){const day=CAL.sel,today=dailyDay(),cid=dailyCourse(day),C=COURSES[cid],img=courseImg(cid),me=dailyToday(),pid=dailyPid();
+function calDetail(){const day=CAL.sel,today=dailyDay(),fut=day>today,cid=fut?null:dailyCourse(day),C=fut?{name:'Mystery course',town:'Revealed on the day'}:COURSES[cid],img=fut?calMys(480,270):courseImg(cid),me=dailyToday(),pid=dailyPid();
   const el=$('cDayImg');if(img)el.src=img;else el.removeAttribute('src');
   const n=Math.round((Date.UTC(...day.split('-').map((v,i)=>i===1?v-1:+v))-Date.UTC(...today.split('-').map((v,i)=>i===1?v-1:+v)))/864e5);
   $('cDayWhen').textContent=(n===0?'Today':n===1?'Tomorrow':n===-1?'Yesterday':new Date(day+'T12:00:00Z').toLocaleDateString(undefined,{weekday:'long',timeZone:'UTC'}))+' \u00b7 '+dailyNice(day);
   $('cDayName').textContent=C.name;
   const rows=CAL.rows[day.slice(0,7)]&&CAL.rows[day.slice(0,7)].r,R=rows&&rows[day]||[],mine=R.find(r=>r.player_id===pid);let info=C.town;
-  if(n>0)info+=' \u00b7 coming up in '+n+(n===1?' day':' days');
+  if(n>0)info+=' \u00b7 in '+n+(n===1?' day':' days');
   else if(R.length){const best=R[0].strokes,w=R.filter(r=>r.strokes===best);const meW=w.some(r=>r.player_id===pid);info=(meW?(n===0?(w.length>1?'You’re tied for the lead':'You’re leading'):(w.length>1?'You tied for the win':'You won')):(n===0?'Leading':'Won by')+' '+escH(w[0].name)+(w.length>1?' +'+(w.length-1):''))+' '+fmtDiff(w[0].to_par)+' \u00b7 '+R.length+(R.length===1?' golfer':' golfers')+(mine&&!meW?' \u00b7 you '+fmtDiff(mine.to_par):'');}
   else if(n<0)info+=' \u00b7 '+(rows?'nobody played this day':'');
   $('cDayInfo').innerHTML=info;
@@ -5827,6 +5842,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:'2026-10-07-shuffle',date:'Oct 7, 2026',title:'Daily round: shuffled and a surprise',items:[
+    'From tomorrow (Oct 8) the daily round draws its course at random from all 27, the same course for everyone. No course comes back until every course has had its day, and none repeats within a week.',
+    'Future days in the calendar now show a mystery course: you find out where you’re playing on the day. Past days and today’s leaderboard are unchanged.']},
   {id:"2026-10-07-0d0a",date:"Oct 7, 2026",title:"New courses: Santee National and Wyboo",items:[
     "Two more South Carolina courses: Santee National in Santee (Black tees, 6,917 yards, par 72) and The Players Course at Wyboo in Manning on Lake Marion (Tournament tees, 6,712 yards, par 72).",
     "Neither course is in the online map we use, so they were traced from the aerial photo and USGS lidar: every green, tee, fairway, bunker and pond. Greens are shaped from a 2017 lidar scan, and the trees come from the photo.",
