@@ -18,8 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check secrets
         run: |
-          echo "SUPABASE_ACCESS_TOKEN present: $([ -n "$SUPABASE_ACCESS_TOKEN" ] && echo yes || echo no)"
-          echo "ANTHROPIC_API_KEY present: $([ -n "$ANTHROPIC_API_KEY" ] && echo yes || echo no)"
+          echo "::notice::Secrets seen - SUPABASE_ACCESS_TOKEN: $([ -n "$SUPABASE_ACCESS_TOKEN" ] && echo yes || echo no), ANTHROPIC_API_KEY: $([ -n "$ANTHROPIC_API_KEY" ] && echo yes || echo no)"
           if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then echo "::warning::SUPABASE_ACCESS_TOKEN secret is missing - skipping deploy"; echo "SKIP=1" >> $GITHUB_ENV; fi
       - uses: supabase/setup-cli@v1
         if: env.SKIP != '1'
