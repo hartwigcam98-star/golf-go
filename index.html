@@ -5785,7 +5785,7 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   $('aimL').disabled=$('aimR').disabled=$('mapBtn').disabled=!aiming;
   { const lk=!!G.fc&&aiming,lb=$('lookBtn');lb.hidden=!aiming||G.overview;lb.classList.toggle('on',lk);lb.setAttribute('aria-pressed',String(lk));
     lb.style.bottom=(botH+4)+'px';{const cb=$('camBtn');cb.hidden=!aiming||G.overview||lk||c.putter||G.lie==='green';cb.style.bottom=(botH+4)+'px';setT('camNum',String(CAMV+1));}$('lookBar').hidden=!lk;{const rb=$('lookRead'),on=lk&&!!G.fc.read;rb.hidden=!lk||!nearGreen();rb.classList.toggle('on',on);rb.setAttribute('aria-pressed',String(on));}{const ll=$('lookLand'),on=lk&&!!G.fc.follow;ll.classList.toggle('on',on);ll.setAttribute('aria-pressed',String(on));}
-    { const sk=$('slopeKey');sk.hidden=!slopeShown||G.overview||G.state==='card'||G.state==='intro';sk.style.bottom=(botH+14+($('camBtn')&&!$('camBtn').hidden?52:0))+'px'; }   // above the camera button when it is showing (chips near the green)
+    $('slopeKey').hidden=true;   // v105: the slope colour key is gone (it sat over the club); the green's colours still show
     const rt=$('lookRet');rt.hidden=!lk;
     if(lk){const f=G.fc,ty=hAt(f.tx,f.tz),q=proj(f.tx,ty,f.tz);if(q){rt.style.left=q[0]+'px';rt.style.top=q[1]+'px';}else rt.hidden=true;
       const b=G.ball,d=hyp(f.tx-b.x,f.tz-b.y),rise=(ty-hAt(b.x,b.y))*3,pd=hyp(f.tx-G.hole.pin[0],f.tz-G.hole.pin[1]);
@@ -6142,6 +6142,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:'2026-10-07-slopekey',date:'Oct 7, 2026',title:'Cleaner putting view',items:[
+    'The Gentle\u2013Severe slope key above the camera button is gone, so it no longer covers your club. The slope colours on the green still show.']},
   {id:'2026-10-07-gearlook',date:'Oct 7, 2026',title:'See your gear',items:[
     'Your clubs now look like the models in your bag: the Bomber driver has a big black head with a red stripe, Max forgiveness a wide blue head, the Shaper a smaller brown one. Hybrids get their own shape.',
     'Irons: Cavity backs are chunky with a blue back, Forged are satin, Blades are thin and mirror bright. Wedges come in chrome, black (High bounce), satin (Low bounce) or copper (Milled spin). Putters: a thin Blade, a half-moon Mallet, or the Arm-lock with its long grip.',
