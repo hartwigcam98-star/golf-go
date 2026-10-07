@@ -2709,7 +2709,11 @@ async function dailyPost(){const d=dailyLoad();if(!d||!d.done||d.posted||!DAILY.
     if(r.ok||r.status===409){d.posted=true;dailyStore(d);const n=$('cNote');if(n&&!$('cardM').hidden&&G.mode==='daily')n.textContent='Posted to today’s leaderboard.';return true;}}catch(e){}
   const n=$('cNote');if(n&&!$('cardM').hidden&&G.mode==='daily')n.textContent='Couldn’t reach the leaderboard. It will post next time you open the game.';return false;}
 function dailyHdr(h={}){const k=DAILY.key;h.apikey=k;if(!/^sb_/.test(k))h.Authorization='Bearer '+k;return h;}
-async function dailyFetch(day){if(!DAILY.url)return null;try{const r=await fetch(DAILY.url+'/rest/v1/daily_scores?select=name,strokes,to_par,player_id,holes,course&day=eq.'+day+'&order=strokes.asc,created_at.asc&limit=300',{headers:dailyHdr()});if(!r.ok)return null;return await r.json();}catch(e){return null;}}
+const PLAYER_MERGE=['cam'];   // same golfer on more than one player id (re-saved to the home screen)
+const pKey=r=>{const n=String(r.name||'').trim().toLowerCase();return PLAYER_MERGE.includes(n)?'n:'+n:r.player_id;};
+const pMine=(r,pid)=>r.player_id===pid||(PLAYER_MERGE.includes(String(dailyName()||'').trim().toLowerCase())&&pKey(r)==='n:'+String(dailyName()).trim().toLowerCase());
+const pBest=rows=>{const seen=new Set();return rows.filter(r=>{const k=pKey(r);if(seen.has(k))return false;seen.add(k);return true;});};   // rows come best first
+async function dailyFetch(day){if(!DAILY.url)return null;try{const r=await fetch(DAILY.url+'/rest/v1/daily_scores?select=name,strokes,to_par,player_id,holes,course&day=eq.'+day+'&order=strokes.asc,created_at.asc&limit=300',{headers:dailyHdr()});if(!r.ok)return null;return pBest(await r.json());}catch(e){return null;}}
 function openDailyName(){G.paused=true;$('dCardV').hidden=true;$('menuM').hidden=true;$('introM').hidden=true;$('dailyM').hidden=false;$('dName').hidden=false;$('dBoard').hidden=true;
   const day=dailyDay();$('dEyebrow').textContent='Daily round \u00b7 '+dailyNice(day);$('dTitle').textContent=COURSES[dailyCourse(day)].name;
   $('dNameIn').value=dailyName();setTimeout(()=>$('dNameIn').focus(),60);}
@@ -2731,7 +2735,7 @@ async function openDailyBoard(fromRound,day,tab){G.paused=true;$('dCardV').hidde
   const rows=await dailyFetch(day);if(DAILY.view.day!==day||DAILY.view.tab!=='day')return;
   if(!DAILY.url){list.innerHTML='<li class="empty">The online leaderboard switches on soon.</li>';return;}
   if(!rows){list.innerHTML='<li class="empty">Couldn’t load the leaderboard. Check your connection.</li>';return;}
-  const pid=dailyPid(),canSee=!isToday||(me&&me.done);DAILY.rows=rows;let rank=0,prev=null,myRank=null;const html=rows.map((r,i)=>{if(r.strokes!==prev){rank=i+1;prev=r.strokes;}const mine=r.player_id===pid;if(mine)myRank=rank;
+  const pid=dailyPid(),canSee=!isToday||(me&&me.done);DAILY.rows=rows;let rank=0,prev=null,myRank=null;const html=rows.map((r,i)=>{if(r.strokes!==prev){rank=i+1;prev=r.strokes;}const mine=pMine(r,pid);if(mine)myRank=rank;
     const tap=mine||canSee;return'<li class="'+(mine?'me ':'')+(tap?'tap':'')+'"'+(tap?' data-i="'+i+'" role="button" tabindex="0"':'')+'><span class="rk">'+rank+'</span><span class="nm">'+escH(r.name)+'</span><span class="tp">'+fmtDiff(r.to_par)+'</span><span class="st">'+r.strokes+'</span></li>';}).join('');
   list.innerHTML=html||'<li class="empty">'+(isToday?'No scores yet today. Be the first.':'Nobody played this day.')+'</li>';
   $('dStatus').textContent=(rows.length?(canSee?'Tap a golfer for their card \u00b7 ':'Finish today\u2019s round to see the other cards \u00b7 '):'')+(rows.length?rows.length+(rows.length===1?' golfer':' golfers'):'')+(myRank?' \u00b7 you '+(isToday?'are ':'were ')+(rows.filter(r=>r.strokes===rows[myRank-1].strokes).length>1?'tied ':'')+(myRank===1?'1st':ordinal(myRank)):'');
@@ -2755,15 +2759,15 @@ async function recPost(){const P=RECS.pend;if(!P)return;if(P.done){openRecords(P
   else{b.textContent='Post to '+COURSES[P.cid].name+' records';note.hidden=false;note.textContent=st===404?'Course records aren’t switched on yet.':'Couldn’t post your score. Check your connection and try again.';}}
 async function recFetch(cid){if(!DAILY.url)return{err:0};
   try{const r=await fetch(DAILY.url+'/rest/v1/course_scores?select=id,name,player_id,strokes,to_par,holes,created_at&course=eq.'+encodeURIComponent(cid)+'&order=strokes.asc,created_at.asc&limit=2000',{headers:dailyHdr()});
-    if(!r.ok)return{err:r.status};const all=await r.json(),seen=new Set(),best=[];for(const x of all){if(seen.has(x.player_id))continue;seen.add(x.player_id);best.push(x);}return{rows:best,n:all.length};}catch(e){return{err:-1};}}
+    if(!r.ok)return{err:r.status};const all=await r.json(),seen=new Set(),best=[];for(const x of all){const k=pKey(x);if(seen.has(k))continue;seen.add(k);best.push(x);}return{rows:best,n:all.length};}catch(e){return{err:-1};}}
 async function openRecords(cid){G.paused=true;for(const m of['menuM','cardM','introM','dailyM'])$(m).hidden=true;$('recM').hidden=false;$('rBoard').hidden=false;$('rCardV').hidden=true;
   cid=COURSES[cid]?cid:CUR.id;RECS.cid=cid;const C=COURSES[cid],tok=++RECS.tok,par=C.tb.reduce((a,h)=>a+h.par,0);
   $('rEyebrow').textContent='Course records \u00b7 par '+par;$('rTitle').textContent=C.name;$('rWhere').textContent=C.town;
   const list=$('rList');list.innerHTML='<li class="empty">Loading…</li>';$('rStatus').textContent='';
   const res=await recFetch(cid);if(tok!==RECS.tok)return;
   if(!res.rows){list.innerHTML='<li class="empty">'+(res.err===404?'Course records aren’t switched on yet.':'Couldn’t load the records. Check your connection.')+'</li>';return;}
-  const rows=res.rows.slice(0,100),pid=dailyPid();RECS.rows=rows;let rank=0,prev=null,myRank=null;const mine=res.rows.findIndex(r=>r.player_id===pid);
-  list.innerHTML=rows.map((r,i)=>{if(r.strokes!==prev){rank=i+1;prev=r.strokes;}const me=r.player_id===pid;if(me)myRank=rank;
+  const rows=res.rows.slice(0,100),pid=dailyPid();RECS.rows=rows;let rank=0,prev=null,myRank=null;const mine=res.rows.findIndex(r=>pMine(r,pid));
+  list.innerHTML=rows.map((r,i)=>{if(r.strokes!==prev){rank=i+1;prev=r.strokes;}const me=pMine(r,pid);if(me)myRank=rank;
     return'<li class="tap'+(me?' me':'')+'" data-i="'+i+'" role="button" tabindex="0"><span class="rk">'+rank+'</span><span class="nm">'+escH(r.name)+'</span><span class="tp">'+fmtDiff(r.to_par)+'</span><span class="st">'+r.strokes+'</span></li>';}).join('')
     ||'<li class="empty">No rounds posted yet. Finish a Quick play round here and post yours.</li>';
   const n=res.rows.length;$('rStatus').textContent=n?(n+(n===1?' golfer':' golfers')+' \u00b7 best round each'+(myRank?' \u00b7 you’re '+(rows.filter(r=>r.strokes===rows[myRank-1].strokes).length>1?'tied ':'')+ordinal(myRank):mine>=0?' \u00b7 you’re outside the top 100':'')):'';
@@ -2789,7 +2793,7 @@ function calThumb(cid){if(CAL.thumbs[cid])return CAL.thumbs[cid];let u='';try{if
 async function calMonthRows(m){const k=m,c=CAL.rows[k];if(c&&Date.now()-c.t<60000)return c.r;if(!DAILY.url)return null;
   const[y,mo]=m.split('-').map(Number),a=m+'-01',b=new Date(Date.UTC(y,mo,0)).toISOString().slice(0,10);
   try{const r=await fetch(DAILY.url+'/rest/v1/daily_scores?select=day,name,strokes,to_par,player_id&day=gte.'+a+'&day=lte.'+b+'&order=strokes.asc,created_at.asc&limit=5000',{headers:dailyHdr()});if(!r.ok)return null;const rows=await r.json();
-    const by={};for(const x of rows)(by[x.day]=by[x.day]||[]).push(x);CAL.rows[k]={t:Date.now(),r:by};return by;}catch(e){return null;}}
+    const by={};for(const x of rows)(by[x.day]=by[x.day]||[]).push(x);for(const d in by)by[d]=pBest(by[d]);CAL.rows[k]={t:Date.now(),r:by};return by;}catch(e){return null;}}
 function calMystery(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');const gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,'#1d3a52');gr.addColorStop(1,'#0f2233');g.fillStyle=gr;g.fillRect(0,0,w,h);
   g.fillStyle='#ffc93c';g.font='bold '+Math.round(h*.62)+'px "Lilita One","Arial Rounded MT Bold",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('?',w/2,h*.54);return c.toDataURL();}
 const CAL_MYS={};const calMys=(w,h)=>CAL_MYS[w+'x'+h]||(CAL_MYS[w+'x'+h]=calMystery(w,h));
@@ -2801,7 +2805,7 @@ async function calDraw(){const today=dailyDay(),m=CAL.month,[y,mo]=m.split('-').
   const nd=new Date(Date.UTC(y,mo,0)).getUTCDate(),wd0=new Date(Date.UTC(y,mo-1,1)).getUTCDay();
   const rows=CAL.rows[m]&&CAL.rows[m].r||null;
   const cell=(day,i)=>{const ok=day>=first&&day<=last,fut=day>today,cid=ok&&!fut?dailyCourse(day):null;let sc='';
-    if(rows&&rows[day]){const mine=rows[day].find(r=>r.player_id===pid);if(mine)sc=fmtDiff(mine.to_par);}if(day===today&&me&&me.done&&!sc)sc=fmtDiff(me.toPar??0);
+    if(rows&&rows[day]){const mine=rows[day].find(r=>pMine(r,pid));if(mine)sc=fmtDiff(mine.to_par);}if(day===today&&me&&me.done&&!sc)sc=fmtDiff(me.toPar??0);
     return'<button role="gridcell" data-d="'+day+'"'+(ok?'':' disabled')+' class="'+(day===today?'today ':'')+(day===CAL.sel?'sel ':'')+(fut?'fut':'')+'" aria-label="'+(ok?dailyNice(day)+', '+(fut?'mystery course':escH(COURSES[cid].name)):'')+'"><span class="n">'+i+'</span>'+(ok?'<img alt="" src="'+(fut?calMys(64,40):calThumb(cid))+'">':'')+(sc?'<span class="sc">'+sc+'</span>':'')+'</button>';};
   let h=['S','M','T','W','T','F','S'].map(d=>'<div class="wd">'+d+'</div>').join('');for(let k=0;k<wd0;k++)h+='<div></div>';
   for(let i=1;i<=nd;i++)h+=cell(m+'-'+String(i).padStart(2,'0'),i);$('cGrid').innerHTML=h;calDetail();
@@ -2811,9 +2815,9 @@ function calDetail(){const day=CAL.sel,today=dailyDay(),fut=day>today,cid=fut?nu
   const n=Math.round((Date.UTC(...day.split('-').map((v,i)=>i===1?v-1:+v))-Date.UTC(...today.split('-').map((v,i)=>i===1?v-1:+v)))/864e5);
   $('cDayWhen').textContent=(n===0?'Today':n===1?'Tomorrow':n===-1?'Yesterday':new Date(day+'T12:00:00Z').toLocaleDateString(undefined,{weekday:'long',timeZone:'UTC'}))+' \u00b7 '+dailyNice(day);
   $('cDayName').textContent=C.name;
-  const rows=CAL.rows[day.slice(0,7)]&&CAL.rows[day.slice(0,7)].r,R=rows&&rows[day]||[],mine=R.find(r=>r.player_id===pid);let info=C.town;
+  const rows=CAL.rows[day.slice(0,7)]&&CAL.rows[day.slice(0,7)].r,R=rows&&rows[day]||[],mine=R.find(r=>pMine(r,pid));let info=C.town;
   if(n>0)info+=' \u00b7 in '+n+(n===1?' day':' days');
-  else if(R.length){const best=R[0].strokes,w=R.filter(r=>r.strokes===best);const meW=w.some(r=>r.player_id===pid);info=(meW?(n===0?(w.length>1?'You’re tied for the lead':'You’re leading'):(w.length>1?'You tied for the win':'You won')):(n===0?'Leading':'Won by')+' '+escH(w[0].name)+(w.length>1?' +'+(w.length-1):''))+' '+fmtDiff(w[0].to_par)+' \u00b7 '+R.length+(R.length===1?' golfer':' golfers')+(mine&&!meW?' \u00b7 you '+fmtDiff(mine.to_par):'');}
+  else if(R.length){const best=R[0].strokes,w=R.filter(r=>r.strokes===best);const meW=w.some(r=>pMine(r,pid));info=(meW?(n===0?(w.length>1?'You’re tied for the lead':'You’re leading'):(w.length>1?'You tied for the win':'You won')):(n===0?'Leading':'Won by')+' '+escH(w[0].name)+(w.length>1?' +'+(w.length-1):''))+' '+fmtDiff(w[0].to_par)+' \u00b7 '+R.length+(R.length===1?' golfer':' golfers')+(mine&&!meW?' \u00b7 you '+fmtDiff(mine.to_par):'');}
   else if(n<0)info+=' \u00b7 '+(rows?'nobody played this day':'');
   $('cDayInfo').innerHTML=info;
   const isToday=n===0;$('cDayBoard').hidden=n>0;$('cDayBoard').textContent=isToday?'Today’s leaderboard':'Leaderboard';
@@ -2879,12 +2883,13 @@ async function dailyAllTime(){const list=$('dList');let rows=null;
   if(DAILY.view.tab!=='all')return;
   if(!rows){list.innerHTML='<li class="empty">Couldn’t load the standings. Check your connection.</li>';return;}
   const best={},P={};for(const r of rows){best[r.day]=Math.min(best[r.day]??1e9,r.strokes);}
-  for(const r of rows){const p=P[r.player_id]||(P[r.player_id]={name:r.name,n:0,tp:0,w:0,best:null});p.name=r.name;p.n++;p.tp+=r.to_par;if(r.strokes===best[r.day])p.w++;
+  {const k1={},keep=[];for(const r of [...rows].sort((a,b)=>a.strokes-b.strokes)){const k=r.day+'|'+pKey(r);if(k1[k])continue;k1[k]=1;keep.push(r);}rows=keep.sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:0);}
+  for(const r of rows){const k=pKey(r),p=P[k]||(P[k]={name:r.name,n:0,tp:0,w:0,best:null,pids:new Set()});p.pids.add(r.player_id);p.name=r.name;p.n++;p.tp+=r.to_par;if(r.strokes===best[r.day])p.w++;
     if(!p.best||r.to_par<p.best.to_par)p.best=r;}
   const pid=dailyPid(),L=Object.entries(P).map(([id,p])=>({id,...p,avg:p.tp/p.n})).sort((a,b)=>b.w-a.w||a.avg-b.avg||b.n-a.n);
   const days=Object.keys(best).length;
   list.innerHTML=L.length?'<li class="hd"><span class="rk"></span><span class="nm">Golfer</span><span class="w">Wins</span><span class="wide">Rds</span><span class="wide">Avg</span></li>'+L.map((p,i)=>{const a=Math.round(p.avg*10)/10;
-    return'<li'+(p.id===pid?' class="me"':'')+'><span class="rk">'+(i+1)+'</span><span class="nm">'+escH(p.name)+'<small style="font-weight:600;color:#51606b">Best '+fmtDiff(p.best.to_par)+' \u00b7 '+escH((COURSES[p.best.course]||{name:p.best.course}).name)+'</small></span><span class="w">'+p.w+'</span><span class="wide">'+p.n+'</span><span class="wide">'+(a===0?'E':a>0?'+'+a.toFixed(1):'−'+(-a).toFixed(1))+'</span></li>';}).join(''):'<li class="empty">No daily rounds posted yet.</li>';
+    return'<li'+(p.pids.has(pid)||pMine({name:p.name,player_id:''},pid)?' class="me"':'')+'><span class="rk">'+(i+1)+'</span><span class="nm">'+escH(p.name)+'<small style="font-weight:600;color:#51606b">Best '+fmtDiff(p.best.to_par)+' \u00b7 '+escH((COURSES[p.best.course]||{name:p.best.course}).name)+'</small></span><span class="w">'+p.w+'</span><span class="wide">'+p.n+'</span><span class="wide">'+(a===0?'E':a>0?'+'+a.toFixed(1):'−'+(-a).toFixed(1))+'</span></li>';}).join(''):'<li class="empty">No daily rounds posted yet.</li>';
   $('dStatus').textContent=days?days+(days===1?' day played':' days played')+' since '+dailyNice(DAILY_START):'';}
 const ordinal=n=>n+(n%100>=11&&n%100<=13?'th':['th','st','nd','rd'][n%10]||'th');
 function dailyShare(){const me=dailyToday();if(!me||!me.done)return;
