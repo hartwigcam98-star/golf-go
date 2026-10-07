@@ -407,7 +407,7 @@ td.won{background:rgba(255,201,60,.38)}
   <div id="matchTag" class="matchtag" hidden></div>
   <button id="lookBtn" class="lookbtn" aria-label="Look around the hole" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="#fff6dc" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="#fff6dc" stroke-width="2"/></svg></button>
   <button id="camBtn" class="lookbtn cambtn" aria-label="Change camera view" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8.5h3.2l1.6-2.5h8.4l1.6 2.5H21v10H3z" fill="none" stroke="#fff6dc" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13.2" r="3.3" fill="none" stroke="#fff6dc" stroke-width="2"/></svg><b id="camNum">1</b></button>
-  <div id="lookBar" class="lookbar" hidden><button id="lookGreen">⛳ Green</button><button id="lookLand">◎ Landing</button><button id="lookDone" class="done">Done</button></div>
+  <div id="lookBar" class="lookbar" hidden><button id="lookGreen">⛳ Green</button><button id="lookRead" hidden>🗺 Read</button><button id="lookLand">◎ Landing</button><button id="lookDone" class="done">Done</button></div>
   <div id="slopeKey" class="slopekey" hidden aria-label="Green slope colour key"><b>Slope</b><span>Gentle</span><i></i><span>Severe</span></div>
   <div id="lookRet" class="lookret" hidden><i></i><span id="lookTxt"></span></div>
 
@@ -3357,7 +3357,7 @@ function lookClamp(){const f=G.fc,h=G.hole;if(!f||!h)return;f.dist=clamp(f.dist,
 function lookStart(){if(G.state!=='aim'||G.aiTurn||!G.hole)return false;G.overview=false;$('impPop').hidden=true;
   if(!G.fc){const q=G.landPt||[G.ball.x,G.ball.y],L=scoutLevels();
     G.fc={tx:q[0],tz:q[1],yaw:G.aim,yawOff:0,dist:L[0],distT:L[0],lvl:0,pz:1,follow:true,pan:0,
-      fly:{t:0,dir:1,dur:.55+Math.min(.5,scoutCarry()/500),from:{E:[...cam.E],L:[...cam.L]},bx:G.ball.x,bz:G.ball.y}};if(nearGreen()){readFrame(G.fc);G.fc.dist=G.fc.distT;}lookClamp();sfx.tick();}
+      fly:{t:0,dir:1,dur:.55+Math.min(.5,scoutCarry()/500),from:{E:[...cam.E],L:[...cam.L]},bx:G.ball.x,bz:G.ball.y}};lookClamp();sfx.tick();}
   else if(G.fc.fly&&G.fc.fly.dir<0)G.fc.fly.dir=1;   // tapped again while flying back: turn round
   return true;}
 /* Done: fly back to the golfer along the same path, then hand the camera back */
@@ -3379,8 +3379,9 @@ function readFrame(f){const p=G.hole.pin,b=G.ball,d=hyp(p[0]-b.x,p[1]-b.y);
   f.tx=b.x+(p[0]-b.x)*.55;f.tz=b.y+(p[1]-b.y)*.55;f.yaw=d>1?angTo(b.x,b.y,p[0],p[1]):f.yaw;f.yawOff=0;
   f.readD=clamp(d*1.25+9,13,62);f.distT=f.readD;f.lvl=0;f.read=true;f.follow=false;f.pan=0;f.turn=0;}
 function lookGreen(){if(!lookStart())return;const f=G.fc,p=G.hole.pin,b=G.ball,d=hyp(p[0]-b.x,p[1]-b.y);
-  if(nearGreen()){readFrame(f);lookClamp();sfx.tick();return;}
-  f.tx=p[0];f.tz=p[1];f.yaw=d>2?angTo(b.x,b.y,p[0],p[1]):f.yaw;f.distT=G.lie==='green'||d<30?22:42;f.lvl=0;f.follow=false;lookClamp();sfx.tick();}
+  f.read=false;f.tx=p[0];f.tz=p[1];f.yaw=d>2?angTo(b.x,b.y,p[0],p[1]):f.yaw;f.distT=G.lie==='green'||d<30?22:42;f.lvl=0;f.follow=false;lookClamp();sfx.tick();}
+function lookRead(){if(!lookStart())return;const f=G.fc;if(f.read){lookGreen();return;}
+  readFrame(f);lookClamp();sfx.tick();}
 function lookLanding(){if(!lookStart())return;const f=G.fc;f.read=false;G.landPt=G.landPt||[G.ball.x,G.ball.y];const q=G.landPt||[G.ball.x,G.ball.y];f.tx=q[0];f.tz=q[1];f.yaw=G.aim;f.yawOff=0;scoutSetLvl(0);f.follow=true;f.pan=0;f.turn=0;lookClamp();sfx.tick();}
 function groundEllipse(x,z,r,minPx){
   const y=hAt(x,z)+.02,c=proj(x,y,z);if(!c)return null;
@@ -5442,7 +5443,7 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   { const base=LIE_NAME[lie]||'',sl=(G.state==='aim'||G.state==='power'||G.state==='acc')?stanceLabel().replace(/ feet/g,''):'';setT('lieTxt',sl?base+' \u00b7 '+sl:base); }
   $('aimL').disabled=$('aimR').disabled=$('mapBtn').disabled=!aiming;
   { const lk=!!G.fc&&aiming,lb=$('lookBtn');lb.hidden=!aiming||G.overview;lb.classList.toggle('on',lk);lb.setAttribute('aria-pressed',String(lk));
-    lb.style.bottom=(botH+4)+'px';{const cb=$('camBtn');cb.hidden=!aiming||G.overview||lk||c.putter||G.lie==='green';cb.style.bottom=(botH+4)+'px';setT('camNum',String(CAMV+1));}$('lookBar').hidden=!lk;{const ll=$('lookLand'),on=lk&&!!G.fc.follow;ll.classList.toggle('on',on);ll.setAttribute('aria-pressed',String(on));}
+    lb.style.bottom=(botH+4)+'px';{const cb=$('camBtn');cb.hidden=!aiming||G.overview||lk||c.putter||G.lie==='green';cb.style.bottom=(botH+4)+'px';setT('camNum',String(CAMV+1));}$('lookBar').hidden=!lk;{const rb=$('lookRead'),on=lk&&!!G.fc.read;rb.hidden=!lk||!nearGreen();rb.classList.toggle('on',on);rb.setAttribute('aria-pressed',String(on));}{const ll=$('lookLand'),on=lk&&!!G.fc.follow;ll.classList.toggle('on',on);ll.setAttribute('aria-pressed',String(on));}
     { const sk=$('slopeKey');sk.hidden=!slopeShown||G.overview||G.state==='card'||G.state==='intro';sk.style.bottom=(botH+14+($('camBtn')&&!$('camBtn').hidden?52:0))+'px'; }   // above the camera button when it is showing (chips near the green)
     const rt=$('lookRet');rt.hidden=!lk;
     if(lk){const f=G.fc,ty=hAt(f.tx,f.tz),q=proj(f.tx,ty,f.tz);if(q){rt.style.left=q[0]+'px';rt.style.top=q[1]+'px';}else rt.hidden=true;
@@ -5631,6 +5632,7 @@ $('flyCamBtn').addEventListener('click',e=>{e.stopPropagation();A();FLY_TV=!FLY_
 $('camBtn').addEventListener('click',e=>{e.stopPropagation();A();camCycle();});
 $('lookBtn').addEventListener('click',e=>{e.stopPropagation();A();if(G.fc&&!(G.fc.fly&&G.fc.fly.dir<0))lookEnd();else lookStart();});
 $('lookGreen').addEventListener('click',e=>{e.stopPropagation();lookGreen();});
+$('lookRead').addEventListener('click',e=>{e.stopPropagation();lookRead();});
 $('lookLand').addEventListener('click',e=>{e.stopPropagation();lookLanding();});
 $('lookDone').addEventListener('click',e=>{e.stopPropagation();lookEnd();});
 $('swing').addEventListener('pointerdown',e=>{e.preventDefault();tap();});
@@ -5797,6 +5799,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:'2026-10-07c',date:'Oct 7, 2026',title:'Scout view is back',items:[
+    'Tapping Look near the green opens the regular scout view again, like before.',
+    'The top-down green read is now an option: tap 🗺 Read in the Look bar (it shows up on or within 45 yards of the green). Tap it again to switch back.']},
   {id:'2026-10-07b',date:'Oct 7, 2026',title:'Update history',items:[
     'Added this “What’s new” list to the menu, so you can see what changed in every update.',
     'After an update, this card pops up once the next time you open the game. A red dot on the menu means there’s something you haven’t read.']},
