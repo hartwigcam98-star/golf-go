@@ -349,6 +349,23 @@ td.won{background:rgba(255,201,60,.38)}
 .legend{font-size:12px;color:var(--muted);margin-bottom:14px}
 @media (prefers-reduced-motion:reduce){#toast.show{animation-duration:1.8s;animation-timing-function:linear}.card{animation:none}}
 </style>
+<style>/* Pause screen and feedback (v102) */
+#pauseM{background:rgba(6,18,28,.55);z-index:20}
+.pausecard{text-align:center}
+.pausecard h2{margin:0;font-size:34px;color:#12283b}
+.pausecard .psub{font-size:14px;color:#51606b;margin:2px 0 14px;font-variant-numeric:tabular-nums}
+.pausecard .ghost{margin-bottom:9px}
+.pset{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 10px;font-weight:700;color:#12283b;font-size:15px}
+.pseg{display:grid;gap:4px;background:#e3dccb;border-radius:10px;padding:3px}.pseg button{padding:7px 0;border-radius:8px;font-weight:700;font-size:14px;color:#12283b}.pseg button.on{background:#12283b;color:var(--sun)}
+.pset .pseg{width:150px;grid-template-columns:repeat(2,1fr)}
+.fbkind{grid-template-columns:repeat(4,1fr)!important;margin-bottom:10px}
+#fbText{box-sizing:border-box;width:100%;min-height:110px;border-radius:12px;border:2px solid #12283b;padding:10px;font:inherit;font-size:16px;color:#12283b;background:#fffdf5;resize:vertical}
+.fbshot{display:flex;align-items:center;gap:10px;margin:10px 0;text-align:left;font-size:14px;color:#24384a}
+.fbshot img{width:96px;height:auto;border-radius:8px;border:2px solid #12283b;background:#0f2233}
+.fbshot input{width:22px;height:22px;accent-color:#12283b;flex:none}
+#fbStatus{min-height:18px;font-size:14px;color:#51606b;margin:6px 0 0}
+#fbStatus.ok{color:#2f6b3a;font-weight:700}#fbStatus.err{color:#b4223a;font-weight:700}
+</style>
 <style>/* What's New: update history + one-time card after an update */
 #menuBtn{position:relative}
 #menuBtn.hasnew::after,#mNews.hasnew::after{content:"";position:absolute;width:10px;height:10px;border-radius:50%;background:#ff5a4e;box-shadow:0 0 0 2px #fff6dc}
@@ -649,6 +666,31 @@ td.won{background:rgba(255,201,60,.38)}
       <p class="fine">Your round saves on this device after every shot. Unofficial re-creation (course and surroundings © OpenStreetMap contributors; elevation: USGS 3DEP; driver sound: Mixkit); not affiliated with any of the clubs.</p>
     </div>
   </div>
+  <div class="modal" id="pauseM" hidden>
+    <div class="card pausecard" role="dialog" aria-labelledby="pTitle">
+      <div id="pMain">
+        <h2 class="disp" id="pTitle">Paused</h2>
+        <div class="psub" id="pSub"></div>
+        <button class="primary disp" id="pResume">Resume</button>
+        <div class="pset"><span>Sound</span><div class="pseg" id="pSound"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
+        <div class="pset"><span>Graphics</span><div class="pseg" id="pGfx"><button data-g="high">High</button><button data-g="fast">Fast</button></div></div>
+        <button class="ghost disp" id="pFb">Send feedback</button>
+        <button class="ghost disp" id="pQuit">Quit to home</button>
+        <div class="msub" id="pQuitSub">Your round is saved. Continue it any time from the menu.</div>
+      </div>
+      <div id="pFbView" hidden>
+        <h2 class="disp">Feedback</h2>
+        <div class="psub">Bugs, ideas, anything that looks off. Every note gets read.</div>
+        <div class="pseg fbkind" id="fbKind" role="group" aria-label="Type"><button data-k="bug" class="on">Bug</button><button data-k="idea">Idea</button><button data-k="course">Course</button><button data-k="other">Other</button></div>
+        <textarea id="fbText" maxlength="2000" placeholder="What happened, or what would make it better?"></textarea>
+        <label class="fbshot" id="fbShotRow"><input type="checkbox" id="fbShotOn" checked><img id="fbShotImg" alt="Screenshot of the game"><span>Attach this screenshot</span></label>
+        <button class="primary disp" id="fbSend">Send</button>
+        <div id="fbStatus" role="status"></div>
+        <button class="textbtn" id="fbBack">Back</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal" id="newsM" hidden>
     <div class="card newscard" role="dialog" aria-labelledby="newsTitle">
       <h2 class="disp" id="newsTitle">What’s new</h2>
@@ -2936,6 +2978,43 @@ function openMenu(fromGame){G.paused=true;$('menuM').hidden=false;try{menuHero()
     $('mMatchSub').textContent=COURSES[matchCid(cmx,r)].name+' \u00b7 hole '+(cmx.hi+1)+(cu?' \u00b7 stroke '+(cu.P[0].strokes+1):'')+' \u00b7 '+(up===0?'all square':(up>0?'you ':rn(r)+' ')+Math.abs(up)+' up')+(cmx.ts?' \u00b7 saved '+new Date(cmx.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'');}
   setTimeout(()=>(showM?$('mMatchCont'):$('mContinue').hidden?$('mNew'):$('mContinue')).focus({preventScroll:true}),50);}
 function closeMenu(){$('menuM').hidden=true;G.paused=false;}
+/* ---------- pause screen and feedback (v102) ---------- */
+const PAUSE={shot:null,kind:'bug'};
+function pauseShot(){try{render();const gl=$('gl'),c=$('c'),k=Math.min(1,640/Math.max(gl.width,gl.height)),w=Math.round(gl.width*k),h=Math.round(gl.height*k);
+  const t=document.createElement('canvas');t.width=w;t.height=h;const g=t.getContext('2d');g.fillStyle='#0f2233';g.fillRect(0,0,w,h);g.drawImage(gl,0,0,w,h);g.drawImage(c,0,0,w,h);return t.toDataURL('image/jpeg',.72);}catch(e){return null;}}
+function pauseCtx(){const h=G.hole;let tp=0,n=0;(G.scores||[]).forEach((x,i)=>{if(x){tp+=x-TB[i].par;n++;}});
+  return{course:CUR&&CUR.id,hole:(G.hi??-1)+1,mode:G.mode,stroke:(G.strokes||0)+1,lie:G.lie,state:G.state,toPar:n?tp:null,thru:n,ver:window.GOLF_VER||'',gfx:R3&&R3.q,
+    screen:innerWidth+'x'+innerHeight+'@'+(devicePixelRatio||1),ua:navigator.userAgent.slice(0,180),app:matchMedia('(display-mode: standalone)').matches||!!navigator.standalone};}
+function inRound(){return!!G.hole&&G.state!=='intro'&&G.mode!=='spectate'&&G.mode!=='highlight'&&$('menuM').hidden;}
+function pauseSync(){document.querySelectorAll('#pSound button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===!!S.on));
+  document.querySelectorAll('#pGfx button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='high')===(R3.q==='high')));}
+function openPause(){PAUSE.shot=pauseShot();G.paused=true;const c=pauseCtx();
+  $('pSub').textContent=(CUR?CUR.name:'')+' \u00b7 hole '+c.hole+(c.thru?' \u00b7 '+fmtDiff(c.toPar)+' thru '+c.thru:'');
+  $('pQuitSub').textContent=G.mode==='daily'?'Today\u2019s round is saved. Pick it up from the Daily round button.':G.mode==='career'?'Your match is saved. Continue it from the menu.':G.mode==='practice'?'Practice holes aren\u2019t saved.':'Your round is saved. Continue it any time from the menu.';
+  $('pMain').hidden=false;$('pFbView').hidden=true;pauseSync();$('pauseM').hidden=false;}
+function closePause(){$('pauseM').hidden=true;G.paused=false;}
+function openFeedback(){$('pMain').hidden=true;$('pFbView').hidden=false;$('fbStatus').textContent='';$('fbStatus').className='';$('fbSend').disabled=false;
+  const ok=!!PAUSE.shot;$('fbShotRow').hidden=!ok;if(ok)$('fbShotImg').src=PAUSE.shot;$('fbShotOn').checked=ok;}
+async function sendFeedback(){const msg=$('fbText').value.trim(),st=$('fbStatus');if(!msg){st.textContent='Write a quick note first.';st.className='err';$('fbText').focus();return;}
+  if(!DAILY.url){st.textContent='Feedback isn\u2019t switched on yet.';st.className='err';return;}
+  $('fbSend').disabled=true;st.textContent='Sending\u2026';st.className='';
+  const body={player_id:dailyPid(),name:dailyName()||'',kind:PAUSE.kind,message:msg.slice(0,2000),ctx:pauseCtx(),shot:$('fbShotOn').checked&&PAUSE.shot?PAUSE.shot:null};
+  const post=b=>fetch(DAILY.url+'/rest/v1/feedback',{method:'POST',headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(b)});
+  try{let r=await post(body);if(!r.ok&&r.status!==404&&body.shot){body.shot=null;r=await post(body);}
+    if(r.ok){st.textContent='Thanks! Your feedback was sent.';st.className='ok';$('fbText').value='';setTimeout(()=>{if(!$('pauseM').hidden){$('pFbView').hidden=true;$('pMain').hidden=false;}},1400);return;}
+    st.textContent=r.status===404?'Feedback isn\u2019t switched on yet.':'Couldn\u2019t send it (error '+r.status+'). Try again in a bit.';st.className='err';}
+  catch(e){st.textContent='Couldn\u2019t send it. Check your connection and try again.';st.className='err';}
+  $('fbSend').disabled=false;}
+$('pResume').addEventListener('click',()=>{A();closePause();});
+$('pQuit').addEventListener('click',()=>{A();$('pauseM').hidden=true;openMenu(true);});
+$('pFb').addEventListener('click',()=>{A();openFeedback();});
+$('fbBack').addEventListener('click',()=>{A();$('pFbView').hidden=true;$('pMain').hidden=false;});
+$('fbSend').addEventListener('click',()=>{A();sendFeedback();});
+document.querySelectorAll('#fbKind button').forEach(b=>b.addEventListener('click',()=>{A();PAUSE.kind=b.dataset.k;document.querySelectorAll('#fbKind button').forEach(x=>x.classList.toggle('on',x===b));}));
+document.querySelectorAll('#pSound button').forEach(b=>b.addEventListener('click',()=>{if((b.dataset.v==='1')!==!!S.on)$('soundBtn').click();pauseSync();}));
+document.querySelectorAll('#pGfx button').forEach(b=>b.addEventListener('click',()=>{try{r3SetQuality(b.dataset.g==='high'?'high':'fast');}catch(e){}pauseSync();}));
+$('pauseM').addEventListener('click',e=>{if(e.target===$('pauseM'))closePause();});
+
 let newArmed=false;
 function newRound(){endMatchMode();if(R3.on)r3NewWx();dailyLeave();G.mode='round';G.pinSeed=0;G.rShots=[];G.scores=[];G.psLeft=3;clearSave();closeMenu();startHole(0);}
 function continueRound(){endMatchMode();dailyLeave();const sv=loadSave();if(!sv){newRound();return;}G.pinSeed=sv.pin||0;G.rShots=Array.isArray(sv.shots)?sv.shots:[];G.psLeft=Number.isInteger(sv.ps)?sv.ps:3;
@@ -5750,7 +5829,7 @@ function drawImp(){document.querySelectorAll('.trajseg button').forEach(b=>b.cla
 $('psBtn').addEventListener('click',e=>{e.stopPropagation();if((G.state!=='aim'||G.aiTurn)||curClub().putter)return;if(!G.pshot&&(G.psLeft<=0||G.stype!=='full'))return;G.pshot=!G.pshot;sfx.tick();if(G.pshot)toast('POWER SHOT','+10% distance \u00b7 faster impact','#ff9a3c');});
 $('mapBtn').addEventListener('click',()=>{if(G.state==='aim'&&!G.aiTurn){G.fc=null;G.overview=!G.overview;}});
 $('teeBtn').addEventListener('click',teeOff);
-$('menuBtn').addEventListener('click',()=>{A();if(SPEC.on){specEnd();return;}if(G.replay)endReplay();openMenu(true);});
+$('menuBtn').addEventListener('click',()=>{A();if(SPEC.on){specEnd();return;}if(G.replay)endReplay();if(inRound())openPause();else openMenu(true);});
 $('iMenu').addEventListener('click',()=>openMenu(true));$('cardMenu').addEventListener('click',()=>openMenu(true));
 $('cardPick').addEventListener('click',()=>{openMenu(true);$('mMain').hidden=true;$('mHoles').hidden=false;});
 $('mContinue').addEventListener('click',()=>{A();continueRound();});
@@ -5835,6 +5914,8 @@ $('replayBtn').addEventListener('click',()=>{A();if(G.state==='aim'&&G.canReplay
 $('cardReplay').addEventListener('click',()=>{A();startReplay(()=>{G.state='card';$('cardM').hidden=false;});});
 $('soundBtn').addEventListener('click',()=>{S.on=!S.on;$('soundWaves').style.opacity=S.on?1:.15;if(S.on){unlockAudio();setTimeout(()=>sfx.strike(1,1,'wood','tee'),60);}else if(S.tag)S.tag.pause();});
 window.addEventListener('keydown',e=>{
+  if(!$('pauseM').hidden){if(e.key==='Escape'){e.preventDefault();if(!$('pFbView').hidden){$('pFbView').hidden=true;$('pMain').hidden=false;}else closePause();}return;}
+  if(e.key==='Escape'&&!G.replay&&$('bagM').hidden&&inRound()&&$('introM').hidden&&$('cardM').hidden){e.preventDefault();openPause();return;}
   if(G.replay&&(e.code==='Space'||e.key==='Escape')){e.preventDefault();endReplay();return;}
   if(!$('bagM').hidden&&e.key==='Escape'){$('bagM').hidden=true;return;}
   if(!$('introM').hidden||!$('cardM').hidden||!$('menuM').hidden||!$('bagM').hidden||!$('careerM').hidden)return;
@@ -5879,6 +5960,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:'2026-10-07-pause',date:'Oct 7, 2026',title:'Pause screen and feedback',items:[
+    'The menu button during a round now opens a pause screen: resume, sound and graphics, or quit to home (your round is saved). On a computer, Esc does the same.',
+    'Send feedback from the pause screen: pick Bug, Idea, Course or Other, write a note, and a screenshot of where you paused is attached so we can see exactly what you mean. Every note gets read.']},
   {id:"2026-10-07-188d",date:"Oct 7, 2026",title:"New course: Oxmoor Valley \u00b7 Ridge",items:[
     "The Ridge course at Oxmoor Valley, the hilly one, with 150-foot elevation changes through the woods: Purple tees, 7,055 yards, par 72.",
     "The Ridge isn’t in the online map we use, so it was traced from the aerial photo and a 2023 USGS lidar scan, matched to the scorecard and the course tour: the downhill par-3 8th by the lake, the shale-shelf green on the signature 3rd, and the long par-5 18th uphill toward the clubhouse.",
@@ -5912,7 +5996,7 @@ const UPDATES=[
 const KEY='golf-news-seen',$=id=>document.getElementById(id);
 const get=()=>{try{return localStorage.getItem(KEY)||'';}catch(e){return '';}};
 const set=v=>{try{localStorage.setItem(KEY,v);}catch(e){}};
-const latest=UPDATES[0].id;
+window.GOLF_VER=UPDATES[0].id;const latest=UPDATES[0].id;
 const esc=t=>t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]);
 function render(onlyNew){const seen=get(),idx=UPDATES.findIndex(u=>u.id===seen);
   const unread=idx<0?UPDATES.length:idx,list=onlyNew?UPDATES.slice(0,Math.max(1,unread)):UPDATES;

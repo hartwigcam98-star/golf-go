@@ -1,0 +1,23 @@
+name: feedback
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 11 * * *'
+  push:
+    paths: ['feedback pull.txt']
+permissions:
+  contents: write
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: pull
+        run: python "feedback pull.py"
+      - name: save
+        run: |
+          cd fb
+          git init -q -b feedback
+          git add -A
+          git -c user.name=feedback-bot -c user.email=feedback-bot@users.noreply.github.com commit -qm "feedback pull $GITHUB_RUN_ID" || true
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" feedback
