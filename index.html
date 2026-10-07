@@ -195,6 +195,19 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .golferbtn b{font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:20px}
 .golferbtn em{font-style:normal;font-size:13px;opacity:.75}
 .golferbtn i{font-style:normal;font-size:26px;opacity:.6}
+.bagbox{text-align:left;margin:14px 0 6px;color:#12283b}
+.bagh{margin:14px 0 2px;font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:22px;line-height:1.1}
+.bagnote{font-size:13px;line-height:1.3;opacity:.8;margin:0 0 6px}
+.bagslot{margin:10px 0}.bagk{font-weight:800;font-size:14px;margin-bottom:4px}
+.bagseg{display:flex;flex-wrap:wrap;gap:5px}.bagseg button{padding:5px 10px;border-radius:999px;border:2px solid #12283b;background:transparent;color:#12283b;font-weight:700;font-size:13px}
+.bagseg button.on{background:#12283b;color:#fff}
+.bagfx{display:flex;flex-direction:column;font-size:13px;line-height:1.35;margin-top:5px}.bagfx .p{color:#2b7a2f;font-weight:700}.bagfx .m{color:#b0362a;font-weight:700}.bagfx .z{opacity:.7}
+table.yd{width:100%;border-collapse:collapse;font-size:14px;margin-top:4px}table.yd th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;text-align:right;padding:3px 4px;opacity:.75}
+table.yd th,table.yd td{border-left:0;min-width:0;background:none;color:#12283b;letter-spacing:0;text-transform:none}
+table.yd thead th{background:none;color:#12283b;font-size:11px;text-transform:uppercase;font-weight:800}
+table.yd th:first-child,table.yd td:first-child{text-align:left;padding-left:0;font-size:14px;font-weight:700;letter-spacing:0;text-transform:none}table.yd td{padding:4px;text-align:right;border-top:1px solid rgba(18,40,59,.12)}
+table.yd select{font:inherit;font-weight:700;color:#12283b;background:rgba(18,40,59,.07);border:1px solid rgba(18,40,59,.3);border-radius:8px;padding:3px 4px;max-width:118px}
+table.yd td.gw{color:#b0362a;font-weight:800}table.yd td.gt{color:#b87600;font-weight:800}
 .chgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 12px}
 .chgrid button{padding:4px 4px 6px;border-radius:14px;border:2px solid #12283b;background:transparent;color:#12283b;display:flex;flex-direction:column;align-items:center;gap:3px}
 .chgrid button img{width:100%;aspect-ratio:1;border-radius:10px;object-fit:cover;background:#cfd8c4}
@@ -524,8 +537,9 @@ td.won{background:rgba(255,201,60,.38)}
       <h1 class="disp">Choose your golfer</h1>
       <div class="chgrid" id="chGrid" role="group" aria-label="Golfer"></div>
       <div class="chdet" id="chDet"></div>
+      <div class="bagbox" id="chBag"></div>
       <button class="primary disp" id="chGo">Play as</button>
-      <div class="msub">Attributes count in the daily round, full rounds and single holes. In the Challenge your upgrades count instead.</div>
+      <div class="msub">Attributes count in the daily round, full rounds and single holes. In the Challenge your upgrades count instead. Your bag counts everywhere.</div>
       <button class="textbtn" id="chBack">Back</button>
     </div>
   </div>
@@ -732,22 +746,39 @@ function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.i
 
 /* ---------- clubs & surfaces ---------- */
 const CLUBS=[
- {id:'1W',name:'Driver',carry:250,roll:.13,apex:28,loft:.8,kind:'wood'},
- {id:'3W',name:'3 Wood',carry:230,roll:.11,apex:29,loft:.84,kind:'wood'},
- {id:'5W',name:'5 Wood',carry:215,roll:.1,apex:30,loft:.87,kind:'wood'},
- {id:'4H',name:'4 Hybrid',carry:200,roll:.085,apex:31,loft:.9,kind:'hybrid'},
- {id:'5I',name:'5 Iron',carry:182,roll:.07,apex:32,loft:.95,kind:'iron'},
- {id:'6I',name:'6 Iron',carry:171,roll:.06,apex:33,loft:.97,kind:'iron'},
- {id:'7I',name:'7 Iron',carry:160,roll:.05,apex:34,loft:1,kind:'iron'},
- {id:'8I',name:'8 Iron',carry:148,roll:.042,apex:35,loft:1.05,kind:'iron'},
- {id:'9I',name:'9 Iron',carry:136,roll:.035,apex:36,loft:1.1,kind:'iron'},
- {id:'PW',name:'Pitching Wedge',carry:124,roll:.028,apex:37,loft:1.15,kind:'wedge'},
- {id:'GW',name:'Gap Wedge',carry:108,roll:.022,apex:38,loft:1.19,kind:'wedge'},
- {id:'SW',name:'Sand Wedge',carry:92,roll:.016,apex:39,loft:1.25,kind:'wedge'},
- {id:'LW',name:'Lob Wedge',carry:75,roll:.012,apex:40,loft:1.32,kind:'wedge'},
+ {id:'1W',deg:10.5,name:'Driver',carry:250,roll:.13,apex:28,loft:.8,kind:'wood'},
+ {id:'3W',deg:15,name:'3 Wood',carry:230,roll:.11,apex:29,loft:.84,kind:'wood'},
+ {id:'5W',deg:18,name:'5 Wood',carry:215,roll:.1,apex:30,loft:.87,kind:'wood'},
+ {id:'4H',deg:22,name:'4 Hybrid',carry:200,roll:.085,apex:31,loft:.9,kind:'hybrid'},
+ {id:'5I',deg:26,name:'5 Iron',carry:182,roll:.07,apex:32,loft:.95,kind:'iron'},
+ {id:'6I',deg:29,name:'6 Iron',carry:171,roll:.06,apex:33,loft:.97,kind:'iron'},
+ {id:'7I',deg:33,name:'7 Iron',carry:160,roll:.05,apex:34,loft:1,kind:'iron'},
+ {id:'8I',deg:37,name:'8 Iron',carry:148,roll:.042,apex:35,loft:1.05,kind:'iron'},
+ {id:'9I',deg:41,name:'9 Iron',carry:136,roll:.035,apex:36,loft:1.1,kind:'iron'},
+ {id:'PW',deg:45,name:'Pitching Wedge',carry:124,roll:.028,apex:37,loft:1.15,kind:'wedge'},
+ {id:'GW',deg:50,name:'Gap Wedge',carry:108,roll:.022,apex:38,loft:1.19,kind:'wedge'},
+ {id:'SW',deg:56,name:'Sand Wedge',carry:92,roll:.016,apex:39,loft:1.25,kind:'wedge'},
+ {id:'LW',deg:60,name:'Lob Wedge',carry:75,roll:.012,apex:40,loft:1.32,kind:'wedge'},
  {id:'PT',name:'Putter',carry:0,putter:true,kind:'putter'},
 ];
-const PUTTER=13, GACC=8, CI=id=>CLUBS.findIndex(c=>c.id===id);
+/* v103 club swaps: a slot (named by its stock club) can hold another club. tid = which stock club's lie tables it borrows */
+const CLUB_ALT={
+ '3W':[{id:'4W',deg:16.5,name:'4 Wood',carry:222,roll:.105,apex:29.5,loft:.855,kind:'wood',tid:'3W'},{id:'MD',lbl:'MD',deg:13,name:'Mini Driver',carry:240,roll:.12,apex:28.5,loft:.82,kind:'wood',tid:'3W'}],
+ '5W':[{id:'7W',deg:21,name:'7 Wood',carry:205,roll:.09,apex:31.5,loft:.89,kind:'wood',tid:'5W'},{id:'3H',deg:19,name:'3 Hybrid',carry:210,roll:.09,apex:30.5,loft:.88,kind:'hybrid',tid:'4H'}],
+ '4H':[{id:'3H',deg:19,name:'3 Hybrid',carry:210,roll:.09,apex:30.5,loft:.88,kind:'hybrid',tid:'4H'},{id:'5H',deg:25,name:'5 Hybrid',carry:190,roll:.08,apex:32,loft:.93,kind:'hybrid',tid:'4H'},
+       {id:'4I',deg:23,name:'4 Iron',carry:192,roll:.075,apex:31,loft:.93,kind:'iron',tid:'5I'},{id:'DI',lbl:'DI',deg:20,name:'Driving Iron',carry:205,roll:.095,apex:28.5,loft:.88,kind:'iron',tid:'5I'}],
+ '5I':[{id:'5H',deg:25,name:'5 Hybrid',carry:190,roll:.08,apex:32,loft:.93,kind:'hybrid',tid:'4H'}],
+ 'GW':[{id:'52',lbl:'52\u00b0',deg:52,name:'52\u00b0 Gap Wedge',carry:101,roll:.02,apex:38.5,loft:1.21,kind:'wedge',tid:'GW'}],
+ 'SW':[{id:'54',lbl:'54\u00b0',deg:54,name:'54\u00b0 Sand Wedge',carry:98,roll:.018,apex:38.5,loft:1.23,kind:'wedge',tid:'SW'}],
+ 'LW':[{id:'58',lbl:'58\u00b0',deg:58,name:'58\u00b0 Lob Wedge',carry:82,roll:.014,apex:39.5,loft:1.29,kind:'wedge',tid:'LW'},{id:'64',lbl:'64\u00b0',deg:64,name:'64\u00b0 Lob Wedge',carry:66,roll:.01,apex:41,loft:1.38,kind:'wedge',tid:'LW'}]};
+const CLUBS_STD=CLUBS.slice();
+for(const k in CLUB_ALT)for(const a of CLUB_ALT[k])a.slot=k;
+const tidOf=c=>c.tid||c.id;
+// the set for a turn: yours (with swaps) or the stock set (rivals); woods/hybrids/long iron slots kept longest-first
+function clubSet(sw){const a=CLUBS_STD.map(c=>{const id=sw&&sw[c.id];return(id&&(CLUB_ALT[c.id]||[]).find(x=>x.id===id))||c;});
+  const L=a.slice(1,5).sort((x,y)=>y.carry-x.carry);for(let i=0;i<4;i++)a[1+i]=L[i];return a;}
+function clubsFor(ai){const a=clubSet(ai?null:(typeof BAG!=='undefined'?BAG.set:null));for(let i=0;i<a.length;i++)CLUBS[i]=a[i];}
+const PUTTER=13, GACC=8, CI=id=>{let i=CLUBS.findIndex(c=>c.id===id);if(i<0)i=CLUBS.findIndex(c=>c.slot===id);return i;};
 const ids=(...a)=>a.map(CI);
 // shot types: carry, apex, roll, wind and error multipliers, impact-window scale, clubs allowed
 const SHOTS={
@@ -2039,9 +2070,9 @@ function curClub(){return CLUBS[G.clubIdx];}
 // v95: a computer with a mouse and keyboard: the hints name the keys
 const DESK=(()=>{try{return matchMedia('(hover:hover) and (pointer:fine)').matches;}catch(e){return false;}})();
 function lieMul(c,lie){const k=c.kind;if(c.id==='1W'&&lie!=='tee'&&!onTeeBox())return lie==='fairway'?.96:lie==='cut'?.92:.75;if(lie==='sand'&&BUNKER_T[G.stype])return 1;
-  if(lie==='sand')return SAND_C[c.id]??.6;
-  if(lie==='fescue')return FES_C[c.id]??.6;
-  if(lie==='rough')return LIE_T.rough[clubGroup(c)]*(c.id==='5W'?1.04:1);if(lie==='cut')return LIE_T.cut[clubGroup(c)];return 1;}
+  if(lie==='sand')return SAND_C[tidOf(c)]??.6;
+  if(lie==='fescue')return FES_C[tidOf(c)]??.6;
+  if(lie==='rough')return LIE_T.rough[clubGroup(c)]*(tidOf(c)==='5W'?1.04:1);if(lie==='cut')return LIE_T.cut[clubGroup(c)];return 1;}
 /* full shots from fairway bunkers and fescue, per club (shot lab): the old club groups made a PW go further than a 9-iron out
    of sand and the 7-iron the longest iron out of fescue. Each club now goes a little shorter than the next-longer one, the
    hybrid advances it furthest, and the woods are a poor bet */
@@ -2050,7 +2081,7 @@ const FES_C={'1W':.4,'3W':.42,'5W':.45,'4H':.65,'5I':.63,'6I':.655,'7I':.68,'8I'
 /* tough lies by club (golf instruction + launch-monitor tests): grass grabs long, low-lofted clubs and shuts the face, so fairway woods
    and long irons come out short and wild; hybrids cut through medium rough best of the long clubs; from deep rough and fescue the
    lofted, heavy clubs (short irons, wedges) are the reliable way out. [carry factor, extra dispersion] */
-const clubGroup=c=>c.kind==='wood'?'wood':c.kind==='hybrid'?'hyb':(c.id==='5I'||c.id==='6I')?'long':(c.id==='7I'||c.id==='8I')?'mid':(c.id==='9I'||c.id==='PW')?'short':(c.id==='SW'||c.id==='LW')?'sand':'gap';
+const clubGroup=c=>{const id=tidOf(c);return c.kind==='wood'?'wood':c.kind==='hybrid'?'hyb':(id==='5I'||id==='6I')?'long':(id==='7I'||id==='8I')?'mid':(id==='9I'||id==='PW')?'short':(id==='SW'||id==='LW')?'sand':'gap';};
 // v65 rebalance (PGA 2K-style): every club loses something in the rough, stepping down smoothly from wedges to woods, and each shot
 // rolls its own number inside a range (the lie readout shows it), like 2K's "Rough 84-92%"; fescue is the heavy rough
 const LIE_T={cut:{wood:.97,hyb:.98,long:.97,mid:.98,short:.99,gap:.99,sand:.99},rough:{wood:.8,hyb:.86,long:.84,mid:.88,short:.91,gap:.92,sand:.93},fescue:{wood:.45,hyb:.6,long:.55,mid:.66,short:.74,gap:.78,sand:.82}};
@@ -2074,7 +2105,7 @@ const SHORT_T={chip:1,pitch:1,flop:1,spin:1,splash:1,pick:1,blast:1},isShort=()=
 const CHIP_R={'7I':3,'8I':2.5,'9I':2,'PW':1.6,'GW':1.25,'SW':1,'LW':.7},PITCH_R={'9I':.5,'PW':.42,'GW':.34,'SW':.27,'LW':.2};
 const SHORT_SURF={green:1,fairway:.7,tee:.7,cut:.5,rough:.28,fescue:.12,sand:0};
 const SHORT_RK={spin:.035,flop:.1,splash:.42,pick:.16,blast:1.15};   // flop (was the .22 default): sky-high and stops dead
-function shortRoll(c,st,L){const k=st==='chip'?(CHIP_R[c.id]??1):st==='pitch'?(PITCH_R[c.id]??.3):SHORT_RK[st]??.22;return k*(SHORT_SURF[L]??.5);}
+function shortRoll(c,st,L){const k=st==='chip'?(CHIP_R[tidOf(c)]??1):st==='pitch'?(PITCH_R[tidOf(c)]??.3):SHORT_RK[st]??.22;return k*(SHORT_SURF[L]??.5);}
 // roll from a point with a starting speed over the real ground; returns where it stops and the path
 function simRollP(x,y,dx,dy,v,path){let vx=dx*v,vy=dy*v;const h=1/240,pts=path?[[x,y]]:null;let lx=x,ly=y;
   for(let t=0;t<20;t+=h){const L=lieAt(x,y);if(L==='water'||L==='ob')return{x,y,pts,bad:true};
@@ -2089,7 +2120,7 @@ function windK(){const c=curClub();if(c.putter)return 0;return G.wind.mph*.85/20
    flag no longer allow for it (the ball still feels it). The rivals' planning keeps using it */
 function windAlong(aim){if(!G.aiTurn)return 0;const w=dirOf(G.wind.a),d=dirOf(aim);return windK()*(w[0]*d[0]+w[1]*d[1]);}   // >0 helping, <0 into the wind
 function shortFinish(carry,aim,path){const c=curClub(),[dx,dy]=dirOf(aim),b=G.ball,M=shotMods(),wv=[dx,dy],wk=carry*windAlong(aim);   // distance only
-  const f={sx:b.x,sy:b.y,y0:hAt(b.x,b.y)+.03,dx,dy,px:-dy,py:dx,carry,lat:0,wx:wv[0]*wk,wy:wv[1]*wk,apex:shotApex(c,carry)*M.apex,club:c,stype:G.stype,rollMul:M.roll,back:M.back*cmod().spin};
+  const f={sx:b.x,sy:b.y,y0:hAt(b.x,b.y)+.03,dx,dy,px:-dy,py:dx,carry,lat:0,wx:wv[0]*wk,wy:wv[1]*wk,apex:shotApex(c,carry)*M.apex,club:c,stype:G.stype,rollMul:M.roll*(cmod().roll?cmod().roll(c,G.stype):1),back:M.back*cmod().spin};
   let lx=b.x+dx*carry,ly=b.y+dy*carry,u=.5;for(;u<2.4;u+=.01){const q=flightPos(f,u);lx=q[0];ly=q[1];if(q[2]<=hAt(q[0],q[1])+.03)break;}
   const L=lieAt(lx,ly);if(L==='water'||L==='ob')return{x:lx,y:ly,lx,ly,L,bad:true,pts:path?[[lx,ly]]:null};
   // the same landing, hops and roll the shot itself will use (see land / stepHop / startRoll)
@@ -2139,7 +2170,7 @@ const shotApex=(c,carry)=>c.apex*SHOTS[G.stype].a*Math.sqrt(clamp(carry/(c.carry
 // it needs there are a fraction of the distance to the hole: size the meter from that, so the flag sits around 40-70% of
 // the meter instead of near the bottom (which took three quick taps). No 1-yd floor: a downhill putt off the fringe can need
 // only a few inches of fringe roll, and the floor put its flag at 10-25%
-function calcPuttMax(){const q=puttNeed(),n=Math.max(0,q.need);return G.lie==='green'?clamp(Math.max(n*1.35+1,q.d*.6+1),3,80):clamp(n*1.4+.1,.3,80);}
+function calcPuttMax(){const q=puttNeed(),n=Math.max(0,q.need),k=cmod().puttM??1,b=G.lie==='green'?clamp(Math.max(n*1.35+1,q.d*.6+1),3,80):clamp(n*1.4+.1,.3,80);return k===1?b:Math.max(b*k,n*1.12+.2);}   // v103: a blade putter's meter is finer
 function aimTarget(){const h=G.hole,s=alongCl(h,G.ball.x,G.ball.y);if(h.len-s>300){const p=h.at(s+255);return[p[0],p[1]];}return h.pin;}
 /* the driver is a tee club. Brick and El Chupacabra (the two biggest hitters) can also take it off the fairway, shorter and wilder */
 const DECK_DRIVER={brute:1,ch43:1};
@@ -2147,7 +2178,7 @@ const DECK_DRIVER={brute:1,ch43:1};
    so a teed ball can read as fairway or rough) */
 function onTeeBox(){const h=G.hole;if(!h)return false;if(G.lie==='tee')return true;const t=(h.line&&h.line[0])||[0,0];return Math.min(hyp(G.ball.x-t[0],G.ball.y-t[1]),hyp(G.ball.x,G.ball.y))<8;}
 function driverOK(){if(onTeeBox())return true;return G.lie==='fairway'&&!G.aiTurn&&!!DECK_DRIVER[CHAR_ID];}
-const clubLabel=c=>c.id==='1W'?'Driver':c.id;
+const clubLabel=c=>c.id==='1W'?'Driver':c.lbl||c.id;
 /* off the tee on par 4s and 5s it's driver, unless the hole is short enough to lay up to the green or trouble (water, OB,
    bunkers, fescue) covers a good part of the driver's landing zone along the aim line */
 function teeDriver(){const h=G.hole;if(!h||h.par<4||!onTeeBox())return false;
@@ -2390,7 +2421,7 @@ function strikeShot(power,e){
     else{G.missBy=ae-w;e=HARSH?Math.sign(e)*(.018+(ae-w)*2.6)+(Math.random()-.5)*(ae-w)*1.4:Math.sign(e)*(.012+(ae-w)*1.6);}} // no jump in error just outside the window
   G.lastPerf=perfect;G.lastMiss=miss||(G.missBy||0)>.03;   // for the golfer's reaction once the ball stops
   if(club.putter){
-    const D=Math.max(lie==='green'?.3:.05,G.puttMax*power*(HARSH?1-Math.min(.22,G.missBy*2.4):1));const mu=MU[lie]||MU.fairway;
+    const D=Math.max(lie==='green'?.3:.05,G.puttMax*power*(HARSH?1-Math.min(.3,G.missBy*2.4*(cmod().puttD??1)):1));const mu=MU[lie]||MU.fairway;
     const a=G.aim-e*(HARSH?1.45:1.1)*cmod().putt;const[dx,dy]=dirOf(a);const v=Math.sqrt(2*mu*D);
     G.roll={vx:dx*v,vy:dy*v,t:0,lip:false};G.state='roll';G.flame=null;setTimeout(()=>sfx.puttQ(q),G.launchAt*1000);
     if(perfect===2)toast('PURE STROKE','','#ffe27a');
@@ -2400,16 +2431,16 @@ function strikeShot(power,e){
   /* a perfect strike: any wood (tee, fairway, rough) gets extra carry; irons, hybrids and wedges keep the distance
      stays exactly what the player dialled in and the ball comes off with more spin, so it bites: less roll-out (more with a
      carry-boost trait: +3% -> 15% less roll, +6% -> 30%) */
-  const perfTee=perfect===2&&!isShort()&&club.kind==='wood',perfBite=perfect===2&&!isShort()&&!perfTee?1-clamp(((cmod().perf??1.03)-1)*5,0,.4):1;
+  const perfTee=perfect===2&&!isShort()&&club.kind==='wood',perfBite=perfect===2&&!isShort()&&!perfTee?1-clamp(((cmod().perf??1.03)-1)*5*(cmod().bite??1),0,.6):1;
   const lm=lieMul(club,lie)*(1+(Math.random()*2-1)*lieVar(club,lie)),em=lieErr(club,lie)*ST.e*(club.id==='1W'&&lie!=='tee'&&!onTeeBox()?1.3:1);
   const M=shotMods();
   // short-game mishits: early (fat) chunks it short and dead; late (thin) blades it low and long and it runs
   let mis=null;if(isShort()&&!miss&&G.missBy>0){const amp=({chip:BLADE.chipAmp,flop:1.5,pitch:.85,spin:1.6,pick:1.5,splash:1,blast:.8}[G.stype]??1)*(cmod().mis??1);
     const bs=clamp((.14+G.missBy*9)*amp,.14,.9);
     mis=e>0?{k:'chunk',c:1-clamp((.1+G.missBy*10)*amp,.1,.75),a:.75,r:.5}:{k:'blade',c:1+bs,a:.3,r:G.stype==='chip'?BLADE.chipR:2.2,rel:(BLADE.rel[G.stype]??0)*bs/.9};}
-  const sgl=isShort()&&!miss?SG_LIE[lie]:null;let sgv=1,sgChunk=false;
-  if(sgl){sgv=1+(Math.random()*2-1)*sgl.v*(G.stype==='flop'?.7:1);
-    if(sgl.chunk&&!mis&&Math.random()<sgl.chunk){sgChunk=true;sgv*=.62+Math.random()*.16;if(!G.aiTurn)setTimeout(()=>toast('GRABBED!','The fescue caught the club','#ffb46a'),300);}}
+  const sgl=isShort()&&!miss?SG_LIE[lie]:null,sgk=cmod().sgLie??1;let sgv=1,sgChunk=false;
+  if(sgl){sgv=1+(Math.random()*2-1)*sgl.v*sgk*(G.stype==='flop'?.7:1);
+    if(sgl.chunk&&!mis&&Math.random()<sgl.chunk*sgk){sgChunk=true;sgv*=.62+Math.random()*.16;if(!G.aiTurn)setTimeout(()=>toast('GRABBED!','The fescue caught the club','#ffb46a'),300);}}
   const flyer=!isShort()&&G.stype!=='punch'&&FLYER[lie]?FLYER[lie][clubGroup(club)]:1;
   const carry=sgv*(mis?mis.c:1)*Math.max(isShort()&&G.swMax?.5:2,(isShort()&&G.swMax?G.swMax:clubCarry(club)*lm*ST.c)*power*M.carry*(perfTee?(cmod().perf??1.03):1)*(1-(HARSH?Math.min(.32,G.missBy*3.6*(cmod().misFull??1)):Math.min(.16,G.missBy*1.6))));
   const[dx,dy]=dirOf(G.aim),px=-dy,py=dx;
@@ -2417,7 +2448,7 @@ function strikeShot(power,e){
   const w=dirOf(G.wind.a),wk=G.wind.mph*.85*(carry/200)*club.loft*ST.w*M.wind*cmod().wind;
   const thin=HARSH?Math.min(1,G.missBy/.06):0;const apex=shotApex(club,carry)*M.apex*(1-.3*thin)*(mis?mis.a:1);
   const usedPower=G.pshot;if(G.pshot){G.psLeft=Math.max(0,G.psLeft-1);G.pshot=false;}
-  G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll*(1+.7*thin)*(mis?mis.r:1)*(flyer>1?1-(1-perfBite)*.5:perfBite)*flyer*(sgl?(G.stype==='chip'?sgl.chip:sgl.r):1)*(sgChunk?.5:1),rel:mis&&mis.rel||0,back:mis&&mis.k==='blade'?0:M.back*cmod().spin*(1-.8*thin)*(sgl?sgl.back:1),
+  G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll*(1+.7*thin)*(mis?mis.r:1)*(flyer>1?1-(1-perfBite)*.5:perfBite)*flyer*(sgl?1+((G.stype==='chip'?sgl.chip:sgl.r)-1)*sgk:1)*(sgChunk?.5:1)*(cmod().roll?cmod().roll(club,G.stype):1),rel:mis&&mis.rel||0,back:mis&&mis.k==='blade'?0:M.back*cmod().spin*(1-.8*thin)*(sgl?sgl.back:1),
     fly:flyer>1&&lie!=='cut',full:isShort()?0:clubCarry(club)*lm*ST.c*M.carry};
   // a pure approach that comes down close: he twirls the club as it drops from the finish (r3golfer.js)
   {const q=flightPos(G.flight,1),p=G.hole.pin;G.twirl=perfect===2&&!isShort()&&!(perfTee&&onTeeBox()&&G.hole.par>=4)&&hyp(q[0]-p[0],q[1]-p[1])<=R3B_TWIRL_YD;}
@@ -2467,7 +2498,7 @@ function travelDir(f,u){const s=flightS(u),tx=f.dx*f.carry+2*s*(f.px*f.lat+f.wx)
    below where it was hit comes in steeper and stops sooner (an uphill approach lands flatter and runs) */
 function fullRoll(f,L,tx,ty){const c=f.club,ST=SHOTS[f.stype||'full'];
   const Ce=f.full?f.carry+Math.max(0,f.full-f.carry)*(PART_K[c.kind]??0):f.carry;
-  const surf=L==='green'?(GREEN_HOLD[c.id]??.5):(SURF[L]||1);
+  const surf=L==='green'?(GREEN_HOLD[tidOf(c)]??.5):(SURF[L]||1);
   const w=dirOf(G.wind.a),along=G.wind.mph*(w[0]*tx+w[1]*ty),wind=clamp(1+.014*along,.75,1.35);
   const drop=(f.y0??0)-hAt(G.ball.x,G.ball.y),fall=clamp(1-.012*drop,.8,1.2);
   return Ce*c.roll*ST.r*surf*(f.rollMul??1)*wind*fall;}
@@ -3182,7 +3213,7 @@ function renderChars(){const g=$('chGrid');g.innerHTML='';
   const c=CHARS.find(x=>x.id===chSel);let h='<h2>'+c.name+'</h2><div class="nick">'+c.nick+'</div><p>'+c.blurb+'</p><div class="chstats">';
   for(const[k,n]of CHAR_STATS){const v=c.st[k];h+='<span>'+n+'</span><div class="chbar'+(v>=9?' hi':'')+'" aria-label="'+n+' '+v+' of 10">'+[1,2,3,4,5,6,7,8,9,10].map(i=>'<i class="'+(i<=v?'f':'')+'"></i>').join('')+'</div>';}
   h+='</div><div class="chtrait"><b>'+c.trait.name+'</b>'+c.trait.d+'</div>';$('chDet').innerHTML=h;
-  $('chGo').textContent=c.id===CHAR_ID?'Keep '+c.name:'Play as '+c.name;}
+  $('chGo').textContent=c.id===CHAR_ID?'Keep '+c.name:'Play as '+c.name;renderBag();}
 function pickChar(){const id=chSel,prev=CHAR_ID;const done=ok=>{if(!ok){CHAR_ID=prev;try{localStorage.setItem('golf-char',prev);}catch(e){}toast('COULD NOT LOAD','That golfer did not download. Try again.','#ff9b6a');}golferRow();};
   CHAR_ID=id;try{localStorage.setItem('golf-char',id);}catch(e){}golferRow();
   if(typeof r3GolferSet==='function'&&R3.on)r3GolferSet(id,done);else done(true);
@@ -3231,7 +3262,91 @@ function careerMods1(){const s=CAR.st,g=CAR.gear;return{
   curve:1+.08*s.spin,spin:1+.12*s.spin+.1*g.wdg,wind:1-.04*g.ball,putt:Math.max(.5,1-.07*s.putt-.06*g.ptr)};}
 function rivalMods(r){const k=r.sk.pow;return{carry:()=>k,err:()=>1,win:()=>1,curve:1,spin:1,wind:1,putt:1};}
 const CM0={carry:()=>1,err:()=>1,win:()=>1,curve:1,spin:1,wind:1,putt:1};
-const cmod=()=>G.cm||curCharMods();
+
+/* ---------- v103 custom bag: every slot has sidegrade models (a plus and a minus of equal worth, checked in simulated rounds).
+   It applies to your own shots in every mode (in the Challenge your tier upgrades stack on top); rivals play their own gear. ---------- */
+const BAG_SLOTS=[
+ {k:'drv',name:'Driver & woods',m:[
+   {id:'std',name:'Standard',g:[],c:[]},
+   {id:'bomb',name:'Bomber',g:['+5% carry with woods','Rolls out a little more'],c:['Wood misses stray 10% wider']},
+   {id:'max',name:'Max forgiveness',g:['Wood misses stray 15% less','Mistimed woods lose half the distance'],c:['−3.5% carry with woods']},
+   {id:'shape',name:'Shaper',g:['Draws and fades 40% stronger with woods'],c:['Perfect window 10% smaller with woods']}]},
+ {k:'irn',name:'Irons & hybrid',m:[
+   {id:'std',name:'Standard',g:[],c:[]},
+   {id:'cav',name:'Cavity back',g:['+3% carry','Mistimed shots lose 30% less'],c:['Rolls out 25% more on greens','Shaping 20% weaker']},
+   {id:'forged',name:'Forged',g:['Checks up 15% more','Shaping 15% stronger'],c:['−2% carry']},
+   {id:'blade',name:'Blades',g:['Perfect strikes bite twice as hard','Shaping 35% stronger'],c:['Perfect window 8% smaller','Mistimed shots lose 20% more']}]},
+ {k:'wdg',name:'Wedges',m:[
+   {id:'std',name:'Standard',g:[],c:[]},
+   {id:'high',name:'High bounce',g:['Bunker shot window 15% bigger','Rough and fescue hurt chips and pitches 40% less'],c:['Flop and spinner windows 20% smaller']},
+   {id:'low',name:'Low bounce',g:['Flop and spinner windows 20% bigger','A little more backspin'],c:['Bunker window 15% smaller','Rough and fescue hurt chips and pitches 40% more']},
+   {id:'milled',name:'Milled spin',g:['Chips and pitches check 30% more','Backspin 30% stronger'],c:['Mishit chips and pitches go 20% further wrong']}]},
+ {k:'ptr',name:'Putter',m:[
+   {id:'std',name:'Standard',g:[],c:[]},
+   {id:'blade',name:'Blade',g:['Finer putting meter: the same tap misses the pace 15% less'],c:['Line wanders 15% more']},
+   {id:'mallet',name:'Mallet',g:['Line wanders 10% less'],c:['Coarser putting meter: pace misses 25% more']},
+   {id:'lock',name:'Arm-lock',g:['Inside 12 ft the line wanders 20% less'],c:['Beyond 30 ft: line 15% wider, pace misses 40% more']}]},
+ {k:'ball',name:'Ball',m:[
+   {id:'std',name:'Standard',g:[],c:[]},
+   {id:'dist',name:'Distance',g:['+2% carry on every club'],c:['Chips and pitches release 25% more','Less backspin, wind moves it 5% more']},
+   {id:'ure',name:'Tour urethane',g:['Approaches roll 10% less, short game checks 15% more','More backspin'],c:['−2% carry on every club']},
+   {id:'low',name:'Low spin',g:['Wind moves it 20% less'],c:['Shaping 30% weaker','Approaches roll out 20% more, chips 10% more']}]}];
+const BAG_KEY='golf-bag';
+let BAG=(()=>{const o={drv:'std',irn:'std',wdg:'std',ptr:'std',ball:'std',set:{}};try{const d=JSON.parse(localStorage.getItem(BAG_KEY)||'null');if(d){for(const k in o)if(k!=='set'&&BAG_SLOTS.find(x=>x.k===k).m.some(m=>m.id===d[k]))o[k]=d[k];
+  if(d.set)for(const k in d.set)if((CLUB_ALT[k]||[]).some(a=>a.id===d.set[k]))o.set[k]=d.set[k];}}catch(e){}return o;})(),BAGV=1;
+const bagSave=()=>{BAGV++;try{localStorage.setItem(BAG_KEY,JSON.stringify(BAG));}catch(e){}};
+function bagSet(k,id){BAG[k]=id;bagSave();}
+function bagSwap(slot,id){if(id&&id!==slot)BAG.set[slot]=id;else delete BAG.set[slot];bagSave();clubsFor(G.aiTurn&&!G.simBag);}
+// your clubs on your turns, the stock set on a rival's
+(()=>{let v=!!G.aiTurn;delete G.aiTurn;Object.defineProperty(G,'aiTurn',{get:()=>v,set:x=>{x=!!x;if(x!==v){v=x;if(!G.simBag)clubsFor(x);}},enumerable:true,configurable:true});clubsFor(v);})();
+/* the bag panel on the golfers screen: models per slot, club swaps, and the stock yardages and gaps for the golfer you're looking at */
+function bagYardages(ch){const m=bagWrap(charMods(ch),BAG),B=bagFx(BAG),set=clubSet(BAG.set),st0=G.stype;G.stype='full';
+  try{return set.filter(c=>!c.putter).map(c=>{const ca=c.carry*m.carry(c);return{c,carry:ca,total:ca+ca*c.roll*SURF.fairway*B.roll(c,'full')};});}finally{G.stype=st0;}}
+function renderBag(){const el=$('chBag');if(!el)return;const ch=CHARS.find(x=>x.id===chSel)||curChar();
+  let h='<h2 class="bagh">Your bag</h2><div class="bagnote">Every model trades a strength for a weakness. Your bag counts in every mode; rivals carry their own.</div>';
+  for(const S of BAG_SLOTS){const cur=S.m.find(m=>m.id===BAG[S.k])||S.m[0];
+    h+='<div class="bagslot"><div class="bagk">'+S.name+'</div><div class="bagseg">'+S.m.map(m=>'<button data-bm="'+S.k+':'+m.id+'"'+(m.id===cur.id?' class="on"':'')+'>'+m.name+'</button>').join('')+'</div>';
+    h+='<div class="bagfx">'+(cur.id==='std'?'<span class="z">Balanced: no strengths, no weaknesses.</span>':cur.g.map(t=>'<span class="p">+ '+t+'</span>').join('')+cur.c.map(t=>'<span class="m">\u2212 '+t+'</span>').join(''))+'</div></div>';}
+  const Y=bagYardages(ch);
+  h+='<h2 class="bagh">Clubs &amp; yardages</h2><div class="bagnote">'+ch.name+' with this bag: carry and total on the fairway, full swing, no wind. Slots marked \u21c4 can take a different club.</div>';
+  h+='<table class="yd"><thead><tr><th>Club</th><th>Loft</th><th>Carry</th><th>Total</th><th>Gap</th></tr></thead><tbody>';
+  const yl=o=>o.id==='1W'?'Driver':o.id==='MD'?'Mini driver':o.id==='DI'?'Driving iron':o.lbl||o.id;
+  Y.forEach((y,i)=>{const c=y.c,slot=c.slot||c.id,alts=CLUB_ALT[slot],nx=Y[i+1],gap=nx?Math.round(y.carry-nx.carry):null,gc=gap==null?'':gap>=20?' class="gw"':gap<=6?' class="gt"':'';
+    const nm=alts?'<select data-sw="'+slot+'" aria-label="'+c.name+' slot">'+[CLUBS_STD.find(x=>x.id===slot)].concat(alts).map(o=>'<option value="'+o.id+'"'+(o.id===c.id?' selected':'')+'>\u21c4 '+yl(o)+'</option>').join('')+'</select>':'<span>'+yl(c)+'</span>';
+    h+='<tr><td>'+nm+'</td><td>'+c.deg+'\u00b0</td><td><b>'+Math.round(y.carry)+'</b></td><td>'+Math.round(y.total)+'</td><td'+gc+'>'+(gap==null?'':gap)+'</td></tr>';});
+  h+='</tbody></table><div class="bagnote">Gaps of 20+ yards are in red, 6 or less in amber.</div>';
+  el.innerHTML=h;
+  el.querySelectorAll('[data-bm]').forEach(b=>b.onclick=()=>{const[k,id]=b.dataset.bm.split(':');bagSet(k,id);sfx.tick();renderBag();});
+  el.querySelectorAll('select[data-sw]').forEach(sl=>sl.onchange=()=>{bagSwap(sl.dataset.sw,sl.value);sfx.tick();renderBag();});}
+const BAG_SHORTN={chip:1,pitch:1,spin:1,flop:1};
+// what each model does: multipliers (and carry additions) by club and shot
+function bagFx(b){const W=c=>c&&c.kind==='wood',I=c=>c&&(c.kind==='iron'||c.kind==='hybrid'),Wd=c=>c&&c.kind==='wedge',full=()=>!isShort(),st=()=>G.stype;
+  const F={
+  carry:c=>{if(!c||c.putter)return 0;let a=0;if(W(c))a+=b.drv==='bomb'?.05:b.drv==='max'?-.035:0;if(I(c))a+=b.irn==='cav'?.03:b.irn==='forged'?-.02:0;a+=b.ball==='dist'?.02:b.ball==='ure'?-.02:0;return a;},
+  err:c=>W(c)?(b.drv==='bomb'?1.1:b.drv==='max'?.85:1):1,
+  win:c=>{if(!c||c.putter)return 1;let m=1;if(W(c)&&full()&&b.drv==='shape')m*=.9;if(I(c)&&full()&&b.irn==='blade')m*=.92;
+    if(Wd(c)){const t=st();if(BUNKER_T[t])m*=b.wdg==='high'?1.15:b.wdg==='low'?.85:1;if(t==='flop'||t==='spin')m*=b.wdg==='high'?.8:b.wdg==='low'?1.2:1;}return m;},
+  curve:c=>{let m=1;if(W(c)&&b.drv==='shape')m*=1.4;if(I(c))m*=b.irn==='cav'?.8:b.irn==='forged'?1.15:b.irn==='blade'?1.35:1;if(b.ball==='low')m*=.7;return m;},
+  spin:c=>{let m=1;if(Wd(c))m*=b.wdg==='milled'?1.3:b.wdg==='low'?1.1:1;m*=b.ball==='ure'?1.15:b.ball==='dist'?.85:1;return m;},
+  wind:b.ball==='low'?.8:b.ball==='dist'?1.05:1,
+  mis:c=>Wd(c)&&b.wdg==='milled'?1.2:1,
+  misFull:c=>W(c)&&b.drv==='max'?.5:I(c)?(b.irn==='cav'?.7:b.irn==='blade'?1.2:1):1,
+  bite:c=>I(c)&&b.irn==='blade'?2:1,
+  roll:(c,t)=>{let m=1;const sh=!!BAG_SHORTN[t];
+    if(!sh){if(W(c)&&b.drv==='bomb')m*=1.1;if(I(c))m*=b.irn==='cav'?1.25:b.irn==='forged'?.85:1;m*=b.ball==='ure'?.9:b.ball==='low'?1.2:1;}
+    else{if(Wd(c)&&b.wdg==='milled')m*=.7;m*=b.ball==='dist'?1.25:b.ball==='ure'?.85:b.ball==='low'?1.1:1;}return m;},
+  sgLie:c=>Wd(c)?(b.wdg==='high'?.6:b.wdg==='low'?1.4:1):1,
+  putt:d=>b.ptr==='blade'?1.15:b.ptr==='mallet'?.9:b.ptr==='lock'?(d<4?.8:d>10?1.15:1):1,
+  puttD:d=>1,puttM:d=>b.ptr==='blade'?.85:b.ptr==='mallet'?1.25:b.ptr==='lock'&&d>10?1.4:1};
+  return F;}
+function bagWrap(m,b){const B=bagFx(b||BAG),cc=()=>curClub(),pd=()=>G.hole?pinDist():0;
+  return{...m,carry:c=>m.carry(c)+B.carry(c),err:c=>m.err(c)*B.err(c),win:c=>m.win(c)*B.win(c),
+    get curve(){return m.curve*B.curve(cc());},get spin(){return m.spin*B.spin(cc());},wind:m.wind*B.wind,
+    get putt(){return m.putt*B.putt(pd());},get puttD(){return B.puttD(pd());},get puttM(){return B.puttM(pd());},
+    get mis(){return(m.mis??1)*B.mis(cc());},get misFull(){return(m.misFull??1)*B.misFull(cc());},perf:m.perf,
+    get bite(){return B.bite(cc());},roll:(c,t)=>B.roll(c,t),get sgLie(){return B.sgLie(cc());}};}
+const BAGC=new WeakMap();
+const cmod=()=>{const m=G.cm||curCharMods();if(G.aiTurn&&!G.simBag)return m;const b=G.simBag||BAG,v=G.simBag?'s'+JSON.stringify(G.simBag):BAGV;let e=BAGC.get(m);if(!e||e.v!==v){e={v,w:bagWrap(m,b)};BAGC.set(m,e);}return e.w;};
 const clubCarry=c=>c.carry*cmod().carry(c);
 
 /* ---- match state ---- */
@@ -3363,7 +3478,7 @@ function aiPlan(){const r=MATCH.r,sk=r.sk,b=G.ball;
   if(curClub().putter)plan=aiPuttPlan(sk);
   else{const t=aimTarget(),toPin=t===G.hole.pin,w=dirOf(G.wind.a);
     const est=()=>{const c=curClub(),ST=SHOTS[G.stype],M=shotMods(),landL=lieAt(t[0],t[1]);
-      const rf=SHORT_T[G.stype]?shortRoll(c,G.stype,landL):(c.loft>=1.15&&G.stype==='full'&&landL==='green')?.012:c.roll*ST.r*(landL==='green'?(GREEN_HOLD[c.id]??.5):(SURF[landL]||1));
+      const rf=SHORT_T[G.stype]?shortRoll(c,G.stype,landL):(c.loft>=1.15&&G.stype==='full'&&landL==='green')?.012:c.roll*ST.r*(landL==='green'?(GREEN_HOLD[tidOf(c)]??.5):(SURF[landL]||1));
       return{c,ST,M,rf,max:clubCarry(c)*lieMul(c,G.lie)*ST.c*M.carry};};
     let tx=t[0],ty=t[1],E=est();
     const want=()=>{const d=hyp(tx-b.x,ty-b.y)+clamp(hAt(t[0],t[1])-hAt(b.x,b.y),-25,25)*.9;return toPin?d/(1+E.rf):Math.min(E.max,d/(1+E.rf));};
@@ -5833,7 +5948,7 @@ function openBag(){if((G.state!=='aim'||G.aiTurn))return;A();const g=$('bagGrid'
   const KN={wood:'Woods & hybrid',hybrid:'Woods & hybrid',iron:'Irons',wedge:'Wedges',putter:'Putter'};
   CLUBS.forEach((c,i)=>{const k=KN[c.kind];if(k!==last){h+='<div class="kind">'+k+'</div>';last=k;}
     const dvr=c.id==='1W'&&!driverOK(),dist=c.putter?'Putt':dvr?'Tee only':Math.round(clubCarry(c)*lieMul(c,lie))+'y';const dis=lie==='green'&&!c.putter||dvr;
-    h+='<button data-c="'+i+'" class="'+(i===G.clubIdx?'on ':'')+(i===rec?'rec':'')+'"'+(dis?' disabled':'')+' aria-label="'+c.name+', '+dist+'"><b>'+(c.id==='1W'?'DR':c.id)+'</b><span>'+dist+'</span></button>';});
+    h+='<button data-c="'+i+'" class="'+(i===G.clubIdx?'on ':'')+(i===rec?'rec':'')+'"'+(dis?' disabled':'')+' aria-label="'+c.name+', '+dist+'"><b>'+(c.id==='1W'?'DR':c.lbl||c.id)+'</b><span>'+dist+'</span></button>';});
   g.innerHTML=h;$('bagLie').textContent='Your bag \u00b7 from the '+(LIE_NAME[lie]||'').toLowerCase()+(lie==='tee'||lie==='fairway'||lie==='green'?'':' (carries adjusted)');
   g.querySelectorAll('button[data-c]').forEach(b=>b.addEventListener('click',()=>{pickClub(+b.dataset.c);$('bagM').hidden=true;}));
   $('bagM').hidden=false;}
@@ -5987,6 +6102,11 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:'2026-10-07-bag',date:'Oct 7, 2026',title:'Build your bag',items:[
+    'New on the Golfers screen: pick your equipment. Driver & woods, irons, wedges, putter and ball each come in a few models, and every one trades a strength for a weakness: a Bomber driver flies further but strays wider, Blades bite and shape but have a smaller window, a Mallet holds its line but the pace is harder to judge. Standard is balanced. Everything is available now.',
+    'Swap clubs: trade the 3 wood for a 4 wood or mini driver, the 5 wood for a 7 wood or 3 hybrid, the 4 hybrid for a 3 or 5 hybrid, a 4 iron or a driving iron, the 5 iron for a 5 hybrid, and pick 52\u00b0, 54\u00b0, 58\u00b0 or 64\u00b0 wedges.',
+    'The screen shows your stock yardages (carry and total) and the gaps between clubs for the golfer you pick, so you can see where a swap leaves a hole in the bag.',
+    'Your bag counts in every mode, including the daily round. In the Challenge your gear upgrades stack on top. Every model was tested in hundreds of simulated rounds to keep them even overall, but some suit some courses better.']},
   {id:'2026-10-07-firstcut',date:'Oct 7, 2026',title:'First cut',items:[
     'The darker band around every fairway is now its own lie, the first cut: about 2\u00bd yards wide on every course, between the fairway and the rough.',
     'It plays just a touch tougher than the fairway: 1\u20133% less carry, slightly wider misses, a little less spin, and a drive that finishes there rolls a bit less. Nothing like the rough.',
