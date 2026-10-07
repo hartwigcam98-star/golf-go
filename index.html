@@ -300,6 +300,7 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
 .lb .nm small{display:block;white-space:normal;line-height:1.25}.lb .w{width:2.4em;text-align:right;color:#2f6b3a}.lb .wide{width:2.8em;text-align:right;color:#51606b;font-weight:600}
 .lb li.tap{cursor:pointer}.lb li.tap .nm:after{content:' \203A';color:#9aa6ae}
 #dCardV th.tap{cursor:pointer;background:#2c5d86;text-decoration:underline;text-underline-offset:3px}
+#flagBtn{left:auto;right:12px;bottom:auto;height:32px;padding:0 12px;font-size:14px}
 .flycam{position:absolute;left:12px;z-index:3;height:38px;padding:0 14px;border-radius:999px;background:var(--panel);color:#fff6dc;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.28)}
 .rpbar{position:absolute;right:12px;z-index:3;display:flex;gap:8px}.rpbar button{height:38px;padding:0 14px;border-radius:999px;background:var(--panel);color:#fff6dc;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.28)}.rpbar button.on{background:#ffc93c;color:#0f2233}
 .hlrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(18,40,59,.12)}.hlrow div{flex:1;min-width:0}.hlrow b{display:block;font-size:16px}.hlrow span{display:block;font-size:13px;opacity:.7}.hlrow button{height:36px;min-width:40px;padding:0 10px;border-radius:12px;border:2px solid #12283b;color:#12283b;font-size:15px}.hlrow button.go{background:#12283b;color:#ffc93c}
@@ -5756,7 +5757,7 @@ function impName(){const x=G.imp.x,y=G.imp.y,h=G.traj>0?'High':G.traj<0?'Low':''
 function updHud(){
   const h=G.hole;if(!h)return;
   $('replayBtn').hidden=!(G.state==='aim'&&G.canReplay&&!G.overview&&!G.aiTurn&&!G.fc);
-  { const gb=$('flagBtn'),on=G.state==='aim'&&!G.aiTurn&&curClub().putter&&G.lie==='green';gb.hidden=!on;if(on){gb.style.bottom=(botH+52)+'px';setT('flagBtn',G.flagOut?'\u26f3 Flag out \u00b7 tap to put it in':'\u26f3 Flag in \u00b7 tap to pull it');} }
+  { const gb=$('flagBtn'),on=G.state==='aim'&&!G.aiTurn&&curClub().putter&&G.lie==='green';gb.hidden=!on;if(on){const mb=$('menuBtn').getBoundingClientRect();gb.style.top=(mb.bottom+8)+'px';setT('flagBtn',G.flagOut?'\u26f3 Flag out':'\u26f3 Flag in');} }   // v105: a small chip top right, under the menu, clear of the golfer
   { const rb=$('rpBar'),rv=!!G.replay&&!REC.on&&!SPEC.on;rb.hidden=!rv;if(rv){rb.style.bottom=(botH+4)+'px';const sv=$('rpSave');sv.hidden=G.mode==='highlight';sv.textContent=G.lastShot&&G.lastShot.saved?'\u2605 Saved':'\u2606 Save';sv.classList.toggle('on',!!(G.lastShot&&G.lastShot.saved));$('rpVideo').hidden=!recOK();} }
   { const fb=$('flyCamBtn'),on=G.replay?(!REC.on&&!G.lastShot.putt):(G.state==='flight'||G.state==='bounce'||G.state==='roll')&&G.fromLie!=='green'&&!(typeof SPEC!=='undefined'&&SPEC.on);fb.hidden=!on;if(on){fb.style.bottom=(botH+4)+'px';setT('flyCamBtn',FLY_TV?'\ud83c\udfaf Trail view':'\ud83d\udcfa TV view');} }
   const ffOk=ffActive();$('ffBtn').hidden=!ffOk;if(ffOk){setT('ffBtn',G.ff>1?'\u23e9 '+G.ff+'\u00d7 speed':'\u23e9 Speed up');$('ffBtn').classList.toggle('on',G.ff>1);}
@@ -6142,6 +6143,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:'2026-10-07-flagchip',date:'Oct 7, 2026',title:'Flagstick button moved',items:[
+    'The flag in / flag out button now sits as a small chip at the top right, under the menu, instead of next to your putter. Tap it to pull or replace the flag.']},
   {id:'2026-10-07-slopekey',date:'Oct 7, 2026',title:'Cleaner putting view',items:[
     'The Gentle\u2013Severe slope key above the camera button is gone, so it no longer covers your club. The slope colours on the green still show.']},
   {id:'2026-10-07-gearlook',date:'Oct 7, 2026',title:'See your gear',items:[
