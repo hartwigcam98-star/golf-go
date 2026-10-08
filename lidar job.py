@@ -3,11 +3,8 @@
 import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
-JOB = {"name": "minnesota private: interlachen, windsong farm, hazeltine", "search": [[44.87, -93.39, 44.91, -93.34], [44.98, -93.74, 45.07, -93.62], [44.80, -93.64, 44.86, -93.56]],
-       # Interlachen Country Club (Edina), Windsong Farm Golf Club (Independence), Hazeltine National Golf Club (Chaska)
-       "want": {"interlachen": r"interlachen", "windsong": r"windsong", "hazeltine": r"hazeltine"},
-       "holes": {"interlachen": r"interlachen", "windsong": r"windsong", "hazeltine": r"hazeltine"},
-       "steps": {"interlachen": "all", "windsong": "all", "hazeltine": "all"}}
+JOB = {"name": "interlachen retry (OSM mirror failed)", "search": [[44.895, -93.40, 44.93, -93.36]],
+       "want": {"interlachen": r"interlachen"}, "holes": {"interlachen": r"interlachen"}, "steps": {"interlachen": "all"}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
