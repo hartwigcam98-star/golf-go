@@ -2026,6 +2026,21 @@ function saveGame(o={}){if(G.mode==='daily'){dailySave(o);return;}if(G.mode!=='r
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(d));}catch(e){}}
 function loadSave(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d&&d.v===1&&Number.isInteger(d.hi)&&d.hi>=0&&d.hi<TB.length)return d;}catch(e){}return null;}
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
+/* wind for the round (v2026-10-09): one prevailing wind per round (direction and strength), the same for every hole, with only a
+   little hole-to-hole variation (about +-10 degrees, +-2 mph) and the small per-stroke drift. Holes are mapped north-up, so the
+   arrow still turns from hole to hole as the holes point different ways. Daily rounds before 2026-10-09 keep the old per-hole wind. */
+const WIND_ROUND_FROM=Math.round(Date.UTC(2026,9,9)/864e5);
+function roundWindSeed(){
+  if(G.mode==='daily'||(G.mode==='spectate'&&G.dailyDay))return G.dailySeed;
+  if(G.mode==='spectate')return G.dailySeed||1;
+  if(G.mode==='round'){if(!G.pinSeed)G.pinSeed=1+Math.floor(Math.random()*1e9);return G.pinSeed;}
+  if(MATCH.on){if(!MATCH.ws)MATCH.ws=1+Math.floor(Math.random()*1e9);return MATCH.ws;}
+  if(!G.windSeed)G.windSeed=1+Math.floor(Math.random()*1e9);return G.windSeed;}
+function holeWind(i){
+  const daily=G.mode==='daily'||(G.mode==='spectate'&&G.dailyDay&&!(SPEC&&SPEC.pinSeed));
+  if(daily&&G.dailyDay&&dailyNum(G.dailyDay)<WIND_ROUND_FROM){const wr=rng(1000+i*17+G.dailySeed);return{a:wr()*TAU,mph:Math.round(wr()*12)};}
+  const sd=roundWindSeed(),rb=rng(sd*31+977),a0=rb()*TAU,m0=1+rb()*11,wr=rng(sd*31+1000+i*17);
+  return{a:a0+(wr()-.5)*.35,mph:clamp(Math.round(m0+(wr()-.5)*4),0,16)};}
 function startHole(i){
   G.hi=i;G.hole=hole(i);
   if(!G.hole.hg)buildHeights(G.hole);
@@ -2036,8 +2051,7 @@ function startHole(i){
   G.canReplay=false;G.lastShot=null;G.replay=null;G.hop=null;
   G.flight=null;G.roll=null;G.trail=[];G.fx=[];G.inCup=false;G.spin=0;G.overview=false;G.waitFn=null;G.golferAt=null;G.followT=0;
   setPinFor(G.hole,i);G.aim=G.hole.axis;G.shotRot=G.aim;
-  const wr=rng(1000+i*17+(G.mode==='daily'||G.mode==='spectate'?G.dailySeed:Math.floor(Math.random()*1e6)));
-  G.wind={a:wr()*TAU,mph:Math.round(wr()*12)};
+  G.wind=holeWind(i);
   G.state='intro';
   const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];
   $('iNum').textContent=i+1;$('iPar').textContent='Par '+G.hole.par;$('iLen').textContent=G.hole.len+' yds'+(G.hole.pinTag&&G.hole.pinTag[G.hole.pinIx]?' \u00b7 '+G.hole.pinTag[G.hole.pinIx]+' pin':'');
@@ -3113,7 +3127,7 @@ function startMatch(rid,resume){careerUse(String(rid).startsWith('c2_')?2:1);con
   let m=resume&&CAR.match&&CAR.match.rid===rid?CAR.match:freshMatch(r);CAR.match=m;saveCareer();
   m.cid=matchCid(m,r);saveCareer();
   if(R3.on){if(!(m.wx>=0)){m.wx=r3RandWx();saveCareer();}r3ApplyWx(m.wx,!resume);}
-  setCourse(m.cid,false);G.mode='career';MATCH.on=true;MATCH.over=false;MATCH.r=r;MATCH.res=m.res;MATCH.sy=m.sy;MATCH.so=m.so;MATCH.honor=m.honor;MATCH.extra=m.extra||0;MATCH.earn=m.earn;
+  setCourse(m.cid,false);G.mode='career';MATCH.on=true;MATCH.over=false;MATCH.r=r;MATCH.res=m.res;MATCH.sy=m.sy;MATCH.so=m.so;MATCH.honor=m.honor;MATCH.extra=m.extra||0;MATCH.earn=m.earn;if(!m.ws)m.ws=1+Math.floor(Math.random()*1e9);MATCH.ws=m.ws;
   G.psLeft=Number.isInteger(m.ps)?m.ps:3;G.scores=[];
   $('careerM').hidden=true;$('menuM').hidden=true;G.paused=false;
   matchStartHole(m.hi);
@@ -5854,6 +5868,10 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-08-wind",date:"Oct 8, 2026",title:"One wind for the whole round",items:[
+    "The wind no longer changes completely from hole to hole. Each round now has one prevailing wind, a direction and a strength, that holds for all 18 holes, with only small gusts and shifts along the way.",
+    "The arrow still turns as you go, because the holes point different ways: a wind from the west is behind you on one hole and into your face on the next one heading the other way.",
+    "Starts with tomorrow\u2019s daily round, so today\u2019s leaderboard stays fair."]},
   {id:"2026-10-08-d3fa",date:"Oct 8, 2026",title:"Three Minnesota private clubs",items:[
     "Hazeltine National in Chaska: the Robert Trent Jones major-championship course from the Tournament tees (7,674 yards, par 72), in the club order, finishing with the 16th along Lake Hazeltine, the par-3 17th over water and the climb to the clubhouse on 18.",
     "Interlachen Country Club in Edina: the Donald Ross classic as restored in 2024 (Black tees, 7,201 yards, par 72), with the pond on 9 where Bobby Jones skipped his ball across and Mirror Lake on 12 to 14.",

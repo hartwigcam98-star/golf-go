@@ -24,6 +24,7 @@ THE SWING (full shots)
 
 WIND
 - The wind arrow and speed are at the top. The game does NOT adjust any distances for wind: the meter yardages, landing ring and pin yardage are all calm-air numbers. Judge it yourself: club up into the wind, down with it. A crosswind pushes the ball sideways. High shots feel the wind more, low shots less.
+- The wind is set for the whole round: one prevailing direction and strength, changing only a little from hole to hole and shot to shot. The arrow on screen still turns from hole to hole because the holes point different ways. (Daily rounds before Oct 9, 2026 had a new wind every hole.)
 - After landing, a helping wind makes the ball release more and a headwind stops it sooner.
 
 LIES (where the ball sits)
