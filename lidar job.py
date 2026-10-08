@@ -6,12 +6,11 @@
 import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
-JOB = {"name": "grand national + arizona", "search": [[32.60, -85.52, 32.76, -85.34], [33.40, -112.48, 33.86, -111.88]],
-       # Grand National (Links + Lake share one outline: way/328838760), Lookout Mountain (relation/3545446),
-       # the Wigwam (relation/3530156, all three courses; the Gold is picked later), Dove Valley Ranch (relation/3551341)
-       "want": {"gn": r"grand national", "lookout": r"lookout mountain", "wigwam": r"wigwam", "dove": r"dove valley"},
-       "holes": {"gn": r"grand national", "lookout": r"lookout", "wigwam": r"wigwam", "dove": r"dove"},
-       "steps": {"gn": "all", "lookout": "all", "wigwam": "all", "dove": "all"}}
+JOB = {"name": "grand national lake greens", "search": [32.60, -85.52, 32.76, -85.34],
+       # point clouds round the traced Lake greens (OSM maps none of them)
+       "want": {"gnlake": r"grand national"}, "holes": {"gnlake": r"grand national"},
+       "steps": {"gnlake": "points"},
+       "greens": {"gnlake": [[-85.427913, 32.67804, -85.427489, 32.678405], [-85.432056, 32.677463, -85.431822, 32.677804], [-85.434231, 32.67768, -85.433909, 32.67789], [-85.431646, 32.680601, -85.43131, 32.680911], [-85.427131, 32.680427, -85.426698, 32.680676], [-85.427782, 32.678381, -85.427386, 32.678734], [-85.431119, 32.675038, -85.430747, 32.675361], [-85.432569, 32.674176, -85.432247, 32.674386], [-85.428214, 32.674697, -85.427884, 32.675013], [-85.426326, 32.667353, -85.425996, 32.667626], [-85.43019, 32.666727, -85.429846, 32.666975], [-85.429048, 32.670318, -85.428712, 32.670665], [-85.426692, 32.666801, -85.426435, 32.667105], [-85.422146, 32.670429, -85.421861, 32.670696], [-85.424027, 32.671856, -85.423764, 32.672191], [-85.427123, 32.671, -85.426823, 32.671292], [-85.430586, 32.672129, -85.430249, 32.672352], [-85.427409, 32.673736, -85.427087, 32.674052]]}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -245,7 +244,7 @@ def main():
     import subprocess   # keep the earlier courses' files on the results branch
     try:
         subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_az0.json; [ -f out/run.log ] && mv out/run.log out/run_prev_az0.log; true', shell=True)
+        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_az1.json; [ -f out/run.log ] && mv out/run.log out/run_prev_az1.log; true', shell=True)
     except Exception as e: SUM['errors'].append(f'keep old: {e}')
     try: res = discover()
     except Exception as e: err('discover', e); return
