@@ -2443,7 +2443,10 @@ function prepareShot(){
     if(G.clubIdx!==PUTTER)chooseShort();
     G.puttMax=calcPuttMax(); }
   { const sl=stanceLabel();if(sl&&G.strokes>0)setTimeout(()=>{if(G.state==='aim')toast(sl.toUpperCase(),/Above/.test(sl)?'Ball will want to draw left':/Below/.test(sl)?'Ball will want to fade right':/Uphill/.test(sl)?'Higher and shorter':'Lower, and it runs','#bfe3ff');},900); }
-  if(G.strokes>0){const wr2=G.mode==='daily'?rng(G.dailySeed+G.hi*131+G.strokes*7919):Math.random;G.wind.mph=clamp(Math.round(G.wind.mph+(wr2()-.5)*3),0,16);G.wind.a+=(wr2()-.5)*.5;}
+  /* the wind shifts once per stroke: k (saved with the wind) marks the stroke it last shifted for, so reopening the game mid-hole doesn't shift it again */
+  { const wk=(MATCH.on?(MATCH.turn+1)*1e4:0)+G.hi*100+G.strokes;
+    if(G.strokes>0&&G.wind.k!==wk){const wr2=G.mode==='daily'?rng(G.dailySeed+G.hi*131+G.strokes*7919):Math.random;G.wind.mph=clamp(Math.round(G.wind.mph+(wr2()-.5)*3),0,16);G.wind.a+=(wr2()-.5)*.5;}
+    G.wind.k=wk; }
   G.meter.pos=IMPACT;G.meter.power=0;
   G.state='aim';
   saveGame({mid:G.strokes>0});
@@ -2888,13 +2891,23 @@ function dailyPlay(){const day=dailyDay(),cid=dailyCourse(day);let d=dailyToday(
   if(((d.mid&&d.strokes>0)||d.pend)&&d.ball){$('introM').hidden=true;G.strokes=d.strokes;G.ball={x:d.ball.x,y:d.ball.y};G.prev=d.prev?{x:d.prev.x,y:d.prev.y}:{...G.ball};if(d.wind)G.wind=d.wind;
     prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];if(!pendResume(d.pend))toast('WELCOME BACK','Daily round \u00b7 hole '+(d.hi+1),'#8ee6a8');}}
 function dailyFinish(){const d=dailyLoad();if(!d||d.day!==G.dailyDay)return;d.scores=G.scores.slice();d.done=true;d.mid=false;d.total=G.scores.reduce((a,b)=>a+(b||0),0);d.toPar=roundDiff();dailyStore(d);dailyPost();}
-async function dailyPost(){const d=dailyLoad();if(!d||!d.done||d.posted||!DAILY.url)return false;
+async function dailySend(d){
   const body={day:d.day,course:d.cid,player_id:dailyPid(),name:dailyName()||'Golfer',strokes:d.total,to_par:d.toPar,holes:d.scores};
   if(d.shots&&d.shots.length)body.shots={v:1,ch:CHAR_ID,s:d.shots};
   const send=()=>fetch(DAILY.url+'/rest/v1/daily_scores',{method:'POST',headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(body)});
-  try{let r=await send();if(!r.ok&&r.status!==409&&body.shots){delete body.shots;r=await send();}
-    if(r.ok||r.status===409){d.posted=true;dailyStore(d);const n=$('cNote');if(n&&!$('cardM').hidden&&G.mode==='daily')n.textContent='Posted to today’s leaderboard.';return true;}}catch(e){}
+  let r=await send();if(!r.ok&&r.status!==409&&body.shots){delete body.shots;r=await send();}return r;}
+async function dailyPost(){const d=dailyLoad();if(!d||!d.done||d.posted||!DAILY.url)return false;
+  try{const r=await dailySend(d);
+    if(r.ok||r.status===409){const c=dailyLoad();if(c&&c.day===d.day){c.posted=true;dailyStore(c);}const n=$('cNote');if(n&&!$('cardM').hidden&&G.mode==='daily')n.textContent='Posted to today’s leaderboard.';return true;}}catch(e){}
   const n=$('cNote');if(n&&!$('cardM').hidden&&G.mode==='daily')n.textContent='Couldn’t reach the leaderboard. It will post next time you open the game.';return false;}
+/* a finished daily round that couldn't be posted (no signal) is set aside when the date changes, so the next day's round
+   doesn't overwrite it, and is posted the next time the game opens online. Dropped if the leaderboard turns it down. */
+async function dailyOwed(){const K=DAILY.save+'-owed';let o=null;
+  try{const d=dailyLoad();if(DAILY.url&&d&&d.done&&!d.posted&&d.day!==dailyDay()){localStorage.setItem(K,JSON.stringify(d));d.posted=true;dailyStore(d);}
+    o=JSON.parse(localStorage.getItem(K)||'null');}catch(e){}
+  if(!o||!DAILY.url||dailyOwed.busy)return;dailyOwed.busy=true;
+  try{const r=await dailySend(o);if(r.ok||(r.status>=400&&r.status<500))localStorage.removeItem(K);}catch(e){}
+  dailyOwed.busy=false;}
 function dailyHdr(h={}){const k=DAILY.key;h.apikey=k;if(!/^sb_/.test(k))h.Authorization='Bearer '+k;return h;}
 const PLAYER_MERGE=['cam'];   // same golfer on more than one player id (re-saved to the home screen)
 const pKey=r=>{const n=String(r.name||'').trim().toLowerCase();return PLAYER_MERGE.includes(n)?'n:'+n:r.player_id;};
@@ -3090,7 +3103,7 @@ function menuPlay(){const cid=dailyCourse(dailyDay()),img=courseImg(cid),el=$('m
    $('mCareer2Sub').textContent=nb>=RIVALS2.length?'Every golfer unlocked \u00b7 rematch anyone for points':'Start as Gary and win golfers \u00b7 next: '+nx.name+' at '+COURSES[nx.course].name;}}
 function dailyMenuLine(){const day=dailyDay(),cid=dailyCourse(day),me=dailyToday();$('mDailyCourse').textContent=COURSES[cid].name;
   $('mDailySub').textContent=dailyNice(day)+' \u00b7 '+(me&&me.done?'You shot '+me.total+' ('+fmtDiff(me.toPar)+') \u00b7 tap for the leaderboard':me&&(me.hi>0||me.mid)?'In progress \u00b7 hole '+((me.hi||0)+1):'Same course for everyone today');
-  if(me&&me.done&&!me.posted)dailyPost();}
+  if(me&&me.done&&!me.posted)dailyPost();dailyOwed();}
 
 /* ---------- menu ---------- */
 function holeLen(i){const L=COURSE.holes[i].line;let d=0;for(let k=1;k<L.length;k++)d+=hyp(L[k][0]-L[k-1][0],L[k][1]-L[k-1][1]);return Math.round(d);}
