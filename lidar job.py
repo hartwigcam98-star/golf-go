@@ -1,192 +1,31 @@
-# Minnesota private clubs: Interlachen CC (Edina), Windsong Farm GC (Independence), Hazeltine National (Chaska).
-# Fetches OSM, NED, NAIP, 3DEP 1 m and lidar ground points around the greens; results go to the "course-data" branch.
-import json, math, os, sys, time, re, traceback
+# Buildings from USGS lidar: for each course in bld_req.json, read the 3DEP lidar point cloud (AWS EPT) over the course,
+# grid a 1 m surface model (highest return) and ground model (class 2), and measure every mapped building footprint:
+# wall height to the eave, roof rise, roof type (flat / gable / hip) and ridge direction. Also finds course buildings the
+# map is missing (snack shacks, restrooms, shelters, cart barns): raised, smooth, single-return blobs near the holes.
+# Results go to the "course-data" branch as bld_<key>.json (main is untouched).
+import json, math, os, time, re, traceback, subprocess
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
-JOB = {"name": "interlachen retry (OSM mirror failed)", "search": [[44.895, -93.40, 44.93, -93.36]],
-       "want": {"interlachen": r"interlachen"}, "holes": {"interlachen": r"interlachen"}, "steps": {"interlachen": "all"}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
-SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
-def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
+REQ = json.load(open('bld_req.json')); KEYS = REQ.pop('_keys', None) or list(REQ)
+SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': []}
+def save(): json.dump(SUM, open(f'{OUT}/bld_summary.json', 'w'), indent=1)
 def log(*a): print(time.strftime('%H:%M:%S'), *a, flush=True)
-def err(where, e):
-    SUM['errors'].append(f'{where}: {e}'); log('FAIL', where, e); traceback.print_exc(); save()
-from pyproj import Transformer
+def err(where, e): SUM['errors'].append(f'{where}: {e}'); log('FAIL', where, e); traceback.print_exc(); save()
 S = requests.Session(); S.headers['User-Agent'] = 'golf-go-course-builder (github.com/hartwigcam98-star/golf-go)'
-def get(url, params=None, tries=5, post=None, timeout=300):
+def get(url, tries=4, timeout=300):
     for k in range(tries):
         try:
-            r = S.post(url, data=post, timeout=timeout) if post is not None else S.get(url, params=params, timeout=timeout)
+            r = S.get(url, timeout=timeout)
             if r.status_code == 200: return r
-            log('  http', r.status_code, url[:80], r.text[:200])
-        except Exception as e:
-            log('  err', e)
-        time.sleep(8 * (k + 1))
+            log('  http', r.status_code, url[:90])
+        except Exception as e: log('  err', e)
+        time.sleep(6 * (k + 1))
     raise RuntimeError('failed ' + url)
-OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter']
-def overpass(q):
-    last = None
-    for u in OVP:
-        try: return get(u, post={'data': q}, tries=2).json()
-        except Exception as e: last = e; log('  overpass mirror failed', u, e)
-    raise last
-def bbox_of(el):
-    if 'bounds' in el: b = el['bounds']; return [b['minlon'], b['minlat'], b['maxlon'], b['maxlat']]
-    pts = [(p['lon'], p['lat']) for p in el.get('geometry', [])] + [(p['lon'], p['lat']) for m in el.get('members', []) for p in m.get('geometry', [])]
-    if not pts: return None
-    xs, ys = zip(*pts); return [min(xs), min(ys), max(xs), max(ys)]
-def grow(b, m):  # metres
-    lat = (b[1] + b[3]) / 2; dx = m / (111320 * math.cos(math.radians(lat))); dy = m / 110574
-    return [b[0] - dx, b[1] - dy, b[2] + dx, b[3] + dy]
-UTMZ = lambda lon: 26900 + int((lon + 180) // 6) + 1
-
-# ---------- 1. find the courses in OpenStreetMap
-def rings_el(el):
-    if el.get('type') == 'way': return [[(p['lon'], p['lat']) for p in el.get('geometry', [])]]
-    return [[(p['lon'], p['lat']) for p in m.get('geometry', [])] for m in el.get('members', []) if m.get('role') in ('outer', '') and m.get('geometry')]
-def discover():
-    boxes = JOB['search'] if isinstance(JOB['search'][0], list) else [JOB['search']]
-    d = {'elements': []}
-    for s, w, n, e in boxes:
-        dd = overpass(f'[out:json][timeout:180];(nwr["leisure"="golf_course"]({s},{w},{n},{e});way["golf"="hole"]({s},{w},{n},{e}););out geom;')
-        d['elements'] += dd['elements']
-    json.dump(d, open(f'{OUT}/osm_courses.json', 'w'))
-    gc = [el for el in d['elements'] if el.get('tags', {}).get('leisure') == 'golf_course']
-    found = [(el.get('tags', {}).get('name', ''), el['type'] + '/' + str(el['id']), bbox_of(el)) for el in gc]
-    holes = [el for el in d['elements'] if el.get('tags', {}).get('golf') == 'hole']
-    SUM['osm_golf_courses'] = found; SUM['osm_hole_names'] = sorted({h.get('tags', {}).get('name', '') for h in holes})[:300]
-    log('golf courses:', found)
-    res = {}
-    for key, rx in JOB['want'].items():
-        if key in JOB.get('boxes', {}):
-            b = JOB['boxes'][key]; res[key] = dict(osm=[], names=[key + ' box'], bbox=b, rings=[[(b[0], b[1]), (b[2], b[1]), (b[2], b[3]), (b[0], b[3]), (b[0], b[1])]], via='box'); continue
-        m = [(f, el) for f, el in zip(found, gc) if f[2] and re.search(rx, f[0].lower())]
-        if m:
-            area = lambda b: (b[2] - b[0]) * (b[3] - b[1])
-            f, el = min(m, key=lambda t: area(t[0][2]))
-            res[key] = dict(osm=[f[1]], names=[f[0]], bbox=f[2], rings=rings_el(el), via='course outline')
-        elif key in JOB.get('ids', {}):
-            el = next((el for f, el in zip(found, gc) if f[1] == JOB['ids'][key]), None)
-            if el is not None:
-                f = next(f for f in found if f[1] == JOB['ids'][key])
-                res[key] = dict(osm=[f[1]], names=[f[0] or 'unnamed outline'], bbox=f[2], rings=rings_el(el), via='osm id')
-        else:   # no named outline: use the holes named after the course
-            hs = [h for h in holes if re.search(JOB['holes'][key], (h.get('tags', {}).get('name', '') or '').lower())]
-            if hs:
-                pts = [(p['lon'], p['lat']) for h in hs for p in h.get('geometry', [])]
-                b = grow([min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts)], 120)
-                res[key] = dict(osm=[], names=[f'{len(hs)} holes'], bbox=b, rings=[[(b[0], b[1]), (b[2], b[1]), (b[2], b[3]), (b[0], b[3])]], via='named holes')
-    SUM['picked'] = {k: {kk: vv for kk, vv in v.items() if kk != 'rings'} for k, v in res.items()}; save()
-    return res
-
-# ---------- 2. all map features (course + surroundings)
-def osm_all(resort):
-    w, s, e, n = grow(resort, 3200)
-    B = f'({s},{w},{n},{e})'
-    q = (f'[out:json][timeout:600][maxsize:536870912];('
-         f'nwr["golf"]{B};nwr["leisure"]{B};nwr["natural"]{B};nwr["landuse"]{B};nwr["waterway"]{B};'
-         f'nwr["highway"]{B};nwr["building"]{B};nwr["amenity"="parking"]{B};nwr["railway"]{B};nwr["man_made"]{B};nwr["barrier"]{B};'
-         f');out geom;')
-    d = overpass(q); json.dump(d, open(f'{OUT}/osm_all.json', 'w'))
-    SUM['osm_all'] = dict(bbox=[w, s, e, n], n=len(d['elements'])); log('osm features', len(d['elements'])); save()
-    return d
-
-# ---------- 3. NED 10 m grids (same as the original courses: opentopodata ned10m)
-def ned(points):
-    out = []
-    for i in range(0, len(points), 100):
-        chunk = points[i:i + 100]
-        r = get('https://api.opentopodata.org/v1/ned10m', params={'locations': '|'.join(f'{la:.6f},{lo:.6f}' for la, lo in chunk)})
-        out += [x['elevation'] for x in r.json()['results']]
-        time.sleep(1.1)
-    return out
-def ned_grids(key, b):
-    W, S_, E, N = grow(b, 150); st = 0.0005
-    latN = math.ceil(N / st) * st; latS = math.floor(S_ / st) * st; lonW = math.floor(W / st) * st; lonE = math.ceil(E / st) * st
-    NR = int(round((latN - latS) / st)) + 1; NC = int(round((lonE - lonW) / st)) + 1
-    pts = [(latN - r * st, lonW + c * st) for r in range(NR) for c in range(NC)]
-    z = ned(pts); json.dump(dict(latN=latN, latS=latS, lonW=lonW, lonE=lonE, st=st, NR=NR, NC=NC, z=z), open(f'{OUT}/ned_{key}.json', 'w'))
-    # wide grid for the distant land: 17x17 over about 4 x 4 km round the course
-    cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2; hy = 0.018; hx = hy / math.cos(math.radians(cy)) * 1.0
-    wn = 17; pts = [(cy + hy - r * 2 * hy / (wn - 1), cx - hx + c * 2 * hx / (wn - 1)) for r in range(wn) for c in range(wn)]
-    zw = ned(pts); json.dump(dict(latN=cy + hy, latS=cy - hy, lonW=cx - hx, lonE=cx + hx, N=wn, z=zw), open(f'{OUT}/nedwide_{key}.json', 'w'))
-    log(key, 'ned', NR, 'x', NC, 'wide', wn)
-
-# ---------- 4. NAIP aerial photo (about 0.6 m pixels)
-NAIP = ['https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage',
-        'https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage',
-        'https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPPlus/ImageServer/exportImage']
-def export_json(url, b, size, **kw):
-    p = dict(bbox=','.join(map(str, b)), bboxSR=4326, imageSR=4326, size=f'{size[0]},{size[1]}', f='json', **kw)
-    j = get(url, params=p).json()
-    if 'href' not in j: raise RuntimeError(str(j)[:300])
-    img = get(j['href']).content; ex = j['extent']
-    return img, [ex['xmin'], ex['ymin'], ex['xmax'], ex['ymax']], [j['width'], j['height']]
-def naip(key, b):
-    b = grow(b, 60); lat = (b[1] + b[3]) / 2
-    w = int((b[2] - b[0]) * 111320 * math.cos(math.radians(lat)) / .6); h = int((b[3] - b[1]) * 110574 / .6)
-    sc = min(1, 4000 / max(w, h)); size = [int(w * sc), int(h * sc)]
-    for u in ([SUM['naip_src']] if SUM['naip_src'] else []) + NAIP:
-        try:
-            img, ext, sz = export_json(u, b, size, format='jpg', compressionQuality=90)
-            if len(img) < 50000: raise RuntimeError('tiny image %d' % len(img))
-            open(f'{OUT}/naip_{key}.jpg', 'wb').write(img)
-            json.dump(dict(bbox=b, size=sz, ext=ext, src=u), open(f'{OUT}/naip_{key}.json', 'w'))
-            SUM['naip_src'] = u; log(key, 'naip', sz, len(img) // 1024, 'KB from', u); return
-        except Exception as e: log('  naip source failed', u, e)
-    raise RuntimeError('no NAIP source worked')
-
-# ---------- 5. 3DEP 1 m elevation: the original lon/lat export (course-wide grid) and square UTM metres (greens)
-IMG = 'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage'
-def dem_ll(key, b):
-    b = grow(b, 120); lat = (b[1] + b[3]) / 2
-    w = int((b[2] - b[0]) * 111320 * math.cos(math.radians(lat))); h = int((b[3] - b[1]) * 110574)
-    r = get(IMG, dict(bbox=','.join(map(str, b)), bboxSR=4326, imageSR=4326, size=f'{w},{h}', format='bsq', pixelType='F32',
-                      interpolation='RSP_BilinearInterpolation', f='image'))
-    if len(r.content) < w * h * 4: raise RuntimeError('short dem %d for %dx%d' % (len(r.content), w, h))
-    Z = np.frombuffer(r.content[:w * h * 4], '<f4').reshape(h, w).copy()
-    res = max((b[2] - b[0]) / w, (b[3] - b[1]) / h); cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2   # the server widens to square-degree pixels
-    ext = [cx - res * w / 2, cy - res * h / 2, cx + res * w / 2, cy + res * h / 2]
-    np.savez_compressed(f'{OUT}/demll_{key}.npz', z=Z)
-    json.dump(dict(bbox=b, size=[w, h], fmt='bsq', ext=ext), open(f'{OUT}/lidar_{key}.json', 'w')); log(key, 'dem lon/lat', w, h)
-def dem_utm(key, b):
-    W, S_, E, N = grow(b, 120); EPSG = UTMZ((W + E) / 2)
-    tf = Transformer.from_crs(4326, EPSG, always_xy=True)
-    xs, ys = tf.transform([W, E, W, E], [S_, S_, N, N])
-    x0, y0, x1, y1 = math.floor(min(xs)), math.floor(min(ys)), math.ceil(max(xs)), math.ceil(max(ys))
-    w, h = x1 - x0, y1 - y0; Z = np.full((h, w), np.nan, np.float32); T = 1000
-    for ty in range(y0, y1, T):
-        for tx in range(x0, x1, T):
-            tw, th = min(T, x1 - tx), min(T, y1 - ty)
-            r = get(IMG, dict(bbox=f'{tx},{ty},{tx+tw},{ty+th}', bboxSR=EPSG, imageSR=EPSG, size=f'{tw},{th}', format='bsq',
-                               pixelType='F32', interpolation='RSP_BilinearInterpolation', f='image'))
-            a = np.frombuffer(r.content[:tw * th * 4], '<f4').reshape(th, tw).copy(); a[(a < -1000) | (a > 10000)] = np.nan
-            r0 = y1 - (ty + th); Z[r0:r0 + th, tx - x0:tx - x0 + tw] = a
-    np.savez_compressed(f'{OUT}/dem_{key}.npz', z=Z, x0=x0, y1=y1, res=1.0, epsg=EPSG)
-    lo = np.linspace(W, E, 5); la = np.linspace(S_, N, 5); LO, LA = np.meshgrid(lo, la); X, Y = tf.transform(LO.ravel(), LA.ravel())
-    SUM['courses'][key]['dem'] = dict(epsg=EPSG, x0=x0, y0=y0, x1=x1, y1=y1, w=w, h=h, nan=int(np.isnan(Z).sum()),
-        ctrl=[[float(a), float(b_), float(c), float(d)] for a, b_, c, d in zip(LO.ravel(), LA.ravel(), X, Y)])
-    log(key, 'dem utm', w, 'x', h)
-
-# ---------- 6. raw lidar ground points round every green
+from pyproj import Transformer
 EPT = 'https://s3-us-west-2.amazonaws.com/usgs-lidar-public/%s/ept.json'
+UTMZ = lambda lon: 26900 + int((lon + 180) // 6) + 1
 def merc(lon, lat): R = 6378137.0; return R * math.radians(lon), R * math.log(math.tan(math.pi / 4 + math.radians(lat) / 2))
-def read_green(key, gi, res, box, epsg):
-    import pdal
-    W, S_, E, N = box; x0, y0 = merc(W, S_); x1, y1 = merc(E, N)
-    spec = [{'type': 'readers.ept', 'filename': EPT % res, 'bounds': f'([{x0:.2f},{x1:.2f}],[{y0:.2f},{y1:.2f}])', 'threads': 6}]
-    t = time.time(); p = pdal.Pipeline(json.dumps(spec)); n = p.execute(); arrs = p.arrays; a = arrs[0] if arrs else None
-    info = dict(n=int(n), sec=round(time.time() - t, 1))
-    if a is None or len(a) == 0: return key, gi, res, info, None
-    cls = a['Classification'].astype(int); info['classes'] = {int(k): int(v) for k, v in zip(*np.unique(cls, return_counts=True))}
-    g = a[cls == 2]
-    if len(g) == 0: return key, gi, res, info, None
-    tf = Transformer.from_crs(3857, epsg, always_xy=True); X, Y = tf.transform(g['X'], g['Y']); X = np.asarray(X); Y = np.asarray(Y)
-    ox, oy = math.floor(X.min()), math.floor(Y.min())
-    d = dict(ox=ox, oy=oy, x=np.round((X - ox) * 100).astype(np.int32), y=np.round((Y - oy) * 100).astype(np.int32), z=np.round(np.asarray(g['Z']) * 1000).astype(np.int32))
-    if 'GpsTime' in g.dtype.names: info['gps'] = [float(g['GpsTime'].min()), float(g['GpsTime'].max())]
-    info['ground'] = int(len(g)); info['gdens'] = round(len(g) / max((X.max() - X.min()) * (Y.max() - Y.min()), 1), 2)
-    return key, gi, res, info, d
 def rings_of(g):
     if g['type'] == 'Polygon': return [g['coordinates'][0]]
     if g['type'] == 'MultiPolygon': return [p[0] for p in g['coordinates']]
@@ -197,87 +36,168 @@ def pip(pt, r):
         x1, y1 = r[i]; x2, y2 = r[i - 1]
         if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1: c = not c
     return c
-def greens_points(key, b, osm, resources, rings):
-    W, S_, E, N = grow(b, 60); epsg = UTMZ((W + E) / 2)
-    greens = [dict(id=f'traced/{i}', bbox=grow(list(bb), 25)) for i, bb in enumerate(JOB.get('greens', {}).get(key, []))]
-    for el in ([] if greens else osm['elements']):
-        if el.get('tags', {}).get('golf') != 'green': continue
-        bb = bbox_of(el)
-        if not bb: continue
-        c = ((bb[0] + bb[2]) / 2, (bb[1] + bb[3]) / 2)
-        if not any(len(r) > 2 and pip(c, r) for r in rings): continue
-        greens.append(dict(id=el['type'] + '/' + str(el['id']), bbox=grow(bb, 25)))
-    for g in greens:
-        x0, y0, x1, y1 = g['bbox']; pts = [(x0, y0), (x1, y0), (x0, y1), (x1, y1), ((x0 + x1) / 2, (y0 + y1) / 2)]
-        g['cand'] = [f['properties']['name'] for f in resources if any(pip(q, r) for q in pts for r in rings_of(f['geometry']))]
-    try:
-        base = 'https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer/24/query'
-        for g in greens:
-            x0, y0, x1, y1 = g['bbox']; q = get(base, dict(geometry=f'{(x0+x1)/2},{(y0+y1)/2}', geometryType='esriGeometryPoint', inSR=4326, spatialRel='esriSpatialRelIntersects', outFields='workunit,project,collect_start,collect_end,ql', returnGeometry='false', f='json')).json()
-            g['wesm'] = [ft['attributes'] for ft in q.get('features', [])]
-            names = {f['properties']['name'] for f in resources}
-            for a in g['wesm']:
-                for nm in (a.get('workunit'), a.get('project')):
-                    if nm and nm in names and nm not in g['cand']: g['cand'].append(nm)
-    except Exception as e: err(f'wesm {key}', e)
-    SUM['courses'][key]['greens'] = greens; save()
-    jobs = [(key, gi, r, g['bbox'], epsg) for gi, g in enumerate(greens) for r in g['cand']]
-    pack = {}; info_all = {}
-    with ProcessPoolExecutor(6) as ex:
-        fs = [ex.submit(read_green, *j) for j in jobs]
-        for f in as_completed(fs):
-            try: k, gi, r, info, d = f.result()
-            except Exception as e: err(f'points {key}', e); continue
-            info_all.setdefault(str(gi), {})[r] = info; log(key, gi, r, info.get('ground'), 'ground', info.get('gdens'), '/m2')
-            if d is not None:
-                for kk, v in d.items(): pack[f'g{gi}|{r}|{kk}'] = np.asarray(v)
-    np.savez_compressed(f'{OUT}/pts_{key}.npz', **pack); SUM['courses'][key]['points'] = info_all
-    log(key, 'points saved', os.path.getsize(f'{OUT}/pts_{key}.npz') // 1024, 'KB'); save()
+def year_of(name):
+    ys = [int(y) for y in re.findall(r'(?<!\d)(20[0-2]\d|19[89]\d)(?!\d)', name)]
+    return max(ys) if ys else 0
+
+def read_tile(res, box, epsg, x0, y1, W, H):
+    """one tile: grids of max z (all non-noise returns), min ground z, return counts; in the course's 1 m UTM grid"""
+    import pdal
+    Wb, Sb, Eb, Nb = box; mx0, my0 = merc(Wb, Sb); mx1, my1 = merc(Eb, Nb)
+    spec = [{'type': 'readers.ept', 'filename': EPT % res, 'bounds': f'([{mx0:.2f},{mx1:.2f}],[{my0:.2f},{my1:.2f}])', 'resolution': 0.6, 'threads': 4}]
+    p = pdal.Pipeline(json.dumps(spec)); n = p.execute(); arrs = p.arrays
+    if not arrs or len(arrs[0]) == 0: return None
+    a = arrs[0]; cls = a['Classification'].astype(int)
+    keep = (cls != 7) & (cls != 18) & (cls != 17) & (cls != 9)   # noise, bridge decks, water
+    a = a[keep]; cls = cls[keep]
+    tf = Transformer.from_crs(3857, epsg, always_xy=True); X, Y = tf.transform(a['X'], a['Y']); X = np.asarray(X); Y = np.asarray(Y); Z = np.asarray(a['Z'], float)
+    c = np.floor(X - x0).astype(np.int64); r = np.floor(y1 - Y).astype(np.int64)
+    ok = (c >= 0) & (c < W) & (r >= 0) & (r < H); c, r, Z, cls = c[ok], r[ok], Z[ok], cls[ok]
+    rn = a['ReturnNumber'][ok].astype(int) if 'ReturnNumber' in a.dtype.names else np.ones(len(c), int)
+    nr = a['NumberOfReturns'][ok].astype(int) if 'NumberOfReturns' in a.dtype.names else np.ones(len(c), int)
+    idx = r * W + c
+    zmax = np.full(W * H, -np.inf); np.maximum.at(zmax, idx, Z)
+    g = cls == 2; gmin = np.full(W * H, np.inf); np.minimum.at(gmin, idx[g], Z[g])
+    single = np.zeros(W * H, np.int32); np.add.at(single, idx[(nr == 1)], 1)
+    tot = np.zeros(W * H, np.int32); np.add.at(tot, idx, 1)
+    b6 = np.zeros(W * H, np.int32); np.add.at(b6, idx[cls == 6], 1)
+    m = tot > 0
+    return dict(i=np.nonzero(m)[0].astype(np.int64), zmax=zmax[m].astype(np.float32), gmin=np.where(np.isfinite(gmin[m]), gmin[m], np.nan).astype(np.float32),
+                single=single[m].astype(np.int16), tot=tot[m].astype(np.int16), b6=b6[m].astype(np.int16), n=int(n))
+
+def fill_nan(A, it=60):
+    A = A.copy(); from scipy import ndimage as ndi
+    for _ in range(it):
+        m = np.isnan(A)
+        if not m.any(): break
+        k = np.ones((3, 3)); v = np.where(m, 0, A); w = (~m).astype(float)
+        s = ndi.convolve(v, k, mode='nearest'); n = ndi.convolve(w, k, mode='nearest')
+        A[m & (n > 0)] = (s / np.maximum(n, 1))[m & (n > 0)]
+    return A
+
+def poly_mask(ring_xy, W, H):
+    import cv2
+    m = np.zeros((H, W), np.uint8); pts = np.round(np.array(ring_xy)).astype(np.int32); cv2.fillPoly(m, [pts], 1); return m.astype(bool)
+
+def roof_of(dsm, gnd, m):
+    """measure one footprint: (eave height m, roof rise m, roof 0/1/2, ridge angle in grid coords (rad, x right, y down), quality)"""
+    from scipy import ndimage as ndi
+    if m.sum() < 6: return None
+    inner = ndi.binary_erosion(m, iterations=1) if m.sum() > 30 else m
+    ring = ndi.binary_dilation(m, iterations=5) & ~ndi.binary_dilation(m, iterations=2)
+    gz = np.nanmedian(gnd[ring]) if np.isfinite(gnd[ring]).any() else np.nanmedian(gnd[m])
+    zin = dsm[inner]; zin = zin[np.isfinite(zin)]
+    if len(zin) < 4 or not np.isfinite(gz): return None
+    top = np.percentile(zin, 95) - gz
+    if top < 2.0: return dict(q='low', top=round(float(top), 2))
+    # plane fit
+    rr, cc = np.nonzero(inner); z = dsm[rr, cc]; ok = np.isfinite(z); rr, cc, z = rr[ok], cc[ok], z[ok]
+    A = np.c_[cc, rr, np.ones(len(cc))]; coef, *_ = np.linalg.lstsq(A, z, rcond=None); res = z - A @ coef
+    slope = math.hypot(coef[0], coef[1]); sd = float(np.std(res))
+    edge = m & ~ndi.binary_erosion(m, iterations=2)
+    ze = dsm[edge]; ze = ze[np.isfinite(ze)]
+    eave = (np.percentile(ze, 20) if len(ze) > 3 else np.percentile(zin, 10)) - gz
+    if sd < 0.3 and slope < 0.1:
+        return dict(roof=0, eave=float(np.median(z) - gz), rise=0.0, ang=0.0, q='flat', sd=round(sd, 2))
+    gy, gx = np.gradient(np.where(np.isfinite(dsm), dsm, np.nan))
+    s = np.hypot(gx, gy); sel = inner & np.isfinite(s) & (s > 0.15) & (s < 2.5)
+    if sel.sum() < 4: return dict(roof=0, eave=float(np.median(z) - gz), rise=0.0, ang=0.0, q='flatish', sd=round(sd, 2))
+    th = np.arctan2(gy[sel], gx[sel])           # downhill/uphill direction of each roof cell
+    R2 = abs(np.mean(np.exp(2j * th))); R4 = abs(np.mean(np.exp(4j * th)))
+    axis = np.angle(np.mean(np.exp(2j * th))) / 2   # slope axis (perpendicular to the ridge)
+    pitch = float(np.median(s[sel]))
+    rise = max(0.0, top - eave)
+    roof = 1 if R2 > 0.55 else 2
+    ridge = axis + math.pi / 2
+    if roof == 2:   # hips: the ridge runs along the footprint's long axis
+        mr, mc = np.nonzero(m); C = np.cov(np.c_[mc - mc.mean(), mr - mr.mean()].T); ev, evec = np.linalg.eigh(C); v = evec[:, 1]; ridge = math.atan2(v[1], v[0])
+    return dict(roof=roof, eave=float(eave), rise=float(rise), ang=float(ridge), q='ok', R2=round(float(R2), 2), R4=round(float(R4), 2), pitch=round(pitch, 2))
+
+def course(key, rq, resources):
+    W_, S_, E_, N_ = rq['bbox']; epsg = UTMZ((W_ + E_) / 2); tf = Transformer.from_crs(4326, epsg, always_xy=True); tb = Transformer.from_crs(epsg, 4326, always_xy=True)
+    xs, ys = tf.transform([W_, E_, W_, E_], [S_, S_, N_, N_]); x0, y0, x1, y1 = math.floor(min(xs)), math.floor(min(ys)), math.ceil(max(xs)), math.ceil(max(ys))
+    W, H = x1 - x0, y1 - y0
+    cx, cy = (W_ + E_) / 2, (S_ + N_) / 2
+    pts = [(W_, S_), (E_, S_), (W_, N_), (E_, N_), (cx, cy)]
+    cand = [f['properties']['name'] for f in resources if any(pip(q, r) for q in pts for r in rings_of(f['geometry']))]
+    cand.sort(key=lambda n: -year_of(n))
+    info = dict(cand=cand, W=W, H=H, epsg=epsg); SUM['courses'][key] = info; save()
+    if not cand: raise RuntimeError('no lidar resource')
+    # tiles of ~600 m
+    T = 0.0055; tiles = []
+    lon = W_
+    while lon < E_:
+        lat = S_
+        while lat < N_: tiles.append([lon, lat, min(E_, lon + T * 1.4), min(N_, lat + T)]); lat += T
+        lon += T * 1.4
+    best = None
+    for res in cand[:4]:
+        zmax = np.full(W * H, np.nan, np.float32); gmin = np.full(W * H, np.nan, np.float32); single = np.zeros(W * H, np.int32); tot = np.zeros(W * H, np.int32); b6 = np.zeros(W * H, np.int32); n = 0
+        with ProcessPoolExecutor(6) as ex:
+            fs = [ex.submit(read_tile, res, t, epsg, x0, y1, W, H) for t in tiles]
+            for f in as_completed(fs):
+                try: d = f.result()
+                except Exception as e: err(f'tile {key} {res}', e); continue
+                if d is None: continue
+                i = d['i']; zmax[i] = np.fmax(zmax[i], d['zmax']); gmin[i] = np.fmin(gmin[i], d['gmin']); single[i] += d['single']; tot[i] += d['tot']; b6[i] += d['b6']; n += d['n']
+        cover = float((tot > 0).mean())
+        log(key, res, 'points', n, 'cover', round(cover, 3))
+        info.setdefault('tried', {})[res] = dict(points=n, cover=round(cover, 3), b6=int((b6 > 0).sum()))
+        if cover > 0.6: best = (res, zmax, gmin, single, tot, b6); break
+        if best is None or cover > best[-1]: best = (res, zmax, gmin, single, tot, b6, cover)
+    res, zmax, gmin, single, tot, b6 = best[:6]; info['used'] = res; save()
+    dsm = zmax.reshape(H, W); gnd = fill_nan(gmin.reshape(H, W)); single = single.reshape(H, W); tot = tot.reshape(H, W); b6 = b6.reshape(H, W)
+    toxy = lambda lo, la: (np.array(tf.transform(lo, la)[0]) - x0, y1 - np.array(tf.transform(lo, la)[1]))
+    out = dict(src=res, fp={}, add=[])
+    allmask = np.zeros((H, W), bool)
+    for fid, ring in rq['fps']:
+        lo = [p[0] for p in ring]; la = [p[1] for p in ring]; X, Y = toxy(lo, la)
+        m = poly_mask(np.c_[X, Y], W, H); allmask |= m
+        r = roof_of(dsm, gnd, m)
+        if not r or 'roof' not in r: out['fp'][fid] = r; continue
+        out['fp'][fid] = [round(r['eave'], 2), round(r['rise'], 2), r['roof'], round(r['ang'], 3), r.get('q'), int(m.sum())]
+    # missing buildings: raised, smooth, mostly single-return (or class 6) blobs within ~140 m of a hole line
+    from scipy import ndimage as ndi
+    import cv2
+    nd = dsm - gnd
+    lines = np.zeros((H, W), np.uint8)
+    for L in rq['lines']:
+        X, Y = toxy([p[0] for p in L], [p[1] for p in L]); cv2.polylines(lines, [np.round(np.c_[X, Y]).astype(np.int32)], False, 1, 1)
+    near = ndi.distance_transform_edt(lines == 0) < 140
+    lap = np.abs(ndi.laplace(np.nan_to_num(dsm, nan=0.0)))
+    sf = single / np.maximum(tot, 1)
+    cand_m = near & np.isfinite(nd) & (nd > 2.2) & (nd < 30) & (((sf > 0.7) & (lap < 0.9)) | (b6 > 0)) & ~ndi.binary_dilation(allmask, iterations=3)
+    cand_m = ndi.binary_opening(cand_m, iterations=1)
+    lab, nl = ndi.label(cand_m)
+    for k in range(1, nl + 1):
+        m = lab == k; area = int(m.sum())
+        if area < 10 or area > 4000: continue
+        rr, cc = np.nonzero(m); cnt = np.c_[cc, rr].astype(np.float32)
+        rect = cv2.minAreaRect(cnt); (rw, rh) = rect[1]
+        if min(rw, rh) < 2.5 or max(rw, rh) / max(min(rw, rh), .1) > 6 or area / max(rw * rh, 1) < 0.55: continue
+        if (b6[m] > 0).mean() < 0.3 and sf[m].mean() < 0.75: continue
+        box = cv2.boxPoints(rect); r = roof_of(dsm, gnd, poly_mask(box, W, H))
+        if not r or 'roof' not in r: continue
+        lo, la = tb.transform(box[:, 0] + x0, y1 - box[:, 1])
+        out['add'].append(dict(ring=[[round(a, 7), round(b, 7)] for a, b in zip(lo, la)], eave=round(r['eave'], 2), rise=round(r['rise'], 2), roof=r['roof'], ang=round(r['ang'], 3), area=area,
+                               b6=round(float((b6[m] > 0).mean()), 2), sf=round(float(sf[m].mean()), 2)))
+    json.dump(out, open(f'{OUT}/bld_{key}.json', 'w'), separators=(',', ':'))
+    info['fp'] = len(out['fp']); info['measured'] = sum(1 for v in out['fp'].values() if isinstance(v, list)); info['added'] = len(out['add']); save()
+    log(key, 'footprints', info['fp'], 'measured', info['measured'], 'added', info['added'])
 
 def main():
-    import subprocess   # keep the earlier courses' files on the results branch
+    subprocess.run('pip install -q scipy opencv-python-headless', shell=True)
     try:
         subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_az0.json; [ -f out/run.log ] && mv out/run.log out/run_prev_az0.log; true', shell=True)
+        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; true', shell=True)
     except Exception as e: SUM['errors'].append(f'keep old: {e}')
-    try: res = discover()
-    except Exception as e: err('discover', e); return
-    if not res: err('discover', 'none of the wanted courses found; see osm_golf_courses'); return
-    if JOB.get('discover_only'):
-        # hole summary per wanted course: refs, names, pars, and the golf feature counts inside each picked box
-        d = json.load(open(f'{OUT}/osm_courses.json'))
-        for key, c in res.items():
-            b = c['bbox']; inb = lambda el: (lambda bb: bb and b[0] - .003 < (bb[0] + bb[2]) / 2 < b[2] + .003 and b[1] - .003 < (bb[1] + bb[3]) / 2 < b[3] + .003)(bbox_of(el))
-            hs = [el for el in d['elements'] if el.get('tags', {}).get('golf') == 'hole' and inb(el)]
-            c['holes'] = sorted([[el['tags'].get('ref', ''), el['tags'].get('name', ''), el['tags'].get('par', ''), el['id']] for el in hs], key=lambda t: (t[1], t[0]))
-        SUM['picked'] = {k: {kk: vv for kk, vv in v.items() if kk != 'rings'} for k, v in res.items()}
-        SUM['finished'] = time.strftime('%Y-%m-%d %H:%M:%S'); save(); return
     try: resources = get('https://raw.githubusercontent.com/hobuinc/usgs-lidar/master/boundaries/resources.geojson').json()['features']
-    except Exception as e: resources = []; err('resources', e)
-    # one map download per resort: courses within 6 km of each other share it
-    groups = []
-    for key, c in res.items():
-        cx, cy = (c['bbox'][0] + c['bbox'][2]) / 2, (c['bbox'][1] + c['bbox'][3]) / 2
-        for g in groups:
-            if abs(g['c'][0] - cx) * 76000 < 6000 and abs(g['c'][1] - cy) * 111000 < 6000: g['k'].append(key); break
-        else: groups.append({'c': (cx, cy), 'k': [key]})
-    for gi_, g in enumerate(groups):
-        bb = [min(res[k]['bbox'][0] for k in g['k']), min(res[k]['bbox'][1] for k in g['k']), max(res[k]['bbox'][2] for k in g['k']), max(res[k]['bbox'][3] for k in g['k'])]
-        osm = None
-        try:
-            osm = osm_all(bb); os.replace(f'{OUT}/osm_all.json', f'{OUT}/osm_{"_".join(g["k"])}.json')
-        except Exception as e: err('osm_all', e)
-        for key in g['k']:
-            c = res[key]; SUM['courses'][key] = {k: v for k, v in c.items() if k != 'rings'}; save(); b = c['bbox']
-            mode = JOB['steps'].get(key)
-            if not mode: continue
-            for step in ((ned_grids, naip, dem_ll, dem_utm) if mode == 'all' else ()):   # mode 'points': green point clouds only
-                try: step(key, b)
-                except Exception as e: err(f'{step.__name__} {key}', e)
-                save()
-            if osm is not None:
-                try: greens_points(key, b, osm, resources, c['rings'])
-                except Exception as e: err(f'greens {key}', e)
+    except Exception as e: err('resources', e); return
+    for key in KEYS:
+        t = time.time()
+        try: course(key, REQ[key], resources)
+        except Exception as e: err(f'course {key}', e)
+        SUM['courses'].setdefault(key, {})['sec'] = round(time.time() - t); save()
     SUM['finished'] = time.strftime('%Y-%m-%d %H:%M:%S'); save()
 
 if __name__ == '__main__':
