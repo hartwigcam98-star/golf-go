@@ -3840,19 +3840,30 @@ function r3bIK(side,palmTarget){const I=R3B.idx,B=R3B.bones,up=B[I[side+'Arm']],
 function r3bTorsoInit(){const g=R3B.mesh.geometry,pt=g.attributes.part.array,si=g.attributes.skinIndex.array,sw=g.attributes.skinWeight.array,I=R3B.idx;
   const tor=new Set(['Hips','Spine','Spine1','Spine2'].map(n=>I[n]));const ids=[];
   for(let i=0;i<pt.length;i++){if(pt[i]!==0&&pt[i]!==9)continue;let w=0;for(let e=0;e<4;e++)if(tor.has(si[i*4+e]))w+=sw[i*4+e]/255;if(w>.5)ids.push(i);}
-  const st=Math.max(1,Math.floor(ids.length/450));R3B.tor=ids.filter((_,k)=>k%st===0);R3B.torH=new Float32Array(R3B.tor.length*3);}
-function r3bClear(reuse){const I=R3B.idx,B=R3B.bones,M=R3B.mesh,pos=M.geometry.attributes.position;if(!R3B.tor)r3bTorsoInit();
-  const a0=r3bWP(B[I.Hips]),a1=r3bWP(B[I.Spine2]),ax=a1.clone().sub(a0).normalize();
-  const fw=new THREE.Vector3(0,0,1).transformDirection(B[I.Spine1].matrixWorld);fw.sub(ax.clone().multiplyScalar(fw.dot(ax))).normalize();const sd=ax.clone().cross(fw);
-  const v=new THREE.Vector3(),polar=(p,o)=>{const d=p.clone().sub(a0),h=d.dot(ax);d.sub(ax.clone().multiplyScalar(h));o[0]=h;o[1]=Math.atan2(d.dot(sd),d.dot(fw));o[2]=d.length();return d;};
-  const TH=R3B.torH,o=[0,0,0];if(!reuse){M.skeleton.update();
-  for(let k=0;k<R3B.tor.length;k++){v.fromBufferAttribute(pos,R3B.tor[k]);M.applyBoneTransform(R3B.tor[k],v);polar(v,o);TH[k*3]=o[0];TH[k*3+1]=o[1];TH[k*3+2]=o[2];}}
-  let best=0,dir=null;
-  for(const side of['Left','Right']){const P=[r3bWP(B[I[side+'Arm']]),r3bWP(B[I[side+'ForeArm']]),r3bWP(B[I[side+'Hand']])];
-    for(const[i0,i1,t,r]of[[0,1,.8,6],[1,1,0,6],[1,2,.5,5.5],[1,2,1,5]]){const p=P[i0].clone().lerp(P[i1],t),q=[0,0,0],rd=polar(p,q);let R=-1;
+  const st=Math.max(1,Math.floor(ids.length/450));R3B.tor=ids.filter((_,k)=>k%st===0);R3B.torH=new Float32Array(R3B.tor.length*3);
+  // per torso point, fixed for the character: its bind-space position and its (up to four) bones and weights
+  const M=R3B.mesh,n=R3B.tor.length,v=new THREE.Vector3(),wi=new THREE.Vector4(),ww=new THREE.Vector4();R3B.torB=new Float64Array(n*3);R3B.torI=new Int32Array(n*4);R3B.torW=new Float64Array(n*4);
+  for(let k=0;k<n;k++){const i=R3B.tor[k];v.fromBufferAttribute(g.attributes.position,i).applyMatrix4(M.bindMatrix);R3B.torB[k*3]=v.x;R3B.torB[k*3+1]=v.y;R3B.torB[k*3+2]=v.z;
+    wi.fromBufferAttribute(g.attributes.skinIndex,i);ww.fromBufferAttribute(g.attributes.skinWeight,i);for(let e=0;e<4;e++){R3B.torI[k*4+e]=wi.getComponent(e);R3B.torW[k*4+e]=ww.getComponent(e);}}}
+function r3bClear(reuse){const I=R3B.idx,B=R3B.bones,M=R3B.mesh;if(!R3B.tor)r3bTorsoInit();
+  const C=R3B_CL,a0=r3bWP(B[I.Hips]),a1=r3bWP(B[I.Spine2]),ax=a1.sub(a0).normalize();
+  const fw=new THREE.Vector3(0,0,1).transformDirection(B[I.Spine1].matrixWorld);fw.sub(C.t.copy(ax).multiplyScalar(fw.dot(ax))).normalize();const sd=C.sd.copy(ax).cross(fw);
+  const v=C.v,polar=(p,o)=>{const d=C.d.copy(p).sub(a0),h=d.dot(ax);d.sub(C.t.copy(ax).multiplyScalar(h));o[0]=h;o[1]=Math.atan2(d.dot(sd),d.dot(fw));o[2]=d.length();return d;};
+  const TH=R3B.torH,o=C.o;if(!reuse){   // skin the torso points to this pose (the same sums three.js does per vertex, with each bone's matrix worked out once)
+    const sk=M.skeleton,TB=R3B.torB,TI=R3B.torI,TW=R3B.torW,done=C.done,mats=C.mats,b=C.b,u=C.u;done.length=0;
+    for(let k=0;k<R3B.tor.length;k++){b.set(TB[k*3],TB[k*3+1],TB[k*3+2]);v.set(0,0,0);
+      for(let e=0;e<4;e++){const w=TW[k*4+e];if(w!==0){const bi=TI[k*4+e];if(!done[bi]){done[bi]=true;(mats[bi]||(mats[bi]=new THREE.Matrix4())).multiplyMatrices(sk.bones[bi].matrixWorld,sk.boneInverses[bi]);}v.addScaledVector(u.copy(b).applyMatrix4(mats[bi]),w);}}
+      v.applyMatrix4(M.bindMatrixInverse);polar(v,o);TH[k*3]=o[0];TH[k*3+1]=o[1];TH[k*3+2]=o[2];}}
+  let best=0,dir=null;const P=C.P,p=C.p,q=C.q;
+  for(const side of R3B_SIDES){B[I[side+'Arm']].getWorldPosition(P[0]);B[I[side+'ForeArm']].getWorldPosition(P[1]);B[I[side+'Hand']].getWorldPosition(P[2]);
+    for(const[i0,i1,t,r]of R3B_CLPTS){p.copy(P[i0]).lerp(P[i1],t);const rd=polar(p,q);let R=-1;
       for(let k=0;k<R3B.tor.length;k++){if(Math.abs(TH[k*3]-q[0])>6)continue;let da=Math.abs(TH[k*3+1]-q[1]);if(da>Math.PI)da=2*Math.PI-da;if(da>.28)continue;if(TH[k*3+2]>R)R=TH[k*3+2];}
-      if(R>0){const need=R+r-q[2];if(need>best){best=need;dir=rd.normalize();}}}}
+      if(R>0){const need=R+r-q[2];if(need>best){best=need;dir=C.dir.copy(rd).normalize();}}}}
   return{need:best,fw:dir||fw};}
+// scratch for r3bClear (it runs up to three times a frame)
+const R3B_SIDES=['Left','Right'],R3B_CLPTS=[[0,1,.8,6],[1,1,0,6],[1,2,.5,5.5],[1,2,1,5]];
+const R3B_CL={t:new THREE.Vector3(),sd:new THREE.Vector3(),v:new THREE.Vector3(),d:new THREE.Vector3(),b:new THREE.Vector3(),u:new THREE.Vector3(),p:new THREE.Vector3(),dir:new THREE.Vector3(),
+  P:[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()],o:[0,0,0],q:[0,0,0],done:[],mats:[]};
 // palms onto the grip line from Hpalm along cd (rig space), pushed clear of the torso; returns the corrected grip point
 function r3bArms(H,cd,free){const Hg=new THREE.Vector3(...H),cdv=new THREE.Vector3(...cd),push=new THREE.Vector3();
   let Rp=null;if(free){const I=R3B.idx,B=R3B.bones;Rp=r3bWP(B[I.RightHand]).add(r3bWP(B[I.RightHandMiddle1])).multiplyScalar(.5);if(R3B.rpOv)Rp=R3B.rpOv(Rp);}
@@ -5065,14 +5076,16 @@ function r3PostInit(){const T=THREE,P=R3.post={dirty:true,rt:{},m:{}};
      vec2 vq=(vUv-.5)*vec2(asp,1.)*1.25;c*=1.-.26*smoothstep(.35,1.05,dot(vq,vq)*1.6);
      c+=(hsh(gl_FragCoord.xy)-.5)/255.;
      gl_FragColor=vec4(c,1.);}`,['scene','b1','b2','b3','ao','px','hdr','aoOn','bloomK','expo','asp','sunP','fxaaOn','dep','K','dof','dofP']);}
-function r3PostTargets(){const T=THREE,P=R3.post,q=r3Q(),sz=new T.Vector2();R3.renderer.getDrawingBufferSize(sz);const w=sz.x,h=sz.y;
+function r3PostTargets(){const T=THREE,P=R3.post,q=r3Q(),sz=R3.szV||(R3.szV=new T.Vector2());R3.renderer.getDrawingBufferSize(sz);const w=sz.x,h=sz.y;
   if(!P.dirty&&P.w===w&&P.h===h&&P.msaa===q.msaa)return;for(const k in P.rt)P.rt[k].dispose();P.rt={};P.w=w;P.h=h;P.msaa=q.msaa;P.dirty=false;
   const type=R3.hf?T.HalfFloatType:T.UnsignedByteType;P.hdr=!!R3.hf;
   const rt=(W2,H2,o={})=>new T.WebGLRenderTarget(Math.max(1,W2),Math.max(1,H2),{type:o.type||type,format:T.RGBAFormat,colorSpace:T.NoColorSpace,depthBuffer:!!o.depth,stencilBuffer:false,samples:o.samples||0,minFilter:T.LinearFilter,magFilter:T.LinearFilter,generateMipmaps:false});
   const s=P.rt.scene=rt(w,h,{depth:true,samples:q.msaa});s.depthTexture=new T.DepthTexture(w,h,T.UnsignedIntType);
-  for(const[n,d]of[['b1',1],['b2',2],['b3',3]]){P.rt[n+'a']=rt(w>>d,h>>d);P.rt[n+'b']=rt(w>>d,h>>d);}
-  P.rt.dfa=rt(w>>1,h>>1);P.rt.dfb=rt(w>>2,h>>2);P.rt.dfc=rt(w>>2,h>>2);
-  P.rt.aoa=rt(w>>1,h>>1,{type:T.UnsignedByteType});P.rt.aob=rt(w>>1,h>>1,{type:T.UnsignedByteType});}
+  // only the buffers this quality level draws into are made (a change of level comes back through here)
+  if(q.bloom){for(const[n,d]of[['b1',1],['b2',2],['b3',3]]){P.rt[n+'a']=rt(w>>d,h>>d);P.rt[n+'b']=rt(w>>d,h>>d);}}
+  else P.rt.b1a=P.rt.b2a=P.rt.b3a=rt(1,1);   // stand-ins: the final pass still names them, at zero strength
+  if(R3.tv.dof>0){P.rt.dfa=rt(w>>1,h>>1);P.rt.dfb=rt(w>>2,h>>2);P.rt.dfc=rt(w>>2,h>>2);}
+  if(q.ao){P.rt.aoa=rt(w>>1,h>>1,{type:T.UnsignedByteType});P.rt.aob=rt(w>>1,h>>1,{type:T.UnsignedByteType});}}
 function r3Pass(name,target,set){const P=R3.post,m=P.m[name];set(m.uniforms);P.quad.material=m;R3.renderer.setRenderTarget(target||null);R3.renderer.render(P.scene,P.cam);}
 const R3_V2=[];function r3V2(k,x,y){return(R3_V2[k]||(R3_V2[k]=new THREE.Vector2())).set(x,y);}
 function r3Post(){const P=R3.post,q=r3Q(),t=P.rt,w=P.w,h=P.h,hd=P.hdr?1:0;
@@ -5087,7 +5100,7 @@ function r3Post(){const P=R3.post,q=r3Q(),t=P.rt,w=P.w,h=P.h,hd=P.hdr?1:0;
     r3Pass('aob',t.aoa,u=>{u.dep.value=t.scene.depthTexture;u.K.value=Kv;u.src.value=t.aob.texture;u.dir.value=r3V2(8,0,1/t.aoa.height);});}
   // depth of field for the broadcast shots: a soft quarter-res copy blended in by distance from the focus
   const tv=R3.tv,dofWant=0;   // depth of field off: it misreads depth on iPhone Safari and murks the whole frametv.dof+=(dofWant-tv.dof)*.08;if(tv.dof<.01)tv.dof=0;
-  if(tv.dof>0){r3Pass('down',t.dfa,u=>{u.src.value=t.scene.texture;u.px.value=r3V2(9,1/w,1/h);});
+  if(tv.dof>0&&t.dfa){r3Pass('down',t.dfa,u=>{u.src.value=t.scene.texture;u.px.value=r3V2(9,1/w,1/h);});
     r3Pass('down',t.dfb,u=>{u.src.value=t.dfa.texture;u.px.value=r3V2(10,1/t.dfa.width,1/t.dfa.height);});
     r3Pass('blur',t.dfc,u=>{u.src.value=t.dfb.texture;u.dir.value=r3V2(11,1.4/t.dfb.width,0);});r3Pass('blur',t.dfb,u=>{u.src.value=t.dfc.texture;u.dir.value=r3V2(12,0,1.4/t.dfb.height);});}
   const fY=G.state==='flight'?G.bY:hAt(G.ball.x,G.ball.y),fD=Math.max(4,hyp(G.ball.x-V.E[0],fY-V.E[1],G.ball.y-V.E[2]));
@@ -5095,7 +5108,7 @@ function r3Post(){const P=R3.post,q=r3Q(),t=P.rt,w=P.w,h=P.h,hd=P.hdr?1:0;
   if(s&&s[0]>-40&&s[0]<W+40&&s[1]>-40&&s[1]<H+40){const edge=clamp(Math.min(s[0]+40,W+40-s[0],s[1]+40,H+40-s[1])/120,0,1);sp.set(s[0]/W,1-s[1]/H,edge);}
   r3Pass('final',null,u=>{u.scene.value=t.scene.texture;u.b1.value=q.bloom?t.b1a.texture:blank;u.b2.value=t.b2a.texture;u.b3.value=t.b3a.texture;u.ao.value=q.ao?t.aoa.texture:blank;
     u.px.value=r3V2(13,1/w,1/h);u.hdr.value=1;u.aoOn.value=q.ao?1:0;u.bloomK.value=q.bloom?(P.hdr?.55:.35):0;u.expo.value=.97*R3.expoK;u.asp.value=W/H;u.sunP.value=sp;u.fxaaOn.value=q.msaa?0:1;
-    u.dep.value=t.scene.depthTexture;u.K.value=Kv;u.dof.value=tv.dof>0?t.dfb.texture:blank;u.dofP.value=(R3.DPV||(R3.DPV=new THREE.Vector3())).set(fD,0,tv.dof*.45);});}
+    u.dep.value=t.scene.depthTexture;u.K.value=Kv;u.dof.value=tv.dof>0&&t.dfb?t.dfb.texture:blank;u.dofP.value=(R3.DPV||(R3.DPV=new THREE.Vector3())).set(fD,0,tv.dof*.45);});}
 
 function r3Reflect(){const q=r3Q(),WU=R3.WU;WU.rfOn.value=0;if(!q.ao||!R3.water||!G.hole||G.overview){R3.rfHave=false;return;}
   // the pond nearest to the view, if it is on screen
@@ -5208,8 +5221,12 @@ function r3GrassUpdate(){if(!R3G.lods)return;const L=R3G.lods;for(const l of L){
   const c1=[ex+V.F[0]*6,ez+V.F[2]*6],r10=eh<12?10*k:0,r11=eh<12?30*k:0;
   U.gC0.value.set(c0[0],c0[1],r00,r01);U.gC1.value.set(c1[0],c1[1],r10,Math.max(r11,.01));U.gD.value.set(R3G.caps[0],0,bx,bz);
   const wd=dirOf(G.wind?G.wind.a:0),ws=clamp((G.wind?G.wind.mph:0)/16,0,1);U.wV.value.set(wd[0],wd[1],.12+.5*ws,0);
-  const S=R3G.S,D0=R3G.caps[0],dens=(d,r0,r1)=>r1<=0?0:1-smooth(r0,r1,d),seen=new Set();
-  const Fh=Math.hypot(V.F[0],V.F[2])||1;
+  const S=R3G.S,D0=R3G.caps[0];
+  // nothing that decides the tiles has moved since the last frame (the usual case while aiming): keep the same tiles
+  { const g=R3G.sig||(R3G.sig=new Float64Array(24)),n=[k,c0[0],c0[1],r00,r01,c1[0],c1[1],r10,r11,ex,ez,V.E[1],V.F[0],V.F[1],V.F[2],V.R[0],V.R[2],W,V.f,D0,S];let same=R3G.sigH===h&&R3G.cnt&&R3G.cnt.length===L.length;
+    for(let i=0;i<n.length;i++){if(g[i]!==n[i]){same=false;g[i]=n[i];}}
+    if(same){for(let i=0;i<L.length;i++){L[i].geo.instanceCount=R3G.cnt[i];L[i].m.visible=R3G.cnt[i]>0;}return;}R3G.sigH=null; }
+  const dens=(d,r0,r1)=>r1<=0?0:1-smooth(r0,r1,d),seen=new Set();
   const tryTile=(i,j)=>{const key=i*100003+j;if(seen.has(key))return;seen.add(key);
     const x=i*S,z=j*S,cx=x+S/2,cz=z+S/2,rr=S*.71;
     const d0=Math.max(0,Math.hypot(cx-c0[0],cz-c0[1])-rr),d1=Math.max(0,Math.hypot(cx-c1[0],cz-c1[1])-rr);
@@ -5222,7 +5239,8 @@ function r3GrassUpdate(){if(!R3G.lods)return;const L=R3G.lods;for(const l of L){
     const a=l.geo.attributes.tileOff.array;a[l.geo.instanceCount*2]=x;a[l.geo.instanceCount*2+1]=z;l.geo.instanceCount++;};
   for(const[c,r1]of[[c0,r01],[c1,r11]]){if(r1<=0)continue;const i0=Math.floor((c[0]-r1)/S),i1=Math.floor((c[0]+r1)/S),j0=Math.floor((c[1]-r1)/S),j1=Math.floor((c[1]+r1)/S);
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)tryTile(i,j);}
-  for(const l of L){if(l.geo.instanceCount){l.m.visible=true;l.geo.attributes.tileOff.needsUpdate=true;l.geo.attributes.tileOff.addUpdateRange?0:0;}}}
+  for(const l of L){if(l.geo.instanceCount){l.m.visible=true;l.geo.attributes.tileOff.needsUpdate=true;}}
+  R3G.cnt=L.map(l=>l.geo.instanceCount);R3G.sigH=h;}
 
 /* ===================== TV broadcast presentation =====================
    A shot director that cuts from the down-the-line view to a camera placed near where the ball will come down
@@ -5270,12 +5288,15 @@ function r3Tracer(dt){const tr=R3.tracer,tv=R3.tv;if(!tr)return;tr.mesh.visible=
   if(!f||G.replay||G.overview||f.club.putter||(typeof R3R!=='undefined'&&R3R.post.on&&R3R.post.t>=0))return;
   if(st==='aim'||st==='power'||st==='acc'){tv.fade=Math.max(0,tv.fade-dt*1.5);if(tv.fade<=0){tv.trail=null;return;}}
   const u1=Math.min(f.u,tv.plan?tv.plan.uLand:f.u);if(u1<.01)return;
-  const N=tr.N,P=tr.g.attributes.position.array,UV=tr.g.attributes.uv.array;let prev=null;
+  const N=tr.N,P=tr.g.attributes.position.array,UV=tr.g.attributes.uv.array;
+  // the ribbon only changes while the ball is still flying or the camera moves
+  if(tr.kf===f&&tr.ku===u1&&tr.ke0===V.E[0]&&tr.ke1===V.E[1]&&tr.ke2===V.E[2]){tr.mesh.material.uniforms.op.value=tv.fade;tr.mesh.visible=true;return;}
+  tr.kf=f;tr.ku=u1;tr.ke0=V.E[0];tr.ke1=V.E[1];tr.ke2=V.E[2];
   for(let i=0;i<N;i++){const u=u1*i/(N-1),p=flightPos(f,u),q=[p[0],p[2],p[1]];
     const pn=flightPos(f,Math.min(u1,u+.01)),pp=flightPos(f,Math.max(0,u-.01));let tx=pn[0]-pp[0],ty=pn[2]-pp[2],tz=pn[1]-pp[1];
     const cx=V.E[0]-q[0],cy=V.E[1]-q[1],cz=V.E[2]-q[2],cd=Math.hypot(cx,cy,cz)||1;let sx=ty*cz-tz*cy,sy=tz*cx-tx*cz,sz=tx*cy-ty*cx;const sl=Math.hypot(sx,sy,sz)||1;
     const w=Math.max(.05,cd*.0032);sx*=w/sl;sy*=w/sl;sz*=w/sl;
-    P.set([q[0]-sx,q[1]-sy,q[2]-sz,q[0]+sx,q[1]+sy,q[2]+sz],i*6);UV.set([i/(N-1),0,i/(N-1),1],i*4);}
+    const o=i*6,o2=i*4;P[o]=q[0]-sx;P[o+1]=q[1]-sy;P[o+2]=q[2]-sz;P[o+3]=q[0]+sx;P[o+4]=q[1]+sy;P[o+5]=q[2]+sz;UV[o2]=i/(N-1);UV[o2+1]=0;UV[o2+2]=i/(N-1);UV[o2+3]=1;}
   tr.g.attributes.position.needsUpdate=true;tr.g.attributes.uv.needsUpdate=true;tr.mesh.material.uniforms.op.value=tv.fade;tr.mesh.visible=true;}
 
 // leaf atlas at twice the old resolution, same layout: a broadleaf cluster (left) and a pine spray (right)
@@ -5487,7 +5508,7 @@ function update(dt){
   if(launched&&G.state==='roll'&&G.roll)stepRoll(dt);
   if(G.waitFn){G.waitT-=dt;if(G.waitT<=0){const f=G.waitFn;G.waitFn=null;f();}}
   for(const f of G.fx)f.t+=dt/(f.type==='splash'?1.2:.6);G.fx=G.fx.filter(f=>f.t<1);
-  stepCam(dt);updHud();
+  stepCam(dt);if(!G.hudSkip)updHud();
 }
 let last=performance.now();
 const PERF={n:0,sum:0,level:0};
@@ -5585,7 +5606,7 @@ function replayCamTV(){const L=G.lastShot,r=G.replay,rp=replayPoint(Math.max(0,r
 const COVERS=['menuM','dailyM','recM','careerM','hlM','charM'].map(id=>$(id));
 function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
   const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
-  if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++)update(dt);}if(!COVERS.some(m=>!m.hidden))render();}}
+  if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}}
 
 /* ---------- input ---------- */
 let drag=null;const PTS=new Map();
