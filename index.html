@@ -32,6 +32,10 @@ body{margin:0;background:#0f2233;color:var(--cream);font-family:"Barlow Semi Con
 #sky,#gl{pointer-events:none}
 .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 85% 75% at 50% 42%,rgba(0,0,0,0) 60%,rgba(8,16,24,.32) 100%)}
 #c{touch-action:none}
+.loading{position:fixed;inset:0;z-index:99;display:grid;place-items:center;align-content:center;gap:10px;text-align:center;background:radial-gradient(120% 80% at 50% 0%,#1d3a52 0%,#0f2233 55%,#0a1824 100%)}
+.loading b{font-size:44px;color:var(--sun);font-weight:400}
+.loading span{font-size:16px;letter-spacing:.08em;text-transform:uppercase;opacity:.8;animation:loadpulse 1.2s ease-in-out infinite alternate}
+@keyframes loadpulse{from{opacity:.35}to{opacity:.9}}
 .nogl{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;font-size:18px}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
 button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
@@ -413,6 +417,8 @@ td.won{background:rgba(255,201,60,.38)}
 </style>
 
 <div id="game">
+  <!-- shown while the course data downloads; boot() takes it away -->
+  <div class="loading" id="loadM"><b class="disp">Golf Go</b><span>Loading the courses…</span></div>
   <canvas id="sky"></canvas>
   <canvas id="gl"></canvas>
   <canvas id="c" aria-label="Golf course, viewed from behind the golfer"></canvas>
@@ -6311,6 +6317,7 @@ if(window.ResizeObserver)new ResizeObserver(resize).observe(document.querySelect
 
 /* ---------- boot ---------- */
 function boot(data){
+  {const lm=$('loadM');if(lm)lm.remove();}
   resize();
   let ok=false;try{ok=r3Init();if(ok){document.querySelectorAll('#gfxSeg button').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();r3SetQuality(b.dataset.g==='high'?'high':'fast');}));r3SetQuality(R3.q,true);}}catch(e){console.error(e);ok=false;}
   if(!ok){const d=document.createElement('div');d.className='nogl';d.textContent='This game needs WebGL, which this browser has turned off. Try another browser or device.';$('game').appendChild(d);return;}
