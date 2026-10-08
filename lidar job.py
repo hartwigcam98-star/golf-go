@@ -37,7 +37,7 @@ def pip(pt, r):
         if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1: c = not c
     return c
 def year_of(name):
-    ys = [int(y) for y in re.findall(r'(?<!\d)(20[0-2]\d|19[89]\d)(?!\d)', name)]
+    ys = [int(y) for y in re.findall(r'(?<!\d)(20[0-2]\d|19[89]\d)(?!\d)', name)] + [2000 + int(y) for y in re.findall(r'_B(\d\d)(?!\d)', name)]
     return max(ys) if ys else 0
 
 def read_tile(res, box, epsg, x0, y1, W, H):
@@ -98,20 +98,24 @@ def roof_of(dsm, gnd, m):
     ze = dsm[edge]; ze = ze[np.isfinite(ze)]
     eave = (np.percentile(ze, 20) if len(ze) > 3 else np.percentile(zin, 10)) - gz
     if sd < 0.3 and slope < 0.1:
-        return dict(roof=0, eave=float(np.median(z) - gz), rise=0.0, ang=0.0, q='flat', sd=round(sd, 2))
+        return dict(roof=0, eave=float(np.median(z) - gz), rise=0.0, ang=0.0, q='flat', sd=round(sd, 2), lap=0.0)
     gy, gx = np.gradient(np.where(np.isfinite(dsm), dsm, np.nan))
     s = np.hypot(gx, gy); sel = inner & np.isfinite(s) & (s > 0.15) & (s < 2.5)
-    if sel.sum() < 4: return dict(roof=0, eave=float(np.median(z) - gz), rise=0.0, ang=0.0, q='flatish', sd=round(sd, 2))
+    if sel.sum() < 4: return dict(roof=0, eave=float(np.median(z) - gz), rise=0.0, ang=0.0, q='flatish', sd=round(sd, 2), lap=0.0)
     th = np.arctan2(gy[sel], gx[sel])           # downhill/uphill direction of each roof cell
     R2 = abs(np.mean(np.exp(2j * th))); R4 = abs(np.mean(np.exp(4j * th)))
     axis = np.angle(np.mean(np.exp(2j * th))) / 2   # slope axis (perpendicular to the ridge)
     pitch = float(np.median(s[sel]))
-    rise = max(0.0, top - eave)
+    import cv2
+    mr, mc = np.nonzero(m); rect = cv2.minAreaRect(np.c_[mc, mr].astype(np.float32)); hw = max(1.0, min(rect[1]) / 2)
+    rise = float(min(max(pitch * hw, 0.6), 0.6 * top)); eave = top - rise
+    if eave < 2.2: eave = 2.2; rise = max(0.0, top - 2.2)
     roof = 1 if R2 > 0.55 else 2
     ridge = axis + math.pi / 2
     if roof == 2:   # hips: the ridge runs along the footprint's long axis
         mr, mc = np.nonzero(m); C = np.cov(np.c_[mc - mc.mean(), mr - mr.mean()].T); ev, evec = np.linalg.eigh(C); v = evec[:, 1]; ridge = math.atan2(v[1], v[0])
-    return dict(roof=roof, eave=float(eave), rise=float(rise), ang=float(ridge), q='ok', R2=round(float(R2), 2), R4=round(float(R4), 2), pitch=round(pitch, 2))
+    lap = float(np.median(np.abs(ndi.laplace(np.nan_to_num(dsm, nan=0.0)))[inner]))
+    return dict(roof=roof, eave=float(eave), rise=float(rise), ang=float(ridge), q='ok', R2=round(float(R2), 2), R4=round(float(R4), 2), pitch=round(pitch, 2), lap=round(lap, 2), sd=round(sd, 2))
 
 def course(key, rq, resources):
     W_, S_, E_, N_ = rq['bbox']; epsg = UTMZ((W_ + E_) / 2); tf = Transformer.from_crs(4326, epsg, always_xy=True); tb = Transformer.from_crs(epsg, 4326, always_xy=True)
@@ -155,7 +159,7 @@ def course(key, rq, resources):
         m = poly_mask(np.c_[X, Y], W, H); allmask |= m
         r = roof_of(dsm, gnd, m)
         if not r or 'roof' not in r: out['fp'][fid] = r; continue
-        out['fp'][fid] = [round(r['eave'], 2), round(r['rise'], 2), r['roof'], round(r['ang'], 3), r.get('q'), int(m.sum())]
+        out['fp'][fid] = [round(r['eave'], 2), round(r['rise'], 2), r['roof'], round(r['ang'], 3), r.get('q'), int(m.sum()), r.get('lap'), r.get('sd')]
     # missing buildings: raised, smooth, mostly single-return (or class 6) blobs within ~140 m of a hole line
     from scipy import ndimage as ndi
     import cv2
@@ -180,7 +184,7 @@ def course(key, rq, resources):
         if not r or 'roof' not in r: continue
         lo, la = tb.transform(box[:, 0] + x0, y1 - box[:, 1])
         out['add'].append(dict(ring=[[round(a, 7), round(b, 7)] for a, b in zip(lo, la)], eave=round(r['eave'], 2), rise=round(r['rise'], 2), roof=r['roof'], ang=round(r['ang'], 3), area=area,
-                               b6=round(float((b6[m] > 0).mean()), 2), sf=round(float(sf[m].mean()), 2)))
+                               b6=round(float((b6[m] > 0).mean()), 2), sf=round(float(sf[m].mean()), 2), lap=r.get('lap'), sd=r.get('sd'), q=r.get('q')))
     json.dump(out, open(f'{OUT}/bld_{key}.json', 'w'), separators=(',', ':'))
     info['fp'] = len(out['fp']); info['measured'] = sum(1 for v in out['fp'].values() if isinstance(v, list)); info['added'] = len(out['add']); save()
     log(key, 'footprints', info['fp'], 'measured', info['measured'], 'added', info['added'])
