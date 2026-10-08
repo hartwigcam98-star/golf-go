@@ -6090,7 +6090,8 @@ function replayCamTV(){const L=G.lastShot,r=G.replay,rp=replayPoint(Math.max(0,r
   if(r.t<Math.min(1.2,r.dur*.35))return{E:[ga.x-dx*7,g0+2.4,ga.y-dz*7],L:[rp.x,rp.Y,rp.y]};
   // landing camera: off to the side of where the ball comes to rest, watching it arrive
   const sx=-dz,sz=dx,ex=s1.x+sx*16-dx*7,ez=s1.y+sz*16-dz*7;return{E:[ex,hAt(ex,ez)+5,ez],L:[rp.x,rp.Y,rp.y]};}
-function frame(now){const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;if(G.hole&&R3.on)perfCheck(raw);if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++)update(dt);}render();}requestAnimationFrame(frame);}
+function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
+  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;if(G.hole&&R3.on)perfCheck(raw);if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++)update(dt);}render();}}
 
 /* ---------- input ---------- */
 let drag=null;const PTS=new Map();
