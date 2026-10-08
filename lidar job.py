@@ -7,11 +7,11 @@ import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
 JOB = {"name": "grand national + arizona", "search": [[32.60, -85.52, 32.76, -85.34], [33.40, -112.48, 33.86, -111.88]],
-       # discovery run: find the OSM outlines and holes for Grand National (Links + Lake, Opelika AL), Lookout Mountain
-       # (Phoenix), the Wigwam (Litchfield Park) and Dove Valley Ranch (Cave Creek)
-       "want": {"gnlinks": r"grand national", "lookout": r"lookout mountain", "wigwam": r"wigwam", "dove": r"dove valley"},
-       "holes": {"gnlinks": r"links|lake|grand national", "lookout": r"lookout", "wigwam": r"gold|wigwam", "dove": r"dove"},
-       "steps": {}, "discover_only": True}
+       # Grand National (Links + Lake share one outline: way/328838760), Lookout Mountain (relation/3545446),
+       # the Wigwam (relation/3530156, all three courses; the Gold is picked later), Dove Valley Ranch (relation/3551341)
+       "want": {"gn": r"grand national", "lookout": r"lookout mountain", "wigwam": r"wigwam", "dove": r"dove valley"},
+       "holes": {"gn": r"grand national", "lookout": r"lookout", "wigwam": r"wigwam", "dove": r"dove"},
+       "steps": {"gn": "all", "lookout": "all", "wigwam": "all", "dove": "all"}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -245,7 +245,7 @@ def main():
     import subprocess   # keep the earlier courses' files on the results branch
     try:
         subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_sc4.json; [ -f out/run.log ] && mv out/run.log out/run_prev_sc4.log; true', shell=True)
+        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_az0.json; [ -f out/run.log ] && mv out/run.log out/run_prev_az0.log; true', shell=True)
     except Exception as e: SUM['errors'].append(f'keep old: {e}')
     try: res = discover()
     except Exception as e: err('discover', e); return
