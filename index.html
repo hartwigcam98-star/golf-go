@@ -28,8 +28,8 @@ html,body{position:fixed;inset:0;width:100%;overflow:hidden;overscroll-behavior:
 [hidden]{display:none!important}
 body{margin:0;background:#0f2233;color:var(--cream);font-family:"Barlow Semi Condensed",system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 #game{position:fixed;inset:0;overflow:hidden}
-#sky,#gl,#c{position:absolute;inset:0;width:100%;height:100%;display:block}
-#sky,#gl{pointer-events:none}
+#gl,#c{position:absolute;inset:0;width:100%;height:100%;display:block}
+#gl{pointer-events:none}
 .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 85% 75% at 50% 42%,rgba(0,0,0,0) 60%,rgba(8,16,24,.32) 100%)}
 #c{touch-action:none}
 .loading{position:fixed;inset:0;z-index:99;display:grid;place-items:center;align-content:center;gap:10px;text-align:center;background:radial-gradient(120% 80% at 50% 0%,#1d3a52 0%,#0f2233 55%,#0a1824 100%)}
@@ -419,7 +419,6 @@ td.won{background:rgba(255,201,60,.38)}
 <div id="game">
   <!-- shown while the course data downloads; boot() takes it away -->
   <div class="loading" id="loadM"><b class="disp">Golf Go</b><span>Loading the courses…</span></div>
-  <canvas id="sky"></canvas>
   <canvas id="gl"></canvas>
   <canvas id="c" aria-label="Golf course, viewed from behind the golfer"></canvas>
   <div class="vig" aria-hidden="true"></div>
@@ -769,7 +768,6 @@ window.THREE={ACESFilmicToneMapping:et,AddEquation:y,AddOperation:J,AdditiveAnim
 (()=>{
 const $=id=>document.getElementById(id);
 const cv=$('c'), sctx=cv.getContext('2d');
-const skyC=$('sky');
 const glc=$('gl');
 const TAU=Math.PI*2, DEG=Math.PI/180;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -3824,19 +3822,16 @@ function r3GolferSet(id,cb){if(!R3.on||typeof R3BOSS==='undefined')return;
   if(id==='boss'||!id){if(R3B.cid!=='boss')r3GolferBuild(R3BOSS,null);cb&&cb(true);return;}
   if(R3CHARS[id]){if(R3B.cid!==id)try{r3GolferBuild(R3CHARS[id],id);}catch(e){console.error('[golfer]',e);r3GolferBuild(R3BOSS,null);}R3CHAR_WANT=null;cb&&cb(true);return;}
   R3CHAR_WANT=id;R3CHAR_CB=cb||null;if(document.getElementById('chs_'+id))return;
-  // phones sometimes rename uploads (char_brute.js -> "char brute.js"), so try the usual spellings in turn
-  const names=['char_'+id+'.js','char%20'+id+'.js','char'+id+'.js','char-'+id+'.js'];let k=0;
-  const tryNext=()=>{const s=document.createElement('script');s.id='chs_'+id;s.src=names[k];
-    s.onerror=()=>{s.remove();if(++k<names.length&&R3CHAR_WANT===id){tryNext();return;}if(R3CHAR_WANT===id){const c=R3CHAR_CB;R3CHAR_WANT=null;R3CHAR_CB=null;c&&c(false);}};
-    document.head.appendChild(s);};
+  r3CharFetch(id,()=>R3CHAR_WANT===id,ok=>{if(!ok&&R3CHAR_WANT===id){const c=R3CHAR_CB;R3CHAR_WANT=null;R3CHAR_CB=null;c&&c(false);}});}   // on success the file itself calls R3CHAR, which switches to it
+// download a character's file. Phones sometimes rename uploads (char_brute.js -> "char brute.js"), so the usual spellings are tried in turn
+function r3CharFetch(id,keepTrying,done){const names=['char_'+id+'.js','char%20'+id+'.js','char'+id+'.js','char-'+id+'.js'];let k=0;
+  const tryNext=()=>{const s=document.createElement('script');s.id='chs_'+id;s.src=names[k];s.onload=()=>done(true);
+    s.onerror=()=>{s.remove();if(++k<names.length&&keepTrying()){tryNext();return;}done(false);};document.head.appendChild(s);};
   tryNext();}
 // load a character's file without switching to it (Challenge V2 preloads the rival and your golfer)
 function r3CharLoad(id,cb){if(!id||id==='boss'||R3CHARS[id]){cb&&cb(true);return;}
   if(document.getElementById('chs_'+id)){const t0=Date.now(),w=()=>{if(R3CHARS[id])cb&&cb(true);else if(Date.now()-t0>20000)cb&&cb(false);else setTimeout(w,200);};w();return;}
-  const names=['char_'+id+'.js','char%20'+id+'.js','char'+id+'.js','char-'+id+'.js'];let k=0;
-  const tryNext=()=>{const s=document.createElement('script');s.id='chs_'+id;s.src=names[k];s.onload=()=>{cb&&cb(!!R3CHARS[id]);};
-    s.onerror=()=>{s.remove();if(++k<names.length){tryNext();return;}cb&&cb(false);};document.head.appendChild(s);};
-  tryNext();}
+  r3CharFetch(id,()=>true,ok=>cb&&cb(ok&&!!R3CHARS[id]));}
 // pose of a clip at time t (clip seconds) into q (bone quaternions) and h (hips translation)
 function r3bPose(c,t,q,h){const f=clamp((t-c.t0)*c.fps,0,c.n-1),i0=Math.floor(f),i1=Math.min(c.n-1,i0+1),a=f-i0,nb=R3B.nb;
   for(let k=0;k<nb;k++){q[k*4]=c.QS[k*4]/32767;q[k*4+1]=c.QS[k*4+1]/32767;q[k*4+2]=c.QS[k*4+2]/32767;q[k*4+3]=c.QS[k*4+3]/32767;}
@@ -4717,7 +4712,7 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   r3GrassInit();r3TracerInit();try{r3GolferInit();}catch(e){console.error('[golfer]',e);}
   // post-processing
   r3PostInit();
-  skyC.style.visibility='hidden';GL.slOK=true;
+  GL.slOK=true;
   try{const v=localStorage.getItem('golf-gfx');if(v==='fast')R3.q='fast';}catch(e){}
   try{const pv=JSON.parse(localStorage.getItem('golf-perf2')||'null');if(pv&&pv.l>0){R3.perf=Math.min(3,pv.l-(Date.now()-(pv.t||0)>2*864e5?1:0));}}catch(e){}   // start where this phone settled last time (eased one step after two days)
   /* phones and tablets start on Fast (High is a tap away in the pause menu and is remembered). Done once per device: a phone that
@@ -4819,13 +4814,6 @@ saguaro(g,c){g.fillStyle=c.fg;const col=(x,y,w,h)=>{g.beginPath();g.moveTo(x-w,y
     g.beginPath();g.moveTo(-22,8);g.lineTo(-40,0);g.lineTo(-38,16);g.closePath();g.fill();
     g.fillStyle=c.bg;g.beginPath();g.arc(20,-8,1.8,0,Math.PI*2);g.fill();
     g.strokeStyle=c.ac;g.lineWidth=3;g.lineCap='round';g.beginPath();g.moveTo(-30,36);g.quadraticCurveTo(0,26,30,36);g.stroke();},
-furnace(g,c){g.fillStyle=c.fg;g.beginPath();g.moveTo(-26,36);g.lineTo(-16,-8);g.lineTo(16,-8);g.lineTo(26,36);g.closePath();g.fill();
-    g.fillRect(-9,-30,18,24);g.fillStyle=c.bg;g.beginPath();g.arc(0,28,9,Math.PI,0);g.lineTo(9,36);g.lineTo(-9,36);g.closePath();g.fill();
-    g.fillStyle=c.ac;g.beginPath();g.arc(0,30,5,0,Math.PI*2);g.fill();
-    g.strokeStyle=c.ac;g.lineWidth=4;g.lineCap='round';g.beginPath();g.moveTo(2,-34);g.bezierCurveTo(14,-42,0,-48,12,-56);g.stroke();},
-  ridge(g,c){g.fillStyle=c.ac;g.beginPath();g.moveTo(-44,30);g.lineTo(-18,-18);g.lineTo(-4,4);g.lineTo(14,-30);g.lineTo(44,30);g.closePath();g.fill();
-    g.fillStyle=c.fg;g.beginPath();g.moveTo(14,-30);g.lineTo(22,-14);g.lineTo(10,-10);g.lineTo(4,-12);g.closePath();g.fill();
-    g.strokeStyle=c.fg;g.lineWidth=3;g.beginPath();g.moveTo(14,-30);g.lineTo(14,-48);g.stroke();g.fillStyle=c.fg;g.beginPath();g.moveTo(14,-48);g.lineTo(28,-43);g.lineTo(14,-38);g.closePath();g.fill();},
 furnace(g,c){g.fillStyle=c.fg;g.beginPath();g.moveTo(-26,36);g.lineTo(-16,-8);g.lineTo(16,-8);g.lineTo(26,36);g.closePath();g.fill();
     g.fillRect(-9,-30,18,24);g.fillStyle=c.bg;g.beginPath();g.arc(0,28,9,Math.PI,0);g.lineTo(9,36);g.lineTo(-9,36);g.closePath();g.fill();
     g.fillStyle=c.ac;g.beginPath();g.arc(0,30,5,0,Math.PI*2);g.fill();
@@ -5810,7 +5798,7 @@ function resize(){
   /* the controls changing height (a hint wrapping to two lines) also lands here: only a real change of screen size rebuilds the canvases */
   const d0=Math.min(DPR_CAP,window.devicePixelRatio||1),w0=cv.clientWidth,h0=cv.clientHeight,same=d0===dpr&&w0===W&&h0===H&&cv.width===Math.round(w0*d0)&&cv.height===Math.round(h0*d0);
   dpr=d0;W=w0;H=h0;
-  if(!same)for(const c of[cv,skyC,glc]){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);}
+  if(!same)for(const c of[cv,glc]){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);}
   const tp=document.querySelector('.top').getBoundingClientRect();topH=tp.bottom+6;
   const inner=document.querySelector('.bottom .inner').getBoundingClientRect();botH=inner.height>0?H-inner.top+8:96;   /* spectating hides the controls */
   if(R3.on&&!same)r3Resize();
