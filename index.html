@@ -6231,8 +6231,11 @@ $('mGolfer').addEventListener('click',()=>{A();sfx.tick();openChars();});$('chGo
 $('mHolesBack').addEventListener('click',()=>{$('mHoles').hidden=true;$('mMain').hidden=false;});
 $('mClose').addEventListener('click',closeMenu);
 $('mMatchCont').addEventListener('click',()=>{A();const v=pendingMatchV();if(v)startMatch(carOf(v).match.rid,true);});
-$('mCareer2').addEventListener('click',()=>{A();careerUse(2);openCareer();sfx.tick();});
-$('mCareer').addEventListener('click',()=>{A();careerUse(1);openCareer();sfx.tick();});
+/* a match belongs to the Challenge it was started in: the other one stays shut until the match is finished (switching mid-match
+   would send its points and its save to the wrong Challenge) */
+const careerBusy=(v,sub)=>{if(!MATCH.on||CV===v)return false;$(sub).textContent='Finish your match in '+(CV===2?'Challenge V2':'Challenge')+' first';sfx.tick();return true;};
+$('mCareer2').addEventListener('click',()=>{A();if(careerBusy(2,'mCareer2Sub'))return;careerUse(2);openCareer();sfx.tick();});
+$('mCareer').addEventListener('click',()=>{A();if(careerBusy(1,'mCareerSub'))return;careerUse(1);openCareer();sfx.tick();});
 $('mDaily').addEventListener('click',()=>{A();sfx.tick();const me=dailyToday();DAILY.calSel=dailyDay();if(me||dailyName())openDailyBoard(false,dailyDay(),'cal');else openDailyName();});
 $('dNameGo').addEventListener('click',dailyNameGo);$('dNameIn').addEventListener('keydown',e=>{if(e.key==='Enter')dailyNameGo();});
 $('dPlay').addEventListener('click',()=>{A();dailyPlay();});
