@@ -31,6 +31,7 @@ LIES (where the ball sits)
 - First cut: the darker 2.5-yard band around every fairway. A very small penalty: 1-3% less carry, slightly wider misses, a little less spin. Wedges still check up. You can putt or play the spinner from it.
 - Rough: the band outside the fairway. Carry drops by club: woods about 80%, hybrids 86%, long irons 84%, mid irons 88%, short irons 91%, wedges about 92-93%, and each shot rolls a little either side of that (the lie readout shows the range, e.g. "Lie 84-92%"). Misses are wider (woods 1.6x, wedges about 1.15x). The meter already allows for the lost carry.
 - Flyers: from the rough the grass gets between club and ball, so the ball comes out with little spin and runs out on landing. Short irons and wedges are hit hardest: no check-up, roughly 2.5x the normal roll. Woods barely change.
+- Desert (Arizona desert courses, Lookout Mountain and Dove Valley Ranch): sand, scrub and rock outside the grass. It plays exactly like fescue below. Saguaro cactuses act like trees: hit one and the ball drops.
 - Fescue (the long golden grass): heavy. Carry roughly 40-45% with woods, 65% with the hybrid, 63-74% with irons, 76-86% with wedges. Misses much wider. The hybrid gets the ball out furthest; from fescue the game may pick a straighter club a few yards short.
 - Chips and pitches from rough or fescue vary in distance (about ±7% rough, ±11% fescue) and release more. Fescue can grab the club and leave it short (about 1 in 10).
 - Bunkers: fairway bunkers cost a lot of distance, especially with long clubs. Greenside bunkers use the splash/pick/blast shots.
@@ -79,5 +80,5 @@ MODES
 - Challenge: 18-hole match play against a ladder of rivals; win points for holes, birdies, perfect strikes and more; spend them on gear upgrades and outfits.
 - Challenge V2: start as the weakest golfer and unlock each golfer by beating them on their home course; points buy gear.
 - Pause screen (menu button during a round): resume, sound, graphics, Send feedback (with an optional screenshot), quit to home.
-- The game has many real courses recreated from maps, aerial photos and USGS lidar elevation, including Troy Burne, Sand Valley, Mammoth Dunes, Sedge Valley, Ross Bridge, Oxmoor Valley and courses in South Carolina and elsewhere. Unofficial recreations, not affiliated with the clubs.
+- The game has many real courses recreated from maps, aerial photos and USGS lidar elevation, including Troy Burne, Sand Valley, Mammoth Dunes, Sedge Valley, Ross Bridge, Oxmoor Valley, Grand National (Links and Lake) in Alabama, Lookout Mountain, Dove Valley Ranch and The Wigwam (Gold) in Arizona, and courses in South Carolina and elsewhere. New courses join the daily round rotation and the course map. Unofficial recreations, not affiliated with the clubs.
 `;
