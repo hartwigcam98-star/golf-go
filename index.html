@@ -5178,6 +5178,10 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   skyC.style.visibility='hidden';GL.slOK=true;
   try{const v=localStorage.getItem('golf-gfx');if(v==='fast')R3.q='fast';}catch(e){}
   try{const pv=JSON.parse(localStorage.getItem('golf-perf2')||'null');if(pv&&pv.l>0){R3.perf=Math.min(3,pv.l-(Date.now()-(pv.t||0)>2*864e5?1:0));}}catch(e){}   // start where this phone settled last time (eased one step after two days)
+  /* phones and tablets start on Fast (High is a tap away in the pause menu and is remembered). Done once per device: a phone that
+     was on High by default moves to Fast, and any automatic step-down it had settled on is eased by the same one level */
+  try{if(!localStorage.getItem('golf-gfx-set')){localStorage.setItem('golf-gfx-set','auto');
+    if(!DESK&&R3.q==='high'){R3.q='fast';if(R3.perf>0){R3.perf--;localStorage.setItem('golf-perf2',JSON.stringify({l:R3.perf,t:Date.now()}));}}}}catch(e){}
   R3.on=true;r3Resize();r3RoundWx();try{r3GolferRestore();}catch(e){}return true;}
 // image-based light from the current sky (rebuilt when the weather changes)
 function r3EnvBuild(){const T=THREE,keep=R3.U.E.value.clone();R3.U.E.value.set(0,0,0);R3.U.cloudOn.value=CLOUDS_COV;const pm=R3.pmrem||(R3.pmrem=new T.PMREMGenerator(R3.renderer));   /* kept for the session: disposing it threw away its shaders, so every new round recompiled them (v81) */
@@ -5199,7 +5203,7 @@ function r3RoundWx(){let i=null;try{const v=localStorage.getItem('golf-wx');if(v
 /* v95: a pixel budget per quality level (High about 3.2 million pixels, a phone uses about 1.3), so a big desktop or Retina laptop
    window starts at a sensible resolution instead of drawing four times a phone's pixels and waiting for the step-down */
 function r3Resize(){if(!R3.renderer)return;const q=r3Q(),budget=3.2e6*(q.dpr/2)*(q.dpr/2),pr=Math.max(.85,Math.min(q.dpr,window.devicePixelRatio||1,Math.sqrt(budget/Math.max(1,W*H))));R3.renderer.setPixelRatio(pr);R3.renderer.setSize(W,H,false);R3.post.dirty=true;}
-function r3SetQuality(name,auto){R3.q=name;if(!auto&&R3.renderer){R3.perf=0;try{localStorage.removeItem('golf-perf2');}catch(e){}}   /* choosing a setting by hand starts the automatic step-down afresh (v87) */
+function r3SetQuality(name,auto){R3.q=name;if(!auto&&R3.renderer){R3.perf=0;PERF.steps=0;PERF.stuck=0;PERF.slow=0;PERF.w=[];try{localStorage.removeItem('golf-perf2');localStorage.setItem('golf-gfx-set','user');}catch(e){}}   /* choosing a setting by hand starts the automatic step-down afresh (v87) */
   try{localStorage.setItem('golf-gfx',name==='high'?'high':'fast');}catch(e){}
   document.querySelectorAll('#gfxSeg button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='high')===(name==='high')));r3Resize();}
 function r3SetPerf(level){R3.perf=level;r3Resize();}
@@ -6018,10 +6022,15 @@ function update(dt){
 }
 let last=performance.now();
 const PERF={n:0,sum:0,level:0};
-function perfCheck(raw){PERF.level=R3.perf||0;if(PERF.level>=4||G.paused||G.state==='intro'||G.state==='card'||raw>.25)return;(PERF.w=PERF.w||[]).push(raw);if(PERF.w.length<90)return;
+function perfCheck(raw){PERF.level=R3.perf||0;if(PERF.level>=4||PERF.stuck||G.paused||G.state==='intro'||G.state==='card'||raw>.25)return;(PERF.w=PERF.w||[]).push(raw);if(PERF.w.length<90)return;
   /* v87: every 90 frames of play, step down a level when the median frame is slower than ~45 fps or more than 1 in 8 frames stutters (>40 ms), two windows running; the level is remembered on this phone */
   const w=PERF.w.sort((a,b)=>a-b),med=w[w.length>>1],lng=w.filter(v=>v>.04).length/w.length;PERF.w=[];
-  if(med>1/45||lng>.12){PERF.slow=(PERF.slow||0)+1;if(PERF.slow>=2){PERF.slow=0;PERF.level++;r3SetPerf(PERF.level);try{localStorage.setItem('golf-perf2',JSON.stringify({l:PERF.level,t:Date.now()}));}catch(e){}}}else PERF.slow=0;}
+  /* two steps down that left the frame time where it was mean the picture isn't what's slow (a 30 fps cap such as Low Power Mode):
+     go back to where this session started and leave it there */
+  if(med>1/45||lng>.12){PERF.slow=(PERF.slow||0)+1;if(PERF.slow>=2){PERF.slow=0;
+    if(PERF.steps>=2&&PERF.med0>1/45&&med>.9*PERF.med0){PERF.level=PERF.l0;PERF.stuck=1;}
+    else{if(!PERF.steps){PERF.med0=med;PERF.l0=PERF.level;}PERF.steps=(PERF.steps||0)+1;PERF.level++;}
+    r3SetPerf(PERF.level);try{localStorage.setItem('golf-perf2',JSON.stringify({l:PERF.level,t:Date.now()}));}catch(e){}}}else PERF.slow=0;}
 function replayPoint(t){const r=G.lastShot.rec;if(t<=0)return r[0];for(let i=1;i<r.length;i++){if(r[i].t>=t){const a=r[i-1],b=r[i],k=(t-a.t)/((b.t-a.t)||1);return{t,x:a.x+(b.x-a.x)*k,y:a.y+(b.y-a.y)*k,Y:a.Y+(b.Y-a.Y)*k};}}return r[r.length-1];}
 function startReplay(done){const L=G.lastShot;if(!L||!L.rec||L.rec.length<6)return done&&done();G.ff=1;
   $('cardM').hidden=true;G.replay={t:-.55,dur:L.rec[L.rec.length-1].t,done,prev:G.state,prevFollow:G.followT,prevGolfer:G.golferAt};G.state='replay';G.overview=false;G.golferAt=L.golferAt;const c=replayCam();cam.E=[...c.E];cam.L=[...c.L];}
@@ -6106,7 +6115,8 @@ function replayCamTV(){const L=G.lastShot,r=G.replay,rp=replayPoint(Math.max(0,r
 /* menu screens with a solid backdrop hide the course completely: nothing is drawn behind them (saves battery and heat) */
 const COVERS=['menuM','dailyM','recM','careerM','hlM','charM'].map(id=>$(id));
 function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
-  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;if(G.hole&&R3.on)perfCheck(raw);if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++)update(dt);}if(!COVERS.some(m=>!m.hidden))render();}}
+  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
+  if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++)update(dt);}if(!COVERS.some(m=>!m.hidden))render();}}
 
 /* ---------- input ---------- */
 let drag=null;const PTS=new Map();
