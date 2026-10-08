@@ -2829,7 +2829,7 @@ function showCard(){
   }
   $('cardM').hidden=false;setTimeout(()=>$('nextBtn').focus({preventScroll:true}),50);
 }
-function nextFromCard(){if(MATCH.on){matchNext();return;}if(G.mode==='daily'&&G.hi===TB.length-1){$('cardM').hidden=true;openDailyBoard(true);return;}if(G.mode==='practice'){G.scores=[];startHole(G.hi);return;}if(G.hi===TB.length-1){G.scores=[];if(R3.on)r3NewWx();startHole(0);}else startHole(G.hi+1);}
+function nextFromCard(){if(MATCH.on){matchNext();return;}if(G.mode==='daily'&&G.hi===TB.length-1){$('cardM').hidden=true;openDailyBoard(true);return;}if(G.mode==='practice'){G.scores=[];G.psLeft=3;startHole(G.hi);return;}if(G.hi===TB.length-1){G.scores=[];G.pinSeed=0;G.rShots=[];G.psLeft=3;if(R3.on)r3NewWx();startHole(0);}else startHole(G.hi+1);}   /* Play again is a fresh round: new pins, power shots back, its own replay */
 /* ---------- daily round: one course a day for everyone, same pins, wind and weather; one official attempt; online leaderboard ---------- */
 const DAILY={url:'https://rgzpfjstfgygqdfmiqdh.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJnenBmanN0Zmd5Z3FkZm1pcWRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4NjE1OTMsImV4cCI6MjEwNjQzNzU5M30._G3yxO9ssvNKkMymv7WWZOd2wiG-OB8dvRfm_ZLu3ig',tz:'America/Chicago',save:'golf-daily-v1',order:['troy','stoneridge','caledonia','trueblue','rossbridge','legislator','judge','senator']};
 function dailyDay(){try{return new Intl.DateTimeFormat('en-CA',{timeZone:DAILY.tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}catch(e){const d=new Date(Date.now()-6*36e5);return d.toISOString().slice(0,10);}}
