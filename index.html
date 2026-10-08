@@ -176,7 +176,7 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .usmap path.has:active{fill:#12283b}
 .usmap .dot{fill:var(--sun);stroke:#12283b;stroke-width:2.5;pointer-events:none}
 .usmap .badge rect{fill:#12283b}
-.usmap .badge text{fill:#fff6dc;font:700 22px "Barlow Semi Condensed",system-ui,sans-serif;text-anchor:middle;dominant-baseline:central}
+.usmap .badge text{fill:#fff6dc;font:700 28px "Barlow Semi Condensed",system-ui,sans-serif;text-anchor:middle;dominant-baseline:central}
 .usmap .badge{cursor:pointer}
 .sthead{display:flex;align-items:center;gap:10px;margin:2px 0 8px}
 .sthead b{font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:24px;color:#12283b;flex:1}
@@ -6180,11 +6180,11 @@ const stateOf=id=>(COURSES[id].town||'').slice(-2);
 const courseImg=id=>typeof COURSE_IMG!=='undefined'?COURSE_IMG[(COURSES[id]&&COURSES[id].data)&&!COURSE_IMG[id]?COURSES[id].data:id]||null:null;
 let MSTATE=null;
 function buildMap(){const M=US_MAP,has={};for(const id in COURSES){const s=stateOf(id);(has[s]=has[s]||[]).push(id);}
-  const vb='420 20 560 520';let h='<svg viewBox="'+vb+'" role="img" aria-label="Map of the states with courses">';
+  const vb='115 20 865 520';let h='<svg viewBox="'+vb+'" role="img" aria-label="Map of the states with courses">';
   for(const k in M.st)h+='<path d="'+M.st[k]+'"'+(has[k]?' class="has" data-st="'+k+'" role="button" aria-label="'+(ST_NAME[k]||k)+', '+has[k].length+' courses"':'')+'/>';
-  const seen={};for(const id in M.dots){if(!COURSES[id])continue;const[x,y]=M.dots[id],key=x+','+y;if(seen[key])continue;seen[key]=1;h+='<circle class="dot" cx="'+x+'" cy="'+y+'" r="7"/>';}
-  const BADGE={WI:[650,175],MN:[545,135],SC:[855,425],AL:[700,470]};
-  for(const k in has){const b=BADGE[k];if(!b)continue;const t=k+' · '+has[k].length,w=t.length*11+18;h+='<g class="badge" data-st="'+k+'"><rect x="'+(b[0]-w/2)+'" y="'+(b[1]-16)+'" width="'+w+'" height="32" rx="16"/><text x="'+b[0]+'" y="'+b[1]+'">'+t+'</text></g>';}
+  const seen={};for(const id in M.dots){if(!COURSES[id])continue;const[x,y]=M.dots[id],key=x+','+y;if(seen[key])continue;seen[key]=1;h+='<circle class="dot" cx="'+x+'" cy="'+y+'" r="9"/>';}
+  const BADGE={WI:[650,175],MN:[545,135],SC:[855,425],AL:[700,470],AZ:[198,470]};
+  for(const k in has){const b=BADGE[k];if(!b)continue;const t=k+' · '+has[k].length,w=t.length*14+22;h+='<g class="badge" data-st="'+k+'"><rect x="'+(b[0]-w/2)+'" y="'+(b[1]-20)+'" width="'+w+'" height="40" rx="20"/><text x="'+b[0]+'" y="'+b[1]+'">'+t+'</text></g>';}
   $('usMap').innerHTML=h+'</svg>';
   $('usMap').querySelectorAll('[data-st]').forEach(e=>e.addEventListener('click',()=>{A();sfx.tick();showState(e.dataset.st);}));}
 function showState(st){MSTATE=st;const ids=Object.keys(COURSES).filter(id=>stateOf(id)===st);
@@ -6302,6 +6302,7 @@ const UPDATES=[
     "Three Arizona courses: Lookout Mountain in Phoenix and Dove Valley Ranch in Cave Creek, true desert golf among saguaros, mesquite and palo verde, and the Gold course at The Wigwam, the parkland resort course lined with eucalyptus and palms.",
     "Desert golf plays differently: miss the grass and you are in the desert (sand, scrub and rock, as punishing as the long fescue elsewhere), and a saguaro will knock your ball down.",
     "All five join the daily round rotation, and you can find them on the course map under Alabama and the new Arizona.",
+    "The course map now zooms out to show the whole country, so Arizona is there to tap.",
     "Fixed: the small print on each course\'s first hole now names that course instead of always saying Troy Burne."]},
   {id:'2026-10-07-faqwatch',date:'Oct 7, 2026',title:'Help & FAQ: watching rounds',items:[
     'The FAQ (and Ask) now cover watching other players\u2019 daily rounds and posted course records, replays, saved shots and the camera views.']},
