@@ -156,8 +156,10 @@ def course(key, rq, resources):
     allmask = np.zeros((H, W), bool)
     for fid, ring in rq['fps']:
         lo = [p[0] for p in ring]; la = [p[1] for p in ring]; X, Y = toxy(lo, la)
-        m = poly_mask(np.c_[X, Y], W, H); allmask |= m
-        r = roof_of(dsm, gnd, m)
+        pad = 8; R0, R1 = max(0, int(np.min(Y)) - pad), min(H, int(np.max(Y)) + pad + 1); C0, C1 = max(0, int(np.min(X)) - pad), min(W, int(np.max(X)) + pad + 1)
+        if R1 <= R0 or C1 <= C0: out['fp'][fid] = None; continue
+        m = poly_mask(np.c_[X - C0, Y - R0], C1 - C0, R1 - R0); allmask[R0:R1, C0:C1] |= m
+        r = roof_of(dsm[R0:R1, C0:C1], gnd[R0:R1, C0:C1], m)
         if not r or 'roof' not in r: out['fp'][fid] = r; continue
         out['fp'][fid] = [round(r['eave'], 2), round(r['rise'], 2), r['roof'], round(r['ang'], 3), r.get('q'), int(m.sum()), r.get('lap'), r.get('sd')]
     # missing buildings: raised, smooth, mostly single-return (or class 6) blobs within ~140 m of a hole line
@@ -167,24 +169,30 @@ def course(key, rq, resources):
     lines = np.zeros((H, W), np.uint8)
     for L in rq['lines']:
         X, Y = toxy([p[0] for p in L], [p[1] for p in L]); cv2.polylines(lines, [np.round(np.c_[X, Y]).astype(np.int32)], False, 1, 1)
-    near = ndi.distance_transform_edt(lines == 0) < 140
+    near = ndi.distance_transform_edt(lines == 0) < 80
     lap = np.abs(ndi.laplace(np.nan_to_num(dsm, nan=0.0).astype(np.float32)))
     sf = single / np.maximum(tot, 1)
-    cand_m = near & np.isfinite(nd) & (nd > 2.2) & (nd < 30) & (((sf > 0.7) & (lap < 0.9)) | (b6 > 0)) & ~ndi.binary_dilation(allmask, iterations=3)
-    cand_m = ndi.binary_opening(cand_m, iterations=1)
-    lab, nl = ndi.label(cand_m)
-    for k in range(1, nl + 1):
-        m = lab == k; area = int(m.sum())
-        if area < 10 or area > 4000: continue
-        rr, cc = np.nonzero(m); cnt = np.c_[cc, rr].astype(np.float32)
+    raised = near & np.isfinite(nd) & (nd > 2.2) & (nd < 40) & ~ndi.binary_dilation(allmask, iterations=3)
+    raised = ndi.binary_closing(raised, iterations=1) & near
+    smooth = lap < 0.9
+    lab, nl = ndi.label(raised)
+    for k, sl in enumerate(ndi.find_objects(lab), 1):
+        if sl is None: continue
+        r0, c0 = sl[0].start, sl[1].start
+        m = ndi.binary_fill_holes(lab[sl] == k); area = int(m.sum())
+        if area < 10 or area > 6000: continue
+        rr, cc = np.nonzero(m); cnt = np.c_[cc + c0, rr + r0].astype(np.float32)
         rect = cv2.minAreaRect(cnt); (rw, rh) = rect[1]
         if min(rw, rh) < 2.5 or max(rw, rh) / max(min(rw, rh), .1) > 6 or area / max(rw * rh, 1) < 0.55: continue
-        if (b6[m] > 0).mean() < 0.3 and sf[m].mean() < 0.75: continue
-        box = cv2.boxPoints(rect); r = roof_of(dsm, gnd, poly_mask(box, W, H))
+        smf = float(smooth[sl][m].mean()); b6f = float((b6[sl][m] > 0).mean()); sff = float(sf[sl][m].mean())
+        if b6f < 0.3 and (smf < 0.6 or sff < 0.6): continue
+        box = cv2.boxPoints(rect)
+        pad = 4; R0, R1 = max(0, int(box[:, 1].min()) - pad), min(H, int(box[:, 1].max()) + pad + 1); C0, C1 = max(0, int(box[:, 0].min()) - pad), min(W, int(box[:, 0].max()) + pad + 1)
+        r = roof_of(dsm[R0:R1, C0:C1], gnd[R0:R1, C0:C1], poly_mask(box - [C0, R0], C1 - C0, R1 - R0))
         if not r or 'roof' not in r: continue
         lo, la = tb.transform(box[:, 0] + x0, y1 - box[:, 1])
         out['add'].append(dict(ring=[[round(a, 7), round(b, 7)] for a, b in zip(lo, la)], eave=round(r['eave'], 2), rise=round(r['rise'], 2), roof=r['roof'], ang=round(r['ang'], 3), area=area,
-                               b6=round(float((b6[m] > 0).mean()), 2), sf=round(float(sf[m].mean()), 2), lap=r.get('lap'), sd=r.get('sd'), q=r.get('q')))
+                               b6=round(b6f, 2), sf=round(sff, 2), smooth=round(smf, 2), rect=round(float(rw * rh), 1), lap=r.get('lap'), sd=r.get('sd'), q=r.get('q')))
     json.dump(out, open(f'{OUT}/bld_{key}.json', 'w'), separators=(',', ':'))
     info['fp'] = len(out['fp']); info['measured'] = sum(1 for v in out['fp'].values() if isinstance(v, list)); info['added'] = len(out['add']); save()
     log(key, 'footprints', info['fp'], 'measured', info['measured'], 'added', info['added'])
