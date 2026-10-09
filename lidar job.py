@@ -44,7 +44,7 @@ def read_tile(res, box, epsg, x0, y1, W, H):
     """one tile: grids of max z (all non-noise returns), min ground z, return counts; in the course's 1 m UTM grid"""
     import pdal
     Wb, Sb, Eb, Nb = box; mx0, my0 = merc(Wb, Sb); mx1, my1 = merc(Eb, Nb)
-    spec = [{'type': 'readers.ept', 'filename': EPT % res, 'bounds': f'([{mx0:.2f},{mx1:.2f}],[{my0:.2f},{my1:.2f}])', 'resolution': 0.6, 'threads': 4}]
+    spec = [{'type': 'readers.ept', 'filename': EPT % res, 'bounds': f'([{mx0:.2f},{mx1:.2f}],[{my0:.2f},{my1:.2f}])', 'resolution': 0.8, 'threads': 2}]
     p = pdal.Pipeline(json.dumps(spec)); n = p.execute(); arrs = p.arrays
     if not arrs or len(arrs[0]) == 0: return None
     a = arrs[0]; cls = a['Classification'].astype(int)
@@ -117,6 +117,15 @@ def roof_of(dsm, gnd, m):
     lap = float(np.median(np.abs(ndi.laplace(np.nan_to_num(dsm, nan=0.0)))[inner]))
     return dict(roof=roof, eave=float(eave), rise=float(rise), ang=float(ridge), q='ok', R2=round(float(R2), 2), R4=round(float(R4), 2), pitch=round(pitch, 2), lap=round(lap, 2), sd=round(sd, 2))
 
+OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']
+def osm_buildings(bb):
+    q = f'[out:json][timeout:120];(way["building"]({bb[1]},{bb[0]},{bb[3]},{bb[2]}););out geom;'
+    for u in OVP:
+        try:
+            r = S.post(u, data={'data': q}, timeout=200)
+            if r.status_code == 200: return [[[p['lon'], p['lat']] for p in el['geometry']] for el in r.json()['elements'] if el.get('geometry')]
+        except Exception as e: log('  overpass', u, e)
+    return []
 def course(key, rq, resources):
     W_, S_, E_, N_ = rq['bbox']; epsg = UTMZ((W_ + E_) / 2); tf = Transformer.from_crs(4326, epsg, always_xy=True); tb = Transformer.from_crs(epsg, 4326, always_xy=True)
     xs, ys = tf.transform([W_, E_, W_, E_], [S_, S_, N_, N_]); x0, y0, x1, y1 = math.floor(min(xs)), math.floor(min(ys)), math.ceil(max(xs)), math.ceil(max(ys))
@@ -128,7 +137,7 @@ def course(key, rq, resources):
     info = dict(cand=cand, W=W, H=H, epsg=epsg); SUM['courses'][key] = info; save()
     if not cand: raise RuntimeError('no lidar resource')
     # tiles of ~600 m
-    T = 0.0055; tiles = []
+    T = 0.003; tiles = []
     lon = W_
     while lon < E_:
         lat = S_
@@ -137,7 +146,7 @@ def course(key, rq, resources):
     best = None
     for res in cand[:4]:
         zmax = np.full(W * H, np.nan, np.float32); gmin = np.full(W * H, np.nan, np.float32); single = np.zeros(W * H, np.int32); tot = np.zeros(W * H, np.int32); b6 = np.zeros(W * H, np.int32); n = 0
-        with ProcessPoolExecutor(6) as ex:
+        with ProcessPoolExecutor(3) as ex:
             fs = [ex.submit(read_tile, res, t, epsg, x0, y1, W, H) for t in tiles]
             for f in as_completed(fs):
                 try: d = f.result()
@@ -152,7 +161,17 @@ def course(key, rq, resources):
     res, zmax, gmin, single, tot, b6 = best[:6]; info['used'] = res; save()
     dsm = zmax.reshape(H, W); gnd = fill_nan(gmin.reshape(H, W)); single = single.reshape(H, W); tot = tot.reshape(H, W); b6 = b6.reshape(H, W)
     toxy = lambda lo, la: (np.array(tf.transform(lo, la)[0]) - x0, y1 - np.array(tf.transform(lo, la)[1]))
-    out = dict(src=res, fp={}, add=[])
+    out = dict(src=res, fp={}, add=[], osm=[])
+    if not rq['fps']:   # courses with no footprints in the game: measure the OpenStreetMap buildings near play
+        try:
+            obs = osm_buildings(rq['bbox']); import cv2 as _c
+            for ring in obs:
+                X, Y = toxy([p[0] for p in ring], [p[1] for p in ring])
+                if len(ring) < 4: continue
+                cxm, cym = float(np.mean(X)), float(np.mean(Y))
+                rq['fps'].append(['o%d' % len(out['osm']), ring]); out['osm'].append(ring)
+            info['osm'] = len(out['osm'])
+        except Exception as e: err(f'osm {key}', e)
     allmask = np.zeros((H, W), bool)
     for fid, ring in rq['fps']:
         lo = [p[0] for p in ring]; la = [p[1] for p in ring]; X, Y = toxy(lo, la)
