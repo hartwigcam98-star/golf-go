@@ -133,7 +133,7 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .pflag.over svg path:last-child{fill:#ffb03a}
 .pflag.flip span{left:auto;right:4px}
 .lock{position:absolute;top:-6px;width:0;height:0;margin-left:-6px;border:6px solid transparent;border-top-color:var(--sun)}
-.cursor{position:absolute;top:-7px;bottom:-7px;width:6px;margin-left:-3px;border-radius:3px;background:#fff;box-shadow:0 0 0 2px #0f2233,0 0 12px rgba(255,255,255,.7)}
+.cursor{position:absolute;left:0;top:-7px;bottom:-7px;width:6px;margin-left:-3px;will-change:transform;border-radius:3px;background:#fff;box-shadow:0 0 0 2px #0f2233,0 0 12px rgba(255,255,255,.7)}
 .mlabels{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;opacity:.6;margin-top:-4px;padding-inline:4px}
 .controls .sq{width:52px;height:56px;background:var(--panel2);border-radius:16px;display:grid;place-items:center;flex:0 0 auto}
 .controls .sq svg{width:22px;height:22px}
@@ -504,7 +504,7 @@ td.won{background:rgba(255,201,60,.38)}
         <div class="lock" id="mLock" hidden></div>
         <div class="pflag" id="mFlag" hidden aria-hidden="true"><svg viewBox="0 0 20 24" width="20" height="24"><path d="M2 1v23" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M3.2 1.5l15 5.2-15 5.2z" fill="#ff4d4d" stroke="#0f2233" stroke-width="1"/></svg><span id="mFlagTxt"></span></div>
         <div class="tapmark" id="mTap" hidden></div>
-        <div class="cursor" id="mCursor" style="left:12%"></div>
+        <div class="cursor" id="mCursor"></div>
       </div>
       <div class="mlabels"><span>Impact</span><span id="ml1">25</span><span id="ml2">50</span><span id="ml3">75</span><span id="ml4">Max</span></div>
       <div class="row controls">
@@ -5310,7 +5310,7 @@ function r3Render(){const rd=R3.renderer;if(!G.hole)return;R3.sun.intensity=SUN_
     else if(R3.scOn){R3.scOn=false;GU.slT.value=GL.slTex;GU.SLG.value=1;if(GL.slR)GU.SLB.value.set(...GL.slR);} }
   if(R3.waterN){R3.waterN.offset.set(T*.012,T*.007);}
   if(typeof r3TreeLOD==='function')r3TreeLOD(false);r3GrassUpdate();{const now2=performance.now(),dt2=Math.min(.1,(now2-(R3.tTr||now2))/1000);R3.tTr=now2;r3Tracer(dt2);}r3PostTargets();{const sg=[V.E[0],V.E[1],V.E[2],V.F[0],V.F[1],V.F[2]].map(v=>v.toFixed(3)).join(),still=sg===R3.shSig&&G.state==='aim'&&!(typeof R3R!=='undefined'&&R3R.on)&&!G.fc;
-    R3.shSig=sg;R3.camStill=sg===R3.shSigPrev;R3.shSigPrev=sg;R3.shN=(R3.shN||0)+1;rd.shadowMap.needsUpdate=(!still&&(R3.shN%2===0||G.state==='intro'))||R3.shN%6===0;}r3Reflect();
+    R3.shSig=sg;R3.camStill=sg===R3.shSigPrev;R3.shSigPrev=sg;R3.shN=(R3.shN||0)+1;rd.shadowMap.needsUpdate=G.state==='power'||G.state==='acc'||(!still&&(R3.shN%2===0||G.state==='intro'))||R3.shN%6===0;   /* during the meter every frame, so frames cost the same and the cursor moves evenly */}r3Reflect();
   rd.setRenderTarget(R3.post.rt.scene);rd.setClearColor(0x000000,1);rd.clear(true,true,false);rd.render(R3.scene,R3.cam);
   r3Post();}
 
@@ -5619,7 +5619,7 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   sw.classList.toggle('power',st==='power');sw.classList.toggle('acc',st==='acc');}
   setT('hint',G.aiTurn?rn(MATCH.r)+(G.aiSkip?' \u00b7 skipping ahead':' is playing \u00b7 tap Skip to jump ahead'):st==='aim'?(G.fc?(G.fc.follow?'Scouting your shot \u00b7 change club or aim \u00b7 drag to turn \u00b7 pinch to zoom':'Free look \u00b7 tap Landing to follow your shot again'):G.overview?(DESK?'Click or press M to return to your ball':'Tap anywhere to return to your ball'):c.putter?(GL.slOK?'Grid lines: red is steep, green is gentle \u00b7 the glow runs downhill':'Watch the dots on the green — they flow downhill'):(G.stype==='full'||G.stype==='spin'?(DESK?'Space to swing \u00b7 \u2190 \u2192 aim \u00b7 \u2191 \u2193 club \u00b7 B bag \u00b7 M map':'Drag to aim · Tap Swing to start'):SHOTS[G.stype].hint)):st==='power'?(DESK?'Space to set power':'Tap to set power'):st==='acc'?(DESK?'Space on the white line':'Tap on the white line'):' ');
   const m=G.meter,w=perfectWin();
-  $('mCursor').style.left=(m.pos*100)+'%';
+  {const mc=$('mCursor');if(!MCLK.w)MCLK.w=$('meter').clientWidth;const mw=MCLK.w;mc.style.transform='translate3d('+(m.pos*mw).toFixed(1)+'px,0,0)';}
   // meter scale in distance: carry yards for full and short shots, feet of roll for putts on the green (percent for putts off it)
   { const pg=c.putter&&G.lie==='green',pct=c.putter&&!pg,sh=isShort()&&!c.putter,mx=c.putter?G.puttMax*3:(sh?(G.swMax||natMax()):natMax())*shotMods().carry;
     const wf=c.putter?1:Math.max(.5,1+windAlong(G.aim));   // v93: the yardages along the meter are what the ball flies in this wind
@@ -5654,10 +5654,11 @@ function update(dt){
     if(!L)holdL=0;if(!R)holdR=0;
   }
   const m=G.meter,putt=curClub().putter;
-  if(G.state==='power'){m.pos+=(m.dir||1)*dt*(putt?.7:isShort()?.85:1.0);
+  const mdt=G.hudSkip?dt:Math.min(dt*2,MCLK.dt);
+  if(G.state==='power'){m.pos+=(m.dir||1)*mdt*(putt?.7:isShort()?.85:1.0);
     if(m.pos>=1){m.pos=1;m.dir=-1;}
     else if(m.dir<0&&m.pos<=IMPACT){m.pos=IMPACT;m.dir=1;G.state='aim';toast('NO POWER SET','Tap once more during the backswing','#fff6dc');sfx.miss();}}
-  else if(G.state==='acc'){m.pos-=dt*(putt?.6:isShort()?.8:.95*(G.pshot?1.2:1));if(m.pos<=0){m.pos=0;executeShot(m.power,null);}}
+  else if(G.state==='acc'){m.pos-=mdt*(putt?.6:isShort()?.8:.95*(G.pshot?1.2:1));if(m.pos<=0){m.pos=0;executeShot(m.power,null);}}
   if(G.followT>0)G.followT+=dt;
   const launched=!(G.followT>0&&G.followT<(G.launchAt||0));
   if(G.divotQ&&launched){spawnDivot(G.divotQ);G.divotQ=null;}stepDivots(dt);
@@ -5671,8 +5672,11 @@ function update(dt){
   stepCam(dt);if(!G.hudSkip)updHud();
 }
 let last=performance.now();
+/* the swing meter runs on the average of the last 8 frame times, so one slow frame (or a phone alternating quick and slow frames)
+   doesn't make the cursor leap: it keeps an even step and the same speed overall */
+var MCLK={q:[],dt:1/60,w:0};addEventListener('resize',()=>{MCLK.w=0;});   // w: the meter's width, measured once (not every frame)
 const PERF={n:0,sum:0,level:0};
-function perfCheck(raw){PERF.level=R3.perf||0;if(PERF.level>=4||PERF.stuck||G.paused||G.state==='intro'||G.state==='card'||raw>.25)return;(PERF.w=PERF.w||[]).push(raw);if(PERF.w.length<90)return;
+function perfCheck(raw){PERF.level=R3.perf||0;if(PERF.level>=4||PERF.stuck||G.paused||G.state==='intro'||G.state==='card'||G.state==='power'||G.state==='acc'||raw>.25)return;(PERF.w=PERF.w||[]).push(raw);if(PERF.w.length<90)return;
   /* v87: every 90 frames of play, step down a level when the median frame is slower than ~45 fps or more than 1 in 8 frames stutters (>40 ms), two windows running; the level is remembered on this phone */
   const w=PERF.w.sort((a,b)=>a-b),med=w[w.length>>1],lng=w.filter(v=>v>.04).length/w.length;PERF.w=[];
   /* two steps down that left the frame time where it was mean the picture isn't what's slow (a 30 fps cap such as Low Power Mode):
@@ -5765,7 +5769,7 @@ function replayCamTV(){const L=G.lastShot,r=G.replay,rp=replayPoint(Math.max(0,r
 /* menu screens with a solid backdrop hide the course completely: nothing is drawn behind them (saves battery and heat) */
 const COVERS=['menuM','dailyM','recM','careerM','hlM','charM'].map(id=>$(id));
 function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
-  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
+  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;{const Q=MCLK.q;Q.push(Math.min(.05,Math.max(.004,raw)));if(Q.length>8)Q.shift();MCLK.dt=Q.reduce((a,b)=>a+b,0)/Q.length;}if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
   if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}}
 
 /* ---------- input ---------- */
@@ -5979,6 +5983,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-09-meter",date:"Oct 9, 2026",title:"Smoother swing meter",items:[
+    "The swing meter now moves at an even pace even when the phone drops a frame, so the cursor no longer jumps ahead mid-swing. Its overall speed is unchanged.",
+    "The picture no longer steps down in quality in the middle of a swing, and the shadows cost the same every frame while the meter runs."]},
   {id:"2026-10-08-recdaily",date:"Oct 8, 2026",title:"Daily rounds count as course records",items:[
     "Every finished daily round now shows up in that course\u2019s records too, marked Daily with the date, alongside the Quick play rounds people post. Your best round on a course counts, whichever mode it came from.",
     "Tap a daily round in the records to see the card and watch the replay, just like on the daily leaderboard."]},
