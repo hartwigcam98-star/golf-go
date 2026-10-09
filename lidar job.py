@@ -66,11 +66,11 @@ def read_tile(res, box, epsg, x0, y1, W, H):
                 single=single[m].astype(np.int16), tot=tot[m].astype(np.int16), b6=b6[m].astype(np.int16), n=int(n))
 
 def fill_nan(A, it=60):
-    A = A.copy(); from scipy import ndimage as ndi
+    A = A.astype(np.float32).copy(); from scipy import ndimage as ndi
     for _ in range(it):
         m = np.isnan(A)
         if not m.any(): break
-        k = np.ones((3, 3)); v = np.where(m, 0, A); w = (~m).astype(float)
+        k = np.ones((3, 3), np.float32); v = np.where(m, 0, A).astype(np.float32); w = (~m).astype(np.float32)
         s = ndi.convolve(v, k, mode='nearest'); n = ndi.convolve(w, k, mode='nearest')
         A[m & (n > 0)] = (s / np.maximum(n, 1))[m & (n > 0)]
     return A
@@ -168,7 +168,7 @@ def course(key, rq, resources):
     for L in rq['lines']:
         X, Y = toxy([p[0] for p in L], [p[1] for p in L]); cv2.polylines(lines, [np.round(np.c_[X, Y]).astype(np.int32)], False, 1, 1)
     near = ndi.distance_transform_edt(lines == 0) < 140
-    lap = np.abs(ndi.laplace(np.nan_to_num(dsm, nan=0.0)))
+    lap = np.abs(ndi.laplace(np.nan_to_num(dsm, nan=0.0).astype(np.float32)))
     sf = single / np.maximum(tot, 1)
     cand_m = near & np.isfinite(nd) & (nd > 2.2) & (nd < 30) & (((sf > 0.7) & (lap < 0.9)) | (b6 > 0)) & ~ndi.binary_dilation(allmask, iterations=3)
     cand_m = ndi.binary_opening(cand_m, iterations=1)
