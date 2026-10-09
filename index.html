@@ -2647,7 +2647,7 @@ async function dailyOwed(){const K=DAILY.save+'-owed';let o=null;
   try{const r=await dailySend(o);if(r.ok||(r.status>=400&&r.status<500))localStorage.removeItem(K);}catch(e){}
   dailyOwed.busy=false;}
 /* one-off resets of a player's daily round (day, player id or name); each clears that day's saved round once on that phone */
-const DAILY_RESET=[['2026-10-09','p5sa6c8gmmuvyzitv','cam'],['2026-10-09','p5sa6c8gmmuvyzitv','cam','b']];
+const DAILY_RESET=[['2026-10-09','p5sa6c8gmmuvyzitv','cam'],['2026-10-09','p5sa6c8gmmuvyzitv','cam','b'],['2026-10-09','p5sa6c8gmmuvyzitv','cam','c']];
 (function(){try{const d=dailyLoad();if(!d)return;const pid=localStorage.getItem('golf-pid')||'',nm=String(localStorage.getItem('golf-name')||'').trim().toLowerCase();
   for(const[day,id,name,tag]of DAILY_RESET){const f='golf-daily-reset-'+day+(tag||'');if(d.day===day&&(pid===id||nm===name)&&!localStorage.getItem(f)){localStorage.removeItem(DAILY.save);localStorage.setItem(f,'1');return;}}}catch(e){}})();
 function dailyHdr(h={}){const k=DAILY.key;h.apikey=k;if(!/^sb_/.test(k))h.Authorization='Bearer '+k;return h;}
