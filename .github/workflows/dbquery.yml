@@ -1,0 +1,21 @@
+name: DB query (admin)
+# Runs one SQL statement on the Golf Go Supabase database via the management API (manual dispatch only).
+on:
+  workflow_dispatch:
+    inputs:
+      sql:
+        description: SQL to run
+        required: true
+jobs:
+  q:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SQL: ${{ inputs.sql }}
+        run: |
+          jq -n --arg q "$SQL" '{query:$q}' > body.json
+          curl -sS -X POST "https://api.supabase.com/v1/projects/rgzpfjstfgygqdfmiqdh/database/query" \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" --data @body.json | tee out.json
+          echo; echo "::notice::$(head -c 3000 out.json | tr '\n' ' ')"
