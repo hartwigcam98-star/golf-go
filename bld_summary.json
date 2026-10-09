@@ -1,0 +1,63 @@
+{
+ "started": "2026-10-09 18:11:09",
+ "courses": {
+  "slmh": {
+   "cand": [
+    "AL_11County_2_B23",
+    "AL_17Co_2_2020",
+    "AL_TriCounty_2010"
+   ],
+   "W": 1198,
+   "H": 2753,
+   "epsg": 26916,
+   "tried": {
+    "AL_11County_2_B23": {
+     "points": 0,
+     "cover": 0.0,
+     "b6": 0
+    },
+    "AL_17Co_2_2020": {
+     "points": 14931775,
+     "cover": 0.898,
+     "b6": 0
+    }
+   },
+   "used": "AL_17Co_2_2020",
+   "osm": 0,
+   "fp": 0,
+   "measured": 0,
+   "added": 4,
+   "sec": 52
+  },
+  "slbm": {
+   "cand": [
+    "AL_11County_2_B23",
+    "AL_17Co_2_2020",
+    "AL_TriCounty_2010"
+   ],
+   "W": 1705,
+   "H": 2511,
+   "epsg": 26916,
+   "tried": {
+    "AL_11County_2_B23": {
+     "points": 0,
+     "cover": 0.0,
+     "b6": 0
+    },
+    "AL_17Co_2_2020": {
+     "points": 23416911,
+     "cover": 0.905,
+     "b6": 0
+    }
+   },
+   "used": "AL_17Co_2_2020",
+   "osm": 0,
+   "fp": 0,
+   "measured": 0,
+   "added": 2,
+   "sec": 54
+  }
+ },
+ "errors": [],
+ "finished": "2026-10-09 18:13:02"
+}

@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta charset=utf-8>
+<title>RTJ Golf Trail - Page Not Found</title>
+<meta name="robots" content="noindex,nofollow">
+
+<meta name="disabled-adaptations" content="watch">
+<meta name="viewport" content="width=device-width">
+<meta name="apple-mobile-web-app-title" content="RTJ Golf">
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#f67858">
+<meta name="msapplication-TileColor" content="#f67858">
+<meta name="theme-color" content="#ffffff">
+	
+<script src="//use.typekit.net/kou0gzp.js"></script>
+<script>try{Typekit.load();}catch(e){}</script>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+<script src="/js/jquery.fittext.js"></script>
+<script src="/js/jquery-ui.js"></script>
+
+
+<script>
+$(function() {
+	$('#global-nav').load('/elements/global-nav-2024.html?9');
+});
+</script>
+
+<!-- Mobile IE allows us to activate ClearType technology for smoothing fonts for easy reading -->
+<meta http-equiv="cleartype" content="on">
+	
+<!-- IE9 Pinned Sites -->
+<meta name="application-name" content="RTJ Mobile">
+
+<!-- Main Stylesheet -->
+<link rel="stylesheet" href="/css/2024.css?19">
+<link rel="stylesheet" href="/css/errors.css?180827">
+
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GQE0SNQ77H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-GQE0SNQ77H');
+</script>
+
+</head>
+
+<body id="error">
+
+
+<div id="wrapper">
+	<header role="banner-noimage">
+	
+		<div id="global-nav"></div>
+	<noscript>
+		<div role="navigation">
+			<nav>
+				<ul>
+					<li id="logo"><a href="/"><span>RTJ</span></a>
+					</li><li class="trigger" data-code="dd-1" id="btn-trail">
+						<a href="/trail/" class="m">The Trail</a>
+					</li><li class="trigger" data-code="dd-2" id="btn-teetimes">
+						<a href="/teetimes/" class="m">Tee Times</a>
+					</li><li class="trigger" data-code="dd-3" id="btn-reservations">
+						<a href="/reservations/" class="m">Packages</a>
+					</li><li class="trigger" data-code="dd-4" id="btn-resorts">
+						<a href="/resorts/" class="m">Resorts</a>
+					</li><li class="trigger" data-code="dd-5" id="btn-tournaments">
+						<a href="/tournaments/" class="m">Tournaments</a>
+					</li><li class="trigger" data-code="dd-6" id="btn-shop">
+						<a href="http://rtjgolf.mybigcommerce.com/" class="m">Shop</a>
+					</li>
+				</ul>
+			</nav>
+		
+		</div>
+	</noscript>
+	
+	</header>
+
+	<div id="error-message">
+		<img src="/img/404.png">
+		<h1>Page Not Found</h1>
+		<p class="breathe">
+			Uh-oh, it looks like you've sliced your tee shot into the trees. Don't worry...it happens to the best of us. <a href="/">Return Home</a> or use the search below to find your way back to the fairway.
+		</p>
+	
+		<form action="/search/search.html">
+			<input type="text" name="q" id="tipue_search_input" autofocus="autofocus">
+			<button type="submit" id="tipue_search_button" name="search">Search</button>
+		</form>
+	</div>	
+
+</div>
+
+</body>
+
+</html>
+
+
