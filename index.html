@@ -2647,9 +2647,9 @@ async function dailyOwed(){const K=DAILY.save+'-owed';let o=null;
   try{const r=await dailySend(o);if(r.ok||(r.status>=400&&r.status<500))localStorage.removeItem(K);}catch(e){}
   dailyOwed.busy=false;}
 /* one-off resets of a player's daily round (day, player id or name); each clears that day's saved round once on that phone */
-const DAILY_RESET=[['2026-10-09','p5sa6c8gmmuvyzitv','cam']];
+const DAILY_RESET=[['2026-10-09','p5sa6c8gmmuvyzitv','cam'],['2026-10-09','p5sa6c8gmmuvyzitv','cam','b']];
 (function(){try{const d=dailyLoad();if(!d)return;const pid=localStorage.getItem('golf-pid')||'',nm=String(localStorage.getItem('golf-name')||'').trim().toLowerCase();
-  for(const[day,id,name]of DAILY_RESET){const f='golf-daily-reset-'+day;if(d.day===day&&(pid===id||nm===name)&&!localStorage.getItem(f)){localStorage.removeItem(DAILY.save);localStorage.setItem(f,'1');return;}}}catch(e){}})();
+  for(const[day,id,name,tag]of DAILY_RESET){const f='golf-daily-reset-'+day+(tag||'');if(d.day===day&&(pid===id||nm===name)&&!localStorage.getItem(f)){localStorage.removeItem(DAILY.save);localStorage.setItem(f,'1');return;}}}catch(e){}})();
 function dailyHdr(h={}){const k=DAILY.key;h.apikey=k;if(!/^sb_/.test(k))h.Authorization='Bearer '+k;return h;}
 const PLAYER_MERGE=['cam'];   // same golfer on more than one player id (re-saved to the home screen)
 const pKey=r=>{const n=String(r.name||'').trim().toLowerCase();return PLAYER_MERGE.includes(n)?'n:'+n:r.player_id;};
@@ -4688,7 +4688,16 @@ function r3Patch(mat,o={}){const key='r3'+(o.golfer?'B':'')+(o.grass?'G':'')+(o.
     if(o.imp){vs=R3T_IMP_VS(vs);fs=fs.replace('#include <common>','#include <common>\nvarying vec3 vImpC;').replace('#include <map_fragment>','#include <map_fragment>\n diffuseColor.rgb*=vImpC;');}
     // thin blades and leaf cards: light both faces the same way (no back-face normal flip)
     if(o.twoSided)fs=fs.replace('#include <normal_fragment_begin>','#include <normal_fragment_begin>\n normal=normalize(vNormal);nonPerturbedNormal=normal;');
-    if(o.water)fs=fs.replace('#include <common>','#include <common>\nuniform sampler2D rfT;uniform mat4 rfM;uniform float rfOn;').replace('#include <lights_fragment_maps>',`#include <lights_fragment_maps>
+    if(o.water)fs=fs.replace('#include <common>',`#include <common>
+uniform sampler2D rfT;uniform mat4 rfM;uniform float rfOn,wT;
+float wHash(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
+float wNoise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);return mix(mix(wHash(i),wHash(i+vec2(1.,0.)),u.x),mix(wHash(i+vec2(0.,1.)),wHash(i+vec2(1.,1.)),u.x),u.y);}`)
+      .replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
+      { /* v108: calm water - two drifting layers of soft ripples, fading with distance */
+        vec2 p=r3wp.xz;vec2 g=(vec2(wNoise(p*.7+vec2(wT*.25,0.)),wNoise(p*.7+vec2(0.,wT*.2)+5.))-.5)*.6;
+        g+=(vec2(wNoise(p*2.9-vec2(wT*.5,wT*.15)),wNoise(p*2.9+vec2(wT*.3,-wT*.45)+9.))-.5)*.3;
+        g*=1./(1.+length(r3wp-E)*.015);normal=normalize(normal+mat3(viewMatrix)*vec3(g.x,0.,g.y)*.11); }`)
+      .replace('#include <lights_fragment_maps>',`#include <lights_fragment_maps>
       if(rfOn>.5){vec4 pc=rfM*vec4(r3wp,1.);vec2 ru=pc.xy/pc.w*.5+.5;vec3 nw=inverseTransformDirection(normal,viewMatrix);ru+=nw.xz*.035;
         vec3 rc=texture2D(rfT,clamp(ru,.001,.999)).rgb;radiance=mix(radiance,rc,.9);}`);
     if(!o.nocloud)fs=fs.replace('#include <lights_fragment_end>',`#include <lights_fragment_end>
@@ -4820,7 +4829,7 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   R3.GU={gTex:{value:null},gSurf:{value:null},dShort:{value:R3.det.short},dRough:{value:R3.det.rough},dFes:{value:R3.det.fescue},dSand:{value:R3.det.sand},gStex:{value:null},slT:{value:null},slHt:{value:null},slMode:{value:0},slBall:{value:new T.Vector3()},
     gB:{value:new T.Vector4()},gSB:{value:new T.Vector4()},gSS:{value:new T.Vector4()},SLB:{value:new T.Vector4()},slRot:{value:new T.Vector2(1,0)},gMode:{value:1},pOn:R3.pOn,pG:{value:R3.ptex.g||null},pGN:{value:R3.ptex.gn||null},pS:{value:R3.ptex.s||null},pSN:{value:R3.ptex.sn||null},slOn:{value:0},SLG:{value:1},SLPX:{value:.002},tK:R3.tK};
   const GUfar={...R3.GU,gMode:{value:0}};
-  R3.WU={rfT:{value:null},rfM:{value:new T.Matrix4()},rfOn:{value:0}};
+  R3.WU={rfT:{value:null},rfM:{value:new T.Matrix4()},rfOn:{value:0},wT:{value:0}};
   R3.mat={
     ground:r3Patch(new T.MeshStandardMaterial({roughness:.93,metalness:0}),{ground:true,uniforms:R3.GU}),
     groundFar:r3Patch(new T.MeshStandardMaterial({roughness:.95,metalness:0}),{ground:true,uniforms:GUfar}),
@@ -4829,7 +4838,7 @@ function r3Init(){const T=window.THREE;if(!T)return false;
     far:r3Patch(new T.MeshStandardMaterial({vertexColors:true,roughness:.9,metalness:0}),{nocloud:false}),
     leaf:r3Patch(new T.MeshStandardMaterial({vertexColors:true,map:R3.leaf,alphaTest:.5,side:T.DoubleSide,roughness:.8,metalness:0}),{fade:true,wind:1,translucent:true,twoSided:true}),
     grass:r3Patch(new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:.9,metalness:0}),{twoSided:true}),
-    water:r3Patch(new T.MeshStandardMaterial({color:new T.Color(r3sq(.09),r3sq(.22),r3sq(.24)),roughness:.08,metalness:0,normalMap:R3.waterN,normalScale:new T.Vector2(.55,.55),transparent:true,opacity:.93,depthWrite:false,envMapIntensity:1.1}),{water:true,uniforms:R3.WU}),
+    water:r3Patch(new T.MeshStandardMaterial({color:new T.Color(.012,.03,.034),roughness:.04,metalness:0,transparent:true,opacity:.9,depthWrite:false,envMapIntensity:1.1}),{water:true,uniforms:R3.WU}),
     matte:r3Patch(new T.MeshStandardMaterial({roughness:.75,metalness:0})),
     satin:r3Patch(new T.MeshStandardMaterial({roughness:.5,metalness:0})),
     gloss:r3Patch(new T.MeshStandardMaterial({roughness:.22,metalness:0})),
@@ -5308,7 +5317,7 @@ function r3Render(){const rd=R3.renderer;if(!G.hole)return;R3.sun.intensity=SUN_
   { const GU=R3.GU,sc=r3ScoutSlope(),keep=!sc&&R3.scOn&&GL.slFade>0&&!slopeWanted();
     if((sc||keep)&&R3.scS&&R3.scS.tex){GU.slT.value=R3.scS.tex;GU.SLB.value.set(...R3.scS.R);const[ax,az]=dirOf(G.aim);GU.slRot.value.set(ax,az);GU.slOn.value=GL.slFade;GU.SLG.value=2;R3.scOn=true;}
     else if(R3.scOn){R3.scOn=false;GU.slT.value=GL.slTex;GU.SLG.value=1;if(GL.slR)GU.SLB.value.set(...GL.slR);} }
-  if(R3.waterN){R3.waterN.offset.set(T*.012,T*.007);}
+  if(R3.waterN){R3.waterN.offset.set(T*.012,T*.007);}if(R3.WU)R3.WU.wT.value=T;
   if(typeof r3TreeLOD==='function')r3TreeLOD(false);r3GrassUpdate();{const now2=performance.now(),dt2=Math.min(.1,(now2-(R3.tTr||now2))/1000);R3.tTr=now2;r3Tracer(dt2);}r3PostTargets();{const sg=[V.E[0],V.E[1],V.E[2],V.F[0],V.F[1],V.F[2]].map(v=>v.toFixed(3)).join(),still=sg===R3.shSig&&G.state==='aim'&&!(typeof R3R!=='undefined'&&R3R.on)&&!G.fc;
     R3.shSig=sg;R3.camStill=sg===R3.shSigPrev;R3.shSigPrev=sg;R3.shN=(R3.shN||0)+1;rd.shadowMap.needsUpdate=G.state==='power'||G.state==='acc'||(!still&&(R3.shN%2===0||G.state==='intro'))||R3.shN%6===0;   /* during the meter every frame, so frames cost the same and the cursor moves evenly */}r3Reflect();
   rd.setRenderTarget(R3.post.rt.scene);rd.setClearColor(0x000000,1);rd.clear(true,true,false);rd.render(R3.scene,R3.cam);
@@ -5983,6 +5992,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-09-water",date:"Oct 9, 2026",title:"New look for the water",items:[
+    "Ponds and lakes are darker and calmer, with soft ripples that drift in the breeze instead of a repeating wave pattern, so the trees and sky reflect much more clearly."]},
   {id:"2026-10-09-meter",date:"Oct 9, 2026",title:"Smoother swing meter",items:[
     "The swing meter now moves at an even pace even when the phone drops a frame, so the cursor no longer jumps ahead mid-swing. Its overall speed is unchanged.",
     "The picture no longer steps down in quality in the middle of a swing, and the shadows cost the same every frame while the meter runs."]},
