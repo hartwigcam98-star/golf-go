@@ -254,6 +254,7 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
 .sc.bogey{border:2px solid #12283b}
 .sc.dbl{border:2px solid #12283b;box-shadow:0 0 0 2px var(--paper),0 0 0 4px #12283b}
 .fine{font-size:12px!important;color:var(--muted);margin-top:-6px!important}
+.lb .dtag{font-size:10px;font-weight:700;letter-spacing:.04em;color:#c0542f;white-space:nowrap}
 /* scorecard fits a phone: all nine holes plus the totals without sideways scrolling (iOS hides the scrollbar, so hole 9/18 looked missing) */
 .scwrap table{table-layout:fixed;font-size:13px}
 .scwrap th,.scwrap td{min-width:0;padding:5px 0}
@@ -2696,7 +2697,11 @@ async function recPost(){const P=RECS.pend;if(!P)return;if(P.done){openRecords(P
   else{b.textContent='Post to '+COURSES[P.cid].name+' records';note.hidden=false;note.textContent=st===404?'Course records aren’t switched on yet.':'Couldn’t post your score. Check your connection and try again.';}}
 async function recFetch(cid){if(!DAILY.url)return{err:0};
   try{const r=await fetch(DAILY.url+'/rest/v1/course_scores?select=id,name,player_id,strokes,to_par,holes,created_at&course=eq.'+encodeURIComponent(cid)+'&order=strokes.asc,created_at.asc&limit=2000',{headers:dailyHdr()});
-    if(!r.ok)return{err:r.status};const all=await r.json(),seen=new Set(),best=[];for(const x of all){const k=pKey(x);if(seen.has(k))continue;seen.add(k);best.push(x);}return{rows:best,n:all.length};}catch(e){return{err:-1};}}
+    if(!r.ok)return{err:r.status};let all=await r.json();
+    // daily rounds played on this course count as course records too (v2026-10-08)
+    try{const q=await fetch(DAILY.url+'/rest/v1/daily_scores?select=name,player_id,strokes,to_par,holes,day,created_at&course=eq.'+encodeURIComponent(cid)+'&order=strokes.asc,created_at.asc&limit=2000',{headers:dailyHdr()});
+      if(q.ok){const d=await q.json();if(Array.isArray(d)&&d.length){all=all.concat(d.filter(x=>x&&x.strokes>0&&Array.isArray(x.holes)&&x.holes.length>=18));all.sort((a,b)=>a.strokes-b.strokes||String(a.created_at||'').localeCompare(String(b.created_at||'')));}}}catch(e){}
+    const seen=new Set(),best=[];for(const x of all){const k=pKey(x);if(seen.has(k))continue;seen.add(k);best.push(x);}return{rows:best,n:all.length};}catch(e){return{err:-1};}}
 async function openRecords(cid){G.paused=true;for(const m of['menuM','cardM','introM','dailyM'])$(m).hidden=true;$('recM').hidden=false;$('rBoard').hidden=false;$('rCardV').hidden=true;
   cid=COURSES[cid]?cid:CUR.id;RECS.cid=cid;const C=COURSES[cid],tok=++RECS.tok,par=C.tb.reduce((a,h)=>a+h.par,0);
   $('rEyebrow').textContent='Course records \u00b7 par '+par;$('rTitle').textContent=C.name;$('rWhere').textContent=C.town;
@@ -2705,21 +2710,22 @@ async function openRecords(cid){G.paused=true;for(const m of['menuM','cardM','in
   if(!res.rows){list.innerHTML='<li class="empty">'+(res.err===404?'Course records aren’t switched on yet.':'Couldn’t load the records. Check your connection.')+'</li>';return;}
   const rows=res.rows.slice(0,100),pid=dailyPid();RECS.rows=rows;let rank=0,prev=null,myRank=null;const mine=res.rows.findIndex(r=>pMine(r,pid));
   list.innerHTML=rows.map((r,i)=>{if(r.strokes!==prev){rank=i+1;prev=r.strokes;}const me=pMine(r,pid);if(me)myRank=rank;
-    return'<li class="tap'+(me?' me':'')+'" data-i="'+i+'" role="button" tabindex="0"><span class="rk">'+rank+'</span><span class="nm">'+escH(r.name)+'</span><span class="tp">'+fmtDiff(r.to_par)+'</span><span class="st">'+r.strokes+'</span></li>';}).join('')
-    ||'<li class="empty">No rounds posted yet. Finish a Quick play round here and post yours.</li>';
+    return'<li class="tap'+(me?' me':'')+'" data-i="'+i+'" role="button" tabindex="0"><span class="rk">'+rank+'</span><span class="nm">'+escH(r.name)+(r.day?' <small class="dtag">Daily \u00b7 '+new Date(r.day+'T12:00:00Z').toLocaleDateString(undefined,{month:'short',day:'numeric',timeZone:'UTC'})+'</small>':'')+'</span><span class="tp">'+fmtDiff(r.to_par)+'</span><span class="st">'+r.strokes+'</span></li>';}).join('')
+    ||'<li class="empty">No rounds yet. Finish a Quick play round here and post it, or play this course when it comes up as the daily round.</li>';
   const n=res.rows.length;$('rStatus').textContent=n?(n+(n===1?' golfer':' golfers')+' \u00b7 best round each'+(myRank?' \u00b7 you’re '+(rows.filter(r=>r.strokes===rows[myRank-1].strokes).length>1?'tied ':'')+ordinal(myRank):mine>=0?' \u00b7 you’re outside the top 100':'')):'';
   const el=list.querySelector('.me');if(el)el.scrollIntoView({block:'center'});}
 function recCard(i){const r=RECS.rows&&RECS.rows[i];if(!r)return;const C=COURSES[RECS.cid],sc=Array.isArray(r.holes)?r.holes.map(v=>+v||0):[],nm=(r.name||'').split(' ')[0].slice(0,9);
   $('rBoard').hidden=true;$('rCardV').hidden=false;$('rTitle').textContent=r.name;
-  $('rcSub').textContent=C.name+' \u00b7 '+r.strokes+' strokes \u00b7 '+fmtDiff(r.to_par)+(r.created_at?' \u00b7 '+new Date(r.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'');
+  $('rcSub').textContent=C.name+' \u00b7 '+r.strokes+' strokes \u00b7 '+fmtDiff(r.to_par)+(r.day?' \u00b7 daily round '+new Date(r.day+'T12:00:00Z').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}):r.created_at?' \u00b7 '+new Date(r.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'');
   const draw=live=>{$('rc1').innerHTML=dcTable(C,sc,0,'Out',false,nm,live);$('rc2').innerHTML=dcTable(C,sc,9,'In',true,nm,live);};draw(null);
-  RECS.card={r,sc,shots:null};$('rcWatch').hidden=true;$('rcHint').textContent=r.id!=null?'Loading replay…':'';if(r.id==null)return;const tok=++RECS.ctok;
-  recShots(r.id).then(S=>{if(tok!==RECS.ctok||$('rCardV').hidden)return;
+  RECS.card={r,sc,shots:null};$('rcWatch').hidden=true;$('rcHint').textContent=r.id!=null||r.day?'Loading replay…':'';if(r.id==null&&!r.day)return;const tok=++RECS.ctok;
+  (r.day?recDailyShots(r):recShots(r.id)).then(S=>{if(tok!==RECS.ctok||$('rCardV').hidden)return;
     if(S&&Array.isArray(S.s)&&S.s.length){RECS.card.shots=S;draw(new Set(S.s.map(x=>x.h)));$('rcHint').textContent='Tap a hole number to watch it';$('rcWatch').hidden=false;}
     else $('rcHint').textContent='No replay for this round.';});}
+async function recDailyShots(r){try{const q=await fetch(DAILY.url+'/rest/v1/daily_scores?select=shots&day=eq.'+r.day+'&player_id=eq.'+encodeURIComponent(r.player_id)+'&limit=1',{headers:dailyHdr()});if(!q.ok)return null;const j=await q.json();return j&&j[0]&&j[0].shots||null;}catch(e){return null;}}
 async function recShots(id){try{const r=await fetch(DAILY.url+'/rest/v1/course_scores?select=shots&id=eq.'+encodeURIComponent(id)+'&limit=1',{headers:dailyHdr()});if(!r.ok)return null;const j=await r.json();return j&&j[0]&&j[0].shots||null;}catch(e){return null;}}
 // watch a posted round: the same spectating as the daily round, with this round's pins and weather
-function recWatch(hi){const c=RECS.card;if(!c||!c.shots)return;Object.assign(DCARD,{shots:c.shots,r:c.r,sc:c.sc,cid:RECS.cid,day:dailyDay(),src:'rec'});specStart(hi);}
+function recWatch(hi){const c=RECS.card;if(!c||!c.shots)return;Object.assign(DCARD,{shots:c.shots,r:c.r,sc:c.sc,cid:RECS.cid,day:c.r.day||dailyDay(),src:c.r.day?'recd':'rec'});specStart(hi);}
 function recStep(k){const L=recOrder(),i=L.indexOf(RECS.cid);A();openRecords(L[(i+k+L.length)%L.length]);}
 /* ---------- daily round calendar (v89): every day's course at a glance, the way back to any past leaderboard,
    and a look at what's coming up. Future courses follow the rotation (DAILY_POOL), so they hold unless a course is added. ---------- */
@@ -2787,8 +2793,8 @@ function specFFShow(){const b=$('specFF');if(!b)return;b.textContent='\u23e9 '+S
 function specFFCycle(){SPEC.ff=SPEC.ff===1?2:SPEC.ff===2?4:1;try{localStorage.setItem('golf-specff',String(SPEC.ff));}catch(e){}specFFShow();}
 var REC={on:false,blob:null};   // replay video recorder (see recStart)
 function specStart(hi){const S=DCARD.shots;if(!S)return;const holes=[...new Set(S.s.map(x=>x.h))].sort((a,b)=>a-b);if(!holes.length)return;A();
-  const rec=DCARD.src==='rec';
-  endMatchMode();Object.assign(SPEC,{on:true,S,holes,name:DCARD.r.name,sc:DCARD.sc,pinSeed:rec?(S.pin||0):0,back:{day:DCARD.day,pid:DCARD.r.player_id,rec:rec?DCARD.cid:null}});
+  const rec=DCARD.src==='rec',fromRec=rec||DCARD.src==='recd';
+  endMatchMode();Object.assign(SPEC,{on:true,S,holes,name:DCARD.r.name,sc:DCARD.sc,pinSeed:rec?(S.pin||0):0,back:{day:DCARD.day,pid:DCARD.r.player_id,rec:fromRec?DCARD.cid:null}});
   G.mode='spectate';G.dailyDay=DCARD.day;G.dailySeed=rec?((S.pin||1)%1000003):dailyNum(DCARD.day)*7919;
   $('dailyM').hidden=true;$('recM').hidden=true;$('menuM').hidden=true;G.paused=false;$('game').classList.add('spec');$('specBar').hidden=false;resize();
   setCourse(DCARD.cid,false);if(rec&&S.wx!=null&&typeof R3!=='undefined'&&R3.on&&typeof r3ApplyWx==='function')r3ApplyWx(S.wx,true);else dailyWeather(DCARD.day);
@@ -5969,6 +5975,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-08-recdaily",date:"Oct 8, 2026",title:"Daily rounds count as course records",items:[
+    "Every finished daily round now shows up in that course\u2019s records too, marked Daily with the date, alongside the Quick play rounds people post. Your best round on a course counts, whichever mode it came from.",
+    "Tap a daily round in the records to see the card and watch the replay, just like on the daily leaderboard."]},
   {id:"2026-10-08-wind",date:"Oct 8, 2026",title:"One wind for the whole round",items:[
     "The wind no longer changes completely from hole to hole. Each round now has one prevailing wind, a direction and a strength, that holds for all 18 holes, with only small gusts and shifts along the way.",
     "The arrow still turns as you go, because the holes point different ways: a wind from the west is behind you on one hole and into your face on the next one heading the other way.",

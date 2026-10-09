@@ -68,7 +68,7 @@ GOLFERS
 
 WATCHING ROUNDS, REPLAYS AND SAVED SHOTS
 - Watch other players' daily rounds: open Daily round, then the leaderboard (By day, All-time or a past day from the Calendar). Tap a player's name to open their scorecard, then tap "Watch round" or tap a hole number to watch that hole. Every shot plays back on the course with the replay camera. Speed it up with the 1x/2x/4x button. Rounds played before replays were saved can't be watched.
-- Course records: from the Courses tab, Course records shows posted rounds for each course. Tap one to see the card and watch it the same way. After a round you can post yours with "Post to course records".
+- Course records: from the Courses tab, Course records shows posted rounds for each course. Tap one to see the card and watch it the same way. After a round you can post yours with "Post to course records". Daily rounds count too: every finished daily round on a course appears in that course's records automatically, marked "Daily" with the date, and can be watched the same way.
 - Your own shots: after a shot, tap Replay to watch it again. During a replay you can save the shot (it goes to Saved shots in the menu, up to 40 kept on this phone) or save it as a video to share, if the browser supports recording. On the hole-complete card, "Watch replay" replays your hole.
 - Daily round extras: a Calendar of past days (each day's course and your score), all-time standings, and Share my score.
 
