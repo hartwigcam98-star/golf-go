@@ -9,7 +9,7 @@ self.addEventListener('activate',e=>{e.waitUntil((async()=>{
   const a=await caches.open(ASSETS);for(const r of await a.keys()){const u=new URL(r.url);if(u.searchParams.has('v')&&!DATA.includes(u.pathname.split('/').pop()+'?v='+u.searchParams.get('v')))await a.delete(r);}
   await self.clients.claim();})());});
 async function networkFirst(req){const c=await caches.open(CORE),cached=(await c.match(req))||(await c.match('index.html'));
-  const net=fetch(req).then(r=>{if(r&&r.ok)c.put(req,r.clone());return r;});
+  const net=fetch(req,{cache:'no-cache'}).then(r=>{if(r&&r.ok)c.put(req,r.clone());return r;});   // always ask the server (GitHub Pages lets phones reuse a page for 10 minutes otherwise)
   if(!cached)return net.catch(()=>Response.error());
   // on a weak signal, open the copy on this phone after 4 s; the download carries on and is used next time
   return Promise.race([net.catch(()=>cached),new Promise(res=>setTimeout(()=>res(cached),4000))]);}
