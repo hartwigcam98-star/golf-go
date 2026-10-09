@@ -2158,6 +2158,7 @@ function holeWind(i){
   const sd=roundWindSeed(),rb=rng(sd*31+977),a0=rb()*TAU,m0=1+rb()*11,wr=rng(sd*31+1000+i*17);
   return{a:a0+(wr()-.5)*.35,mph:clamp(Math.round(m0+(wr()-.5)*4),0,16)};}
 function startHole(i){
+  try{pstatFlush();}catch(e){}
   G.hi=i;G.hole=hole(i);
   if(!G.hole.hg)buildHeights(G.hole);
   if(!G.terrains[i])G.terrains[i]=buildTerrain(G.hole);
@@ -5704,7 +5705,26 @@ function update(dt){
 let last=performance.now();
 /* the swing meter runs on the average of the last 8 frame times, so one slow frame (or a phone alternating quick and slow frames)
    doesn't make the cursor leap: it keeps an even step and the same speed overall */
-var MCLK={q:[],dt:1/60,w:0};addEventListener('resize',()=>{MCLK.w=0;});   // w: the meter's width, measured once (not every frame)
+var MCLK={q:[],dt:1/60,w:0};
+/* smoothness stats: frame times per hole (all play, and while the swing meter runs), sent quietly to the perf_stats table
+   when the hole changes or the app goes to the background. Nothing is shown in the game. */
+var PSTAT={all:[],met:[],hole:null};
+function pstatAdd(raw){if(!PSTAT||document.hidden||G.paused||!G.hole||(typeof REC!=='undefined'&&REC.on)||(typeof SPEC!=='undefined'&&SPEC.on))return;
+  const st=G.state;if(st==='intro'||st==='card')return;const ms=raw*1000;if(!(ms>0&&ms<1000))return;
+  if(PSTAT.all.length<30000)PSTAT.all.push(ms);if((st==='power'||st==='acc')&&!G.aiTurn&&PSTAT.met.length<10000)PSTAT.met.push(ms);
+  if(!PSTAT.hole)PSTAT.hole={course:CUR.id,hole:G.hi+1,mode:G.mode};}
+function pstatSum(a){if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y),n=s.length,sum=s.reduce((x,y)=>x+y,0);
+  return{n,avg:1000/(sum/n),med:1000/s[n>>1],p95:s[Math.min(n-1,Math.floor(n*.95))],max:s[n-1],st:100*s.filter(v=>v>40).length/n};}
+function pstatFlush(keep){if(typeof PSTAT==='undefined'||!PSTAT||!PSTAT.all.length){if(PSTAT)PSTAT.hole=null;return;}
+  const A=pstatSum(PSTAT.all),M=pstatSum(PSTAT.met),h=PSTAT.hole;PSTAT.all=[];PSTAT.met=[];PSTAT.hole=null;
+  if(!A||A.n<60||!h||!DAILY.url)return;const r1=v=>v==null?null:Math.round(v*10)/10;
+  const body={player_id:dailyPid(),name:(dailyName()||'').slice(0,16),ver:String(window.GOLF_VER||'').slice(0,40),course:String(h.course).slice(0,24),hole:h.hole,mode:String(h.mode).slice(0,16),
+    gfx:String((typeof R3!=='undefined'&&R3.q)||'').slice(0,8),perf:(typeof R3!=='undefined'&&R3.perf)||0,
+    device:{ua:navigator.userAgent.slice(0,200),scr:screen.width+'x'+screen.height,dpr:window.devicePixelRatio||1,vw:innerWidth+'x'+innerHeight,app:!!(navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches))},
+    frames:A.n,fps_avg:r1(A.avg),fps_med:r1(A.med),ms_p95:r1(A.p95),ms_max:r1(A.max),stutter_pct:r1(A.st),
+    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st)};
+  try{fetch(DAILY.url+'/rest/v1/perf_stats',{method:'POST',keepalive:!!keep,headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(body)}).catch(()=>{});}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pstatFlush(true);});addEventListener('resize',()=>{MCLK.w=0;});   // w: the meter's width, measured once (not every frame)
 const PERF={n:0,sum:0,level:0};
 function perfCheck(raw){PERF.level=R3.perf||0;if(PERF.level>=4||PERF.stuck||G.paused||G.state==='intro'||G.state==='card'||G.state==='power'||G.state==='acc'||raw>.25)return;(PERF.w=PERF.w||[]).push(raw);if(PERF.w.length<90)return;
   /* v87: every 90 frames of play, step down a level when the median frame is slower than ~45 fps or more than 1 in 8 frames stutters (>40 ms), two windows running; the level is remembered on this phone */
@@ -5799,7 +5819,7 @@ function replayCamTV(){const L=G.lastShot,r=G.replay,rp=replayPoint(Math.max(0,r
 /* menu screens with a solid backdrop hide the course completely: nothing is drawn behind them (saves battery and heat) */
 const COVERS=['menuM','dailyM','recM','careerM','hlM','charM'].map(id=>$(id));
 function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
-  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;{const Q=MCLK.q;Q.push(Math.min(.05,Math.max(.004,raw)));if(Q.length>8)Q.shift();MCLK.dt=Q.reduce((a,b)=>a+b,0)/Q.length;}if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
+  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);{const Q=MCLK.q;Q.push(Math.min(.05,Math.max(.004,raw)));if(Q.length>8)Q.shift();MCLK.dt=Q.reduce((a,b)=>a+b,0)/Q.length;}if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
   if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}}
 
 /* ---------- input ---------- */
