@@ -1,0 +1,23 @@
+{
+ "id": 3,
+ "created_at": "2026-10-08T15:45:35.956396+00:00",
+ "player_id": "p5sa6c8gmmuvyzitv",
+ "name": "Cam",
+ "kind": "bug",
+ "message": "Tee box on hole number 9 is elevated above the golfer",
+ "ctx": {
+  "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6.1 Mobile/15E148 Safari/604.1",
+  "app": true,
+  "gfx": "fast",
+  "lie": "fairway",
+  "ver": "2026-10-08-courseqa",
+  "hole": 9,
+  "mode": "round",
+  "thru": 8,
+  "state": "roll",
+  "toPar": -5,
+  "course": "gnlake",
+  "screen": "393x793@3",
+  "stroke": 3
+ }
+}

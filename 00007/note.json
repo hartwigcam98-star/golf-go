@@ -1,0 +1,24 @@
+{
+ "id": 7,
+ "created_at": "2026-10-10T02:18:26.168885+00:00",
+ "player_id": "p5sa6c8gmmuvyzitv",
+ "name": "Cam",
+ "kind": "bug",
+ "message": "What is my screen like this",
+ "ctx": {
+  "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6.1 Mobile/15E148 Safari/604.1",
+  "app": true,
+  "gfx": "fast",
+  "lie": "tee",
+  "ver": "2026-10-09-3152",
+  "hole": 2,
+  "mode": "round",
+  "thru": 1,
+  "state": "wait",
+  "toPar": 0,
+  "course": "gnlake",
+  "screen": "393x793@3",
+  "stroke": 2
+ },
+ "shot": "shot.jpg"
+}
