@@ -4,9 +4,10 @@ import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
 JOB = {"name": "minneapolis area: mystic lake, legends, chaska town", "search": [[44.64, -93.52, 44.76, -93.34], [44.79, -93.68, 44.87, -93.56]],
-       "want": {"mystic": r"mystic", "legends": r"legends", "chaska": r"chaska town|town course"},
-       "holes": {"mystic": r"mystic|meadows", "legends": r"legends", "chaska": r"chaska|town course"},
-       "steps": {"mystic": "all", "legends": "all", "chaska": "all"}}
+       "want": {"mystic": r"mystic", "chaska": r"chaska town|town course"},
+       "boxes": {"mystic": [-93.497, 44.714, -93.455, 44.746]},   # retry: no named OSM outline for The Meadows at Mystic Lake; Chaska's map download failed
+       "holes": {"mystic": r"mystic|meadows", "chaska": r"chaska|town course"},
+       "steps": {"mystic": "all", "chaska": "all"}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
