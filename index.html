@@ -5955,7 +5955,14 @@ $('mMatchCont').addEventListener('click',()=>{A();const v=pendingMatchV();if(v)s
 const careerBusy=(v,sub)=>{if(!MATCH.on||CV===v)return false;$(sub).textContent='Finish your match in '+(CV===2?'Challenge V2':'Challenge')+' first';sfx.tick();return true;};
 $('mCareer2').addEventListener('click',()=>{A();if(careerBusy(2,'mCareer2Sub'))return;careerUse(2);openCareer();sfx.tick();});
 $('mCareer').addEventListener('click',()=>{A();if(careerBusy(1,'mCareerSub'))return;careerUse(1);openCareer();sfx.tick();});
-$('mDaily').addEventListener('click',()=>{A();sfx.tick();const me=dailyToday();DAILY.calSel=dailyDay();if(me||dailyName())openDailyBoard(false,dailyDay(),'cal');else openDailyName();});
+/* owner-only (by player id, not name): press and hold the Daily round button for 2.5 s to clear today's saved daily round
+   on this phone. Nothing on screen hints at it; for anyone else the button behaves as normal. */
+{const OWN=['p5sa6c8gmmuvyzitv','p266y26e7muq7fyur'],btn=$('mDaily');let tm=null;const stop=()=>{if(tm){clearTimeout(tm);tm=null;}};
+  btn.addEventListener('pointerdown',()=>{stop();let pid='';try{pid=localStorage.getItem('golf-pid')||'';}catch(e){}if(!OWN.includes(pid))return;
+    tm=setTimeout(()=>{tm=null;btn.dataset.rst='1';try{localStorage.removeItem(DAILY.save);}catch(e){}sfx.tick();
+      try{dailyMenuLine();}catch(e){}const sb=$('mDailySub');if(sb)sb.textContent='Today’s daily round has been reset.';},2500);});
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,stop));}
+$('mDaily').addEventListener('click',e=>{if($('mDaily').dataset.rst){delete $('mDaily').dataset.rst;return;}A();sfx.tick();const me=dailyToday();DAILY.calSel=dailyDay();if(me||dailyName())openDailyBoard(false,dailyDay(),'cal');else openDailyName();});
 $('dNameGo').addEventListener('click',dailyNameGo);$('dNameIn').addEventListener('keydown',e=>{if(e.key==='Enter')dailyNameGo();});
 $('dPlay').addEventListener('click',()=>{A();dailyPlay();});
 $('dList').addEventListener('click',e=>{const li=e.target.closest('li[data-i]');if(li){A();openDailyCard(+li.dataset.i);}});
