@@ -1729,7 +1729,7 @@ const CLUBLOOK={troy:{pt:'paver',um:'#2f4f3a',w:'#e7e2d4',m:'siding',t:'#f6f5f0'
   slmh:{pt:'brick',um:'#2f4f3a',w:'#efe9dc',m:'siding',t:'#fbfaf6',lo:1,lc:'#9a8f80',r:'#5c5a58',v:'wrap',c:'#fbfaf6',cu:1},
   legends:{pt:'stone',um:'#2f6fae',fp:1,rw:1,w:'#ddd0b4',m:'stucco',t:'#5a5047',lo:3,lc:'#bba98a',r:'#68645f',v:'front',c:'#bba98a',cu:1},
   chaska:{pt:'brick',um:'#2f4f3a',w:'#a59c8a',m:'board',t:'#4a453e',s:'#9a8f80',b:.9,r:'#585755',v:'front',c:'#6b5a48'},
-  prestwick:{gb:1,eh:6,rs:5.5,xg:3,ph:1.5,stp:1,ir:1,pt:'stone',um:'#2f5f9e,#b3302b,#c8708e',rw:1,w:'#ebe3cf',m:'tudor',t:'#4e3a2c',tc:'#4e3a2c',s:'#c9c0ae',b:1.6,r:'#6b5444',v:'none',ch:'#c9c0ae'}};
+  prestwick:{gb:1,eh:6,rs:5.5,xg:3,cbn:1,ph:1.5,stp:1,ir:1,pt:'stone',um:'#2f5f9e,#b3302b,#c8708e',rw:1,w:'#ebe3cf',m:'tudor',t:'#4e3a2c',tc:'#4e3a2c',s:'#c9c0ae',b:1.6,r:'#6b5444',v:'none',ch:'#c9c0ae'}};
 CLUBLOOK.ridge=CLUBLOOK.valley;CLUBLOOK.gnlinks=CLUBLOOK.gnlake;CLUBLOOK.slbm=CLUBLOOK.slmh;
 const STYLE={lowcountry:{wall:'#ecebe4',trim:'#3d4b3f',stone:'#b8b2a6',roof:'#5b6166'},prairie:{wall:'#9c7d5e',trim:'#4a3a2e',stone:'#8d8375',roof:'#4a4038'},links:{wall:'#d6ccb8',trim:'#5a4b3c',stone:'#9a9184',roof:'#3b4a52'}};
 /* ---- buildings with measured heights / roof shapes / roof colours (BLDX in ground.js: lidar + aerial photo) ----
@@ -1926,6 +1926,7 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
       let A=P2(...a),B=P2(...b);const L=hyp(B[0]-A[0],B[1]-A[1])||1,mx=(A[0]+B[0])/2,mz=(A[1]+B[1])/2;let ex2=(B[0]-A[0])/L,ez=(B[1]-A[1])/L,nx=ez*s,nz=-ex2*s;
       const cx=P2((ob.u0+ob.u1)/2,(ob.v0+ob.v1)/2);if(nx*(mx-cx[0])+nz*(mz-cx[1])<0){[A,B]=[B,A];ex2=-ex2;ez=-ez;nx=-nx;nz=-nz;}
       const dl=hyp(tx-mx,ty-mz)||1,sc=(nx*(tx-mx)+nz*(ty-mz))/dl;if(!best||sc>best.sc)best={a:A,b:B,L,ex:ex2,ez,mx,mz,nx,nz,rot:Math.atan2(ez,ex2),sc};}return best;};
+  const xgBays=P=>{const n=LK.xg,hw2=Math.min(P.L/n*.4,5.5);return{n,hw2,cs:[...Array(n)].map((_,k)=>(k-(n-1)/2)*P.L/n*.92)};};
   const courseSide=()=>{if(pi<0)return null;const E=edge(pi);if(!ob)return E;const[tx,ty]=holePt(),F=facade(tx,ty);return F&&E.L<F.L*.7?Object.assign(F,{fac:1}):E;};
   const panel=(E,t,hw,y0,y1,col,o)=>{const cx=E.a[0]+(E.b[0]-E.a[0])*t,cz=E.a[1]+(E.b[1]-E.a[1])*t,n=[E.nx,0,E.nz],g=gh+lift;hw=Math.min(hw,E.L*.45);
     quadO(out,[cx-E.ex*hw+E.nx*o,g+y0,cz-E.ez*hw+E.nz*o],[cx+E.ex*hw+E.nx*o,g+y0,cz+E.ez*hw+E.nz*o],[cx+E.ex*hw+E.nx*o,g+y1,cz+E.ez*hw+E.nz*o],[cx-E.ex*hw+E.nx*o,g+y1,cz-E.ez*hw+E.nz*o],col,n);};
@@ -1971,8 +1972,10 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
     else if(pv==='front'&&pi>=0){const P=edge(pi);q.por=[P.mx,P.mz,P.nx,P.nz];porch(P,false,true);}
     // the patio or deck on the course side, as in photos of each clubhouse: floor (stone, brick, pavers or decking), tables with umbrellas,
     // fire pits ringed with Adirondack chairs, a stone wall or a railing where it stands above the ground
-    if(LK&&LK.pt&&pi>=0){const P=courseSide(),pv0=P.fac?(pv==='none'?-.4:3.6):pv==='front'?3.6:pv==='wrap'?3.3:.1,W=Math.min(P.L*.8,26)/2,blocked=(x,y)=>[h.greens,h.tees,h.water,h.bunkers,h.fairways].some(L=>L.some(Q=>inPoly(Q,x,y)))||(h.buildings||[]).some(Q=>Q!==q&&inPoly(Q,x,y));
-      const R3q=(u,v)=>[P.mx+P.ex*u+P.nx*v,P.mz+P.ez*u+P.nz*v];let D=Math.min(14,Math.max(7,W*.7));
+    if(LK&&LK.pt&&pi>=0){const P=courseSide(),pv0=P.fac?(pv==='none'?-.4:3.6):pv==='front'?3.6:pv==='wrap'?3.3:.1,Wf=Math.min(P.L*.8,26)/2,blocked=(x,y)=>[h.greens,h.tees,h.water,h.bunkers,h.fairways].some(L=>L.some(Q=>inPoly(Q,x,y)))||(h.buildings||[]).some(Q=>Q!==q&&inPoly(Q,x,y));
+      // a cart barn under the right-hand gable keeps the terrace to its left
+      let uA=-Wf,uB=Wf;if(LK.cbn&&LK.xg){const B=xgBays(P);uB=Math.min(Wf,B.cs[B.n-1]-B.hw2-.3);uA=Math.max(-Wf,-P.L/2+1);}
+      const W=(uB-uA)/2,uo=(uA+uB)/2,R3q=(u,v)=>[P.mx+P.ex*(u+uo)+P.nx*v,P.mz+P.ez*(u+uo)+P.nz*v];let D=Math.min(14,Math.max(7,W*.7));
       while(D>4&&[[-W,pv0+D],[W,pv0+D],[0,pv0+D],[-W,pv0+D/2],[W,pv0+D/2]].some(([u,v])=>{const c=R3q(u,v);return blocked(c[0],c[1]);}))D-=1;
       if(D>4){lift=liftAt(P);let gmin=1e9,gmax=-1e9;for(let u=-W;u<=W+.01;u+=W/2)for(let v=pv0;v<=pv0+D+.01;v+=D/2){const c=R3q(u,v),g=hAtH(h,c[0],c[1]);gmin=Math.min(gmin,g);gmax=Math.max(gmax,g);}
         const deck=LK.pt==='deck'||LK.pt==='reddeck',ft=Math.max(gmax+.12,gh+lift+(deck?Math.min(.9,plinth*.6):.12),LK.ph?gmin+LK.ph:-1e9),fb=gmin-.3,raised=ft-gmin>.7;
@@ -1987,7 +1990,7 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
         else{const bc=mul(fc,.78),nb=Math.floor(D/.5);for(let k=1;k<nb;k++){const c=R3q(0,pv0+k*.5);boxO(out,c[0],ft+.004,c[1],W-.05,.008,.025,P.rot,bc);}}
         // railing round a raised deck, a low stone wall round a raised terrace (or wherever the course asks for one)
         // steps down from a raised terrace or deck toward the course, at the far end of the front edge, with posts and rails
-        const stp=raised&&(LK.stp||ft-gmin>1),su=W-2.2,sw=1.4;
+        const stp=raised&&(LK.stp||ft-gmin>1),su=W-(LK.cbn?1.6:2.2),sw=1.4;
         if(stp){const c=R3q(su,pv0+D),g1=hAtH(h,...R3q(su,pv0+D+6)),drop=Math.max(.4,ft-g1),n=Math.max(2,Math.round(drop/.19)),rr=drop/n,tr=.36,sc=deck?fc:mul(stone,1.1);
           for(let k=0;k<n;k++){const v=pv0+D+tr*(k+.5),cc=R3q(su,v),yt=ft-rr*(k+1)+rr,yb=Math.min(yt-.1,hAtH(h,cc[0],cc[1])-.3);boxO(out,cc[0],(yt+yb)/2,cc[1],sw,(yt-yb)/2,tr/2,P.rot,mul(sc,k&1?.96:1));}
           const rail=LK.ir?hexc('#1e1e1e'):deck?mul(trim,1.2):mul(stone,1.05),run=n*tr;
@@ -2012,11 +2015,11 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
         const fps=LK.fp?Math.min(2,Math.max(1,Math.floor(W/7))):0;let k=0;
         for(let j=0;j<fps;j++){const u=fps===1?W*.55:(j?W*.55:-W*.55),c=R3q(u,pv0+D*.55);firepit(c[0],c[1]);}
         for(let v=pv0+2.2;v<pv0+D-1.5;v+=3.6)for(let u=-W+2;u<W-1.8;u+=3.6){if(fps&&Math.abs(Math.abs(u)-W*.55)<3.4&&Math.abs(v-(pv0+D*.55))<3.4)continue;if(RR()<.15||k>=14)continue;const c=R3q(u+(RR()-.5)*.4,v);table(c[0],c[1],k++);}
-        q.pat=[c0[0],c0[1],P.nx,P.nz];}}
+        q.pat=[c0[0],c0[1],P.nx,P.nz];q._ft=ft;}}
     // tall cross gables on the course side (Prestwick): a shallow bay up to the eave, a steep gable roof running back into the main roof,
     // timbered gable end and a tall glass window
-    if(LK&&LK.xg&&pi>=0){const P=courseSide(),n=LK.xg,hw2=Math.min(P.L/n*.4,5.5),yE=gh+H1-.05,rs=hw2*1.3,yR=yE+rs,vf=.45,vb=-Math.max(3,hw2*1.4),R3x=(u,v,y)=>[P.mx+P.ex*u+P.nx*v,y,P.mz+P.ez*u+P.nz*v],nf=[P.nx,0,P.nz],tc=hexc(LK.tc||LK.t);
-      for(let k=0;k<n;k++){const c=(k-(n-1)/2)*P.L/n*.92,y0=gh+lift;
+    if(LK&&LK.xg&&pi>=0){const P=courseSide(),XB=xgBays(P),n=XB.n,hw2=XB.hw2,yE=gh+H1-.05,rs=hw2*1.3,yR=yE+rs,vf=.45,vb=-Math.max(3,hw2*1.4),R3x=(u,v,y)=>[P.mx+P.ex*u+P.nx*v,y,P.mz+P.ez*u+P.nz*v],nf=[P.nx,0,P.nz],tc=hexc(LK.tc||LK.t);
+      for(let k=0;k<n;k++){const c=XB.cs[k],y0=gh+lift;
         quadO(out,R3x(c-hw2,vf,y0),R3x(c+hw2,vf,y0),R3x(c+hw2,vf,yE),R3x(c-hw2,vf,yE),wall,nf);
         for(const sg of[-1,1])quadO(out,R3x(c+sg*hw2,P.fac?-5:0,y0),R3x(c+sg*hw2,vf,y0),R3x(c+sg*hw2,vf,yE),R3x(c+sg*hw2,P.fac?-5:0,yE),mul(wall,.9),[P.ex*sg,0,P.ez*sg]);
         triO(out,R3x(c-hw2,vf,yE),R3x(c+hw2,vf,yE),R3x(c,vf,yR-.15),wall,nf);
@@ -2029,7 +2032,25 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
         const gw=hw2*.62,gy0=y0+Math.max(plinth,.4)+.3,gy1=yE+rs*.42;quadO(out,R3x(c-gw-.15,vf+.04,gy0-.15),R3x(c+gw+.15,vf+.04,gy0-.15),R3x(c+gw+.15,vf+.04,gy1+.15),R3x(c-gw-.15,vf+.04,gy1+.15),tc,nf);
         quadO(out,R3x(c-gw,vf+.06,gy0),R3x(c+gw,vf+.06,gy0),R3x(c+gw,vf+.06,gy1),R3x(c-gw,vf+.06,gy1),glass,nf);
         for(let j=1;j<4;j++){const u=c-gw+gw*2*j/4;quadO(out,R3x(u-.05,vf+.08,gy0),R3x(u+.05,vf+.08,gy0),R3x(u+.05,vf+.08,gy1),R3x(u-.05,vf+.08,gy1),tc,nf);}
-        for(const y of[gy0+(gy1-gy0)*.45,gy0+(gy1-gy0)*.75])quadO(out,R3x(c-gw,vf+.08,y-.05),R3x(c+gw,vf+.08,y-.05),R3x(c+gw,vf+.08,y+.05),R3x(c-gw,vf+.08,y+.05),tc,nf);}}
+        for(const y of[gy0+(gy1-gy0)*.45,gy0+(gy1-gy0)*.75])quadO(out,R3x(c-gw,vf+.08,y-.05),R3x(c+gw,vf+.08,y-.05),R3x(c+gw,vf+.08,y+.05),R3x(c-gw,vf+.08,y+.05),tc,nf);}
+      // the cart barn: a lower level under the right-hand gable, opening onto the course (a brown overhead door and an open bay),
+      // with a deck over it on stone pillars, umbrellas, and carts parked out front
+      if(LK.cbn){const c=XB.cs[n-1],bw=hw2+.2,gb=Math.min(...[-bw,0,bw].map(du=>hAtH(h,...R3x(c+du,vf+5,0).filter((_,i)=>i!==1)))),ft0=q._ft||gh+lift+.5,yd=Math.max(ft0+1.1,gb+2.9),dp=4.2,stn=mul(stone,1.05),brn=hexc('#5b3f2c'),blk=hexc('#1d1a17');
+        quadO(out,R3x(c-bw,vf+.02,gb-.3),R3x(c+bw,vf+.02,gb-.3),R3x(c+bw,vf+.02,yd),R3x(c-bw,vf+.02,yd),mul(wall,.78),nf);
+        const dw=bw*.46;quadO(out,R3x(c+.25,vf+.06,gb),R3x(c+.25+dw*2,vf+.06,gb),R3x(c+.25+dw*2,vf+.06,yd-.55),R3x(c+.25,vf+.06,yd-.55),brn,nf);
+        for(let j=1;j<6;j++){const y=gb+(yd-.55-gb)*j/6;quadO(out,R3x(c+.25,vf+.08,y-.03),R3x(c+.25+dw*2,vf+.08,y-.03),R3x(c+.25+dw*2,vf+.08,y+.03),R3x(c+.25,vf+.08,y+.03),mul(brn,.8),nf);}
+        quadO(out,R3x(c-.25-dw*2,vf+.06,gb),R3x(c-.25,vf+.06,gb),R3x(c-.25,vf+.06,yd-.55),R3x(c-.25-dw*2,vf+.06,yd-.55),blk,nf);
+        // deck and pillars
+        const dc=R3x(c,vf+dp/2,0);q.cbv=[dc[0],dc[2],P.nx,P.nz];boxO(out,dc[0],yd-.15,dc[2],bw+.3,.15,dp/2,P.rot,mul(brn,1.25));
+        for(const du of[-bw,0,bw]){const pc=R3x(c+du,vf+dp-.3,0),g=hAtH(h,pc[0],pc[2]);boxO(out,pc[0],(yd+.9+g-.2)/2,pc[2],.4,(yd+.9-g+.2)/2,.4,P.rot,stn);boxO(out,pc[0],yd+.95,pc[2],.48,.06,.48,P.rot,mul(stn,1.08));}
+        const ic=hexc('#1e1e1e');for(const[u0,u1,v0,v1]of[[-bw,bw,dp-.3,dp-.3],[-bw,-bw,0,dp-.3],[bw,bw,0,dp-.3]]){const a=R3x(c+u0,vf+v0,yd+.9),b=R3x(c+u1,vf+v1,yd+.9),m=[(a[0]+b[0])/2,0,(a[2]+b[2])/2],L=hyp(b[0]-a[0],b[2]-a[2])/2;
+          boxO(out,m[0],yd+.9,m[2],u0===u1?.025:L,.025,u0===u1?L:.025,P.rot,ic);const nn=Math.max(2,Math.round(L*2/.5));for(let j=0;j<=nn;j++){const t=j/nn;boxO(out,a[0]+(b[0]-a[0])*t,yd+.45,a[2]+(b[2]-a[2])*t,.018,.45,.018,P.rot,ic);}}
+        const UMc=hexc('#2f5f9e');for(const du of[-bw*.45,bw*.45]){const x=R3x(c+du,vf+dp*.55,0),ap=[x[0],yd+2.6,x[2]],cs=[];boxO(out,x[0],yd+1.3,x[2],.035,1.3,.035,P.rot,[.9,.9,.88]);boxO(out,x[0],yd+.36,x[2],.45,.03,.45,P.rot,hexc('#3b3a37'));
+          for(let j=0;j<8;j++){const a=j/8*TAU;cs.push([x[0]+Math.cos(a)*1.35,yd+2.05,x[2]+Math.sin(a)*1.35]);}for(let j=0;j<8;j++){const a2=cs[j],b2=cs[(j+1)%8];let nn=nrm(cross(sub(b2,a2),sub(ap,a2)));if(nn[1]<0)nn=mul(nn,-1);triO(out,a2,b2,ap,mul(UMc,shadeOf(nn)),nn);triO(out,a2,b2,ap,mul(UMc,.7),mul(nn,-1));}}
+        // golf carts parked in front of the barn
+        for(const du of[-1.6,0,1.6]){const x=R3x(c+du+.8,vf+dp+3.2,0),g=hAtH(h,x[0],x[2]),cr=P.rot;boxO(out,x[0],g+.5,x[2],.62,.32,1.25,cr,[.93,.93,.9]);boxO(out,x[0],g+.22,x[2],.66,.2,.9,cr,[.12,.12,.12]);boxO(out,x[0]-Math.sin(cr)*-.25,g+.98,x[2]+Math.cos(cr)*-.25,.58,.16,.35,cr,[.25,.2,.17]);boxO(out,x[0],g+1.5,x[2],.66,.04,1.0,cr,[.78,.8,.8]);
+          for(const sg of[-1,1])for(const sx of[-1,1])boxO(out,x[0]+Math.cos(cr)*sx*.55-Math.sin(cr)*sg*.8,g+1.15,x[2]+Math.sin(cr)*sx*.55+Math.cos(cr)*sg*.8,.03,.35,.03,cr,[.2,.2,.2]);
+          boxO(out,x[0]+Math.sin(cr)*.45,g+.68,x[2]-Math.cos(cr)*.45,.5,.06,.25,cr,[.15,.15,.15]);}}}
     // a cupola on the ridge
     if(LK&&LK.cu&&peak){const c=hexc(LK.t||'#f2f0ea'),r0=ob?ob.t:0,hb=.95,y0=peak[1]+.2;boxO(out,peak[0],y0+.55,peak[2],hb,.75,hb,r0,c);
       const co=Math.cos(r0),si=Math.sin(r0),C=(u,v)=>[peak[0]+u*co-v*si,y0+1.35,peak[2]+u*si+v*co],ap=[peak[0],y0+2.5,peak[2]],cs=[C(-1.2,-1.2),C(1.2,-1.2),C(1.2,1.2),C(-1.2,1.2)];
