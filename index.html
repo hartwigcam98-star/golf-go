@@ -760,7 +760,7 @@ td.won{background:rgba(255,201,60,.38)}
 </div>
 
 <script src="greens.js?v=9d3fb97522"></script>
-<script src="ground.js?v=14a79bace9"></script>
+<script src="ground.js?v=6d5fde4cb1"></script>
 <script src="trees.js?v=08a9667a5f"></script>
 <script>/* three.js r170 (MIT) */
 (function(){
@@ -1458,7 +1458,11 @@ function buildTerrain(h){
     for(const P of S.polys.grass||[]){pl(P);g.fillStyle='rgba(108,158,72,.9)';g.fill();}
     for(const P of S.polys.farm||[]){pl(P);g.fillStyle='rgba(180,166,98,.85)';g.fill();}
     for(const P of S.polys.wood||[]){pl(P);g.fillStyle='rgba(78,92,48,.85)';g.fill();}
-    for(const P of S.polys.park||[]){pl(P);g.fillStyle='#6f6e6a';g.fill();}
+    for(const P of S.polys.park||[]){pl(P);g.fillStyle='#5f605f';g.fill();g.lineWidth=.9;g.strokeStyle='#b9b4a8';g.stroke();}
+    g.strokeStyle='rgba(236,234,224,.8)';g.lineWidth=.14;g.lineCap='butt';
+    for(const P of S.polys.park||[]){if(P.length<3||P.length>400)continue;const bb=[1e9,1e9,-1e9,-1e9];for(const q of P){bb[0]=Math.min(bb[0],q[0]-T0[0]);bb[1]=Math.min(bb[1],q[1]-T0[1]);bb[2]=Math.max(bb[2],q[0]-T0[0]);bb[3]=Math.max(bb[3],q[1]-T0[1]);}
+      if(bb[2]<x0||bb[0]>x1||bb[3]<y0||bb[1]>y1)continue;g.beginPath();
+      lotStalls(P,(x,y,ang)=>{const ca=Math.cos(ang),sa=Math.sin(ang);for(const o of[-1.45,1.45]){const bx=x+o*ca,by=y+o*sa;g.moveTo(bx+2.3*sa,by-2.3*ca);g.lineTo(bx-2.3*sa,by+2.3*ca);}});g.stroke();}
     for(const P of S.polys.water||[]){pl(P);g.fillStyle='#3f7fb4';g.fill();}
     g.lineCap='round';g.lineJoin='round';
     for(const r of S.roads){if(r[0]==='stream'||r[0]==='footway')continue;g.beginPath();g.moveTo(r[2][0],r[2][1]);for(let i=3;i<r.length;i++)g.lineTo(r[i][0],r[i][1]);
@@ -1469,6 +1473,8 @@ function buildTerrain(h){
     for(let k=0;k<L.code.length;k++){if(L.code[k]!==0){id.data[k*4]=RC[0];id.data[k*4+1]=RC[1];id.data[k*4+2]=RC[2];id.data[k*4+3]=255;}}
     mc.putImageData(id,0,0);g.save();g.imageSmoothingEnabled=true;g.drawImage(m,x0-.5,y0-.5,L.nx,L.ny);g.restore(); }
   g.lineCap='round';g.lineJoin='round';
+  // a paved apron round the clubhouse
+  for(const P of h.buildings||[])if(P.club){polyPath(g,P);g.lineJoin='miter';g.strokeStyle='#9c978d';g.lineWidth=8.4;g.stroke();g.strokeStyle='#b9b4a9';g.lineWidth=7.6;g.stroke();g.fillStyle='#b9b4a9';g.fill();g.lineJoin='round';}
   // cart paths
   g.strokeStyle='#a8a296';g.lineWidth=2.6;strokePl(g,h.paths);g.strokeStyle='#c9c4b8';g.lineWidth=1.9;strokePl(g,h.paths);
   // fairways: first cut, then mown stripes clipped to the real outline
@@ -1600,7 +1606,7 @@ function buildGrassPatch(h,cx,cz){if(RL.noGrass||(R3.on&&R3G.lods))return;const 
 
 /* ---------- surroundings (real houses, roads, woods and fields around the course) ---------- */
 const SURR={ready:null};
-function surrPrep(){const C=CUR;if(SURR.ready===C.id)return SURR;const S=C.surr;SURR.ready=C.id;SURR.S=S;
+function surrPrep(){const C=CUR;if(SURR.ready===C.id)return SURR;const S=C.surr;SURR.ready=C.id;SURR.S=S;bldxPark(S);
   const[x0,y0,x1,y1]=S.box,ww=x1-x0,hh=y1-y0;
   // woods / yards / water mask at 4 yd per cell for tree placement and the distant canopy
   const MS=4,mw=Math.ceil(ww/MS),mh=Math.ceil(hh/MS),mc=document.createElement('canvas');mc.width=mw;mc.height=mh;const m=mc.getContext('2d',{willReadFrequently:true});
@@ -1695,7 +1701,15 @@ function bldxForHole(h){if(typeof BLDX==='undefined'||!BLDX)return;const Xc=BLDX
   for(const q of h.buildings){const r=q.ci!=null?(Xc&&Xc.c&&Xc.c[q.ci]):q.bi!=null?(Xs.b&&Xs.b[q.bi]):null;if(r&&r.length)q.rec=r;}
   const T0=h.T0,b=h.bounds,near=(x,y,r)=>x>b[0]-r&&x<b[2]+r&&y>b[1]-r&&y<b[3]+r;
   (Xs.a||[]).forEach((A,i)=>{if(!A||!A[0]||A[0].length<3)return;const pts=A[0].map(p=>[p[0]-T0[0],p[1]-T0[1]]);if(!pts.some(p=>near(p[0],p[1],900)))return;
-    const P=mkPoly(pts,'bld');P.rec=A[1]&&A[1].length?A[1]:null;P.bk=['shack','barn','building'].includes(A[2])?A[2]:'building';P.ai=i;h.buildings.push(P);});}
+    const P=mkPoly(pts,'bld');P.rec=A[1]&&A[1].length?A[1]:null;if(A[2]==='club'){P.club=true;P.bk=null;}else P.bk=['shack','barn','building'].includes(A[2])?A[2]:'building';P.ai=i;h.buildings.push(P);});}
+// parking lots measured with the clubhouses (BLDX[id].p, course yd) join the map's lots unless one already covers them
+function bldxPark(S){if(!S||S._bp||typeof BLDX==='undefined'||!BLDX)return;S._bp=1;const X=BLDX[CUR.id]||(CUR.data&&BLDX[CUR.data]);if(!X||!X.p)return;
+  const have=(S.polys.park||[]).map(P=>mkPoly(P,'lot'));S.polys.park=S.polys.park||[];
+  for(const R of X.p){if(!R||R.length<3)continue;const Q=mkPoly(R,'lot');if(have.some(H=>inPoly(H,Q.x,Q.y)||inPoly(Q,H.x,H.y)))continue;S.polys.park.push(R);have.push(Q);}}
+// a lot's stalls: rows 6.4 yd apart along its longest side (every third one an aisle), 2.9 yd stalls; f(x,y,ang,u,v) per stall
+function lotStalls(P,f){const Q=mkPoly(P,'lot');let L=0,ang=0;for(let i=0;i<P.length;i++){const a=P[i],c=P[(i+1)%P.length],l=hyp(c[0]-a[0],c[1]-a[1]);if(l>L){L=l;ang=Math.atan2(c[1]-a[1],c[0]-a[0]);}}
+  const ca=Math.cos(ang),sa=Math.sin(ang);
+  for(let v=-120;v<120;v+=6.4)for(let u=-160;u<160;u+=2.9){if(((v/6.4)|0)%3===2)continue;const x=Q.x+u*ca-v*sa,y=Q.y+u*sa+v*ca;if(!inPoly(Q,x,y)||polyDist(Q,x,y,4)>-2.2)continue;f(x,y,ang,Q);}}
 // the footprint's bounding rectangle: smallest one, or one along a measured ridge (snapped to the footprint's own axes within ~20 deg)
 function bldOBB(p,want){const proj=t=>{const ux=Math.cos(t),uy=Math.sin(t);let u0=1e9,u1=-1e9,v0=1e9,v1=-1e9;
     for(const q of p){const u=q[0]*ux+q[1]*uy,v=q[1]*ux-q[0]*uy;if(u<u0)u0=u;if(u>u1)u1=u;if(v<v0)v0=v;if(v>v1)v1=v;}return{t,ux,uy,u0,u1,v0,v1,ar:Math.max(1e-6,(u1-u0)*(v1-v0))};};
@@ -1727,6 +1741,21 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
   if(rect)p=[P2(ob.u0,ob.v0),P2(ob.u1,ob.v0),P2(ob.u1,ob.v1),P2(ob.u0,ob.v1)];else if(simple&&p.length>6)p=bldSimplify(p,1);
   // clockwise footprints only: the mesh is single-sided and walls must face out (mapped footprints come in both windings)
   if(polyArea(p)>0)p=p.slice().reverse();const s=-1;
+  // the longest wall: where a club's entry canopy, a shack's serving window or a barn's doors go; of the long walls, the one facing a target
+  let bi=0,bl=0;for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length],l=hyp(b[0]-a[0],b[1]-a[1]);if(l>bl){bl=l;bi=i;}}
+  const faceTo=(tx,ty,minL,skip)=>{let r=-1,bs=-1e9;for(let i=0;i<p.length;i++){if(i===skip)continue;const a=p[i],b=p[(i+1)%p.length],l=hyp(b[0]-a[0],b[1]-a[1]);if(l<minL)continue;const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dl=hyp(tx-mx,ty-my)||1;
+      const sc=((b[1]-a[1])*s*(tx-mx)-(b[0]-a[0])*s*(ty-my))/l/dl;if(sc>bs){bs=sc;r=i;}}return r;};
+  const holePt=()=>{const L0=h.line||[[0,0]];let tx=L0[0][0],ty=L0[0][1],td=1e9;for(const c of L0){const d=hyp(c[0]-q.x,c[1]-q.y);if(d<td){td=d;tx=c[0];ty=c[1];}}return[tx,ty];};
+  let pi=-1;const doors=[];   // [wall, t, half width]: no windows there
+  if(!simple){
+    if(kind==='shack'||kind==='barn'){const[tx,ty]=holePt(),k=faceTo(tx,ty,bl*.85,-1);if(k>=0)bi=k;}
+    else if(club){
+      // entry toward the nearest parking lot, porch toward the course
+      let lot=null,ld=260;if(CUR.surr)for(const P0 of CUR.surr.polys.park||[]){let cx=0,cy=0;for(const c of P0){cx+=c[0];cy+=c[1];}cx=cx/P0.length-h.T0[0];cy=cy/P0.length-h.T0[1];const d=hyp(cx-q.x,cy-q.y);if(d<ld){ld=d;lot=[cx,cy];}}
+      if(lot){const k=faceTo(lot[0],lot[1],bl*.6,-1);if(k>=0)bi=k;}
+      const[tx,ty]=holePt();pi=faceTo(tx,ty,Math.min(bl*.5,9),bi);
+      doors.push([bi,.5,1.6]);if(pi>=0)doors.push([pi,.5,Math.min(5,hyp(p[(pi+1)%p.length][0]-p[pi][0],p[(pi+1)%p.length][1]-p[pi][1])*.25)]);}
+    else if(ex)doors.push([bi,.5,.75]);}
   // colours: the course style for clubs and course buildings, a photo roof colour when there is one, walls chosen to suit it
   let wall=hexc(club||kind==='shack'?ST.wall:'#cfc8bb'),roof=hexc(club||kind==='shack'?ST.roof:'#57524c');
   if(kind==='barn'){wall=hexc(BLD_BARNW[hs%5]);roof=hexc('#6d706f');}
@@ -1734,18 +1763,23 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
   if(rec&&rec[4]!=null&&isFinite(rec[4])){roof=bldRoofCol(rec[4]);const lr=BLD_LUM(roof);
     if(!club&&!kind)wall=hexc(lr<.55?BLD_LIGHTW[hs%5]:BLD_DARKW[hs%5]);
     else if(Math.abs(BLD_LUM(wall)-lr)<.12)wall=hexc(lr<.5?BLD_LIGHTW[hs%5]:BLD_DARKW[hs%5]);}
-  const stone=hexc(ST.stone),trim=hexc(ST.trim),glass=hexc('#2b3a46');
+  const stone=hexc(ST.stone),trim=hexc(ST.trim),glass=hexc('#2b3a46'),fancy=(ex||club)&&kind!=='barn'&&!simple,frame=club?mul(trim,1.15):BLD_LUM(wall)<.62?hexc('#ece9e2'):hexc('#5f5a52');
   const flat=ex&&rt===0,Htop=flat?H1+.45:H1,plinth=kind&&kind!=='building'?.3:club?1.1:.5;
-  let rows=[];if(!simple&&kind!=='shack'&&kind!=='barn'){if(!ex)rows=H1>6?[[1.8,3.3],[4.6,6.1]]:[[1.6,3.1]];else for(let y=club?1.8:1.5;y+1.5<H1-.3&&rows.length<6;y+=3.1)rows.push([y,y+1.5]);}
+  let rows=[];if(!simple&&kind!=='shack'&&kind!=='barn'){if(!ex)rows=H1>6?[[1.8,3.3],[4.6,6.1]]:[[1.6,3.1]];else for(let y=club?1.8:1.5;y+1.5<H1-.3&&rows.length<6;y+=3.1)rows.push([y,y+1.5]);
+    if(!rows.length&&H1>2.5)rows.push([Math.max(plinth+.25,.9),Math.min(H1-.55,2.6)]);}
   // walls: stone plinth, siding, a trim band under the eave (or the parapet coping), rows of windows
   for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length],ex2=b[0]-a[0],ez=b[1]-a[1],L=hyp(ex2,ez);if(L<.2)continue;
     const n=[ez/L*s,0,-ex2/L*s];
     const wq=(y0,y1,col,o=0)=>{const A0=[a[0]+n[0]*o,gh+y0,a[1]+n[2]*o],B0=[b[0]+n[0]*o,gh+y0,b[1]+n[2]*o],B1=[b[0]+n[0]*o,gh+y1,b[1]+n[2]*o],A1=[a[0]+n[0]*o,gh+y1,a[1]+n[2]*o];pushTri(out,A0,B0,B1,col,n,n,n);pushTri(out,A0,B1,A1,col,n,n,n);};
     if(simple){wq(0,Htop,wall);continue;}
     wq(0,plinth,stone,.12);wq(plinth,Htop,wall);wq(Htop-.35,Htop,trim,.05);
-    const nw=Math.floor(L/(club?3.2:3.8));
+    const rq=(t0,t1,y0,y1,col,o)=>{const A0=[a[0]+ex2*t0+n[0]*o,gh+y0,a[1]+ez*t0+n[2]*o],B0=[a[0]+ex2*t1+n[0]*o,gh+y0,a[1]+ez*t1+n[2]*o],B1=[B0[0],gh+y1,B0[2]],A1=[A0[0],gh+y1,A0[2]];pushTri(out,A0,B0,B1,col,n,n,n);pushTri(out,A0,B1,A1,col,n,n,n);};
+    // corner boards
+    if(fancy&&L>1.2){const c=.26/L;rq(0,c,plinth,Htop-.35,frame,.045);rq(1-c,1,plinth,Htop-.35,frame,.045);}
+    const nw=Math.floor(L/(club?3.2:3.8)),dz=doors.filter(d=>d[0]===i);
     for(let k=0;k<nw;k++){const t=(k+.5)/nw,cx=a[0]+ex2*t,cz=a[1]+ez*t,hw=club?.75:.6,ux=ex2/L*hw,uz=ez/L*hw;
-      for(const[y0,y1]of rows){if(y1>H1-.3)continue;const o=.06,P0=[cx-ux+n[0]*o,gh+y0,cz-uz+n[2]*o],P1=[cx+ux+n[0]*o,gh+y0,cz+uz+n[2]*o],P2=[cx+ux+n[0]*o,gh+y1,cz+uz+n[2]*o],P3=[cx-ux+n[0]*o,gh+y1,cz-uz+n[2]*o];
+      for(const[y0,y1]of rows){if(y1>H1-.3)continue;if(y0<3&&dz.some(d=>Math.abs(t-d[1])*L<d[2]+hw+.35))continue;const o=.06,P0=[cx-ux+n[0]*o,gh+y0,cz-uz+n[2]*o],P1=[cx+ux+n[0]*o,gh+y0,cz+uz+n[2]*o],P2=[cx+ux+n[0]*o,gh+y1,cz+uz+n[2]*o],P3=[cx-ux+n[0]*o,gh+y1,cz-uz+n[2]*o];
+        if(fancy){const fw=(hw+.13)/L;rq(t-fw,t+fw,y0-.16,y1+.13,frame,.045);if(club)rq(t-.04/L,t+.04/L,y0,y1,frame,.075);}
         pushTri(out,P0,P1,P2,glass,n,n,n);pushTri(out,P0,P2,P3,glass,n,n,n);}}}
   const shadeOf=nf=>.82+.18*Math.max(0,dot3(nf,nrm([-.5,.6,.6])));
   const slope=(a,b,c,d,under)=>{let nn=nrm(cross(sub(b,a),sub(d,a)));if(nn[1]<0)nn=mul(nn,-1);quadO(out,a,b,c,d,mul(roof,shadeOf(nn)),nn);if(under)quadO(out,a,b,c,d,mul(trim,.8),mul(nn,-1));};
@@ -1791,19 +1825,43 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
         for(let k=0;k<nU;k++){const u=uc+(nU>1?(k/(nU-1)-.5)*span:0),v=vc+((hs>>k)&1?.2:-.2)*(ob.v1-ob.v0)*.5,c=P2(u,v);if(!inPoly(q,c[0],c[1]))continue;
           boxO(out,c[0],yF+.55,c[1],1.1,.55,.8,ob.t,hexc('#a9aba7'));}}}}
   if(simple)return;
-  // the longest wall: where a club's entry canopy, a shack's serving window or a barn's doors go
-  let bi=0,bl=0;for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length],l=hyp(b[0]-a[0],b[1]-a[1]);if(l>bl){bl=l;bi=i;}}
-  if(kind==='shack'||kind==='barn'){   // of the long walls, the one facing the hole
-    const L0=h.line||[[0,0]];let tx=L0[0][0],ty=L0[0][1],td=1e9;for(const c of L0){const d=hyp(c[0]-q.x,c[1]-q.y);if(d<td){td=d;tx=c[0];ty=c[1];}}
-    let bs=-1e9;for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length],l=hyp(b[0]-a[0],b[1]-a[1]);if(l<bl*.85)continue;const sc=((b[1]-a[1])*s*(tx-(a[0]+b[0])/2)-(b[0]-a[0])*s*(ty-(a[1]+b[1])/2))/l;if(sc>bs){bs=sc;bi=i;}}}
   const edge=k=>{const a=p[k%p.length],b=p[(k+1)%p.length],L=hyp(b[0]-a[0],b[1]-a[1])||1,ex2=(b[0]-a[0])/L,ez=(b[1]-a[1])/L;return{a,b,L,ex:ex2,ez,mx:(a[0]+b[0])/2,mz:(a[1]+b[1])/2,nx:ez*s,nz:-ex2*s,rot:Math.atan2(ez,ex2)};};
-  const panel=(E,t,hw,y0,y1,col,o)=>{const cx=E.a[0]+(E.b[0]-E.a[0])*t,cz=E.a[1]+(E.b[1]-E.a[1])*t,n=[E.nx,0,E.nz];hw=Math.min(hw,E.L*.45);
-    quadO(out,[cx-E.ex*hw+E.nx*o,gh+y0,cz-E.ez*hw+E.nz*o],[cx+E.ex*hw+E.nx*o,gh+y0,cz+E.ez*hw+E.nz*o],[cx+E.ex*hw+E.nx*o,gh+y1,cz+E.ez*hw+E.nz*o],[cx-E.ex*hw+E.nx*o,gh+y1,cz-E.ez*hw+E.nz*o],col,n);};
-  if(club){const E=edge(bi),a=E.a,b=E.b,ex2=E.ex,ez=E.ez,mx=E.mx,mz=E.mz,nx=E.nx,nz=E.nz,rot=E.rot,cy=Math.min(4.3,H1-.5);
+  // doors and porches sit on the ground in front of their wall (higher than the footprint's lowest corner on a slope)
+  let lift=0;const liftAt=E=>clamp(hAtH(h,E.mx+E.nx*2.5,E.mz+E.nz*2.5)-gh,0,Math.max(0,H1-3.4));
+  const panel=(E,t,hw,y0,y1,col,o)=>{const cx=E.a[0]+(E.b[0]-E.a[0])*t,cz=E.a[1]+(E.b[1]-E.a[1])*t,n=[E.nx,0,E.nz],g=gh+lift;hw=Math.min(hw,E.L*.45);
+    quadO(out,[cx-E.ex*hw+E.nx*o,g+y0,cz-E.ez*hw+E.nz*o],[cx+E.ex*hw+E.nx*o,g+y0,cz+E.ez*hw+E.nz*o],[cx+E.ex*hw+E.nx*o,g+y1,cz+E.ez*hw+E.nz*o],[cx-E.ex*hw+E.nx*o,g+y1,cz-E.ez*hw+E.nz*o],col,n);};
+  if(club){const E=edge(bi),a=E.a,b=E.b,ex2=E.ex,ez=E.ez,mx=E.mx,mz=E.mz,nx=E.nx,nz=E.nz,rot=E.rot;lift=liftAt(E);const cy=Math.min(4.3,H1-lift-.5),g1=gh+lift;
     // entry canopy on the longest wall
-    boxO(out,mx+nx*2.6,gh+cy,mz+nz*2.6,3.2,.25,2.8,rot,trim);
-    for(const sx of[-2.8,2.8])boxO(out,mx+nx*4.9+ex2*sx,gh+cy/2-.05,mz+nz*4.9+ez*sx,.35,cy/2-.05,.35,rot,stone);}
-  else if(kind==='shack'){const E=edge(bi),D=edge(bi+1),W=edge(bi+3),aw=hexc(['#2f6b4a','#7a2f2a','#2f4f7a'][hs%3]),yw=Math.min(2.25,H1-.25);
+    boxO(out,mx+nx*2.6,g1+cy,mz+nz*2.6,3.2,.25,2.8,rot,trim);
+    for(const sx of[-2.8,2.8]){const cg=Math.min(g1,hAtH(h,mx+nx*4.9+ex2*sx,mz+nz*4.9+ez*sx))-.2;boxO(out,mx+nx*4.9+ex2*sx,(cg+g1+cy)/2,mz+nz*4.9+ez*sx,.35,(g1+cy-cg)/2,.35,rot,stone);}
+    q.ent=[mx,mz,nx,nz];
+    // glass double doors under it
+    const dh=Math.min(2.7,cy-.3);panel(E,.5,1.6,plinth-.05,dh+.15,frame,.05);panel(E,.5,1.42,plinth,dh,glass,.07);panel(E,.5,.05,plinth,dh,frame,.09);
+    // a flagpole off the entry, flying the course colours
+    { const fx=mx+nx*8.5+ex2*Math.min(E.L*.5+2,9),fz=mz+nz*8.5+ez*Math.min(E.L*.5+2,9),g0=hAtH(h,fx,fz),FS=typeof r3FlagStyle==='function'?r3FlagStyle(CUR.id):{bg:'#1f4f8a',fg:'#ffffff'},fb=hexc(FS.bg),ff=hexc(FS.fg||'#ffffff');
+      boxO(out,fx,g0+.2,fz,.35,.2,.35,rot,stone);boxO(out,fx,g0+4.7,fz,.07,4.5,.07,rot,[.92,.92,.9]);boxO(out,fx,g0+9.25,fz,.13,.1,.13,rot,[.85,.7,.3]);
+      const w=2.5,hgt=1.55,y1=g0+9.05,ux=ex2,uz=ez,F=(t0,t1,ya,yb,col,o)=>{const A0=[fx+ux*t0+nx*o,ya,fz+uz*t0+nz*o],B0=[fx+ux*t1+nx*o,ya,fz+uz*t1+nz*o],B1=[B0[0],yb,B0[2]],A1=[A0[0],yb,A0[2]];
+        quadO(out,A0,B0,B1,A1,col,[nx,0,nz]);quadO(out,A0,B0,B1,A1,mul(col,.82),[-nx,0,-nz]);};
+      F(.08,w,y1-hgt,y1,fb,0);F(.08,w,y1-hgt*.62,y1-hgt*.38,ff,.012);F(.08,w,y1-hgt*.62,y1-hgt*.38,ff,-.012);}
+    // a covered porch on the course side: deck, posts, railing and a shed roof
+    if(pi>=0&&(lift=liftAt(edge(pi)),H1-lift>3.2)){const P=edge(pi);q.por=[P.mx,P.mz,P.nx,P.nz];const pw=Math.min(P.L*.62,18)/2,dp=3.4,pc=[P.mx+P.nx*dp/2,P.mz+P.nz*dp/2];
+      let gl=gh+lift;for(const[u,v]of[[-pw,0],[pw,0],[-pw,dp],[pw,dp]])gl=Math.min(gl,hAtH(h,P.mx+P.ex*u+P.nx*v,P.mz+P.ez*u+P.nz*v));
+      const yt=gh+lift+Math.max(.35,plinth*.6),yb=gl-.3,ph=Math.max(2.4,Math.min(3.2,H1-lift-.7)),deckC=hexc('#8b6b4e'),post=mul(trim,1.25);
+      boxO(out,pc[0],(yt+yb)/2,pc[1],pw,(yt-yb)/2,dp/2,P.rot,deckC);
+      const np=Math.max(2,Math.round(pw*2/3.4)+1);for(let k=0;k<np;k++){const u=-pw+.2+(pw*2-.4)*k/(np-1);boxO(out,P.mx+P.ex*u+P.nx*(dp-.2),yt+ph/2,P.mz+P.ez*u+P.nz*(dp-.2),.13,ph/2,.13,P.rot,post);}
+      boxO(out,P.mx+P.nx*(dp-.2),yt+.95,P.mz+P.nz*(dp-.2),pw-.1,.05,.06,P.rot,post);
+      for(const sg of[-1,1])boxO(out,P.mx+P.ex*sg*(pw-.2)+P.nx*dp/2,yt+.95,P.mz+P.ez*sg*(pw-.2)+P.nz*dp/2,.06,.05,dp/2-.1,P.rot,post);
+      // the roof slopes down away from the wall
+      const yr0=yt+ph+.55,yr1=yt+ph+.05,R3p=(u,v,y)=>[P.mx+P.ex*u+P.nx*v,y,P.mz+P.ez*u+P.nz*v];
+      slope(R3p(-pw-.3,-.1,yr0),R3p(pw+.3,-.1,yr0),R3p(pw+.3,dp+.35,yr1),R3p(-pw-.3,dp+.35,yr1),true);
+      quadO(out,R3p(-pw-.3,dp+.35,yr1-.22),R3p(pw+.3,dp+.35,yr1-.22),R3p(pw+.3,dp+.35,yr1+.02),R3p(-pw-.3,dp+.35,yr1+.02),trim,[P.nx,0,P.nz]);
+      // french doors onto it
+      const nd=Math.max(1,Math.floor(pw*2/4));for(let k=0;k<nd;k++){const t=.5+((k+.5)/nd-.5)*pw*2/P.L*.8;panel(P,t,.85,plinth-.05,Math.min(2.6,H1-lift-.5)+.12,frame,.05);panel(P,t,.72,plinth,Math.min(2.6,H1-lift-.5),glass,.07);}}}
+  else if(ex&&!kind&&doors.length||kind==='building'&&doors.length){const E=edge(bi);lift=liftAt(E);const dh=Math.min(2.3,H1-lift-.5);
+    // a plain door with a frame and a little hood
+    panel(E,.5,.62,plinth-.05,dh+.12,frame,.05);panel(E,.5,.5,plinth,dh,hexc(['#4b5560','#6b4a33','#7a2f2a','#2f4f3a'][hs%4]),.07);
+    boxO(out,E.mx+E.nx*.45,gh+lift+dh+.35,E.mz+E.nz*.45,.85,.06,.45,E.rot,mul(roof,1.05));lift=0;}
+  else if(kind==='shack'){lift=0;const E=edge(bi),D=edge(bi+1),W=edge(bi+3),aw=hexc(['#2f6b4a','#7a2f2a','#2f4f7a'][hs%3]),yw=Math.min(2.25,H1-.25);
     // serving window with a counter and an awning, a door round the side, one small window opposite
     panel(E,.5,.95,1.05,Math.min(2.0,H1-.45),glass,.06);boxO(out,E.mx+E.nx*.28,gh+1.02,E.mz+E.nz*.28,Math.min(1.05,E.L*.45),.05,.28,E.rot,trim);
     boxO(out,E.mx+E.nx*.6,gh+yw,E.mz+E.nz*.6,Math.min(1.25,E.L*.48),.05,.62,E.rot,aw);
@@ -1831,14 +1889,11 @@ function buildStructures(h,out){const ST=STYLE[CUR.scen]||STYLE.prairie,R=rng(42
     const q2=pts[pts.length-1],q1=pts[pts.length-2];ext.push(...pts,[q2[0]+(q2[0]-q1[0])/L*6,q2[1]+(q2[1]-q1[1])/L*6]);
     const dense=[];for(let i=0;i<ext.length-1;i++){const a=ext[i],c=ext[i+1],l=hyp(c[0]-a[0],c[1]-a[1]),n=Math.max(1,Math.ceil(l/2));for(let k=0;k<n;k++)dense.push([a[0]+(c[0]-a[0])*k/n,a[1]+(c[1]-a[1])*k/n]);}dense.push(ext[ext.length-1]);
     deck(out,dense,r[1]+1.5,hexc('#8f8d88'),hexc('#b9b6ae'),true);}
-  // parked cars in the lots
-  if(CUR.surr){const CAR=['#e9e9e6','#1f2a36','#8a8f96','#6b1e22','#2f4f7a','#c8c1b0','#3b3b3b','#9aa8b3'];let cars=0;const b=h.bounds;
+  // parked cars in the lots, nose-in across each row
+  if(CUR.surr){bldxPark(CUR.surr);const CAR=['#e9e9e6','#1f2a36','#8a8f96','#6b1e22','#2f4f7a','#c8c1b0','#3b3b3b','#9aa8b3'];let cars=0;const b=h.bounds;
     for(const P0 of CUR.surr.polys.park||[]){const P=P0.map(q=>[q[0]-h.T0[0],q[1]-h.T0[1]]);const Q=mkPoly(P,'lot');if(Q.bb[2]<b[0]-500||Q.bb[0]>b[2]+500||Q.bb[3]<b[1]-500||Q.bb[1]>b[3]+500)continue;if(Q.area>40000)continue;
-      let L=0,ang=0;for(let i=0;i<P.length;i++){const a=P[i],c=P[(i+1)%P.length],l=hyp(c[0]-a[0],c[1]-a[1]);if(l>L){L=l;ang=Math.atan2(c[1]-a[1],c[0]-a[0]);}}
-      const ca=Math.cos(ang),sa=Math.sin(ang);
-      for(let v=-120;v<120;v+=6.4)for(let u=-160;u<160;u+=2.9){if(((v/6.4)|0)%3===2)continue;const x=Q.x+u*ca-v*sa,y=Q.y+u*sa+v*ca;if(!inPoly(Q,x,y)||polyDist(Q,x,y,4)>-2.2)continue;if(R()>.55||cars>220)continue;
-        const col=hexc(CAR[Math.floor(R()*CAR.length)]),gy=hAtH(h,x,y),rot=ang+Math.PI/2;cars++;
-        boxO(out,x,gy+.55,y,.85,.4,2.2,rot,col);boxO(out,x-Math.sin(rot)*0,gy+1.12,y,.75,.3,1.15,rot,mul(col,.55));}}}
+      lotStalls(P,(x,y,ang)=>{if(R()>.55||cars>220)return;const col=hexc(CAR[Math.floor(R()*CAR.length)]),gy=hAtH(h,x,y);cars++;
+        boxO(out,x,gy+.55,y,.85,.4,2.2,ang,col);boxO(out,x,gy+1.12,y+0,.75,.3,1.15,ang,mul(col,.55));});}}
   // flags on the other greens, the range targets, and this hole's tee markers
   const flag=(x,y,col)=>{const g0=hAtH(h,x,y);boxO(out,x,g0+1.25,y,.04,1.25,.04,0,[.95,.95,.95]);pushTri(out,[x,g0+2.45,y],[x+.8,g0+2.2,y],[x,g0+1.95,y],col,[0,0,1],[0,0,1],[0,0,1]);pushTri(out,[x,g0+2.45,y],[x,g0+1.95,y],[x+.8,g0+2.2,y],mul(col,.8),[0,0,-1],[0,0,-1],[0,0,-1]);};
   COURSE.holes.forEach((H,k)=>{if(k===G.hi)return;const x=H.pin[0]-h.T0[0],y=H.pin[1]-h.T0[1],b=h.bounds;if(x<b[0]-800||x>b[2]+800||y<b[1]-800||y>b[3]+800)return;flag(x,y,hexc(typeof r3FlagStyle==='function'?r3FlagStyle(CUR.id).bg:'#ff6a48'));});
