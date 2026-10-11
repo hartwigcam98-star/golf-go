@@ -760,7 +760,7 @@ td.won{background:rgba(255,201,60,.38)}
 </div>
 
 <script src="greens.js?v=9d3fb97522"></script>
-<script src="ground.js?v=6d5fde4cb1"></script>
+<script src="ground.js?v=427c077630"></script>
 <script src="trees.js?v=08a9667a5f"></script>
 <script>/* three.js r170 (MIT) */
 (function(){
@@ -1791,8 +1791,11 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
     else if(club){
       // entry toward the nearest parking lot, porch toward the course
       let lot=null,ld=260;if(CUR.surr)for(const P0 of CUR.surr.polys.park||[]){let cx=0,cy=0;for(const c of P0){cx+=c[0];cy+=c[1];}cx=cx/P0.length-h.T0[0];cy=cy/P0.length-h.T0[1];const d=hyp(cx-q.x,cy-q.y);if(d<ld){ld=d;lot=[cx,cy];}}
-      if(lot){const k=faceTo(lot[0],lot[1],bl*.6,-1);if(k>=0)bi=k;}
-      const[tx,ty]=holePt();pi=faceTo(tx,ty,Math.min(bl*.5,9),bi);
+      // entry: toward the lot (or away from the course), never out over water; porch toward the course
+      const[tx,ty]=holePt(),wetAt=(x,y)=>h.water.some(w=>inPoly(w,x,y)),dryOut=k=>{const a=p[k],b=p[(k+1)%p.length],l=hyp(b[0]-a[0],b[1]-a[1])||1,nx=(b[1]-a[1])/l*s,nz=-(b[0]-a[0])/l*s,mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2;return!wetAt(mx+nx*6,mz+nz*6)&&!wetAt(mx+nx*2.5,mz+nz*2.5);};
+      const pick=(x,y,minL,skip)=>{let r=-1,bs=-1e9;for(let i=0;i<p.length;i++){if(i===skip||!dryOut(i))continue;const a=p[i],b=p[(i+1)%p.length],l=hyp(b[0]-a[0],b[1]-a[1]);if(l<minL)continue;const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dl=hyp(x-mx,y-my)||1,sc=((b[1]-a[1])*s*(x-mx)-(b[0]-a[0])*s*(y-my))/l/dl;if(sc>bs){bs=sc;r=i;}}return r;};
+      if(lot){const k=pick(lot[0],lot[1],bl*.5,-1);if(k>=0)bi=k;pi=faceTo(tx,ty,Math.min(bl*.5,9),bi);}
+      else{pi=faceTo(tx,ty,Math.min(bl*.5,9),-1);const k=pick(2*q.x-tx,2*q.y-ty,bl*.4,pi);if(k>=0)bi=k;if(pi===bi)pi=-1;}
       doors.push([bi,.5,1.6]);if(pi>=0)doors.push([pi,.5,Math.min(5,hyp(p[(pi+1)%p.length][0]-p[pi][0],p[(pi+1)%p.length][1]-p[pi][1])*.25)]);}
     else if(ex)doors.push([bi,.5,.75]);}
   // colours: the course style for clubs and course buildings, a photo roof colour when there is one, walls chosen to suit it
