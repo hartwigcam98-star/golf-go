@@ -1,8 +1,8 @@
 /* Golf Go offline cache. The page is checked online first (so updates show straight away) and falls back to the copy on
    this phone; course data carries a version tag (?v=…) and is kept until it changes; leaderboards always go to the network. */
-const V='2d613bb28c',CORE='core-'+V,ASSETS='assets';
+const V='7ab85e17b9',CORE='core-'+V,ASSETS='assets';
 const CORE_FILES=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png'];
-const DATA=["greens.js?v=750a959998", "ground.js?v=ca45a91d3a", "trees.js?v=c6fdccfd06"];   // current versioned data files
+const DATA=["greens.js?v=9d3fb97522", "ground.js?v=14a79bace9", "trees.js?v=08a9667a5f"];   // current versioned data files
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CORE).then(c=>c.addAll(CORE_FILES)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil((async()=>{
   for(const k of await caches.keys())if(k.startsWith('core-')&&k!==CORE)await caches.delete(k);
