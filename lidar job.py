@@ -1,15 +1,14 @@
-# Buildings from USGS lidar: for each course in bld_req.json, read the 3DEP lidar point cloud (AWS EPT) over the course,
-# grid a 1 m surface model (highest return) and ground model (class 2), and measure every mapped building footprint:
-# wall height to the eave, roof rise, roof type (flat / gable / hip) and ridge direction. Also finds course buildings the
-# map is missing (snack shacks, restrooms, shelters, cart barns): raised, smooth, single-return blobs near the holes.
-# Results go to the "course-data" branch as bld_<key>.json (main is untouched).
+# Clubhouses and parking from USGS lidar + OpenStreetMap: for each course in cb_req.json, find the clubhouse when the game has
+# none (an OSM building tagged as one, else the biggest building near the first tee / last green, else the biggest smooth raised
+# block in the lidar there), measure its walls and roof, and collect the parking lots and side buildings round it.
+# Results go to the "course-data" branch as cb_<key>.json (main is untouched).
 import json, math, os, time, re, traceback, subprocess
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
-REQ = json.load(open('bld_req.json')); KEYS = REQ.pop('_keys', None) or list(REQ)
+REQ = json.load(open('cb_req.json')); KEYS = REQ.pop('_keys', None) or list(REQ)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': []}
-def save(): json.dump(SUM, open(f'{OUT}/bld_summary.json', 'w'), indent=1)
+def save(): json.dump(SUM, open(f'{OUT}/cb_summary.json', 'w'), indent=1)
 def log(*a): print(time.strftime('%H:%M:%S'), *a, flush=True)
 def err(where, e): SUM['errors'].append(f'{where}: {e}'); log('FAIL', where, e); traceback.print_exc(); save()
 S = requests.Session(); S.headers['User-Agent'] = 'golf-go-course-builder (github.com/hartwigcam98-star/golf-go)'
@@ -118,103 +117,128 @@ def roof_of(dsm, gnd, m):
     return dict(roof=roof, eave=float(eave), rise=float(rise), ang=float(ridge), q='ok', R2=round(float(R2), 2), R4=round(float(R4), 2), pitch=round(pitch, 2), lap=round(lap, 2), sd=round(sd, 2))
 
 OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']
-def osm_buildings(bb):
-    q = f'[out:json][timeout:120];(way["building"]({bb[1]},{bb[0]},{bb[3]},{bb[2]}););out geom;'
+OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter']
+def overpass(q):
     for u in OVP:
         try:
             r = S.post(u, data={'data': q}, timeout=200)
-            if r.status_code == 200: return [[[p['lon'], p['lat']] for p in el['geometry']] for el in r.json()['elements'] if el.get('geometry')]
+            if r.status_code == 200: return r.json()['elements']
+            log('  overpass', u, r.status_code)
         except Exception as e: log('  overpass', u, e)
-    return []
+        time.sleep(5)
+    raise RuntimeError('overpass failed')
+def ring_area_m(ring, tf):
+    X, Y = tf.transform([p[0] for p in ring], [p[1] for p in ring]); X = np.array(X); Y = np.array(Y)
+    return abs(np.dot(X, np.roll(Y, 1)) - np.dot(Y, np.roll(X, 1))) / 2, float(X.mean()), float(Y.mean())
+CLUBRX = re.compile(r'club|grill|pro ?shop|lodge|pavilion|chalet|restaurant|tavern|bar$', re.I)
 def course(key, rq, resources):
-    W_, S_, E_, N_ = rq['bbox']; epsg = UTMZ((W_ + E_) / 2); tf = Transformer.from_crs(4326, epsg, always_xy=True); tb = Transformer.from_crs(epsg, 4326, always_xy=True)
-    xs, ys = tf.transform([W_, E_, W_, E_], [S_, S_, N_, N_]); x0, y0, x1, y1 = math.floor(min(xs)), math.floor(min(ys)), math.ceil(max(xs)), math.ceil(max(ys))
-    W, H = x1 - x0, y1 - y0
-    cx, cy = (W_ + E_) / 2, (S_ + N_) / 2
-    pts = [(W_, S_), (E_, S_), (W_, N_), (E_, N_), (cx, cy)]
-    cand = [f['properties']['name'] for f in resources if any(pip(q, r) for q in pts for r in rings_of(f['geometry']))]
-    cand.sort(key=lambda n: -year_of(n))
-    info = dict(cand=cand, W=W, H=H, epsg=epsg); SUM['courses'][key] = info; save()
-    if not cand: raise RuntimeError('no lidar resource')
-    # tiles of ~600 m
-    T = 0.003; tiles = []
-    lon = W_
-    while lon < E_:
-        lat = S_
-        while lat < N_: tiles.append([lon, lat, min(E_, lon + T * 1.4), min(N_, lat + T)]); lat += T
+    """clubhouse (when the game has none) and the parking lots round it"""
+    from scipy import ndimage as ndi
+    import cv2
+    cx, cy = rq['center']; R = rq.get('radius', 450)
+    epsg = UTMZ(cx); tf = Transformer.from_crs(4326, epsg, always_xy=True); tb = Transformer.from_crs(epsg, 4326, always_xy=True)
+    mx, my = tf.transform(cx, cy); x0, y0, x1, y1 = math.floor(mx - R), math.floor(my - R), math.ceil(mx + R), math.ceil(my + R); W, H = x1 - x0, y1 - y0
+    lo0, la0 = tb.transform(x0, y0); lo1, la1 = tb.transform(x1, y1); bb = [min(lo0, lo1), min(la0, la1), max(lo0, lo1), max(la0, la1)]
+    info = dict(epsg=epsg); SUM['courses'][key] = info; save()
+    out = dict(club=None, parking=[], extra=[])
+    els = overpass(f'[out:json][timeout:120];(way["building"]({bb[1]},{bb[0]},{bb[3]},{bb[2]});way["amenity"="parking"]({bb[1]},{bb[0]},{bb[3]},{bb[2]});relation["amenity"="parking"]({bb[1]},{bb[0]},{bb[3]},{bb[2]}););out geom;')
+    blds, parks = [], []
+    for el in els:
+        t = el.get('tags', {})
+        rings = [[[p['lon'], p['lat']] for p in el['geometry']]] if el['type'] == 'way' and el.get('geometry') else [[[p['lon'], p['lat']] for p in m['geometry']] for m in el.get('members', []) if m.get('role') == 'outer' and m.get('geometry')]
+        for rg in rings:
+            if len(rg) < 4: continue
+            a, ex, ey = ring_area_m(rg, tf)
+            if t.get('amenity') == 'parking': parks.append(dict(ring=rg, area=a, x=ex, y=ey))
+            elif 'building' in t: blds.append(dict(ring=rg, area=a, x=ex, y=ey, tags={k: v for k, v in t.items() if k in ('building', 'name', 'golf', 'amenity', 'leisure')}))
+    info['osm_bld'] = len(blds); info['osm_park'] = len(parks); save()
+    starts = [tf.transform(p[0], p[1]) for p in rq['starts']]
+    dstart = lambda x, y: min(math.hypot(x - a, y - b) for a, b in starts)
+    # lidar over the box
+    cand = [f['properties']['name'] for f in resources if any(pip(q, r) for q in [(bb[0], bb[1]), (bb[2], bb[3]), (cx, cy)] for r in rings_of(f['geometry']))]
+    cand.sort(key=lambda n: -year_of(n)); info['cand'] = cand; save()
+    T = 0.003; tiles = []; lon = bb[0]
+    while lon < bb[2]:
+        lat = bb[1]
+        while lat < bb[3]: tiles.append([lon, lat, min(bb[2], lon + T * 1.4), min(bb[3], lat + T)]); lat += T
         lon += T * 1.4
     best = None
     for res in cand[:4]:
-        zmax = np.full(W * H, np.nan, np.float32); gmin = np.full(W * H, np.nan, np.float32); single = np.zeros(W * H, np.int32); tot = np.zeros(W * H, np.int32); b6 = np.zeros(W * H, np.int32); n = 0
+        zmax = np.full(W * H, np.nan, np.float32); gmin = np.full(W * H, np.nan, np.float32); single = np.zeros(W * H, np.int32); tot = np.zeros(W * H, np.int32); b6 = np.zeros(W * H, np.int32)
         with ProcessPoolExecutor(3) as ex:
             fs = [ex.submit(read_tile, res, t, epsg, x0, y1, W, H) for t in tiles]
             for f in as_completed(fs):
                 try: d = f.result()
                 except Exception as e: err(f'tile {key} {res}', e); continue
                 if d is None: continue
-                i = d['i']; zmax[i] = np.fmax(zmax[i], d['zmax']); gmin[i] = np.fmin(gmin[i], d['gmin']); single[i] += d['single']; tot[i] += d['tot']; b6[i] += d['b6']; n += d['n']
-        cover = float((tot > 0).mean())
-        log(key, res, 'points', n, 'cover', round(cover, 3))
-        info.setdefault('tried', {})[res] = dict(points=n, cover=round(cover, 3), b6=int((b6 > 0).sum()))
+                i = d['i']; zmax[i] = np.fmax(zmax[i], d['zmax']); gmin[i] = np.fmin(gmin[i], d['gmin']); single[i] += d['single']; tot[i] += d['tot']; b6[i] += d['b6']
+        cover = float((tot > 0).mean()); info.setdefault('tried', {})[res] = round(cover, 3)
         if cover > 0.6: best = (res, zmax, gmin, single, tot, b6); break
         if best is None or cover > best[-1]: best = (res, zmax, gmin, single, tot, b6, cover)
+    if best is None: raise RuntimeError('no lidar')
     res, zmax, gmin, single, tot, b6 = best[:6]; info['used'] = res; save()
     dsm = zmax.reshape(H, W); gnd = fill_nan(gmin.reshape(H, W)); single = single.reshape(H, W); tot = tot.reshape(H, W); b6 = b6.reshape(H, W)
-    toxy = lambda lo, la: (np.array(tf.transform(lo, la)[0]) - x0, y1 - np.array(tf.transform(lo, la)[1]))
-    out = dict(src=res, fp={}, add=[], osm=[])
-    if not rq['fps']:   # courses with no footprints in the game: measure the OpenStreetMap buildings near play
-        try:
-            obs = osm_buildings(rq['bbox']); import cv2 as _c
-            for ring in obs:
-                X, Y = toxy([p[0] for p in ring], [p[1] for p in ring])
-                if len(ring) < 4: continue
-                cxm, cym = float(np.mean(X)), float(np.mean(Y))
-                rq['fps'].append(['o%d' % len(out['osm']), ring]); out['osm'].append(ring)
-            info['osm'] = len(out['osm'])
-        except Exception as e: err(f'osm {key}', e)
-    allmask = np.zeros((H, W), bool)
-    for fid, ring in rq['fps']:
-        lo = [p[0] for p in ring]; la = [p[1] for p in ring]; X, Y = toxy(lo, la)
-        pad = 8; R0, R1 = max(0, int(np.min(Y)) - pad), min(H, int(np.max(Y)) + pad + 1); C0, C1 = max(0, int(np.min(X)) - pad), min(W, int(np.max(X)) + pad + 1)
-        if R1 <= R0 or C1 <= C0: out['fp'][fid] = None; continue
-        m = poly_mask(np.c_[X - C0, Y - R0], C1 - C0, R1 - R0); allmask[R0:R1, C0:C1] |= m
-        r = roof_of(dsm[R0:R1, C0:C1], gnd[R0:R1, C0:C1], m)
-        if not r or 'roof' not in r: out['fp'][fid] = r; continue
-        out['fp'][fid] = [round(r['eave'], 2), round(r['rise'], 2), r['roof'], round(r['ang'], 3), r.get('q'), int(m.sum()), r.get('lap'), r.get('sd')]
-    # missing buildings: raised, smooth, mostly single-return (or class 6) blobs within ~140 m of a hole line
-    from scipy import ndimage as ndi
-    import cv2
-    nd = dsm - gnd
-    lines = np.zeros((H, W), np.uint8)
-    for L in rq['lines']:
-        X, Y = toxy([p[0] for p in L], [p[1] for p in L]); cv2.polylines(lines, [np.round(np.c_[X, Y]).astype(np.int32)], False, 1, 1)
-    near = ndi.distance_transform_edt(lines == 0) < 80
-    lap = np.abs(ndi.laplace(np.nan_to_num(dsm, nan=0.0).astype(np.float32)))
-    sf = single / np.maximum(tot, 1)
-    raised = near & np.isfinite(nd) & (nd > 2.2) & (nd < 40) & ~ndi.binary_dilation(allmask, iterations=3)
-    raised = ndi.binary_closing(raised, iterations=1) & near
-    smooth = lap < 0.9
-    lab, nl = ndi.label(raised)
-    for k, sl in enumerate(ndi.find_objects(lab), 1):
-        if sl is None: continue
-        r0, c0 = sl[0].start, sl[1].start
-        m = ndi.binary_fill_holes(lab[sl] == k); area = int(m.sum())
-        if area < 10 or area > 6000: continue
-        rr, cc = np.nonzero(m); cnt = np.c_[cc + c0, rr + r0].astype(np.float32)
-        rect = cv2.minAreaRect(cnt); (rw, rh) = rect[1]
-        if min(rw, rh) < 2.5 or max(rw, rh) / max(min(rw, rh), .1) > 6 or area / max(rw * rh, 1) < 0.55: continue
-        smf = float(smooth[sl][m].mean()); b6f = float((b6[sl][m] > 0).mean()); sff = float(sf[sl][m].mean())
-        if b6f < 0.3 and (smf < 0.6 or sff < 0.6): continue
-        box = cv2.boxPoints(rect)
-        pad = 4; R0, R1 = max(0, int(box[:, 1].min()) - pad), min(H, int(box[:, 1].max()) + pad + 1); C0, C1 = max(0, int(box[:, 0].min()) - pad), min(W, int(box[:, 0].max()) + pad + 1)
-        r = roof_of(dsm[R0:R1, C0:C1], gnd[R0:R1, C0:C1], poly_mask(box - [C0, R0], C1 - C0, R1 - R0))
-        if not r or 'roof' not in r: continue
-        lo, la = tb.transform(box[:, 0] + x0, y1 - box[:, 1])
-        out['add'].append(dict(ring=[[round(a, 7), round(b, 7)] for a, b in zip(lo, la)], eave=round(r['eave'], 2), rise=round(r['rise'], 2), roof=r['roof'], ang=round(r['ang'], 3), area=area,
-                               b6=round(b6f, 2), sf=round(sff, 2), smooth=round(smf, 2), rect=round(float(rw * rh), 1), lap=r.get('lap'), sd=r.get('sd'), q=r.get('q')))
-    json.dump(out, open(f'{OUT}/bld_{key}.json', 'w'), separators=(',', ':'))
-    info['fp'] = len(out['fp']); info['measured'] = sum(1 for v in out['fp'].values() if isinstance(v, list)); info['added'] = len(out['add']); save()
-    log(key, 'footprints', info['fp'], 'measured', info['measured'], 'added', info['added'])
+    toxy = lambda ring: (np.array(tf.transform([p[0] for p in ring], [p[1] for p in ring])[0]) - x0, y1 - np.array(tf.transform([p[0] for p in ring], [p[1] for p in ring])[1]))
+    def measure(ring):
+        X, Y = toxy(ring); pad = 8
+        R0, R1 = max(0, int(np.min(Y)) - pad), min(H, int(np.max(Y)) + pad + 1); C0, C1 = max(0, int(np.min(X)) - pad), min(W, int(np.max(X)) + pad + 1)
+        if R1 <= R0 or C1 <= C0: return None
+        m = poly_mask(np.c_[X - C0, Y - R0], C1 - C0, R1 - R0); r = roof_of(dsm[R0:R1, C0:C1], gnd[R0:R1, C0:C1], m)
+        if not r or 'roof' not in r: return None
+        return [round(r['eave'], 2), round(r['rise'], 2), r['roof'], round(r['ang'], 3)]
+    club = None
+    if not rq.get('has_club'):
+        tagged = [b for b in blds if b['area'] > 120 and (b['tags'].get('building') == 'clubhouse' or b['tags'].get('golf') == 'clubhouse' or CLUBRX.search(b['tags'].get('name', '')))]
+        if tagged:
+            b = min(tagged, key=lambda b: dstart(b['x'], b['y'])); club = dict(ring=b['ring'], src='osm-tag', name=b['tags'].get('name', ''), area=round(b['area']))
+        else:
+            near = [b for b in blds if b['area'] >= 250 and dstart(b['x'], b['y']) < 260]
+            if near:
+                b = max(near, key=lambda b: b['area'] * math.exp(-dstart(b['x'], b['y']) / 150)); club = dict(ring=b['ring'], src='osm', name=b['tags'].get('name', ''), area=round(b['area']))
+        if club is None:   # lidar: the biggest smooth raised block near the first tee / last green
+            nd = dsm - gnd; lap = np.abs(ndi.laplace(np.nan_to_num(dsm, nan=0.0).astype(np.float32))); sf = single / np.maximum(tot, 1)
+            yy, xx = np.mgrid[0:H, 0:W]; dmin = np.full((H, W), 1e9, np.float32)
+            for a, b in starts: dmin = np.minimum(dmin, np.hypot(xx - (a - x0), yy - (y1 - b)))
+            raised = np.isfinite(nd) & (nd > 2.8) & (nd < 30) & (dmin < 280); raised = ndi.binary_opening(raised, iterations=1)
+            lab, nl = ndi.label(raised); bestb = None
+            for k, sl in enumerate(ndi.find_objects(lab), 1):
+                if sl is None: continue
+                m = ndi.binary_fill_holes(lab[sl] == k); area = int(m.sum())
+                if area < 200 or area > 6000: continue
+                smf = float((lap[sl][m] < 0.9).mean()); sff = float(sf[sl][m].mean()); b6f = float((b6[sl][m] > 0).mean())
+                if b6f < 0.3 and (smf < 0.6 or sff < 0.55): continue
+                rr, cc = np.nonzero(m); cnt = np.c_[cc + sl[1].start, rr + sl[0].start].astype(np.float32)
+                rect = cv2.minAreaRect(cnt)
+                if area / max(rect[1][0] * rect[1][1], 1) < 0.5: continue
+                hull = cv2.approxPolyDP(cv2.convexHull(cnt), 1.2, True)[:, 0, :] if area / max(rect[1][0] * rect[1][1], 1) < 0.8 else cv2.boxPoints(rect)
+                # keep L / T shapes: trace the outline instead of the hull when the block is not rectangular
+                if area / max(rect[1][0] * rect[1][1], 1) < 0.8:
+                    mm = np.zeros((H, W), np.uint8); mm[sl][m] = 1; cs, _ = cv2.findContours(mm, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                    if cs: hull = cv2.approxPolyDP(max(cs, key=cv2.contourArea), 1.2, True)[:, 0, :].astype(np.float32)
+                sc = area * math.exp(-float(dmin[int(cnt[:, 1].mean()), int(cnt[:, 0].mean())]) / 150)
+                if bestb is None or sc > bestb[0]: bestb = (sc, hull, area, smf, sff)
+            if bestb:
+                _, hull, area, smf, sff = bestb; lo, la = tb.transform(hull[:, 0] + x0, y1 - hull[:, 1])
+                club = dict(ring=[[round(a, 7), round(b, 7)] for a, b in zip(lo, la)], src='lidar', name='', area=area, smooth=round(smf, 2), sf=round(sff, 2))
+        if club:
+            club['rec'] = measure(club['ring']); out['club'] = club
+    # parking lots near the clubhouse (or near the start when there is none)
+    if out['club']: ccx, ccy = tf.transform(*np.mean(np.array(out['club']['ring']), 0))
+    elif rq.get('club_ll'): ccx, ccy = tf.transform(*rq['club_ll'])
+    else: ccx, ccy = starts[0]
+    out['parking'] = [[[round(a, 7), round(b, 7)] for a, b in p['ring']] for p in parks if math.hypot(p['x'] - ccx, p['y'] - ccy) < 320 and 150 < p['area'] < 40000]
+    # other mapped buildings beside the clubhouse (cart barn, pro shop, halfway house) that the game doesn't have
+    have = [tf.transform(*q) for q in rq.get('have', [])]
+    for b in blds:
+        if out['club'] and b['ring'] is out['club']['ring']: continue
+        if b['area'] < 40 or math.hypot(b['x'] - ccx, b['y'] - ccy) > 220: continue
+        if any(math.hypot(b['x'] - a, b['y'] - c) < 6 for a, c in have): continue
+        if out['club'] and math.hypot(b['x'] - tf.transform(*np.mean(np.array(out['club']['ring']), 0))[0], b['y'] - tf.transform(*np.mean(np.array(out['club']['ring']), 0))[1]) < 3: continue
+        r = measure(b['ring'])
+        if r: out['extra'].append(dict(ring=b['ring'], rec=r, area=round(b['area'])))
+    json.dump(out, open(f'{OUT}/cb_{key}.json', 'w'), separators=(',', ':'))
+    info['club'] = (out['club'] or {}).get('src'); info['parking'] = len(out['parking']); info['extra'] = len(out['extra']); save()
+    log(key, 'club', info['club'], 'parking', info['parking'], 'extra', info['extra'])
 
 def main():
     subprocess.run('pip install -q scipy opencv-python-headless', shell=True)
@@ -228,7 +252,7 @@ def main():
         t = time.time()
         try: course(key, REQ[key], resources)
         except Exception as e: err(f'course {key}', e)
-        SUM['courses'].setdefault(key, {})['sec'] = round(time.time() - t); save()
+        SUM['courses'].setdefault(key, {})['sec'] = round(time.time() - t); save(); time.sleep(2)
     SUM['finished'] = time.strftime('%Y-%m-%d %H:%M:%S'); save()
 
 if __name__ == '__main__':
