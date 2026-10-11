@@ -760,7 +760,7 @@ td.won{background:rgba(255,201,60,.38)}
 </div>
 
 <script src="greens.js?v=9d3fb97522"></script>
-<script src="ground.js?v=427c077630"></script>
+<script src="ground.js?v=e1dd1f10da"></script>
 <script src="trees.js?v=08a9667a5f"></script>
 <script>/* three.js r170 (MIT) */
 (function(){
@@ -1723,7 +1723,7 @@ const CLUBLOOK={troy:{pt:'paver',um:'#2f4f3a',w:'#e7e2d4',m:'siding',t:'#f6f5f0'
   lookout:{pt:'stone',um:'#8b5a42',w:'#c9aa83',m:'stucco',t:'#6b4f3a',s:'#9a8468',b:1,r:'#8b5a42',v:'none'},
   wigwam:{pt:'paver',um:'#b3302b',w:'#efede6',m:'stucco',t:'#7a5a3e',b:.3,v:'none',fl:1},
   dove:{pt:'paver',um:'#6b4a33',w:'#c8ad8b',m:'stucco',t:'#6b5440',b:.3,v:'none',fl:1},
-  interlachen:{gb:1,pt:'stone',um:'#e9e4d6',rw:1,w:'#ece4d0',m:'tudor',t:'#4a3426',tc:'#4a3426',s:'#a99d89',b:1.4,r:'#5a4637',v:'none',ch:'#ece4d0'},
+  interlachen:{gb:1,eh:7,rs:5,xg:4,ph:1.2,stp:1,pt:'stone',um:'#e9e4d6',rw:1,w:'#ece4d0',m:'tudor',t:'#4a3426',tc:'#4a3426',s:'#a99d89',b:1.4,r:'#5a4637',v:'none',ch:'#ece4d0'},
   windsong:{gb:1,pt:'stone',um:'',rw:1,fp:1,w:'#5f3f2d',m:'board',t:'#3a2a20',lo:1.2,lc:'#8b4636',r:'#4f4b46',v:'front',c:'#5f3f2d',ch:'#8b4636'},
   hazeltine:{pt:'stone',um:'#3d3f40',fp:1,w:'#cdc5b2',m:'stone',t:'#3d3f40',s:'#b7ae9b',b:.6,r:'#6c6f6e',v:'front',c:'#8a6a48',ch:'#cdc5b2'},
   slmh:{pt:'brick',um:'#2f4f3a',w:'#efe9dc',m:'siding',t:'#fbfaf6',lo:1,lc:'#9a8f80',r:'#5c5a58',v:'wrap',c:'#fbfaf6',cu:1},
@@ -1735,6 +1735,7 @@ const STYLE={lowcountry:{wall:'#ecebe4',trim:'#3d4b3f',stone:'#b8b2a6',roof:'#5b
 /* ---- buildings with measured heights / roof shapes / roof colours (BLDX in ground.js: lidar + aerial photo) ----
    BLDX[id]={c:{clubhouseIdx:rec},b:{surrBldIdx:rec},a:[[pts(course yd),rec,kind]]}, rec=[eaveH,ridgeRise,roof 0 flat|1 gable|2 hip,ridgeDeg,roofCol] */
 function bldxForHole(h){if(typeof BLDX==='undefined'||!BLDX)return;const Xc=BLDX[CUR.id]||null,Xs=Xc||(CUR.data&&BLDX[CUR.data])||null;if(!Xs)return;
+  if(Xs.nc)for(const q of h.buildings)if(q.ci!=null){q.club=false;q.bk='building';}
   for(const q of h.buildings){const r=q.ci!=null?(Xc&&Xc.c&&Xc.c[q.ci]):q.bi!=null?(Xs.b&&Xs.b[q.bi]):null;if(r&&r.length)q.rec=r;}
   const T0=h.T0,b=h.bounds,near=(x,y,r)=>x>b[0]-r&&x<b[2]+r&&y>b[1]-r&&y<b[3]+r;
   (Xs.a||[]).forEach((A,i)=>{if(!A||!A[0]||A[0].length<3)return;const pts=A[0].map(p=>[p[0]-T0[0],p[1]-T0[1]]);if(!pts.some(p=>near(p[0],p[1],900)))return;
@@ -2037,9 +2038,8 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
       // with a deck over it on stone pillars, umbrellas, and carts parked out front
       if(LK.cbn){const c=XB.cs[n-1],bw=hw2+.2,gb=Math.min(...[-bw,0,bw].map(du=>hAtH(h,...R3x(c+du,vf+5,0).filter((_,i)=>i!==1)))),ft0=q._ft||gh+lift+.5,yd=Math.max(ft0+1.1,gb+2.9),dp=4.2,stn=mul(stone,1.05),brn=hexc('#5b3f2c'),blk=hexc('#1d1a17');
         quadO(out,R3x(c-bw,vf+.02,gb-.3),R3x(c+bw,vf+.02,gb-.3),R3x(c+bw,vf+.02,yd),R3x(c-bw,vf+.02,yd),mul(wall,.78),nf);
-        const dw=bw*.46;quadO(out,R3x(c+.25,vf+.06,gb),R3x(c+.25+dw*2,vf+.06,gb),R3x(c+.25+dw*2,vf+.06,yd-.55),R3x(c+.25,vf+.06,yd-.55),brn,nf);
-        for(let j=1;j<6;j++){const y=gb+(yd-.55-gb)*j/6;quadO(out,R3x(c+.25,vf+.08,y-.03),R3x(c+.25+dw*2,vf+.08,y-.03),R3x(c+.25+dw*2,vf+.08,y+.03),R3x(c+.25,vf+.08,y+.03),mul(brn,.8),nf);}
-        quadO(out,R3x(c-.25-dw*2,vf+.06,gb),R3x(c-.25,vf+.06,gb),R3x(c-.25,vf+.06,yd-.55),R3x(c-.25-dw*2,vf+.06,yd-.55),blk,nf);
+        const dw=bw*.42,d0=c-dw;quadO(out,R3x(d0-.18,vf+.05,gb),R3x(d0+dw*2+.18,vf+.05,gb),R3x(d0+dw*2+.18,vf+.05,yd-.37),R3x(d0-.18,vf+.05,yd-.37),hexc('#3a2a1e'),nf);quadO(out,R3x(d0,vf+.06,gb),R3x(d0+dw*2,vf+.06,gb),R3x(d0+dw*2,vf+.06,yd-.55),R3x(d0,vf+.06,yd-.55),brn,nf);
+        for(let j=1;j<6;j++){const y=gb+(yd-.55-gb)*j/6;quadO(out,R3x(d0,vf+.08,y-.03),R3x(d0+dw*2,vf+.08,y-.03),R3x(d0+dw*2,vf+.08,y+.03),R3x(d0,vf+.08,y+.03),mul(brn,.8),nf);}
         // deck and pillars
         const dc=R3x(c,vf+dp/2,0);q.cbv=[dc[0],dc[2],P.nx,P.nz];boxO(out,dc[0],yd-.15,dc[2],bw+.3,.15,dp/2,P.rot,mul(brn,1.25));
         for(const du of[-bw,0,bw]){const pc=R3x(c+du,vf+dp-.3,0),g=hAtH(h,pc[0],pc[2]);boxO(out,pc[0],(yd+.9+g-.2)/2,pc[2],.4,(yd+.9-g+.2)/2,.4,P.rot,stn);boxO(out,pc[0],yd+.95,pc[2],.48,.06,.48,P.rot,mul(stn,1.08));}
