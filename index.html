@@ -2664,8 +2664,10 @@ function dailyCourse(day){const n=dailyNum(day);if(n<DAILY_N4)return dailyCourse
     for(const[id,from]of DAILY_POOL){if(from>k||!COURSES[id])continue;const l=M.last[id]??-1e9;if(best===null||l<bl){best=id;bl=l;}}
     M.last[best]=k;M.list.push(best);}
   return M.list[n-DAILY_N4];}
-function dailyLoad(){try{const d=JSON.parse(localStorage.getItem(DAILY.save)||'null');return d&&d.v===1?d:null;}catch(e){return null;}}
-function dailyStore(d){try{localStorage.setItem(DAILY.save,JSON.stringify(d));}catch(e){}}
+/* v111: the daily save also carries every shot's replay, so it grows through the round; it's read and rewritten at every strike.
+   Keep the last parsed copy and reuse it while the stored text is unchanged, so a strike late in the round doesn't re-parse it all. */
+function dailyLoad(){try{const t=localStorage.getItem(DAILY.save)||'null';if(t===DAILY._s&&DAILY._c!==undefined)return DAILY._c;const d=JSON.parse(t),r=d&&d.v===1?d:null;DAILY._s=t;DAILY._c=r;return r;}catch(e){return null;}}
+function dailyStore(d){try{const t=JSON.stringify(d);localStorage.setItem(DAILY.save,t);DAILY._s=t;DAILY._c=d;}catch(e){}}
 function dailyToday(){const day=dailyDay(),d=dailyLoad();return d&&d.day===day?d:null;}
 function dailyPid(){let id=null;try{id=localStorage.getItem('golf-pid');}catch(e){}if(!id){id='p'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);try{localStorage.setItem('golf-pid',id);}catch(e){}}return id;}
 function dailyName(){try{return localStorage.getItem('golf-name')||'';}catch(e){return'';}}
