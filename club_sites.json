@@ -4,28 +4,36 @@
   "urls": [
    "https://www.troyburne.com/"
   ],
-  "q": "Troy Burne golf"
+  "q": "Troy Burne golf",
+  "town": "Hudson WI",
+  "must": "troy burne"
  },
  "stoneridge": {
   "name": "StoneRidge Golf Club Stillwater",
   "urls": [
    "https://www.stoneridgegc.com/"
   ],
-  "q": "StoneRidge Golf Club Stillwater"
+  "q": "StoneRidge Golf Club Stillwater",
+  "town": "Stillwater MN",
+  "must": "stone ?ridge"
  },
  "caledonia": {
   "name": "Caledonia Golf & Fish Club",
   "urls": [
    "https://www.caledoniagolfandfishclub.com/"
   ],
-  "q": "Caledonia Golf Fish Club"
+  "q": "Caledonia Golf Fish Club",
+  "town": "Pawleys Island SC",
+  "must": "caledonia"
  },
  "trueblue": {
   "name": "True Blue Golf Club",
   "urls": [
    "https://www.truebluegolf.com/"
   ],
-  "q": "True Blue Golf Club Pawleys"
+  "q": "True Blue Golf Club Pawleys",
+  "town": "Pawleys Island SC",
+  "must": "true ?blue"
  },
  "rossbridge": {
   "name": "Ross Bridge Golf Resort",
@@ -33,14 +41,18 @@
    "https://www.rtjgolf.com/rossbridge/",
    "https://www.marriott.com/en-us/hotels/bhmgs-renaissance-birmingham-ross-bridge-golf-resort-and-spa/overview/"
   ],
-  "q": "Ross Bridge resort Hoover"
+  "q": "Ross Bridge resort Hoover",
+  "town": "Hoover AL",
+  "must": "ross ?bridge"
  },
  "capitolhill": {
-  "name": "Capitol Hill RTJ Prattville",
+  "name": "RTJ Capitol Hill",
   "urls": [
    "https://www.rtjgolf.com/capitolhill/"
   ],
-  "q": "Capitol Hill golf Prattville"
+  "q": "Capitol Hill golf Prattville",
+  "town": "Prattville AL",
+  "must": "capitol hill"
  },
  "sandvalley": {
   "name": "Sand Valley clubhouse",
@@ -48,28 +60,36 @@
    "https://www.sandvalley.com/",
    "https://www.sandvalley.com/golf/sand-valley"
   ],
-  "q": "Sand Valley golf Wisconsin"
+  "q": "Sand Valley golf Wisconsin",
+  "town": "Nekoosa WI",
+  "must": "sand valley"
  },
  "mammoth": {
   "name": "Mammoth Dunes clubhouse",
   "urls": [
    "https://www.sandvalley.com/golf/mammoth-dunes"
   ],
-  "q": "Mammoth Dunes"
+  "q": "Mammoth Dunes",
+  "town": "Nekoosa WI",
+  "must": "mammoth"
  },
  "lido": {
   "name": "The Lido Sand Valley",
   "urls": [
    "https://www.sandvalley.com/golf/the-lido"
   ],
-  "q": "Lido golf Sand Valley"
+  "q": "Lido golf Sand Valley",
+  "town": "Nekoosa WI",
+  "must": "lido"
  },
  "sedge": {
   "name": "Sedge Valley",
   "urls": [
    "https://www.sandvalley.com/golf/sedge-valley"
   ],
-  "q": "Sedge Valley golf"
+  "q": "Sedge Valley golf",
+  "town": "Nekoosa WI",
+  "must": "sedge"
  },
  "wilderness": {
   "name": "The Wilderness at Fortune Bay",
@@ -77,7 +97,9 @@
    "https://www.wildernessgolf.com/",
    "https://www.fortunebay.com/golf"
   ],
-  "q": "Wilderness Fortune Bay golf"
+  "q": "Wilderness Fortune Bay golf",
+  "town": "Tower MN",
+  "must": "wilderness|fortune bay"
  },
  "giantsridge": {
   "name": "Giants Ridge Legend Quarry",
@@ -85,28 +107,36 @@
    "https://www.giantsridge.com/",
    "https://www.giantsridge.com/golf/"
   ],
-  "q": "Giants Ridge Biwabik"
+  "q": "Giants Ridge Biwabik",
+  "town": "Biwabik MN",
+  "must": "giants ?ridge"
  },
  "cambrian": {
-  "name": "Cambrian Ridge RTJ",
+  "name": "RTJ Cambrian Ridge",
   "urls": [
    "https://www.rtjgolf.com/cambrianridge/"
   ],
-  "q": "Cambrian Ridge golf"
+  "q": "Cambrian Ridge golf",
+  "town": "Greenville AL",
+  "must": "cambrian"
  },
  "heritage": {
   "name": "Heritage Club Pawleys Island",
   "urls": [
    "https://www.heritageclub.com/"
   ],
-  "q": "Heritage Club Pawleys Island"
+  "q": "Heritage Club Pawleys Island",
+  "town": "Pawleys Island SC",
+  "must": "heritage"
  },
  "pawplant": {
   "name": "Pawleys Plantation",
   "urls": [
    "https://www.pawleysplantation.com/"
   ],
-  "q": "Pawleys Plantation golf"
+  "q": "Pawleys Plantation golf",
+  "town": "Pawleys Island SC",
+  "must": "pawleys plantation"
  },
  "deacon": {
   "name": "Deacon's Lodge",
@@ -114,7 +144,9 @@
    "https://www.breezypointresort.com/golf/deacons-lodge/",
    "https://www.breezypointresort.com/"
   ],
-  "q": "Deacons Lodge golf Breezy Point"
+  "q": "Deacons Lodge golf Breezy Point",
+  "town": "Breezy Point MN",
+  "must": "deacon"
  },
  "maddens": {
   "name": "Madden's on Gull Lake golf",
@@ -122,7 +154,9 @@
    "https://www.maddens.com/golf/",
    "https://www.maddens.com/"
   ],
-  "q": "Maddens Gull Lake"
+  "q": "Maddens Gull Lake",
+  "town": "Brainerd MN",
+  "must": "madden"
  },
  "grandview": {
   "name": "Grand View Lodge Pines Preserve",
@@ -130,7 +164,9 @@
    "https://www.grandviewlodge.com/golf/",
    "https://www.grandviewlodge.com/"
   ],
-  "q": "Grand View Lodge Nisswa"
+  "q": "Grand View Lodge Nisswa",
+  "town": "Nisswa MN",
+  "must": "grand ?view"
  },
  "orangeburg": {
   "name": "Country Club of Orangeburg",
@@ -138,14 +174,18 @@
    "https://www.ccoforangeburg.com/",
    "https://www.countryclubofor.com/"
   ],
-  "q": "Country Club of Orangeburg"
+  "q": "Country Club of Orangeburg",
+  "town": "SC",
+  "must": "orangeburg"
  },
  "santee": {
   "name": "Santee National Golf",
   "urls": [
    "https://www.santeenational.com/"
   ],
-  "q": "Santee National golf"
+  "q": "Santee National golf",
+  "town": "SC",
+  "must": "santee"
  },
  "wyboo": {
   "name": "Wyboo Golf Club",
@@ -153,21 +193,27 @@
    "https://www.wyboogolfclub.com/",
    "https://www.wyboogolf.com/"
   ],
-  "q": "Wyboo golf Manning"
+  "q": "Wyboo golf Manning",
+  "town": "Manning SC",
+  "must": "wyboo"
  },
  "oxmoor": {
-  "name": "Oxmoor Valley RTJ",
+  "name": "RTJ Oxmoor Valley",
   "urls": [
    "https://www.rtjgolf.com/oxmoorvalley/"
   ],
-  "q": "Oxmoor Valley golf"
+  "q": "Oxmoor Valley golf",
+  "town": "Birmingham AL",
+  "must": "oxmoor"
  },
  "grandnational": {
-  "name": "Grand National RTJ Opelika",
+  "name": "RTJ Grand National",
   "urls": [
    "https://www.rtjgolf.com/grandnational/"
   ],
-  "q": "Grand National golf Opelika"
+  "q": "Grand National golf Opelika",
+  "town": "Opelika AL",
+  "must": "grand national"
  },
  "lookout": {
   "name": "Lookout Mountain Golf Club Phoenix",
@@ -175,7 +221,9 @@
    "https://www.lookoutmountaingolf.com/",
    "https://www.tapatiocliffshilton.com/golf"
   ],
-  "q": "Lookout Mountain golf Phoenix"
+  "q": "Lookout Mountain golf Phoenix",
+  "town": "Phoenix AZ",
+  "must": "lookout"
  },
  "wigwam": {
   "name": "The Wigwam golf",
@@ -183,14 +231,18 @@
    "https://www.wigwamarizona.com/golf",
    "https://www.wigwamarizona.com/"
   ],
-  "q": "Wigwam Litchfield Park"
+  "q": "Wigwam Litchfield Park",
+  "town": "Litchfield Park AZ",
+  "must": "wigwam"
  },
  "dove": {
   "name": "Dove Valley Ranch Golf Club",
   "urls": [
    "https://www.dovevalleyranch.com/"
   ],
-  "q": "Dove Valley Ranch golf"
+  "q": "Dove Valley Ranch golf",
+  "town": "Cave Creek AZ",
+  "must": "dove valley"
  },
  "interlachen": {
   "name": "Interlachen Country Club",
@@ -198,7 +250,9 @@
    "https://www.interlachencc.org/",
    "https://en.wikipedia.org/wiki/Interlachen_Country_Club"
   ],
-  "q": "Interlachen Country Club Edina"
+  "q": "Interlachen Country Club Edina",
+  "town": "Edina MN",
+  "must": "interlachen"
  },
  "windsong": {
   "name": "Windsong Farm Golf Club",
@@ -206,7 +260,9 @@
    "https://www.windsongfarmgolfclub.com/",
    "https://www.windsongfarmgc.com/"
   ],
-  "q": "Windsong Farm golf"
+  "q": "Windsong Farm golf",
+  "town": "Independence MN",
+  "must": "windsong"
  },
  "hazeltine": {
   "name": "Hazeltine National Golf Club",
@@ -214,14 +270,18 @@
    "https://www.hazeltinenational.com/",
    "https://en.wikipedia.org/wiki/Hazeltine_National_Golf_Club"
   ],
-  "q": "Hazeltine National clubhouse"
+  "q": "Hazeltine National clubhouse",
+  "town": "Chaska MN",
+  "must": "hazeltine"
  },
  "silverlakes": {
-  "name": "Silver Lakes RTJ",
+  "name": "RTJ Silver Lakes",
   "urls": [
    "https://www.rtjgolf.com/silverlakes/"
   ],
-  "q": "Silver Lakes golf Glencoe Alabama"
+  "q": "Silver Lakes golf Glencoe Alabama",
+  "town": "Glencoe AL",
+  "must": "silver lakes"
  },
  "mystic": {
   "name": "The Meadows at Mystic Lake",
@@ -229,7 +289,9 @@
    "https://www.meadowsatmysticlake.com/",
    "https://www.mysticlake.com/golf"
   ],
-  "q": "Meadows at Mystic Lake golf"
+  "q": "Meadows at Mystic Lake golf",
+  "town": "Prior Lake MN",
+  "must": "mystic"
  },
  "legends": {
   "name": "The Legends Club Prior Lake",
@@ -237,7 +299,9 @@
    "https://www.legendsclubmn.com/",
    "https://www.legendsclub.com/"
   ],
-  "q": "Legends Club Prior Lake"
+  "q": "Legends Club Prior Lake",
+  "town": "Prior Lake MN",
+  "must": "legends"
  },
  "chaska": {
   "name": "Chaska Town Course",
@@ -245,7 +309,9 @@
    "https://www.chaskatowncourse.com/",
    "https://www.chaskamn.gov/chaskatowncourse"
   ],
-  "q": "Chaska Town Course"
+  "q": "Chaska Town Course",
+  "town": "MN",
+  "must": "chaska"
  },
  "prestwick": {
   "name": "Prestwick Golf Club Woodbury",
@@ -253,6 +319,8 @@
    "https://www.prestwickgolfclub.com/",
    "https://www.prestwickgc.com/"
   ],
-  "q": "Prestwick Golf Club Woodbury"
+  "q": "Prestwick Golf Club Woodbury",
+  "town": "Woodbury MN",
+  "must": "prestwick"
  }
 }

@@ -57,16 +57,24 @@ def ddg(q, n=14):
         return [(x['image'], 'ddg ' + x.get('title', '')[:80]) for x in r.json().get('results', [])[:n]]
     except Exception as e:
         print('ddg', q, e); return []
-def bing(q, n=14):
-    try:
-        r = S.get('https://www.bing.com/images/search', params={'q': q, 'form': 'HDRSC2', 'first': '1'}, timeout=20)
-        out = []
-        for m in re.finditer(r'murl&quot;:&quot;(.*?)&quot;.*?t&quot;:&quot;(.*?)&quot;', r.text):
-            out.append((m.group(1), 'bing ' + m.group(2)[:80]))
-            if len(out) >= n: break
-        return out
-    except Exception as e:
-        print('bing', q, e); return []
+def bing(q, must, n=16):
+    """Bing image results (async endpoint: one m="{json}" attribute per result), kept only when the title or page names the course"""
+    import html as H
+    out = []
+    for first in (0, 35):
+        try:
+            r = S.get('https://www.bing.com/images/async', params={'q': q, 'first': first, 'count': 35, 'mmasync': 1, 'setlang': 'en-us', 'cc': 'US'}, timeout=20)
+        except Exception as e:
+            print('bing', q, e); continue
+        for m in re.finditer(r'\bm="(\{.*?\})"', r.text):
+            try: d = json.loads(H.unescape(m.group(1)))
+            except Exception: continue
+            t = (d.get('t') or '') + ' ' + (d.get('purl') or '') + ' ' + (d.get('desc') or '')
+            if not re.search(must, t, re.I): continue
+            out.append((d.get('murl'), 'bing ' + (d.get('t') or '')[:80]))
+            if len(out) >= n: return out
+    print('bing', q, 'kept', len(out), flush=True)
+    return out
 def fetch_img(u):
     r = get(u, 25)
     if not r: return None
@@ -82,7 +90,7 @@ def site(key, cfg):
         c, links = imgs_of(u); cand += c
         for l in links[:8]:
             c2, _ = imgs_of(l); cand += [(x, t + ' @' + urlparse(l).path) for x, t in c2]
-    web = ddg(cfg['name'] + ' clubhouse') or bing(cfg['name'] + ' clubhouse')
+    web = bing(cfg['name'] + ' ' + cfg.get('town', '') + ' golf clubhouse', cfg.get('must', re.escape(cfg['name'].split()[0])))
     print(key, 'search', len(web), flush=True)
     cand = web + [c for c in cand if re.search(r'club ?house|lodge|exterior|building|patio', c[0] + c[1], re.I)] + cand
     if cfg.get('q'): cand += [c for c in commons(cfg['q'] + ' golf') if re.search(r'\.(jpe?g|png)$', c[1], re.I)]
