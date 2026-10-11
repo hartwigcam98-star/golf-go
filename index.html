@@ -1694,6 +1694,43 @@ function boxO(out,cx,cy,cz,hx,hy,hz,rot,col,bottom){const c=Math.cos(rot),sn=Mat
   f(P(-hx,hy,-hz),P(-hx,hy,hz),P(hx,hy,hz),P(hx,hy,-hz),[0,1,0],1);
   f(P(-hx,-hy,hz),P(hx,-hy,hz),P(hx,hy,hz),P(-hx,hy,hz),R(0,1),.9);f(P(hx,-hy,-hz),P(-hx,-hy,-hz),P(-hx,hy,-hz),P(hx,hy,-hz),R(0,-1),.86);
   f(P(hx,-hy,hz),P(hx,-hy,-hz),P(hx,hy,-hz),P(hx,hy,hz),R(1,0),.95);f(P(-hx,-hy,-hz),P(-hx,-hy,hz),P(-hx,hy,hz),P(-hx,hy,-hz),R(-1,0),.8);}
+/* each course's real clubhouse, from photos: w wall, m material (siding|board|log|stone|stucco|tudor|brick), t trim, s stone, b stone base (yd),
+   lo/lc a brick or stone ground storey (height, colour), r roof colour, v porch (wrap|front|none), c columns, po full-height portico, cu cupola, sh shutters,
+   ch chimney colour, fl flat (pueblo) roof, tc tudor timber */
+const CAP={w:'#e4d9c6',m:'siding',t:'#f4f2ec',lo:1.4,lc:'#8e4b3b',r:'#5f615e',v:'front',c:'#f4f2ec',cu:1,ch:'#8e4b3b'};
+const CLUBLOOK={troy:{w:'#e7e2d4',m:'siding',t:'#f6f5f0',s:'#a99e8c',r:'#55585a',v:'front',c:'#f6f5f0',po:1},
+  stoneridge:{w:'#cdb99a',m:'stucco',t:'#4a3d33',s:'#9c8f7b',b:1.4,r:'#4b3f36',v:'front'},
+  caledonia:{w:'#f3f1ea',m:'siding',t:'#fbfaf6',lo:1.6,lc:'#8b5a48',r:'#5d625f',v:'wrap',c:'#fbfaf6',ch:'#8b5a48'},
+  trueblue:{w:'#f3f2ed',m:'siding',t:'#fbfaf6',r:'#3e73b6',v:'wrap',c:'#fbfaf6',ch:'#f3f2ed'},
+  legislator:CAP,judge:CAP,senator:CAP,
+  sandvalley:{w:'#9d8a73',m:'board',t:'#3b3a37',s:'#8a8378',b:.5,r:'#3e4246',v:'none'},
+  mammoth:{w:'#d9d4c8',m:'board',t:'#4a4a48',b:.4,r:'#3f4347',v:'front',c:'#6b5a48'},
+  wilderness:{w:'#8c6b49',m:'log',t:'#4b3a2c',s:'#a0968a',b:1.6,r:'#2f5a46',v:'front',c:'#a0968a',ch:'#a0968a'},
+  quarry:{w:'#5c4b3c',m:'board',t:'#3a3029',s:'#8f877b',b:.8,r:'#3a3632',v:'front',c:'#6b5541'},
+  legend:{w:'#6e5641',m:'board',t:'#3a3029',s:'#9a8f80',b:2.2,r:'#3d3a36',v:'front',c:'#7a6047',ch:'#9a8f80'},
+  heritage:{w:'#f5f3ee',m:'siding',t:'#fbfaf6',r:'#45494c',v:'none',c:'#fbfaf6',po:1,sh:'#2c3133',ch:'#f5f3ee'},
+  pawplant:{w:'#efe9db',m:'siding',t:'#fbfaf6',lo:.9,lc:'#94604c',r:'#bcc0bf',v:'front',c:'#fbfaf6',cu:1,sh:'#2f3436',ch:'#efe9db'},
+  deacon:{w:'#4d4a3a',m:'log',t:'#2f3a30',s:'#8f877b',b:1,r:'#2e5848',v:'front',c:'#6b5541'},
+  lehman:{w:'#35513e',m:'siding',t:'#5b4532',s:'#9a8f80',b:1.2,r:'#3d3b38',v:'front',c:'#6e5238',po:1},
+  maddens:{w:'#7d8683',m:'board',t:'#4b3d30',s:'#9a8f80',b:1.2,r:'#3c3e40',v:'front',c:'#6e5238'},
+  pines:{w:'#5b4231',m:'log',t:'#3a2c22',s:'#948a7c',b:.9,r:'#4a4037',v:'front',c:'#5b4231'},
+  preserve:{w:'#6c4b33',m:'log',t:'#3a2c22',s:'#948a7c',b:1.1,r:'#4e6b4d',v:'front',c:'#6c4b33'},
+  orangeburg:{w:'#c8b08e',m:'stucco',t:'#5c4f42',s:'#9c8b74',b:1.3,r:'#5f564b',v:'none',c:'#c8b08e',po:1},
+  santee:{w:'#efece4',m:'siding',t:'#fbfaf6',r:'#5d8a5b',v:'front',c:'#fbfaf6',cu:1,sh:'#2f4a3a'},
+  wyboo:{w:'#b9ac94',m:'siding',t:'#f4f2ec',r:'#6c6964',v:'front',c:'#f4f2ec'},
+  valley:{w:'#dacfb8',m:'siding',t:'#f4f2ec',lo:2.4,lc:'#8b4b3a',r:'#626260',v:'wrap',c:'#f4f2ec',cu:1,ch:'#8b4b3a'},
+  gnlake:{w:'#aeb0aa',m:'siding',t:'#f4f2ec',lo:2.8,lc:'#8e4a39',r:'#5c5d5b',v:'wrap',c:'#f4f2ec',cu:1,ch:'#8e4a39'},
+  lookout:{w:'#c9aa83',m:'stucco',t:'#6b4f3a',s:'#9a8468',b:1,r:'#8b5a42',v:'none'},
+  wigwam:{w:'#efede6',m:'stucco',t:'#7a5a3e',b:.3,v:'none',fl:1},
+  dove:{w:'#c8ad8b',m:'stucco',t:'#6b5440',b:.3,v:'none',fl:1},
+  interlachen:{w:'#ece4d0',m:'tudor',t:'#4a3426',tc:'#4a3426',s:'#a99d89',b:1.4,r:'#5a4637',v:'none',ch:'#ece4d0'},
+  windsong:{w:'#5f3f2d',m:'board',t:'#3a2a20',lo:1.2,lc:'#8b4636',r:'#4f4b46',v:'front',c:'#5f3f2d',ch:'#8b4636'},
+  hazeltine:{w:'#cdc5b2',m:'stone',t:'#3d3f40',s:'#b7ae9b',b:.6,r:'#6c6f6e',v:'front',c:'#8a6a48',ch:'#cdc5b2'},
+  slmh:{w:'#efe9dc',m:'siding',t:'#fbfaf6',lo:1,lc:'#9a8f80',r:'#5c5a58',v:'wrap',c:'#fbfaf6',cu:1},
+  legends:{w:'#ddd0b4',m:'stucco',t:'#5a5047',lo:3,lc:'#bba98a',r:'#68645f',v:'front',c:'#bba98a',cu:1},
+  chaska:{w:'#a59c8a',m:'board',t:'#4a453e',s:'#9a8f80',b:.9,r:'#585755',v:'front',c:'#6b5a48'},
+  prestwick:{w:'#ebe3cf',m:'tudor',t:'#4e3a2c',tc:'#4e3a2c',s:'#c9c0ae',b:1.6,r:'#6b5444',v:'none',ch:'#c9c0ae'}};
+CLUBLOOK.ridge=CLUBLOOK.valley;CLUBLOOK.gnlinks=CLUBLOOK.gnlake;CLUBLOOK.slbm=CLUBLOOK.slmh;
 const STYLE={lowcountry:{wall:'#ecebe4',trim:'#3d4b3f',stone:'#b8b2a6',roof:'#5b6166'},prairie:{wall:'#9c7d5e',trim:'#4a3a2e',stone:'#8d8375',roof:'#4a4038'},links:{wall:'#d6ccb8',trim:'#5a4b3c',stone:'#9a9184',roof:'#3b4a52'}};
 /* ---- buildings with measured heights / roof shapes / roof colours (BLDX in ground.js: lidar + aerial photo) ----
    BLDX[id]={c:{clubhouseIdx:rec},b:{surrBldIdx:rec},a:[[pts(course yd),rec,kind]]}, rec=[eaveH,ridgeRise,roof 0 flat|1 gable|2 hip,ridgeDeg,roofCol] */
@@ -1731,6 +1768,8 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
   if(rec){H1=Math.max(2.2,+rec[0]||0)+.2;rise=Math.max(0,+rec[1]||0);rt=clamp(rec[2]|0,0,2);if(rt&&rise<.3)rt=0;}
   else if(kind){H1=kind==='shack'?2.7:kind==='barn'?4.4:4.2;if(kind!=='building'){rt=1;rise=kind==='shack'?1.1:.9;}}
   else H1=q.h||(club?(A>900?7.2:4.6):4.2);
+  const LK=club?(CLUBLOOK[CUR.id]||(CUR.data&&CLUBLOOK[CUR.data])||null):null;
+  if(LK&&LK.fl)rt=0;
   // on a slope the walls still clear the high side of the footprint
   {let g1=-1e9;for(const c of p)g1=Math.max(g1,hAtH(h,c[0],c[1]));if(isFinite(g1))H1=Math.max(H1,g1-gh+2);}
   // gables (and measured hips) are drawn on the footprint's rectangle when the footprint fills most of it
@@ -1763,8 +1802,9 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
   if(rec&&rec[4]!=null&&isFinite(rec[4])){roof=bldRoofCol(rec[4]);const lr=BLD_LUM(roof);
     if(!club&&!kind)wall=hexc(lr<.55?BLD_LIGHTW[hs%5]:BLD_DARKW[hs%5]);
     else if(Math.abs(BLD_LUM(wall)-lr)<.12)wall=hexc(lr<.5?BLD_LIGHTW[hs%5]:BLD_DARKW[hs%5]);}
-  const stone=hexc(ST.stone),trim=hexc(ST.trim),glass=hexc('#2b3a46'),fancy=(ex||club)&&kind!=='barn'&&!simple,frame=club?mul(trim,1.15):BLD_LUM(wall)<.62?hexc('#ece9e2'):hexc('#5f5a52');
-  const flat=ex&&rt===0,Htop=flat?H1+.45:H1,plinth=kind&&kind!=='building'?.3:club?1.1:.5;
+  if(LK){wall=hexc(LK.w);if(LK.r)roof=hexc(LK.r);else if(rt===0)roof=hexc('#8d8b86');}
+  const stone=hexc(LK&&LK.s||ST.stone),trim=hexc(LK&&LK.t||ST.trim),glass=hexc('#2b3a46'),fancy=(ex||club)&&kind!=='barn'&&!simple,frame=LK?trim:club?mul(trim,1.15):BLD_LUM(wall)<.62?hexc('#ece9e2'):hexc('#5f5a52');
+  const flat=(ex||LK&&LK.fl)&&rt===0,Htop=flat?H1+.45:H1,plinth=LK?(LK.b!=null?LK.b:.5):kind&&kind!=='building'?.3:club?1.1:.5;
   let rows=[];if(!simple&&kind!=='shack'&&kind!=='barn'){if(!ex)rows=H1>6?[[1.8,3.3],[4.6,6.1]]:[[1.6,3.1]];else for(let y=club?1.8:1.5;y+1.5<H1-.3&&rows.length<6;y+=3.1)rows.push([y,y+1.5]);
     if(!rows.length&&H1>2.5)rows.push([Math.max(plinth+.25,.9),Math.min(H1-.55,2.6)]);}
   // walls: stone plinth, siding, a trim band under the eave (or the parapet coping), rows of windows
@@ -1772,18 +1812,29 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
     const n=[ez/L*s,0,-ex2/L*s];
     const wq=(y0,y1,col,o=0)=>{const A0=[a[0]+n[0]*o,gh+y0,a[1]+n[2]*o],B0=[b[0]+n[0]*o,gh+y0,b[1]+n[2]*o],B1=[b[0]+n[0]*o,gh+y1,b[1]+n[2]*o],A1=[a[0]+n[0]*o,gh+y1,a[1]+n[2]*o];pushTri(out,A0,B0,B1,col,n,n,n);pushTri(out,A0,B1,A1,col,n,n,n);};
     if(simple){wq(0,Htop,wall);continue;}
-    wq(0,plinth,stone,.12);wq(plinth,Htop,wall);wq(Htop-.35,Htop,trim,.05);
+    const M=LK&&LK.m;wq(0,plinth,stone,.12);wq(plinth,Htop,M==='stone'?mul(wall,.84):wall);wq(Htop-.35,Htop,trim,.05);
     const rq=(t0,t1,y0,y1,col,o)=>{const A0=[a[0]+ex2*t0+n[0]*o,gh+y0,a[1]+ez*t0+n[2]*o],B0=[a[0]+ex2*t1+n[0]*o,gh+y0,a[1]+ez*t1+n[2]*o],B1=[B0[0],gh+y1,B0[2]],A1=[A0[0],gh+y1,A0[2]];pushTri(out,A0,B0,B1,col,n,n,n);pushTri(out,A0,B1,A1,col,n,n,n);};
+    // the clubhouse's own walls: a brick or stone ground storey, then lap siding, board and batten, logs, stone, brick or tudor timbers
+    if(LK&&!simple){const lo=LK.lo?Math.min(LK.lo,Htop-1):0,yb=Math.max(plinth,lo),yt=Htop-.35;
+      if(lo>plinth){wq(plinth,lo,hexc(LK.lc),.015);wq(lo-.12,lo,trim,.035);}
+      if(M==='siding'||M==='log'||M==='brick'){const st=M==='log'?.38:M==='brick'?.5:.42,hh=M==='log'?.08:M==='brick'?.025:.045,c=mul(wall,M==='log'?.68:M==='brick'?.86:.83);for(let y=yb+st;y<yt-.1;y+=st)rq(0,1,y,y+hh,c,.025);}
+      else if(M==='board'){const nb=Math.max(1,Math.floor(L/.75)),w=.05/L,c=mul(wall,.8);for(let k=0;k<nb;k++){const t=(k+.5)/nb;rq(t-w,t+w,yb,yt,c,.025);}}
+      else if(M==='stone'){let r=0;for(let y=yb;y<yt-.2;y+=.55,r++){const y1=Math.min(yt,y+.49);for(let u=(r&1)*-.55;u<L;u+=1.1){const t0=Math.max(0,u+.04)/L,t1=Math.min(L,u+1.06)/L;if(t1<=t0)continue;const hv=((Math.round(u*7)+r*13+hs)%7)/7;rq(t0,t1,y,y1,mul(wall,.95+hv*.1),.02);}}}
+      else if(M==='tudor'){const tc=hexc(LK.tc||LK.t),nb=Math.max(1,Math.round(L/1.4)),w=.08/L,ym=yb+(yt-yb)*.45;rq(0,1,yb,yb+.16,tc,.025);rq(0,1,ym,ym+.14,tc,.025);
+        for(let k=0;k<=nb;k++){const t=k/nb;rq(Math.max(0,t-w),Math.min(1,t+w),yb,yt,tc,.025);}
+        for(let k=0;k<nb;k+=2){const t0=k/nb,t1=Math.min(1,(k+1)/nb);if(yt-ym>1.2)quadO(out,[a[0]+ex2*t0+n[0]*.028,gh+ym+.14,a[1]+ez*t0+n[2]*.028],[a[0]+ex2*(t0+w*2)+n[0]*.028,gh+ym+.14,a[1]+ez*(t0+w*2)+n[2]*.028],[a[0]+ex2*t1+n[0]*.028,gh+yt,a[1]+ez*t1+n[2]*.028],[a[0]+ex2*(t1-w*2)+n[0]*.028,gh+yt,a[1]+ez*(t1-w*2)+n[2]*.028],tc,n);}}}
     // corner boards
     if(fancy&&L>1.2){const c=.26/L;rq(0,c,plinth,Htop-.35,frame,.045);rq(1-c,1,plinth,Htop-.35,frame,.045);}
     const nw=Math.floor(L/(club?3.2:3.8)),dz=doors.filter(d=>d[0]===i);
     for(let k=0;k<nw;k++){const t=(k+.5)/nw,cx=a[0]+ex2*t,cz=a[1]+ez*t,hw=club?.75:.6,ux=ex2/L*hw,uz=ez/L*hw;
       for(const[y0,y1]of rows){if(y1>H1-.3)continue;if(y0<3&&dz.some(d=>Math.abs(t-d[1])*L<d[2]+hw+.35))continue;const o=.06,P0=[cx-ux+n[0]*o,gh+y0,cz-uz+n[2]*o],P1=[cx+ux+n[0]*o,gh+y0,cz+uz+n[2]*o],P2=[cx+ux+n[0]*o,gh+y1,cz+uz+n[2]*o],P3=[cx-ux+n[0]*o,gh+y1,cz-uz+n[2]*o];
-        if(fancy){const fw=(hw+.13)/L;rq(t-fw,t+fw,y0-.16,y1+.13,frame,.045);if(club)rq(t-.04/L,t+.04/L,y0,y1,frame,.075);}
+        if(fancy){const fw=(hw+.13)/L;rq(t-fw,t+fw,y0-.16,y1+.13,frame,.045);if(club)rq(t-.04/L,t+.04/L,y0,y1,frame,.075);
+          if(LK&&LK.sh){const sc=hexc(LK.sh),sw=.5/L;rq(t-fw-sw,t-fw-.03/L,y0-.1,y1+.08,sc,.05);rq(t+fw+.03/L,t+fw+sw,y0-.1,y1+.08,sc,.05);}}
         pushTri(out,P0,P1,P2,glass,n,n,n);pushTri(out,P0,P2,P3,glass,n,n,n);}}}
   const shadeOf=nf=>.82+.18*Math.max(0,dot3(nf,nrm([-.5,.6,.6])));
   const slope=(a,b,c,d,under)=>{let nn=nrm(cross(sub(b,a),sub(d,a)));if(nn[1]<0)nn=mul(nn,-1);quadO(out,a,b,c,d,mul(roof,shadeOf(nn)),nn);if(under)quadO(out,a,b,c,d,mul(trim,.8),mul(nn,-1));};
-  let top=null;   // a point on the roof for the club's chimney
+  let top=null,peak=null;   // points on the roof for the club's chimney and cupola
+  const chim=LK&&LK.ch?hexc(LK.ch):stone;
   if(rt===2&&!rect){
     // hipped roof: overhanging eave ring rising to an inset ridge ring
     const minW=Math.sqrt(A)*.5;let rd=Math.min(club?7:4.5,minW*.45);if(ex&&ob)rd=Math.min(rd,(ob.v1-ob.v0)*.45);const rh=rise!=null?rise:club?rd*.62:rd*.7;
@@ -1795,7 +1846,8 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
       // underside of the eave
       const w0=[p[i][0],yE,p[i][1]],w1=[p[j][0],yE,p[j][1]];triO(out,a,w1,b,mul(trim,.8),[0,-1,0]);triO(out,a,w0,w1,mul(trim,.8),[0,-1,0]);}
     for(const[a,b2,c2]of earClip(ridge))triO(out,[a[0],yR,a[1]],[b2[0],yR,b2[1]],[c2[0],yR,c2[1]],mul(roof,.95),[0,1,0]);
-    if(club&&!simple){const c0=ridge[0],c1=ridge[Math.floor(ridge.length/2)];boxO(out,c0[0]*.8+c1[0]*.2,yR+.9,c0[1]*.8+c1[1]*.2,.8,1.6,.8,0,stone);}}
+    {let cx=0,cz=0;for(const r of ridge){cx+=r[0];cz+=r[1];}peak=[cx/ridge.length,yR,cz/ridge.length];if(!inPoly(q,peak[0],peak[2]))peak=null;}
+    if(club&&!simple){const c0=ridge[0],c1=ridge[Math.floor(ridge.length/2)];boxO(out,c0[0]*.8+c1[0]*.2,yR+.9,c0[1]*.8+c1[1]*.2,.8,1.6,.8,0,chim);}}
   else if(rt>0){
     // gable or hip on the footprint's rectangle, ridge along u
     const o=kind==='shack'?.4:.6,hw=(ob.v1-ob.v0)/2,vm=(ob.v0+ob.v1)/2,rs=rise!=null?rise:(club?.62:.7)*Math.min(club?7:4.5,Math.sqrt(A)*.225,hw),yW=gh+H1,yR=yW+rs,yE=yW-.05-rs*o/Math.max(hw,.5),R3d=(u,v,y)=>{const c=P2(u,v);return[c[0],y,c[1]];};
@@ -1805,13 +1857,13 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
       // gable-end triangles in the wall colour (and a trim strip along the verge)
       for(const[u,sg]of[[ob.u0,-1],[ob.u1,1]]){const nn=[ob.ux*sg,0,ob.uy*sg];triO(out,R3d(u,ob.v0,yW),R3d(u,ob.v1,yW),R3d(u,vm,yR),mul(wall,.96),nn);
         if(!simple){const uu=u+sg*og;for(const v of[vs0,vs1])quadO(out,R3d(uu,v,yE-.18),R3d(uu,vm,yR-.18),R3d(uu,vm,yR+.02),R3d(uu,v,yE+.02),trim,nn);}}
-      top=R3d(ob.u0+(ob.u1-ob.u0)*.75,vm,yR);}
+      top=R3d(ob.u0+(ob.u1-ob.u0)*.75,vm,yR);peak=R3d((ob.u0+ob.u1)/2,vm,yR);}
     else{const ue0=ob.u0-o,ue1=ob.u1+o,hh=(vs1-vs0)/2;let ru0=ue0+hh,ru1=ue1-hh;if(ru0>ru1)ru0=ru1=(ue0+ue1)/2;
       slope(R3d(ue0,vs0,yE),R3d(ue1,vs0,yE),R3d(ru1,vm,yR),R3d(ru0,vm,yR),!simple);slope(R3d(ue1,vs1,yE),R3d(ue0,vs1,yE),R3d(ru0,vm,yR),R3d(ru1,vm,yR),!simple);
       for(const[a,b,c]of[[R3d(ue0,vs1,yE),R3d(ue0,vs0,yE),R3d(ru0,vm,yR)],[R3d(ue1,vs0,yE),R3d(ue1,vs1,yE),R3d(ru1,vm,yR)]]){let nn=nrm(cross(sub(b,a),sub(c,a)));if(nn[1]<0)nn=mul(nn,-1);
         triO(out,a,b,c,mul(roof,shadeOf(nn)),nn);if(!simple)triO(out,a,b,c,mul(trim,.8),mul(nn,-1));}
-      top=R3d(ru0+(ru1-ru0)*.2,vm,yR);}
-    if(club&&!simple&&top)boxO(out,top[0],top[1]+.6,top[2],.8,1.6,.8,ob.t,stone);}
+      top=R3d(ru0+(ru1-ru0)*.2,vm,yR);peak=R3d((ru0+ru1)/2,vm,yR);}
+    if(club&&!simple&&top)boxO(out,top[0],top[1]+.6,top[2],.8,1.6,.8,ob.t,chim);}
   else{
     // flat roof: membrane inside a low parapet with a coping, and a few rooftop units on the big ones
     const yT=gh+Htop,yF=gh+H1+.05;
@@ -1831,9 +1883,18 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
   const panel=(E,t,hw,y0,y1,col,o)=>{const cx=E.a[0]+(E.b[0]-E.a[0])*t,cz=E.a[1]+(E.b[1]-E.a[1])*t,n=[E.nx,0,E.nz],g=gh+lift;hw=Math.min(hw,E.L*.45);
     quadO(out,[cx-E.ex*hw+E.nx*o,g+y0,cz-E.ez*hw+E.nz*o],[cx+E.ex*hw+E.nx*o,g+y0,cz+E.ez*hw+E.nz*o],[cx+E.ex*hw+E.nx*o,g+y1,cz+E.ez*hw+E.nz*o],[cx-E.ex*hw+E.nx*o,g+y1,cz-E.ez*hw+E.nz*o],col,n);};
   if(club){const E=edge(bi),a=E.a,b=E.b,ex2=E.ex,ez=E.ez,mx=E.mx,mz=E.mz,nx=E.nx,nz=E.nz,rot=E.rot;lift=liftAt(E);const cy=Math.min(4.3,H1-lift-.5),g1=gh+lift;
+    const colC=LK&&LK.c?hexc(LK.c):stone;
+    if(LK&&LK.po){
+      // a full-height portico: columns to the eave, an entablature and a pediment facing out
+      const pw=Math.min(E.L*.42,9)/2,dp=3.6,ph=Math.max(3,H1-lift-.35),yt=g1+ph,nc=Math.max(4,2*Math.round(pw/1.9)),R3e=(u,v,y)=>[mx+ex2*u+nx*v,y,mz+ez*u+nz*v];
+      for(let k=0;k<nc;k++){const u=-pw+.3+(2*pw-.6)*k/(nc-1),c=R3e(u,dp-.35,0),cg=Math.min(g1,hAtH(h,c[0],c[2]))-.2;boxO(out,c[0],(cg+yt)/2,c[2],.26,(yt-cg)/2,.26,rot,colC);}
+      boxO(out,mx+nx*dp/2,yt+.25,mz+nz*dp/2,pw+.2,.25,dp/2+.1,rot,trim);
+      const pr=Math.min(2.4,pw*.45),y2=yt+.5;slope(R3e(-pw-.35,-.1,y2),R3e(0,-.1,y2+pr),R3e(0,dp+.25,y2+pr),R3e(-pw-.35,dp+.25,y2),false);slope(R3e(pw+.35,-.1,y2),R3e(pw+.35,dp+.25,y2),R3e(0,dp+.25,y2+pr),R3e(0,-.1,y2+pr),false);
+      triO(out,R3e(-pw-.2,dp+.2,y2),R3e(pw+.2,dp+.2,y2),R3e(0,dp+.2,y2+pr-.1),trim,[nx,0,nz]);}
+    else{
     // entry canopy on the longest wall
     boxO(out,mx+nx*2.6,g1+cy,mz+nz*2.6,3.2,.25,2.8,rot,trim);
-    for(const sx of[-2.8,2.8]){const cg=Math.min(g1,hAtH(h,mx+nx*4.9+ex2*sx,mz+nz*4.9+ez*sx))-.2;boxO(out,mx+nx*4.9+ex2*sx,(cg+g1+cy)/2,mz+nz*4.9+ez*sx,.35,(g1+cy-cg)/2,.35,rot,stone);}
+    for(const sx of[-2.8,2.8]){const cg=Math.min(g1,hAtH(h,mx+nx*4.9+ex2*sx,mz+nz*4.9+ez*sx))-.2;boxO(out,mx+nx*4.9+ex2*sx,(cg+g1+cy)/2,mz+nz*4.9+ez*sx,.35,(g1+cy-cg)/2,.35,rot,colC);}}
     q.ent=[mx,mz,nx,nz];
     // glass double doors under it
     const dh=Math.min(2.7,cy-.3);panel(E,.5,1.6,plinth-.05,dh+.15,frame,.05);panel(E,.5,1.42,plinth,dh,glass,.07);panel(E,.5,.05,plinth,dh,frame,.09);
@@ -1843,20 +1904,28 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
       const w=2.5,hgt=1.55,y1=g0+9.05,ux=ex2,uz=ez,F=(t0,t1,ya,yb,col,o)=>{const A0=[fx+ux*t0+nx*o,ya,fz+uz*t0+nz*o],B0=[fx+ux*t1+nx*o,ya,fz+uz*t1+nz*o],B1=[B0[0],yb,B0[2]],A1=[A0[0],yb,A0[2]];
         quadO(out,A0,B0,B1,A1,col,[nx,0,nz]);quadO(out,A0,B0,B1,A1,mul(col,.82),[-nx,0,-nz]);};
       F(.08,w,y1-hgt,y1,fb,0);F(.08,w,y1-hgt*.62,y1-hgt*.38,ff,.012);F(.08,w,y1-hgt*.62,y1-hgt*.38,ff,-.012);}
-    // a covered porch on the course side: deck, posts, railing and a shed roof
-    if(pi>=0&&(lift=liftAt(edge(pi)),H1-lift>3.2)){const P=edge(pi);q.por=[P.mx,P.mz,P.nx,P.nz];const pw=Math.min(P.L*.62,18)/2,dp=3.4,pc=[P.mx+P.nx*dp/2,P.mz+P.nz*dp/2];
+    // covered porches: the course side (or every side for a wraparound veranda): deck, posts, railing and a shed roof
+    const porch=(P,full,fr)=>{lift=liftAt(P);if(H1-lift<=3.2)return;const pw=full?P.L/2+.05:Math.min(P.L*.62,18)/2,dp=full?3:3.4,pc=[P.mx+P.nx*dp/2,P.mz+P.nz*dp/2];
       let gl=gh+lift;for(const[u,v]of[[-pw,0],[pw,0],[-pw,dp],[pw,dp]])gl=Math.min(gl,hAtH(h,P.mx+P.ex*u+P.nx*v,P.mz+P.ez*u+P.nz*v));
-      const yt=gh+lift+Math.max(.35,plinth*.6),yb=gl-.3,ph=Math.max(2.4,Math.min(3.2,H1-lift-.7)),deckC=hexc('#8b6b4e'),post=mul(trim,1.25);
+      const yt=gh+lift+Math.max(.35,Math.min(plinth,1.2)*.6),yb=gl-.3,ph=Math.max(2.4,Math.min(3.2,H1-lift-.7)),deckC=hexc(LK&&LK.lo?LK.lc:'#8b6b4e'),post=LK&&LK.c?hexc(LK.c):mul(trim,1.25);
       boxO(out,pc[0],(yt+yb)/2,pc[1],pw,(yt-yb)/2,dp/2,P.rot,deckC);
-      const np=Math.max(2,Math.round(pw*2/3.4)+1);for(let k=0;k<np;k++){const u=-pw+.2+(pw*2-.4)*k/(np-1);boxO(out,P.mx+P.ex*u+P.nx*(dp-.2),yt+ph/2,P.mz+P.ez*u+P.nz*(dp-.2),.13,ph/2,.13,P.rot,post);}
+      const np=Math.max(2,Math.round(pw*2/3.2)+1);for(let k=0;k<np;k++){const u=-pw+.2+(pw*2-.4)*k/(np-1);boxO(out,P.mx+P.ex*u+P.nx*(dp-.2),yt+ph/2,P.mz+P.ez*u+P.nz*(dp-.2),.14,ph/2,.14,P.rot,post);}
       boxO(out,P.mx+P.nx*(dp-.2),yt+.95,P.mz+P.nz*(dp-.2),pw-.1,.05,.06,P.rot,post);
-      for(const sg of[-1,1])boxO(out,P.mx+P.ex*sg*(pw-.2)+P.nx*dp/2,yt+.95,P.mz+P.ez*sg*(pw-.2)+P.nz*dp/2,.06,.05,dp/2-.1,P.rot,post);
+      if(!full)for(const sg of[-1,1])boxO(out,P.mx+P.ex*sg*(pw-.2)+P.nx*dp/2,yt+.95,P.mz+P.ez*sg*(pw-.2)+P.nz*dp/2,.06,.05,dp/2-.1,P.rot,post);
       // the roof slopes down away from the wall
-      const yr0=yt+ph+.55,yr1=yt+ph+.05,R3p=(u,v,y)=>[P.mx+P.ex*u+P.nx*v,y,P.mz+P.ez*u+P.nz*v];
-      slope(R3p(-pw-.3,-.1,yr0),R3p(pw+.3,-.1,yr0),R3p(pw+.3,dp+.35,yr1),R3p(-pw-.3,dp+.35,yr1),true);
-      quadO(out,R3p(-pw-.3,dp+.35,yr1-.22),R3p(pw+.3,dp+.35,yr1-.22),R3p(pw+.3,dp+.35,yr1+.02),R3p(-pw-.3,dp+.35,yr1+.02),trim,[P.nx,0,P.nz]);
+      const yr0=yt+ph+.55,yr1=yt+ph+.05,ov=full?.05:.3,R3p=(u,v,y)=>[P.mx+P.ex*u+P.nx*v,y,P.mz+P.ez*u+P.nz*v];
+      slope(R3p(-pw-ov,-.1,yr0),R3p(pw+ov,-.1,yr0),R3p(pw+ov,dp+.35,yr1),R3p(-pw-ov,dp+.35,yr1),true);
+      quadO(out,R3p(-pw-ov,dp+.35,yr1-.22),R3p(pw+ov,dp+.35,yr1-.22),R3p(pw+ov,dp+.35,yr1+.02),R3p(-pw-ov,dp+.35,yr1+.02),trim,[P.nx,0,P.nz]);
       // french doors onto it
-      const nd=Math.max(1,Math.floor(pw*2/4));for(let k=0;k<nd;k++){const t=.5+((k+.5)/nd-.5)*pw*2/P.L*.8;panel(P,t,.85,plinth-.05,Math.min(2.6,H1-lift-.5)+.12,frame,.05);panel(P,t,.72,plinth,Math.min(2.6,H1-lift-.5),glass,.07);}}}
+      if(fr){const nd=Math.max(1,Math.floor(pw*2/4));for(let k=0;k<nd;k++){const t=.5+((k+.5)/nd-.5)*pw*2/P.L*.8;panel(P,t,.85,plinth-.05,Math.min(2.6,H1-lift-.5)+.12,frame,.05);panel(P,t,.72,plinth,Math.min(2.6,H1-lift-.5),glass,.07);}}};
+    const pv=LK&&LK.v||'front';
+    if(pv==='wrap'){const ws=[];for(let k=0;k<p.length;k++){const e=edge(k);if(k!==bi&&e.L>=5)ws.push([e.L,k]);}ws.sort((x,y)=>y[0]-x[0]);
+      for(const[,k]of ws.slice(0,6))porch(edge(k),true,k===pi);if(pi>=0){const P=edge(pi);q.por=[P.mx,P.mz,P.nx,P.nz];}}
+    else if(pv==='front'&&pi>=0){const P=edge(pi);q.por=[P.mx,P.mz,P.nx,P.nz];porch(P,false,true);}
+    // a cupola on the ridge
+    if(LK&&LK.cu&&peak){const c=hexc(LK.t||'#f2f0ea'),r0=ob?ob.t:0,hb=.95,y0=peak[1]+.2;boxO(out,peak[0],y0+.55,peak[2],hb,.75,hb,r0,c);
+      const co=Math.cos(r0),si=Math.sin(r0),C=(u,v)=>[peak[0]+u*co-v*si,y0+1.35,peak[2]+u*si+v*co],ap=[peak[0],y0+2.5,peak[2]],cs=[C(-1.2,-1.2),C(1.2,-1.2),C(1.2,1.2),C(-1.2,1.2)];
+      for(let k=0;k<4;k++){const a2=cs[k],b2=cs[(k+1)%4];let nn=nrm(cross(sub(b2,a2),sub(ap,a2)));if(nn[1]<0)nn=mul(nn,-1);triO(out,a2,b2,ap,mul(roof,shadeOf(nn)),nn);}}}
   else if(ex&&!kind&&doors.length||kind==='building'&&doors.length){const E=edge(bi);lift=liftAt(E);const dh=Math.min(2.3,H1-lift-.5);
     // a plain door with a frame and a little hood
     panel(E,.5,.62,plinth-.05,dh+.12,frame,.05);panel(E,.5,.5,plinth,dh,hexc(['#4b5560','#6b4a33','#7a2f2a','#2f4f3a'][hs%4]),.07);
