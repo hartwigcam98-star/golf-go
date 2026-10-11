@@ -760,7 +760,7 @@ td.won{background:rgba(255,201,60,.38)}
 </div>
 
 <script src="greens.js?v=9d3fb97522"></script>
-<script src="ground.js?v=e1dd1f10da"></script>
+<script src="ground.js?v=2155dd5e04"></script>
 <script src="trees.js?v=08a9667a5f"></script>
 <script>/* three.js r170 (MIT) */
 (function(){
@@ -1001,8 +1001,7 @@ function buildHole(d,idx){
   if(CUR.surr)surrForHole(h);
   bldxForHole(h);
   // keep trees out of buildings and their parking/entry area
-  const blds=h.buildings.filter(q=>q.area>6);const hit=t=>blds.some(q=>polyDist(q,t.x,t.y,40)<(t.r||8)*.7+(q.club?9:3));
-  h.trees=h.trees.filter(t=>!hit(t));h.allTrees=h.allTrees.filter(t=>!hit(t));if(h.farTrees)h.farTrees=h.farTrees.filter(t=>!hit(t));
+  bldTreeClear(h);
   return h;
 }
 function lieCodeAt(h,x,y){const g=h.lg,i=Math.floor(x-g.x0+.5),j=Math.floor(y-g.y0+.5);if(i<0||j<0||i>=g.nx||j>=g.ny)return -1;return g.code[j*g.nx+i];}
@@ -1697,39 +1696,46 @@ function boxO(out,cx,cy,cz,hx,hy,hz,rot,col,bottom){const c=Math.cos(rot),sn=Mat
 /* each course's real clubhouse, from photos: w wall, m material (siding|board|log|stone|stucco|tudor|brick), t trim, s stone, b stone base (yd),
    lo/lc a brick or stone ground storey (height, colour), r roof colour, v porch (wrap|front|none), c columns, po full-height portico, cu cupola, sh shutters,
    ch chimney colour, fl flat (pueblo) roof, tc tudor timber */
-const CAP={pt:'brick',um:'#7a2f2a',w:'#e4d9c6',m:'siding',t:'#f4f2ec',lo:1.4,lc:'#8e4b3b',r:'#5f615e',v:'front',c:'#f4f2ec',cu:1,ch:'#8e4b3b'};
-const CLUBLOOK={troy:{pt:'paver',um:'#2f4f3a',w:'#e7e2d4',m:'siding',t:'#f6f5f0',s:'#a99e8c',r:'#55585a',v:'front',c:'#f6f5f0',po:1},
-  stoneridge:{pt:'stone',um:'#5a3d2e',w:'#cdb99a',m:'stucco',t:'#4a3d33',s:'#9c8f7b',b:1.4,r:'#4b3f36',v:'front'},
-  caledonia:{dm:3,pt:'brick',um:'',w:'#f3f1ea',m:'siding',t:'#fbfaf6',lo:1.6,lc:'#8b5a48',r:'#5d625f',v:'wrap',c:'#fbfaf6',ch:'#8b5a48'},
-  trueblue:{dm:2,pt:'paver',um:'#2f5f9e',w:'#f3f2ed',m:'siding',t:'#fbfaf6',r:'#3e73b6',v:'wrap',c:'#fbfaf6',ch:'#f3f2ed'},
-  legislator:CAP,judge:CAP,senator:CAP,
-  sandvalley:{pt:'brick',um:'#2f4f3a',pt:'stone',um:'',fp:1,w:'#9d8a73',m:'board',t:'#3b3a37',s:'#8a8378',b:.5,r:'#3e4246',v:'none'},
-  mammoth:{pt:'deck',um:'#e9e4d6',fp:1,w:'#d9d4c8',m:'board',t:'#4a4a48',b:.4,r:'#3f4347',v:'front',c:'#6b5a48'},
-  wilderness:{gb:1,pt:'stone',um:'#2f5a46',fp:1,w:'#8c6b49',m:'log',t:'#4b3a2c',s:'#a0968a',b:1.6,r:'#2f5a46',v:'front',c:'#a0968a',ch:'#a0968a'},
-  quarry:{pt:'deck',um:'#3d3a36',rw:1,w:'#5c4b3c',m:'board',t:'#3a3029',s:'#8f877b',b:.8,r:'#3a3632',v:'front',c:'#6b5541'},
+const CLUBLOOK={troy:{pt:'paver',um:'#1f2c4a,#b0282e',w:'#d9d7cf',m:'siding',t:'#f6f5f0',s:'#a99e8c',r:'#4a4d50',v:'front',c:'#f6f5f0',po:1,xg:1,eh:4.2,rs:4.0},
+  stoneridge:{pt:'brick',um:'#5a3d2e',w:'#cdb99a',m:'stucco',t:'#4a3d33',s:'#9c8f7b',b:1.4,r:'#4d4b47',v:'front',rw:1,c:'#cdb99a'},
+  caledonia:{ar:'dark',dm:3,pt:'brick',um:'',w:'#f3f1ea',m:'siding',t:'#fbfaf6',lo:2.6,lc:'#a08f7c',r:'#5d625f',v:'wrap',c:'#fbfaf6',ch:'#8a7766',stp:1,rs:4.8,xg:1},
+  trueblue:{dm:3,pt:'paver',um:'#2f5f9e',w:'#f3f2ed',m:'siding',t:'#fbfaf6',r:'#3a6fc0',v:'wrap',c:'#fbfaf6',ch:'#f3f2ed',gb:1,eh:4.2,rs:5.8,stp:1},
+  sandvalley:{bal:1,pt:'paver',fp:1,w:'#b8a88f',m:'board',t:'#3f3e3b',s:'#8a8378',b:0.4,r:'#4a4d51',v:'front',c:'#8c7a62',xg:2,ch:'#b59a6e',eh:7.0},
+  mammoth:{bal:1,pt:'paver',fp:1,w:'#b8a88f',m:'board',t:'#3f3e3b',b:0.4,r:'#4a4d51',v:'front',c:'#8c7a62',s:'#8a8378',xg:2,ch:'#b59a6e',eh:7.0},
+  wilderness:{pt:'brick',um:'#1f1f1f',w:'#bfa57a',m:'board',t:'#8b3a2b',s:'#a39a8e',b:0.5,r:'#2f5a46',v:'wrap',c:'#a39a8e',ch:'#6b5644',dm:1,rw:1,ph:1.0},
+  quarry:{pt:'deck',um:'#3d3a36',rw:1,w:'#cdc6b6',m:'stucco',t:'#4a3f35',s:'#8d8880',b:1.0,r:'#34463b',v:'none',c:'#cdc6b6',po:1},
   legend:{pt:'deck',um:'#3d3a36',rw:1,w:'#6e5641',m:'board',t:'#3a3029',s:'#9a8f80',b:2.2,r:'#3d3a36',v:'front',c:'#7a6047',ch:'#9a8f80'},
-  heritage:{dm:3,pt:'brick',um:'',w:'#f5f3ee',m:'siding',t:'#fbfaf6',r:'#45494c',v:'none',c:'#fbfaf6',po:1,sh:'#2c3133',ch:'#f5f3ee'},
-  pawplant:{dm:4,pt:'brick',um:'#f2efe6',w:'#efe9db',m:'siding',t:'#fbfaf6',lo:.9,lc:'#94604c',r:'#bcc0bf',v:'front',c:'#fbfaf6',cu:1,sh:'#2f3436',ch:'#efe9db'},
-  deacon:{gb:1,pt:'stone',um:'#2e5848',fp:1,w:'#4d4a3a',m:'log',t:'#2f3a30',s:'#8f877b',b:1,r:'#2e5848',v:'front',c:'#6b5541'},
-  lehman:{pt:'deck',um:'#2f4f3a',w:'#35513e',m:'siding',t:'#5b4532',s:'#9a8f80',b:1.2,r:'#3d3b38',v:'front',c:'#6e5238',po:1},
-  maddens:{pt:'deck',um:'#2f6b4a',rw:1,w:'#7d8683',m:'board',t:'#4b3d30',s:'#9a8f80',b:1.2,r:'#3c3e40',v:'front',c:'#6e5238'},
-  pines:{pt:'reddeck',um:'#b3302b',rw:1,w:'#5b4231',m:'log',t:'#3a2c22',s:'#948a7c',b:.9,r:'#4a4037',v:'front',c:'#5b4231'},
-  preserve:{pt:'reddeck',um:'#b3302b',rw:1,w:'#6c4b33',m:'log',t:'#3a2c22',s:'#948a7c',b:1.1,r:'#4e6b4d',v:'front',c:'#6c4b33'},
-  orangeburg:{pt:'paver',um:'#2f4f3a',w:'#c8b08e',m:'stucco',t:'#5c4f42',s:'#9c8b74',b:1.3,r:'#5f564b',v:'none',c:'#c8b08e',po:1},
-  santee:{dm:2,pt:'brick',um:'',w:'#efece4',m:'siding',t:'#fbfaf6',r:'#5d8a5b',v:'front',c:'#fbfaf6',cu:1,sh:'#2f4a3a'},
-  wyboo:{pt:'paver',um:'',w:'#b9ac94',m:'siding',t:'#f4f2ec',r:'#6c6964',v:'front',c:'#f4f2ec'},
+  heritage:{pt:'brick',um:'',w:'#f5f3ee',m:'siding',t:'#fbfaf6',r:'#45494c',v:'none',c:'#fbfaf6',po:1,sh:'#2c3133',ch:'#f5f3ee'},
+  pawplant:{dm:4,pt:'paver',um:'#f2efe6',w:'#f1ebd9',m:'siding',t:'#fbfaf6',lo:0.9,lc:'#94604c',r:'#d0d3d1',v:'front',c:'#fbfaf6',cu:1,sh:'#2f3436',ch:'#efe9db',stp:1,ph:0.6,eh:3.8,rs:4.6},
+  deacon:{pt:'stone',um:'#2e5848',fp:1,w:'#3d362f',m:'log',t:'#2b2722',s:'#a39a8a',b:1,r:'#2f5d55',v:'front',c:'#a39a8a',dm:1,po:1,ch:'#cfc8bb'},
+  lehman:{pt:'paver',um:'#2f4f3a',w:'#35513e',m:'siding',t:'#5b4532',s:'#9a8f80',b:1.2,r:'#6b6156',v:'front',c:'#6e5238',po:1,eh:6.5,rs:4.5,dm:2},
+  maddens:{pt:'stone',um:'#2f4a3a',w:'#8e8a7d',m:'board',t:'#eeece6',s:'#9a8f80',b:0.8,r:'#4a524f',v:'front',c:'#eeece6',dm:1},
+  pines:{pt:'reddeck',um:'#b3302b',rw:1,w:'#4f3a2a',m:'log',t:'#2e2620',s:'#948a7c',b:0.9,r:'#4f4033',v:'front',c:'#5b4231',gb:1},
+  preserve:{pt:'reddeck',um:'#b3302b',rw:1,w:'#7a5638',m:'log',t:'#3a2c22',s:'#948a7c',b:0.6,r:'#4e6b4d',v:'front',c:'#6c4b33',dm:1,ch:'#9a8f80',ph:1.5},
+  orangeburg:{pc:1,pcc:'#cdb898',pt:'brick',um:'#2f4f3a',w:'#d6c3a2',m:'stucco',t:'#5c4f42',s:'#9c8b74',r:'#5a5752',v:'none',c:'#cdb898',po:1,xg:2,eh:4.0,rs:5.0},
+  santee:{pt:'brick',um:'',w:'#eceee9',m:'siding',t:'#fbfaf6',r:'#7d9a72',v:'front',c:'#fbfaf6',cu:1,sh:'#2f3b3f',ch:'#e6e2d8'},
+  wyboo:{pt:'paver',um:'',w:'#b9ac94',m:'siding',t:'#f4f2ec',r:'#7d7b74',v:'front',c:'#f4f2ec',po:1},
   valley:{w:'#dacfb8',m:'siding',t:'#f4f2ec',lo:2.4,lc:'#8b4b3a',r:'#626260',v:'wrap',c:'#f4f2ec',cu:1,ch:'#8b4b3a'},
-  gnlake:{pt:'brick',um:'#2f4f3a',w:'#aeb0aa',m:'siding',t:'#f4f2ec',lo:2.8,lc:'#8e4a39',r:'#5c5d5b',v:'wrap',c:'#f4f2ec',cu:1,ch:'#8e4a39'},
-  lookout:{pt:'stone',um:'#8b5a42',w:'#c9aa83',m:'stucco',t:'#6b4f3a',s:'#9a8468',b:1,r:'#8b5a42',v:'none'},
-  wigwam:{pt:'paver',um:'#b3302b',w:'#efede6',m:'stucco',t:'#7a5a3e',b:.3,v:'none',fl:1},
-  dove:{pt:'paver',um:'#6b4a33',w:'#c8ad8b',m:'stucco',t:'#6b5440',b:.3,v:'none',fl:1},
-  interlachen:{gb:1,eh:7,rs:5,xg:4,ph:1.2,stp:1,pt:'stone',um:'#e9e4d6',rw:1,w:'#ece4d0',m:'tudor',t:'#4a3426',tc:'#4a3426',s:'#a99d89',b:1.4,r:'#5a4637',v:'none',ch:'#ece4d0'},
-  windsong:{gb:1,pt:'stone',um:'',rw:1,fp:1,w:'#5f3f2d',m:'board',t:'#3a2a20',lo:1.2,lc:'#8b4636',r:'#4f4b46',v:'front',c:'#5f3f2d',ch:'#8b4636'},
-  hazeltine:{pt:'stone',um:'#3d3f40',fp:1,w:'#cdc5b2',m:'stone',t:'#3d3f40',s:'#b7ae9b',b:.6,r:'#6c6f6e',v:'front',c:'#8a6a48',ch:'#cdc5b2'},
-  slmh:{pt:'brick',um:'#2f4f3a',w:'#efe9dc',m:'siding',t:'#fbfaf6',lo:1,lc:'#9a8f80',r:'#5c5a58',v:'wrap',c:'#fbfaf6',cu:1},
-  legends:{pt:'stone',um:'#2f6fae',fp:1,rw:1,w:'#ddd0b4',m:'stucco',t:'#5a5047',lo:3,lc:'#bba98a',r:'#68645f',v:'front',c:'#bba98a',cu:1},
-  chaska:{pt:'brick',um:'#2f4f3a',w:'#a59c8a',m:'board',t:'#4a453e',s:'#9a8f80',b:.9,r:'#585755',v:'front',c:'#6b5a48'},
-  prestwick:{gb:1,eh:6,rs:5.5,xg:3,cbn:1,ph:1.5,stp:1,ir:1,pt:'stone',um:'#2f5f9e,#b3302b,#c8708e',rw:1,w:'#ebe3cf',m:'tudor',t:'#4e3a2c',tc:'#4e3a2c',s:'#c9c0ae',b:1.6,r:'#6b5444',v:'none',ch:'#c9c0ae'}};
+  gnlake:{ar:'dark',pt:'brick',um:'#2f4f3a',w:'#b8b2a6',m:'siding',t:'#f4f2ec',lo:3.2,lc:'#8e4a39',r:'#5c5d5b',v:'wrap',c:'#f4f2ec',cu:1,ch:'#8e4a39',eh:6.8,stp:1},
+  lookout:{pt:'stone',um:'#8b5a42',w:'#c9aa83',m:'stucco',t:'#6b4f3a',s:'#9a8468',b:1,r:'#8b5a42',v:'none',fl:1},
+  wigwam:{pt:'paver',um:'#b3302b',w:'#efede6',m:'stucco',t:'#7a5a3e',b:0.3,v:'none',fl:1,eh:4},
+  dove:{pt:'paver',um:'#6b4a33',w:'#c9b49a',m:'stucco',t:'#6b5440',b:0.3,v:'none',fl:1},
+  interlachen:{ar:'glass',gb:1,eh:7,rs:5,xg:4,ph:1.2,stp:1,pt:'stone',um:'#e9e4d6',rw:1,w:'#ece4d0',m:'tudor',t:'#4a3426',tc:'#4a3426',s:'#a99d89',b:1.4,r:'#6b5544',v:'none',ch:'#ece4d0'},
+  windsong:{gb:1,pt:'stone',um:'',rw:1,fp:1,w:'#5f3f2d',m:'board',t:'#3a2a20',lo:1.2,lc:'#8b4636',r:'#4a4640',v:'front',c:'#4a3326',ch:'#d9d6cf'},
+  hazeltine:{tw:6,twc:'#d2ccbd',clk:1,pc:1,pcc:'#8a6a48',pt:'stone',um:'#3d3f40',fp:1,w:'#d2ccbd',m:'stone',t:'#6e2f2a',s:'#c4bba7',b:0.6,r:'#5e6163',v:'front',c:'#b07a45',ch:'#d2ccbd',gb:1,eh:7,rs:5},
+  slmh:{pt:'brick',um:'#2f4f3a',w:'#efe9dc',m:'siding',t:'#fbfaf6',lo:1,lc:'#9a8f80',r:'#4f5459',v:'wrap',c:'#fbfaf6',cu:1},
+  legends:{tw:5,twc:'#efeae0',clk:1,bal:1,pt:'stone',um:'#2f6fae',fp:1,rw:1,w:'#ddd0b4',m:'stucco',t:'#efeae0',lo:3,lc:'#c4a77c',r:'#6b5f55',v:'front',c:'#c4a77c',cu:1,eh:7,rs:4.5},
+  chaska:{pt:'paver',um:'#3a3a3a',w:'#8f8c86',m:'siding',t:'#4a453e',s:'#9a8f80',b:0.9,r:'#4a4a4a',v:'front',c:'#8f8c86',gb:1,rs:6},
+  prestwick:{gb:1,eh:6,rs:5.5,xg:3,cbn:1,ph:1.5,stp:1,ir:1,pt:'stone',um:'#2f5f9e,#b3302b,#c8708e',rw:1,w:'#ebe3cf',m:'tudor',t:'#4e3a2c',tc:'#4e3a2c',s:'#c9c0ae',b:1.6,r:'#6b5444',v:'none',ch:'#c9c0ae'},
+  legislator:{ar:'dark',pt:'brick',um:'#7a2f2a',w:'#cfbdaf',m:'siding',t:'#f4f2ec',lo:1.8,lc:'#8e4b3b',r:'#5f615e',v:'wrap',c:'#f4f2ec',cu:1,ch:'#8e4b3b',eh:8.0,stp:1},
+  judge:{ar:'dark',pt:'brick',um:'#7a2f2a',w:'#cfbdaf',m:'siding',t:'#f4f2ec',lo:1.8,lc:'#8e4b3b',r:'#5f615e',v:'wrap',c:'#f4f2ec',cu:1,ch:'#8e4b3b',eh:8.0,stp:1},
+  senator:{ar:'dark',pt:'brick',um:'#7a2f2a',w:'#cfbdaf',m:'siding',t:'#f4f2ec',lo:1.8,lc:'#8e4b3b',r:'#5f615e',v:'wrap',c:'#f4f2ec',cu:1,ch:'#8e4b3b',eh:8.0,stp:1},
+  crls:{w:'#7b4636',m:'brick',t:'#f4f2ec',r:'#55565a',v:'wrap',c:'#f4f2ec',cu:1,ch:'#8a4a3a',pt:'stone',rw:1,stp:1},
+  crsc:{w:'#7b4636',m:'brick',t:'#f4f2ec',r:'#55565a',v:'wrap',c:'#f4f2ec',cu:1,ch:'#8a4a3a',pt:'stone',rw:1,stp:1},
+  lido:{cus:2.2,w:'#f3f1ea',m:'siding',t:'#ffffff',r:'#77746f',v:'front',c:'#f7f6f2',cu:1,pt:'paver',b:0},
+  mystic:{oct:1,cus:1.5,w:'#cbb89a',m:'stone',s:'#9a7e62',b:1,t:'#ece8de',r:'#3f7060',v:'wrap',c:'#9a7e62',cu:1,dm:1,pt:'paver',um:'#2f5f9e'},
+  rossbridge:{m:'stone',w:'#cdbf9f',s:'#bfae8c',t:'#ece5d3',r:'#4a5462',v:'none',dm:4,ch:'#b9a988',pt:'stone',um:'#2f86b8,#e8dfcc',fp:1,rw:1},
+  sedge:{w:'#7a5646',m:'brick',t:'#2b2b2b',r:'#3a3d42',gb:1,v:'none',pt:'paver',b:0}};
 CLUBLOOK.ridge=CLUBLOOK.valley;CLUBLOOK.gnlinks=CLUBLOOK.gnlake;CLUBLOOK.slbm=CLUBLOOK.slmh;
 const STYLE={lowcountry:{wall:'#ecebe4',trim:'#3d4b3f',stone:'#b8b2a6',roof:'#5b6166'},prairie:{wall:'#9c7d5e',trim:'#4a3a2e',stone:'#8d8375',roof:'#4a4038'},links:{wall:'#d6ccb8',trim:'#5a4b3c',stone:'#9a9184',roof:'#3b4a52'}};
 /* ---- buildings with measured heights / roof shapes / roof colours (BLDX in ground.js: lidar + aerial photo) ----
@@ -1739,7 +1745,9 @@ function bldxForHole(h){if(typeof BLDX==='undefined'||!BLDX)return;const Xc=BLDX
   for(const q of h.buildings){const r=q.ci!=null?(Xc&&Xc.c&&Xc.c[q.ci]):q.bi!=null?(Xs.b&&Xs.b[q.bi]):null;if(r&&r.length)q.rec=r;}
   const T0=h.T0,b=h.bounds,near=(x,y,r)=>x>b[0]-r&&x<b[2]+r&&y>b[1]-r&&y<b[3]+r;
   (Xs.a||[]).forEach((A,i)=>{if(!A||!A[0]||A[0].length<3)return;const pts=A[0].map(p=>[p[0]-T0[0],p[1]-T0[1]]);if(!pts.some(p=>near(p[0],p[1],900)))return;
-    const P=mkPoly(pts,'bld');P.rec=A[1]&&A[1].length?A[1]:null;if(A[2]==='club'){P.club=true;P.bk=null;}else P.bk=['shack','barn','building'].includes(A[2])?A[2]:'building';P.ai=i;h.buildings.push(P);});}
+    const P=mkPoly(pts,'bld');P.rec=A[1]&&A[1].length?A[1]:null;if(A[2]==='club'){P.club=true;P.bk=null;}else P.bk=['shack','barn','building'].includes(A[2])?A[2]:'building';P.ai=i;h.buildings.push(P);});
+  // a clubhouse placed from photos replaces whatever older outline sat on the same spot
+  const CL=h.buildings.filter(q=>q.club&&q.ai!=null);if(CL.length)h.buildings=h.buildings.filter(q=>(q.club&&q.ai!=null)||!CL.some(c=>inPoly(c,q.x,q.y)||inPoly(q,c.x,c.y)));}
 // parking lots measured with the clubhouses (BLDX[id].p, course yd) join the map's lots unless one already covers them
 function bldxPark(S){if(!S||S._bp||typeof BLDX==='undefined'||!BLDX)return;S._bp=1;const X=BLDX[CUR.id]||(CUR.data&&BLDX[CUR.data]);if(!X||!X.p)return;
   const have=(S.polys.park||[]).map(P=>mkPoly(P,'lot'));S.polys.park=S.polys.park||[];
@@ -1763,6 +1771,10 @@ function quadO(out,a,b,c,d,col,n){triO(out,a,b,c,col,n);triO(out,a,c,d,col,n);}
 const BLD_LUM=c=>.3*c[0]+.59*c[1]+.11*c[2],BLD_LIGHTW=['#e6e1d6','#d9d4c8','#cfd5d6','#e3d8c2','#d8dcd2'],BLD_DARKW=['#b5a690','#a39c8c','#9a6b56','#b3ab9c','#8d979c'],BLD_BARNW=['#b9b09c','#8c9a86','#a8aba6','#9c8b72','#7d8a92'];
 // a photo roof colour, a little darker and greyer so it sits right under the game's sun
 function bldRoofCol(c){const r=((c>>16)&255)/255,g=((c>>8)&255)/255,b=(c&255)/255,l=.3*r+.59*g+.11*b,k=.9-.2*l;return[(r*.8+l*.2)*k,(g*.8+l*.2)*k,(b*.8+l*.2)*k];}
+// no trees growing through buildings: clear round every building, and wider round a clubhouse (its porch, terrace, steps and drive)
+function bldTreeClear(h){const blds=(h.buildings||[]).filter(q=>q.area>6);if(!blds.length)return;
+  const hit=t=>blds.some(q=>{if(t.x<q.bb[0]-40||t.x>q.bb[2]+40||t.y<q.bb[1]-40||t.y>q.bb[3]+40)return false;return polyDist(q,t.x,t.y,40)<(t.r||8)*.7+(q.club?14:3);});
+  h.trees=(h.trees||[]).filter(t=>!hit(t));h.allTrees=(h.allTrees||[]).filter(t=>!hit(t));if(h.farTrees)h.farTrees=h.farTrees.filter(t=>!hit(t));}
 // a footprint broken into its wings: the biggest rectangles (in the footprint's own axes) that fill it, largest first
 function bldWings(q,p,ob){if(q._w!==undefined)return q._w;const g=.7,nu=Math.ceil((ob.u1-ob.u0)/g),nv=Math.ceil((ob.v1-ob.v0)/g);if(nu*nv>40000||nu<4||nv<4)return q._w=null;
   const P2=(u,v)=>[u*ob.ux-v*ob.uy,u*ob.uy+v*ob.ux],Q={pts:p,bb:q.bb};const M=new Uint8Array(nu*nv);let tot=0;
@@ -1790,7 +1802,7 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
   if(ex||simple||club){ob=bldOBB(p,rec&&rt&&rec[3]!=null&&isFinite(rec[3])?rec[3]*Math.PI/180:null);
     if(A/ob.ar>=.8&&((ex&&rt)||simple))rect=true;}
   const rt0=rt;if(rt===1&&!rect)rt=2;
-  const wings=!simple&&rt>0&&!rect&&(club||ex||A>150)&&ob?bldWings(q,p,ob):null;
+  const wings=!simple&&rt>0&&!rect&&(club||ex||A>150)&&ob&&!(LK&&LK.oct)?bldWings(q,p,ob):null;
   const P2=(u,v)=>[u*ob.ux-v*ob.uy,u*ob.uy+v*ob.ux];
   if(rect)p=[P2(ob.u0,ob.v0),P2(ob.u1,ob.v0),P2(ob.u1,ob.v1),P2(ob.u0,ob.v1)];else if(simple&&p.length>6)p=bldSimplify(p,1);
   // clockwise footprints only: the mesh is single-sided and walls must face out (mapped footprints come in both windings)
@@ -1835,7 +1847,12 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
     const rq=(t0,t1,y0,y1,col,o)=>{const A0=[a[0]+ex2*t0+n[0]*o,gh+y0,a[1]+ez*t0+n[2]*o],B0=[a[0]+ex2*t1+n[0]*o,gh+y0,a[1]+ez*t1+n[2]*o],B1=[B0[0],gh+y1,B0[2]],A1=[A0[0],gh+y1,A0[2]];pushTri(out,A0,B0,B1,col,n,n,n);pushTri(out,A0,B1,A1,col,n,n,n);};
     // the clubhouse's own walls: a brick or stone ground storey, then lap siding, board and batten, logs, stone, brick or tudor timbers
     if(LK&&!simple){const lo=LK.lo?Math.min(LK.lo,Htop-1):0,yb=Math.max(plinth,lo),yt=Htop-.35;
-      if(lo>plinth){wq(plinth,lo,hexc(LK.lc),.015);wq(lo-.12,lo,trim,.035);}
+      if(lo>plinth){wq(plinth,lo,hexc(LK.lc),.015);wq(lo-.12,lo,trim,.035);
+        // arched openings in a raised ground storey (dark doors/vents, or a glass arcade)
+        if(LK.ar&&lo-plinth>1.3&&L>3){const na=Math.max(1,Math.floor(L/2.8)),aw=Math.min(.75,L/na*.32),y0=plinth+.12,y1=lo-.35-aw,ac=LK.ar==='glass'?mul(glass,1.3):hexc('#2a2622');
+          for(let k=0;k<na;k++){const t=(k+.5)/na,cx=a[0]+ex2*t,cz=a[1]+ez*t,ux=ex2/L,uz=ez/L,o=.05,P_=(du,y)=>[cx+ux*du+n[0]*o,gh+y,cz+uz*du+n[2]*o];
+            quadO(out,P_(-aw,y0),P_(aw,y0),P_(aw,y1),P_(-aw,y1),ac,n);for(let j=0;j<6;j++){const a1=Math.PI*j/6,a2=Math.PI*(j+1)/6;triO(out,P_(0,y1),P_(Math.cos(a1)*aw,y1+Math.sin(a1)*aw),P_(Math.cos(a2)*aw,y1+Math.sin(a2)*aw),ac,n);}
+            if(LK.ar==='glass'){const P2_=(du,y)=>[cx+ux*du+n[0]*.07,gh+y,cz+uz*du+n[2]*.07];quadO(out,P2_(-.04,y0),P2_(.04,y0),P2_(.04,y1+aw),P2_(-.04,y1+aw),trim,n);}}}}
       if(M==='siding'||M==='log'||M==='brick'){const st=M==='log'?.38:M==='brick'?.5:.42,hh=M==='log'?.08:M==='brick'?.025:.045,c=mul(wall,M==='log'?.68:M==='brick'?.86:.83);for(let y=yb+st;y<yt-.1;y+=st)rq(0,1,y,y+hh,c,.025);}
       else if(M==='board'){const nb=Math.max(1,Math.floor(L/.75)),w=.05/L,c=mul(wall,.8);for(let k=0;k<nb;k++){const t=(k+.5)/nb;rq(t-w,t+w,yb,yt,c,.025);}}
       else if(M==='stone'){let r=0;for(let y=yb;y<yt-.2;y+=.55,r++){const y1=Math.min(yt,y+.49);for(let u=(r&1)*-.55;u<L;u+=1.1){const t0=Math.max(0,u+.04)/L,t1=Math.min(L,u+1.06)/L;if(t1<=t0)continue;const hv=((Math.round(u*7)+r*13+hs)%7)/7;rq(t0,t1,y,y1,mul(wall,.95+hv*.1),.02);}}}
@@ -1846,7 +1863,7 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
     if(fancy&&L>1.2){const c=.26/L;rq(0,c,plinth,Htop-.35,frame,.045);rq(1-c,1,plinth,Htop-.35,frame,.045);}
     const nw=Math.floor(L/(club?3.2:3.8)),dz=doors.filter(d=>d[0]===i);
     for(let k=0;k<nw;k++){const t=(k+.5)/nw,cx=a[0]+ex2*t,cz=a[1]+ez*t,hw=club?.75:.6,ux=ex2/L*hw,uz=ez/L*hw;
-      for(const[y0,y1]of rows){if(y1>H1-.3)continue;if(y0<3&&dz.some(d=>Math.abs(t-d[1])*L<d[2]+hw+.35))continue;const o=.06,P0=[cx-ux+n[0]*o,gh+y0,cz-uz+n[2]*o],P1=[cx+ux+n[0]*o,gh+y0,cz+uz+n[2]*o],P2=[cx+ux+n[0]*o,gh+y1,cz+uz+n[2]*o],P3=[cx-ux+n[0]*o,gh+y1,cz-uz+n[2]*o];
+      for(const[y0,y1]of rows){if(y1>H1-.3)continue;if(LK&&LK.ar&&LK.lo&&y0<LK.lo)continue;if(y0<3&&dz.some(d=>Math.abs(t-d[1])*L<d[2]+hw+.35))continue;const o=.06,P0=[cx-ux+n[0]*o,gh+y0,cz-uz+n[2]*o],P1=[cx+ux+n[0]*o,gh+y0,cz+uz+n[2]*o],P2=[cx+ux+n[0]*o,gh+y1,cz+uz+n[2]*o],P3=[cx-ux+n[0]*o,gh+y1,cz-uz+n[2]*o];
         if(fancy){const fw=(hw+.13)/L;rq(t-fw,t+fw,y0-.16,y1+.13,frame,.045);if(club)rq(t-.04/L,t+.04/L,y0,y1,frame,.075);
           if(LK&&LK.sh){const sc=hexc(LK.sh),sw=.5/L;rq(t-fw-sw,t-fw-.03/L,y0-.1,y1+.08,sc,.05);rq(t+fw+.03/L,t+fw+sw,y0-.1,y1+.08,sc,.05);}}
         pushTri(out,P0,P1,P2,glass,n,n,n);pushTri(out,P0,P2,P3,glass,n,n,n);}}}
@@ -1941,9 +1958,18 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
       const pr=Math.min(2.4,pw*.45),y2=yt+.5;slope(R3e(-pw-.35,-.1,y2),R3e(0,-.1,y2+pr),R3e(0,dp+.25,y2+pr),R3e(-pw-.35,dp+.25,y2),false);slope(R3e(pw+.35,-.1,y2),R3e(pw+.35,dp+.25,y2),R3e(0,dp+.25,y2+pr),R3e(0,-.1,y2+pr),false);
       triO(out,R3e(-pw-.2,dp+.2,y2),R3e(pw+.2,dp+.2,y2),R3e(0,dp+.2,y2+pr-.1),trim,[nx,0,nz]);}
     else{
+    if(LK&&LK.pc){
+      // a porte-cochère: heavy timber (or stucco) posts carrying a gabled roof out over the drive
+      const pw=3.6,dp=7.5,ph=Math.min(4.6,Math.max(3.4,H1-lift-.4)),R3c=(u,v,y)=>[mx+ex2*u+nx*v,y,mz+ez*u+nz*v],pcol=hexc(LK.pcc||LK.c||'#8a6a48');
+      for(const u of[-pw+.3,pw-.3])for(const v of[dp*.45,dp-.4]){const c=R3c(u,v,0),cg=Math.min(g1,hAtH(h,c[0],c[2]))-.2;boxO(out,c[0],(cg+g1+ph)/2,c[2],.32,(g1+ph-cg)/2,.32,rot,pcol);boxO(out,c[0],cg+.5,c[2],.45,.5,.45,rot,stone);}
+      for(const u of[-pw+.3,pw-.3]){const c=R3c(u,dp/2,0);boxO(out,c[0],g1+ph-.15,c[2],.2,.2,dp/2,rot,pcol);}
+      const yb=g1+ph+.05,yr=yb+pw*.75;slope(R3c(-pw-.4,-.2,yb),R3c(-pw-.4,dp+.4,yb),R3c(0,dp+.4,yr),R3c(0,-.2,yr),true);slope(R3c(pw+.4,dp+.4,yb),R3c(pw+.4,-.2,yb),R3c(0,-.2,yr),R3c(0,dp+.4,yr),true);
+      triO(out,R3c(-pw-.3,dp+.38,yb),R3c(pw+.3,dp+.38,yb),R3c(0,dp+.38,yr-.05),mul(pcol,1.1),[nx,0,nz]);
+      {const bar=(x1,y1,x2,y2,w)=>{const dx=x2-x1,dy=y2-y1,l=Math.hypot(dx,dy)||1,px=-dy/l*w,py=dx/l*w;quadO(out,R3c(x1+px,dp+.42,y1+py),R3c(x2+px,dp+.42,y2+py),R3c(x2-px,dp+.42,y2-py),R3c(x1-px,dp+.42,y1-py),mul(pcol,.7),[nx,0,nz]);};bar(-pw,yb+.1,pw,yb+.1,.12);bar(0,yb+.1,0,yr-.2,.1);bar(0,yb+.4,-pw*.55,yb+pw*.32,.08);bar(0,yb+.4,pw*.55,yb+pw*.32,.08);}}
+    else{
     // entry canopy on the longest wall
     boxO(out,mx+nx*2.6,g1+cy,mz+nz*2.6,3.2,.25,2.8,rot,trim);
-    for(const sx of[-2.8,2.8]){const cg=Math.min(g1,hAtH(h,mx+nx*4.9+ex2*sx,mz+nz*4.9+ez*sx))-.2;boxO(out,mx+nx*4.9+ex2*sx,(cg+g1+cy)/2,mz+nz*4.9+ez*sx,.35,(g1+cy-cg)/2,.35,rot,colC);}}
+    for(const sx of[-2.8,2.8]){const cg=Math.min(g1,hAtH(h,mx+nx*4.9+ex2*sx,mz+nz*4.9+ez*sx))-.2;boxO(out,mx+nx*4.9+ex2*sx,(cg+g1+cy)/2,mz+nz*4.9+ez*sx,.35,(g1+cy-cg)/2,.35,rot,colC);}}}
     q.ent=[mx,mz,nx,nz];
     // glass double doors under it
     const dh=Math.min(2.7,cy-.3);panel(E,.5,1.6,plinth-.05,dh+.15,frame,.05);panel(E,.5,1.42,plinth,dh,glass,.07);panel(E,.5,.05,plinth,dh,frame,.09);
@@ -1987,6 +2013,11 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
           for(let u=-W+.3;u<=W-.29;u+=Math.max(1.5,(2*W-.6)/Math.round((2*W-.6)/2.6)))for(let v=pv0+.3;v<=pv0+D-.29;v+=Math.max(1.5,(D-.6)/Math.round((D-.6)/2.6))){const c=R3q(u,v),g=hAtH(h,c[0],c[1]);if(ft-.3-g<.05)continue;boxO(out,c[0],(ft-.3+g-.2)/2,c[1],.13,(ft-.3-g+.2)/2,.13,P.rot,mul(fc,.75));}}
         else boxO(out,c0[0],(ft+fb)/2,c0[1],W,(ft-fb)/2,D/2,P.rot,raised&&!deck?mul(stone,.95):fc);
         if(raised&&!deck)boxO(out,c0[0],ft-.04,c0[1],W-.05,.05,D/2-.05,P.rot,fc);
+        // a walkout level under a tall terrace: arched openings (glass arcade or dark doors) in its front wall
+        if(raised&&!deck&&LK.ar&&ft-gmin>2){const na=Math.max(2,Math.floor(2*W/3)),nf=[P.nx,0,P.nz],ac=LK.ar==='glass'?mul(glass,1.35):hexc('#2a2622');
+          for(let k=0;k<na;k++){const u=-W+(k+.5)*2*W/na,c=R3q(u,pv0+D+.02),g=hAtH(h,c[0],c[1]),aw=Math.min(1.1,W/na*.7),y0=Math.max(g,fb)+.05,y1=ft-.45-aw;if(y1<y0+.6)continue;const Q_=(du,y)=>{const cc=R3q(u+du,pv0+D+.03);return[cc[0],y,cc[1]];};
+            quadO(out,Q_(-aw-.12,y0),Q_(aw+.12,y0),Q_(aw+.12,y1),Q_(-aw-.12,y1),hexc(LK.t||'#4a3426'),nf);quadO(out,Q_(-aw,y0),Q_(aw,y0),Q_(aw,y1),Q_(-aw,y1),ac,nf);
+            for(let j=0;j<6;j++){const a1=Math.PI*j/6,a2=Math.PI*(j+1)/6;triO(out,Q_(0,y1),Q_(Math.cos(a1)*aw,y1+Math.sin(a1)*aw),Q_(Math.cos(a2)*aw,y1+Math.sin(a2)*aw),ac,nf);}}}
         if(!deck){const bc=mul(fc,.82);for(const[u,v,hu,hv]of[[0,pv0+D-.2,W,.2],[-W+.2,pv0+D/2,.2,D/2],[W-.2,pv0+D/2,.2,D/2]]){const c=R3q(u,v);boxO(out,c[0],ft+.005,c[1],hu,.012,hv,P.rot,bc);}}
         else{const bc=mul(fc,.78),nb=Math.floor(D/.5);for(let k=1;k<nb;k++){const c=R3q(0,pv0+k*.5);boxO(out,c[0],ft+.004,c[1],W-.05,.008,.025,P.rot,bc);}}
         // railing round a raised deck, a low stone wall round a raised terrace (or wherever the course asks for one)
@@ -2031,8 +2062,11 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
         quadO(out,R3x(c-hw2,vf+.03,yE-.12),R3x(c+hw2,vf+.03,yE-.12),R3x(c+hw2,vf+.03,yE+.08),R3x(c-hw2,vf+.03,yE+.08),tc,nf);
         // the tall window: mullions through the gable
         const gw=hw2*.62,gy0=y0+Math.max(plinth,.4)+.3,gy1=yE+rs*.42;quadO(out,R3x(c-gw-.15,vf+.04,gy0-.15),R3x(c+gw+.15,vf+.04,gy0-.15),R3x(c+gw+.15,vf+.04,gy1+.15),R3x(c-gw-.15,vf+.04,gy1+.15),tc,nf);
-        quadO(out,R3x(c-gw,vf+.06,gy0),R3x(c+gw,vf+.06,gy0),R3x(c+gw,vf+.06,gy1),R3x(c-gw,vf+.06,gy1),glass,nf);
-        for(let j=1;j<4;j++){const u=c-gw+gw*2*j/4;quadO(out,R3x(u-.05,vf+.08,gy0),R3x(u+.05,vf+.08,gy0),R3x(u+.05,vf+.08,gy1),R3x(u-.05,vf+.08,gy1),tc,nf);}
+        quadO(out,R3x(c-gw,vf+.06,gy0),R3x(c+gw,vf+.06,gy0),R3x(c+gw,vf+.06,gy1),R3x(c-gw,vf+.06,gy1),mul(glass,1.45),nf);
+        for(let j=1;j<5;j++){const u=c-gw+gw*2*j/5;quadO(out,R3x(u-.07,vf+.08,gy0),R3x(u+.07,vf+.08,gy0),R3x(u+.07,vf+.08,gy1),R3x(u-.07,vf+.08,gy1),tc,nf);}
+        // timber truss in the gable peak: a collar beam, king post and two struts
+        {const yb=gy1+.3,yt=yR-.5,hwb=hw2*Math.max(.15,(yR-.15-yb)/rs)*.92,bar=(x1,y1,x2,y2,w)=>{const dx=x2-x1,dy=y2-y1,l=Math.hypot(dx,dy)||1,px=-dy/l*w,py=dx/l*w;quadO(out,R3x(x1+px,vf+.06,y1+py),R3x(x2+px,vf+.06,y2+py),R3x(x2-px,vf+.06,y2-py),R3x(x1-px,vf+.06,y1-py),tc,nf);};
+          if(yt>yb+.6){bar(c-hwb,yb,c+hwb,yb,.09);bar(c,yb,c,yt,.08);bar(c,yb+.15,c-hwb*.6,yb+(yt-yb)*.55,.06);bar(c,yb+.15,c+hwb*.6,yb+(yt-yb)*.55,.06);}}
         for(const y of[gy0+(gy1-gy0)*.45,gy0+(gy1-gy0)*.75])quadO(out,R3x(c-gw,vf+.08,y-.05),R3x(c+gw,vf+.08,y-.05),R3x(c+gw,vf+.08,y+.05),R3x(c-gw,vf+.08,y+.05),tc,nf);}
       // the cart barn: a lower level under the right-hand gable, opening onto the course (a brown overhead door and an open bay),
       // with a deck over it on stone pillars, umbrellas, and carts parked out front
@@ -2051,9 +2085,24 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
         for(const du of[-1.6,0,1.6]){const x=R3x(c+du+.8,vf+dp+3.2,0),g=hAtH(h,x[0],x[2]),cr=P.rot;boxO(out,x[0],g+.5,x[2],.62,.32,1.25,cr,[.93,.93,.9]);boxO(out,x[0],g+.22,x[2],.66,.2,.9,cr,[.12,.12,.12]);boxO(out,x[0]-Math.sin(cr)*-.25,g+.98,x[2]+Math.cos(cr)*-.25,.58,.16,.35,cr,[.25,.2,.17]);boxO(out,x[0],g+1.5,x[2],.66,.04,1.0,cr,[.78,.8,.8]);
           for(const sg of[-1,1])for(const sx of[-1,1])boxO(out,x[0]+Math.cos(cr)*sx*.55-Math.sin(cr)*sg*.8,g+1.15,x[2]+Math.sin(cr)*sx*.55+Math.cos(cr)*sg*.8,.03,.35,.03,cr,[.2,.2,.2]);
           boxO(out,x[0]+Math.sin(cr)*.45,g+.68,x[2]-Math.cos(cr)*.45,.5,.06,.25,cr,[.15,.15,.15]);}}}
+    // a clock tower at one end of the main block (Hazeltine's limestone chimney tower, Legends' white tower)
+    if(LK&&LK.tw&&ob){const tc2=hexc(LK.twc||LK.w),u=ob.u1-1.9,v=(ob.v0+ob.v1)/2,c=P2(u,v),hb=1.7,yt=gh+H1+LK.tw,tr=ob.t,co=Math.cos(tr),si=Math.sin(tr);
+      boxO(out,c[0],(gh+yt)/2,c[1],hb,(yt-gh)/2,hb,tr,tc2);boxO(out,c[0],yt+.1,c[1],hb+.18,.12,hb+.18,tr,mul(tc2,.9));
+      const ap=[c[0],yt+2.2,c[1]],cs=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>[c[0]+(a*co-b*si)*(hb+.3),yt+.2,c[1]+(a*si+b*co)*(hb+.3)]);
+      for(let k=0;k<4;k++){const a2=cs[k],b2=cs[(k+1)%4];let nn=nrm(cross(sub(b2,a2),sub(ap,a2)));if(nn[1]<0)nn=mul(nn,-1);triO(out,a2,b2,ap,mul(roof,shadeOf(nn)),nn);}
+      if(LK.clk)for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=a*co-b*si,nz=a*si+b*co,cx=c[0]+nx*(hb+.03),cz=c[1]+nz*(hb+.03),tx=-nz,tz=nx,yc=yt-1.3,r=1.05,n3=[nx,0,nz];
+        for(let j=0;j<10;j++){const a1=j/10*TAU,a2=(j+1)/10*TAU;triO(out,[cx,yc,cz],[cx+tx*Math.cos(a1)*r,yc+Math.sin(a1)*r,cz+tz*Math.cos(a1)*r],[cx+tx*Math.cos(a2)*r,yc+Math.sin(a2)*r,cz+tz*Math.cos(a2)*r],[.95,.94,.9],n3);}
+        const hand=(ang,len,w)=>{const dx=Math.cos(ang),dy=Math.sin(ang);quadO(out,[cx+tx*(-dy*w)+nx*.02,yc+dx*w,cz+tz*(-dy*w)+nz*.02],[cx+tx*(dx*len-dy*w)+nx*.02,yc+dy*len+dx*w,cz+tz*(dx*len-dy*w)+nz*.02],[cx+tx*(dx*len+dy*w)+nx*.02,yc+dy*len-dx*w,cz+tz*(dx*len+dy*w)+nz*.02],[cx+tx*(dy*w)+nx*.02,yc-dx*w,cz+tz*(dy*w)+nz*.02],[.1,.1,.1],n3);};hand(Math.PI/2,.8,.05);hand(Math.PI/6,.55,.06);}}
+    // a second-storey balcony with an iron railing across the course side, on posts
+    if(LK&&LK.bal&&pi>=0&&H1-lift>5){const P=courseSide(),bw=Math.min(P.L*.32,10),yb=gh+lift+Math.min(3.6,H1-lift-2.2),dp=1.8,ic=hexc('#1e1e1e'),R3b=(u,v,y)=>[P.mx+P.ex*u+P.nx*v,y,P.mz+P.ez*u+P.nz*v],bo=-P.L*.18;
+      const c0=R3b(bo,dp/2+.1,0);boxO(out,c0[0],yb-.12,c0[2],bw,.12,dp/2,P.rot,mul(trim,1.1));
+      for(const u of[-bw+.2,0,bw-.2]){const c=R3b(bo+u,dp,0),g=Math.min(yb,hAtH(h,c[0],c[2]))-.2;boxO(out,c[0],(g+yb)/2,c[2],.18,(yb-g)/2,.18,P.rot,LK.c?hexc(LK.c):stone);}
+      const c1=R3b(bo,dp+.05,0);boxO(out,c1[0],yb+.95,c1[2],bw,.03,.03,P.rot,ic);for(let k=0;k<=Math.round(bw*2/.45);k++){const c=R3b(bo-bw+k*.45,dp+.05,0);boxO(out,c[0],yb+.47,c[2],.018,.47,.018,P.rot,ic);}
+      for(const sg of[-1,1]){const c=R3b(bo+sg*bw,dp/2+.1,0);boxO(out,c[0],yb+.95,c[2],.03,.03,dp/2,P.rot,ic);}}
     // a cupola on the ridge
-    if(LK&&LK.cu&&peak){const c=hexc(LK.t||'#f2f0ea'),r0=ob?ob.t:0,hb=.95,y0=peak[1]+.2;boxO(out,peak[0],y0+.55,peak[2],hb,.75,hb,r0,c);
-      const co=Math.cos(r0),si=Math.sin(r0),C=(u,v)=>[peak[0]+u*co-v*si,y0+1.35,peak[2]+u*si+v*co],ap=[peak[0],y0+2.5,peak[2]],cs=[C(-1.2,-1.2),C(1.2,-1.2),C(1.2,1.2),C(-1.2,1.2)];
+    if(LK&&LK.cu&&peak){const K=LK.cus||1,c=hexc(LK.t||'#f2f0ea'),r0=ob?ob.t:0,hb=.95*K,y0=peak[1]+.2-(K-1)*.6;boxO(out,peak[0],y0+.55*K,peak[2],hb,.75*K,hb,r0,c);
+      {const co=Math.cos(r0),si=Math.sin(r0);for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=a*co-b*si,nz=a*si+b*co,ox=(a?hb+.02:0),oz=(b?hb+.02:0),cx=peak[0]+(a*ox)*co-(b*oz)*si,cz=peak[2]+(a*ox)*si+(b*oz)*co,tx=-nz,tz=nx,w=hb*.7;quadO(out,[cx-tx*w,y0+.35*K,cz-tz*w],[cx+tx*w,y0+.35*K,cz+tz*w],[cx+tx*w,y0+1.1*K,cz+tz*w],[cx-tx*w,y0+1.1*K,cz-tz*w],mul(glass,1.25),[nx,0,nz]);}}
+      const co=Math.cos(r0),si=Math.sin(r0),C=(u,v)=>[peak[0]+u*co-v*si,y0+1.35*K,peak[2]+u*si+v*co],ap=[peak[0],y0+(1.35+1.15*Math.min(K,1.3))*K,peak[2]],cs=[C(-1.2*K,-1.2*K),C(1.2*K,-1.2*K),C(1.2*K,1.2*K),C(-1.2*K,1.2*K)];
       for(let k=0;k<4;k++){const a2=cs[k],b2=cs[(k+1)%4];let nn=nrm(cross(sub(b2,a2),sub(ap,a2)));if(nn[1]<0)nn=mul(nn,-1);triO(out,a2,b2,ap,mul(roof,shadeOf(nn)),nn);}}}
   else if(ex&&!kind&&doors.length||kind==='building'&&doors.length){const E=edge(bi);lift=liftAt(E);const dh=Math.min(2.3,H1-lift-.5);
     // a plain door with a frame and a little hood
@@ -4862,7 +4911,7 @@ function r3NaipApply(h){const N=r3NaipLoad(CUR.data||CUR.id);if(!N)return false;
   // keep the old map trees that lie beyond the photo
   for(const t of h.farTrees||[]){const cx=t.x+T0[0],cy=t.y+T0[1];if(cx<E[0]||cx>E[2]||cy<E[1]||cy>E[3])far.push(t);}
   far.sort((a,c)=>(a.d||0)-(c.d||0));if(far.length>4200)far.length=4200;
-  h.allTrees=near;h.trees=near;h.farTrees=far;return true;}
+  h.allTrees=near;h.trees=near;h.farTrees=far;bldTreeClear(h);return true;}
 
 /* ---- far trees as impostors: every species prototype is photographed once from the side into an atlas, then each far tree
    is a single camera-facing card (turning about its trunk), all of them in one instanced draw ---- */
@@ -6353,6 +6402,11 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-11-club",date:"Oct 11, 2026",title:"Real clubhouses on every course",items:[
+    "Every clubhouse was checked against photos and the aerial view: they now stand where the real ones do, at the right size and height, in their real colours and materials.",
+    "New clubhouses at Cambrian Ridge, Mystic Lake, The Lido, Sedge Valley, Interlachen and Ross Bridge, and the right building at Santee, Wyboo, The Quarry, Lookout Mountain, Dove Valley, Caledonia and Senator.",
+    "Real features from the photos: Prestwick's gables, terrace and cart barn, Hazeltine's clock tower and timber entrance, the Legends tower and balcony, Interlachen's glass arcade, porches, patios with umbrellas and fire pits, decks and steps down to the course.",
+    "Roofs follow each building's wings, parking lots have stalls and cars, and trees no longer grow through buildings."]},
   {id:"2026-10-10-d195",date:"Oct 10, 2026",title:"Prestwick Golf Club joins the game",items:[
     "Prestwick Golf Club in Woodbury, Minnesota, from the Black tees (about 6,820 yd, par 72).",
     "It's on the Minnesota map and joins the daily round rotation from tomorrow."]},
