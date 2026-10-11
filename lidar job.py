@@ -119,13 +119,13 @@ def roof_of(dsm, gnd, m):
 OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']
 OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter']
 def overpass(q):
-    for u in OVP:
+    for u in OVP * 3:
         try:
             r = S.post(u, data={'data': q}, timeout=200)
             if r.status_code == 200: return r.json()['elements']
             log('  overpass', u, r.status_code)
         except Exception as e: log('  overpass', u, e)
-        time.sleep(5)
+        time.sleep(20)
     raise RuntimeError('overpass failed')
 def ring_area_m(ring, tf):
     X, Y = tf.transform([p[0] for p in ring], [p[1] for p in ring]); X = np.array(X); Y = np.array(Y)
