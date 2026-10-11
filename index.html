@@ -186,10 +186,11 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .sthead b{font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:24px;color:#12283b;flex:1}
 .sthead span{font-size:13px;font-weight:700;color:#51606b}
 .stback{border-radius:999px;border:2px solid #12283b;padding:4px 12px;font-weight:700;font-size:14px;color:#12283b;background:transparent}
-.coursepick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
+.coursepick{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin:0 0 12px}
+.coursepick button{min-width:0}
 .coursepick button img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;background:#2f6b3a;display:block;margin-bottom:4px}
 .coursepick button{border-radius:12px;padding:4px 4px 7px;border:2px solid #12283b;background:transparent;color:#12283b;display:flex;flex-direction:column;align-items:center;gap:1px}
-.coursepick button b{font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:17px;line-height:1.05;text-align:center}
+.coursepick button b{font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:17px;line-height:1.05;text-align:center;max-width:100%;overflow-wrap:break-word}
 .coursepick button span{font-size:12px;opacity:.75}
 .coursepick button.on{background:#12283b;color:var(--sun)}
 .coursepick button.on span{color:var(--paper);opacity:.8}
@@ -6281,7 +6282,7 @@ function buildMap(){const M=US_MAP,has={};for(const id in COURSES){const s=state
   $('usMap').querySelectorAll('[data-st]').forEach(e=>e.addEventListener('click',()=>{A();sfx.tick();showState(e.dataset.st);}));}
 function showState(st){MSTATE=st;const ids=Object.keys(COURSES).filter(id=>stateOf(id)===st);
   $('stName').textContent=ST_NAME[st]||st;$('stCount').textContent=ids.length+' course'+(ids.length>1?'s':'');
-  $('coursePick').innerHTML=ids.map(id=>{const C=COURSES[id],on=id===CUR.id,img=courseImg(id);return '<button data-c="'+id+'"'+(on?' class="on"':'')+' aria-pressed="'+on+'">'+(img?'<img alt="" src="'+img+'">':'')+'<b>'+C.name+'</b><span>'+C.town.replace(/, ..$/,'')+'</span></button>';}).join('');
+  $('coursePick').innerHTML=ids.map(id=>{const C=COURSES[id],on=id===CUR.id,img=courseImg(id);return '<button data-c="'+id+'"'+(on?' class="on"':'')+' aria-pressed="'+on+'">'+(img?'<img alt="" src="'+img+'">':'')+'<b>'+C.name.replace(/\//g,'/<wbr>')+'</b><span>'+C.town.replace(/, ..$/,'')+'</span></button>';}).join('');
   $('coursePick').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>pickCourse(b.dataset.c)));
   $('mapView').hidden=true;$('stateView').hidden=false;}
 function showMap(){MSTATE=null;$('stateView').hidden=true;$('mapView').hidden=false;const st=stateOf(CUR.id);$('usMap').querySelectorAll('path.has').forEach(p=>p.classList.toggle('cur',p.dataset.st===st));}
