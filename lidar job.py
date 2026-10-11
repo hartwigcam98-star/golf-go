@@ -47,6 +47,26 @@ def commons(q, n=12):
     try: pages = r.json().get('query', {}).get('pages', {})
     except Exception: return []
     return [(p['imageinfo'][0].get('thumburl') or p['imageinfo'][0]['url'], 'commons ' + p['title']) for p in pages.values() if p.get('imageinfo')]
+def ddg(q, n=14):
+    """image results from DuckDuckGo (token from the search page, then the i.js endpoint)"""
+    try:
+        r = S.get('https://duckduckgo.com/', params={'q': q, 'iax': 'images', 'ia': 'images'}, timeout=20)
+        m = re.search(r'vqd=["\']?([\d-]+)', r.text)
+        if not m: return []
+        r = S.get('https://duckduckgo.com/i.js', params={'l': 'us-en', 'o': 'json', 'q': q, 'vqd': m.group(1), 'f': ',,,', 'p': '1'}, headers={'Referer': 'https://duckduckgo.com/'}, timeout=20)
+        return [(x['image'], 'ddg ' + x.get('title', '')[:80]) for x in r.json().get('results', [])[:n]]
+    except Exception as e:
+        print('ddg', q, e); return []
+def bing(q, n=14):
+    try:
+        r = S.get('https://www.bing.com/images/search', params={'q': q, 'form': 'HDRSC2', 'first': '1'}, timeout=20)
+        out = []
+        for m in re.finditer(r'murl&quot;:&quot;(.*?)&quot;.*?t&quot;:&quot;(.*?)&quot;', r.text):
+            out.append((m.group(1), 'bing ' + m.group(2)[:80]))
+            if len(out) >= n: break
+        return out
+    except Exception as e:
+        print('bing', q, e); return []
 def fetch_img(u):
     r = get(u, 25)
     if not r: return None
@@ -62,13 +82,16 @@ def site(key, cfg):
         c, links = imgs_of(u); cand += c
         for l in links[:8]:
             c2, _ = imgs_of(l); cand += [(x, t + ' @' + urlparse(l).path) for x, t in c2]
-    if cfg.get('q'): cand += commons(cfg['q'])
+    web = ddg(cfg['name'] + ' clubhouse') or bing(cfg['name'] + ' clubhouse')
+    print(key, 'search', len(web), flush=True)
+    cand = web + [c for c in cand if re.search(r'club ?house|lodge|exterior|building|patio', c[0] + c[1], re.I)] + cand
+    if cfg.get('q'): cand += [c for c in commons(cfg['q'] + ' golf') if re.search(r'\.(jpe?g|png)$', c[1], re.I)]
     seen = set(); scored = []
     for u, t in cand:
         if u in seen or not u.startswith('http') or BAD.search(u + ' ' + t) or re.search(r'\.(svg|gif)(\?|$)', u, re.I): continue
-        seen.add(u); s = (3 if re.search(r'club ?house|lodge|exterior', u + t, re.I) else 0) + (1 if GOOD.search(u + ' ' + t) else 0) + (1 if t.startswith('og') else 0) + (2 if t.startswith('commons') else 0)
+        seen.add(u); s = (3 if re.search(r'club ?house|lodge|exterior', u + t, re.I) else 0) + (1 if GOOD.search(u + ' ' + t) else 0) + (1 if t.startswith('og') else 0) + (6 if t.startswith(('ddg', 'bing')) else 0)
         scored.append((s, u, t))
-    scored.sort(key=lambda x: -x[0]); got = []
+    scored.sort(key=lambda x: -x[0]); got = []   # stable: search results keep their rank
     with cf.ThreadPoolExecutor(6) as ex:
         res = list(ex.map(lambda x: (x, fetch_img(x[1])), scored[:40]))
     for (s, u, t), im in res:
