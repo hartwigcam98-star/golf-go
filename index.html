@@ -1700,36 +1700,36 @@ function boxO(out,cx,cy,cz,hx,hy,hz,rot,col,bottom){const c=Math.cos(rot),sn=Mat
 const CAP={pt:'brick',um:'#7a2f2a',w:'#e4d9c6',m:'siding',t:'#f4f2ec',lo:1.4,lc:'#8e4b3b',r:'#5f615e',v:'front',c:'#f4f2ec',cu:1,ch:'#8e4b3b'};
 const CLUBLOOK={troy:{pt:'paver',um:'#2f4f3a',w:'#e7e2d4',m:'siding',t:'#f6f5f0',s:'#a99e8c',r:'#55585a',v:'front',c:'#f6f5f0',po:1},
   stoneridge:{pt:'stone',um:'#5a3d2e',w:'#cdb99a',m:'stucco',t:'#4a3d33',s:'#9c8f7b',b:1.4,r:'#4b3f36',v:'front'},
-  caledonia:{pt:'brick',um:'',w:'#f3f1ea',m:'siding',t:'#fbfaf6',lo:1.6,lc:'#8b5a48',r:'#5d625f',v:'wrap',c:'#fbfaf6',ch:'#8b5a48'},
-  trueblue:{pt:'paver',um:'#2f5f9e',w:'#f3f2ed',m:'siding',t:'#fbfaf6',r:'#3e73b6',v:'wrap',c:'#fbfaf6',ch:'#f3f2ed'},
+  caledonia:{dm:3,pt:'brick',um:'',w:'#f3f1ea',m:'siding',t:'#fbfaf6',lo:1.6,lc:'#8b5a48',r:'#5d625f',v:'wrap',c:'#fbfaf6',ch:'#8b5a48'},
+  trueblue:{dm:2,pt:'paver',um:'#2f5f9e',w:'#f3f2ed',m:'siding',t:'#fbfaf6',r:'#3e73b6',v:'wrap',c:'#fbfaf6',ch:'#f3f2ed'},
   legislator:CAP,judge:CAP,senator:CAP,
   sandvalley:{pt:'brick',um:'#2f4f3a',pt:'stone',um:'',fp:1,w:'#9d8a73',m:'board',t:'#3b3a37',s:'#8a8378',b:.5,r:'#3e4246',v:'none'},
   mammoth:{pt:'deck',um:'#e9e4d6',fp:1,w:'#d9d4c8',m:'board',t:'#4a4a48',b:.4,r:'#3f4347',v:'front',c:'#6b5a48'},
-  wilderness:{pt:'stone',um:'#2f5a46',fp:1,w:'#8c6b49',m:'log',t:'#4b3a2c',s:'#a0968a',b:1.6,r:'#2f5a46',v:'front',c:'#a0968a',ch:'#a0968a'},
+  wilderness:{gb:1,pt:'stone',um:'#2f5a46',fp:1,w:'#8c6b49',m:'log',t:'#4b3a2c',s:'#a0968a',b:1.6,r:'#2f5a46',v:'front',c:'#a0968a',ch:'#a0968a'},
   quarry:{pt:'deck',um:'#3d3a36',rw:1,w:'#5c4b3c',m:'board',t:'#3a3029',s:'#8f877b',b:.8,r:'#3a3632',v:'front',c:'#6b5541'},
   legend:{pt:'deck',um:'#3d3a36',rw:1,w:'#6e5641',m:'board',t:'#3a3029',s:'#9a8f80',b:2.2,r:'#3d3a36',v:'front',c:'#7a6047',ch:'#9a8f80'},
-  heritage:{pt:'brick',um:'',w:'#f5f3ee',m:'siding',t:'#fbfaf6',r:'#45494c',v:'none',c:'#fbfaf6',po:1,sh:'#2c3133',ch:'#f5f3ee'},
-  pawplant:{pt:'brick',um:'#f2efe6',w:'#efe9db',m:'siding',t:'#fbfaf6',lo:.9,lc:'#94604c',r:'#bcc0bf',v:'front',c:'#fbfaf6',cu:1,sh:'#2f3436',ch:'#efe9db'},
-  deacon:{pt:'stone',um:'#2e5848',fp:1,w:'#4d4a3a',m:'log',t:'#2f3a30',s:'#8f877b',b:1,r:'#2e5848',v:'front',c:'#6b5541'},
+  heritage:{dm:3,pt:'brick',um:'',w:'#f5f3ee',m:'siding',t:'#fbfaf6',r:'#45494c',v:'none',c:'#fbfaf6',po:1,sh:'#2c3133',ch:'#f5f3ee'},
+  pawplant:{dm:4,pt:'brick',um:'#f2efe6',w:'#efe9db',m:'siding',t:'#fbfaf6',lo:.9,lc:'#94604c',r:'#bcc0bf',v:'front',c:'#fbfaf6',cu:1,sh:'#2f3436',ch:'#efe9db'},
+  deacon:{gb:1,pt:'stone',um:'#2e5848',fp:1,w:'#4d4a3a',m:'log',t:'#2f3a30',s:'#8f877b',b:1,r:'#2e5848',v:'front',c:'#6b5541'},
   lehman:{pt:'deck',um:'#2f4f3a',w:'#35513e',m:'siding',t:'#5b4532',s:'#9a8f80',b:1.2,r:'#3d3b38',v:'front',c:'#6e5238',po:1},
   maddens:{pt:'deck',um:'#2f6b4a',rw:1,w:'#7d8683',m:'board',t:'#4b3d30',s:'#9a8f80',b:1.2,r:'#3c3e40',v:'front',c:'#6e5238'},
   pines:{pt:'reddeck',um:'#b3302b',rw:1,w:'#5b4231',m:'log',t:'#3a2c22',s:'#948a7c',b:.9,r:'#4a4037',v:'front',c:'#5b4231'},
   preserve:{pt:'reddeck',um:'#b3302b',rw:1,w:'#6c4b33',m:'log',t:'#3a2c22',s:'#948a7c',b:1.1,r:'#4e6b4d',v:'front',c:'#6c4b33'},
   orangeburg:{pt:'paver',um:'#2f4f3a',w:'#c8b08e',m:'stucco',t:'#5c4f42',s:'#9c8b74',b:1.3,r:'#5f564b',v:'none',c:'#c8b08e',po:1},
-  santee:{pt:'brick',um:'',w:'#efece4',m:'siding',t:'#fbfaf6',r:'#5d8a5b',v:'front',c:'#fbfaf6',cu:1,sh:'#2f4a3a'},
+  santee:{dm:2,pt:'brick',um:'',w:'#efece4',m:'siding',t:'#fbfaf6',r:'#5d8a5b',v:'front',c:'#fbfaf6',cu:1,sh:'#2f4a3a'},
   wyboo:{pt:'paver',um:'',w:'#b9ac94',m:'siding',t:'#f4f2ec',r:'#6c6964',v:'front',c:'#f4f2ec'},
   valley:{w:'#dacfb8',m:'siding',t:'#f4f2ec',lo:2.4,lc:'#8b4b3a',r:'#626260',v:'wrap',c:'#f4f2ec',cu:1,ch:'#8b4b3a'},
   gnlake:{pt:'brick',um:'#2f4f3a',w:'#aeb0aa',m:'siding',t:'#f4f2ec',lo:2.8,lc:'#8e4a39',r:'#5c5d5b',v:'wrap',c:'#f4f2ec',cu:1,ch:'#8e4a39'},
   lookout:{pt:'stone',um:'#8b5a42',w:'#c9aa83',m:'stucco',t:'#6b4f3a',s:'#9a8468',b:1,r:'#8b5a42',v:'none'},
   wigwam:{pt:'paver',um:'#b3302b',w:'#efede6',m:'stucco',t:'#7a5a3e',b:.3,v:'none',fl:1},
   dove:{pt:'paver',um:'#6b4a33',w:'#c8ad8b',m:'stucco',t:'#6b5440',b:.3,v:'none',fl:1},
-  interlachen:{pt:'stone',um:'#e9e4d6',rw:1,w:'#ece4d0',m:'tudor',t:'#4a3426',tc:'#4a3426',s:'#a99d89',b:1.4,r:'#5a4637',v:'none',ch:'#ece4d0'},
-  windsong:{pt:'stone',um:'',rw:1,fp:1,w:'#5f3f2d',m:'board',t:'#3a2a20',lo:1.2,lc:'#8b4636',r:'#4f4b46',v:'front',c:'#5f3f2d',ch:'#8b4636'},
+  interlachen:{gb:1,pt:'stone',um:'#e9e4d6',rw:1,w:'#ece4d0',m:'tudor',t:'#4a3426',tc:'#4a3426',s:'#a99d89',b:1.4,r:'#5a4637',v:'none',ch:'#ece4d0'},
+  windsong:{gb:1,pt:'stone',um:'',rw:1,fp:1,w:'#5f3f2d',m:'board',t:'#3a2a20',lo:1.2,lc:'#8b4636',r:'#4f4b46',v:'front',c:'#5f3f2d',ch:'#8b4636'},
   hazeltine:{pt:'stone',um:'#3d3f40',fp:1,w:'#cdc5b2',m:'stone',t:'#3d3f40',s:'#b7ae9b',b:.6,r:'#6c6f6e',v:'front',c:'#8a6a48',ch:'#cdc5b2'},
   slmh:{pt:'brick',um:'#2f4f3a',w:'#efe9dc',m:'siding',t:'#fbfaf6',lo:1,lc:'#9a8f80',r:'#5c5a58',v:'wrap',c:'#fbfaf6',cu:1},
   legends:{pt:'stone',um:'#2f6fae',fp:1,rw:1,w:'#ddd0b4',m:'stucco',t:'#5a5047',lo:3,lc:'#bba98a',r:'#68645f',v:'front',c:'#bba98a',cu:1},
   chaska:{pt:'brick',um:'#2f4f3a',w:'#a59c8a',m:'board',t:'#4a453e',s:'#9a8f80',b:.9,r:'#585755',v:'front',c:'#6b5a48'},
-  prestwick:{pt:'stone',um:'#2f5f9e,#b3302b',rw:1,w:'#ebe3cf',m:'tudor',t:'#4e3a2c',tc:'#4e3a2c',s:'#c9c0ae',b:1.6,r:'#6b5444',v:'none',ch:'#c9c0ae'}};
+  prestwick:{gb:1,pt:'stone',um:'#2f5f9e,#b3302b',rw:1,w:'#ebe3cf',m:'tudor',t:'#4e3a2c',tc:'#4e3a2c',s:'#c9c0ae',b:1.6,r:'#6b5444',v:'none',ch:'#c9c0ae'}};
 CLUBLOOK.ridge=CLUBLOOK.valley;CLUBLOOK.gnlinks=CLUBLOOK.gnlake;CLUBLOOK.slbm=CLUBLOOK.slmh;
 const STYLE={lowcountry:{wall:'#ecebe4',trim:'#3d4b3f',stone:'#b8b2a6',roof:'#5b6166'},prairie:{wall:'#9c7d5e',trim:'#4a3a2e',stone:'#8d8375',roof:'#4a4038'},links:{wall:'#d6ccb8',trim:'#5a4b3c',stone:'#9a9184',roof:'#3b4a52'}};
 /* ---- buildings with measured heights / roof shapes / roof colours (BLDX in ground.js: lidar + aerial photo) ----
@@ -1762,6 +1762,17 @@ function quadO(out,a,b,c,d,col,n){triO(out,a,b,c,col,n);triO(out,a,c,d,col,n);}
 const BLD_LUM=c=>.3*c[0]+.59*c[1]+.11*c[2],BLD_LIGHTW=['#e6e1d6','#d9d4c8','#cfd5d6','#e3d8c2','#d8dcd2'],BLD_DARKW=['#b5a690','#a39c8c','#9a6b56','#b3ab9c','#8d979c'],BLD_BARNW=['#b9b09c','#8c9a86','#a8aba6','#9c8b72','#7d8a92'];
 // a photo roof colour, a little darker and greyer so it sits right under the game's sun
 function bldRoofCol(c){const r=((c>>16)&255)/255,g=((c>>8)&255)/255,b=(c&255)/255,l=.3*r+.59*g+.11*b,k=.9-.2*l;return[(r*.8+l*.2)*k,(g*.8+l*.2)*k,(b*.8+l*.2)*k];}
+// a footprint broken into its wings: the biggest rectangles (in the footprint's own axes) that fill it, largest first
+function bldWings(q,p,ob){if(q._w!==undefined)return q._w;const g=.7,nu=Math.ceil((ob.u1-ob.u0)/g),nv=Math.ceil((ob.v1-ob.v0)/g);if(nu*nv>40000||nu<4||nv<4)return q._w=null;
+  const P2=(u,v)=>[u*ob.ux-v*ob.uy,u*ob.uy+v*ob.ux],Q={pts:p,bb:q.bb};const M=new Uint8Array(nu*nv);let tot=0;
+  for(let j=0;j<nv;j++)for(let i=0;i<nu;i++){const c=P2(ob.u0+(i+.5)*g,ob.v0+(j+.5)*g);if(inPoly(Q,c[0],c[1])){M[j*nu+i]=1;tot++;}}
+  const W=[],H=new Int32Array(nu);let cov=0;
+  for(let it=0;it<7;it++){let best=null;H.fill(0);
+    for(let j=0;j<nv;j++){for(let i=0;i<nu;i++)H[i]=M[j*nu+i]===1?H[i]+1:0;
+      const st=[];for(let i=0;i<=nu;i++){const hh=i<nu?H[i]:0;let s0=i;while(st.length&&st[st.length-1][1]>=hh){const[si,sh]=st.pop();const w=i-si,a=w*sh;if(sh*g>=3.5&&w*g>=3.5&&(!best||a>best.a))best={a,i0:si,i1:i,j0:j-sh+1,j1:j+1};s0=si;}st.push([s0,hh]);}}
+    if(!best||best.a*g*g<14)break;for(let j=best.j0;j<best.j1;j++)for(let i=best.i0;i<best.i1;i++)if(M[j*nu+i]===1){M[j*nu+i]=2;cov++;}
+    W.push([ob.u0+best.i0*g,ob.u0+best.i1*g,ob.v0+best.j0*g,ob.v0+best.j1*g]);if(cov>=tot*.93)break;}
+  return q._w=W.length>1?W:null;}
 function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;const A=Math.abs(polyArea(p));if(A<8)return;
   const rec=q.rec||null,kind=q.bk||null,club=!!q.club,ex=!!(rec||kind),gh=(q.gh||0)-.2,hs=Math.abs(Math.round(q.x*7.3+q.y*13.1))%9973;
   let H1,rise=null,rt=2;
@@ -1774,8 +1785,10 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
   {let g1=-1e9;for(const c of p)g1=Math.max(g1,hAtH(h,c[0],c[1]));if(isFinite(g1))H1=Math.max(H1,g1-gh+2);}
   // gables (and measured hips) are drawn on the footprint's rectangle when the footprint fills most of it
   let ob=null,rect=false;
-  if(ex||simple){ob=bldOBB(p,rec&&rt&&rec[3]!=null&&isFinite(rec[3])?rec[3]*Math.PI/180:null);
-    if(A/ob.ar>=.8&&((ex&&rt)||simple))rect=true;if(rt===1&&!rect)rt=2;}
+  if(ex||simple||club){ob=bldOBB(p,rec&&rt&&rec[3]!=null&&isFinite(rec[3])?rec[3]*Math.PI/180:null);
+    if(A/ob.ar>=.8&&((ex&&rt)||simple))rect=true;}
+  const rt0=rt;if(rt===1&&!rect)rt=2;
+  const wings=!simple&&rt>0&&!rect&&(club||ex||A>150)&&ob?bldWings(q,p,ob):null;
   const P2=(u,v)=>[u*ob.ux-v*ob.uy,u*ob.uy+v*ob.ux];
   if(rect)p=[P2(ob.u0,ob.v0),P2(ob.u1,ob.v0),P2(ob.u1,ob.v1),P2(ob.u0,ob.v1)];else if(simple&&p.length>6)p=bldSimplify(p,1);
   // clockwise footprints only: the mesh is single-sided and walls must face out (mapped footprints come in both windings)
@@ -1838,7 +1851,30 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
   const slope=(a,b,c,d,under)=>{let nn=nrm(cross(sub(b,a),sub(d,a)));if(nn[1]<0)nn=mul(nn,-1);quadO(out,a,b,c,d,mul(roof,shadeOf(nn)),nn);if(under)quadO(out,a,b,c,d,mul(trim,.8),mul(nn,-1));};
   let top=null,peak=null;   // points on the roof for the club's chimney and cupola
   const chim=LK&&LK.ch?hexc(LK.ch):stone;
-  if(rt===2&&!rect){
+  if(wings){
+    // each wing gets its own roof: ridge along its long side, a rise to suit its width (the measured rise on the main wing), hips or gables;
+    // the wings' roofs run into each other the way a real clubhouse's cross wings do
+    const yE=gh+H1-.05,o=.6,w0=wings[0],sh0=Math.min(w0[1]-w0[0],w0[3]-w0[2]),R0=rise!=null?rise:(club?.62:.7)*Math.min(club?7:4.5,sh0/2);
+    const R3w=(u,v,y)=>{const c=P2(u,v);return[c[0],y,c[1]];},gab=rt0===1||(LK&&LK.gb);
+    wings.forEach((w,k)=>{let[u0,u1,v0,v1]=w;const along=u1-u0>=v1-v0,L2=along?u1-u0:v1-v0,S2=along?v1-v0:u1-u0,rs=Math.max(.8,Math.min(R0*S2/sh0,R0*1.05,S2*.42)),yR=yE+rs;
+      const Q=(a,b)=>along?[a,b]:[b,a];   // (along, across) -> (u, v)
+      const a0=(along?u0:v0)-o,a1=(along?u1:v1)+o,c0=(along?v0:u0)-o,c1=(along?v1:u1)+o,cm=(c0+c1)/2,hh=(c1-c0)/2,P_=(a,c,y)=>{const q2=Q(a,c);return R3w(q2[0],q2[1],y);};
+      if(gab&&k===0){slope(P_(a0,c0,yE),P_(a1,c0,yE),P_(a1,cm,yR),P_(a0,cm,yR),true);slope(P_(a1,c1,yE),P_(a0,c1,yE),P_(a0,cm,yR),P_(a1,cm,yR),true);
+        for(const[a,sg]of[[a0+o,-1],[a1-o,1]]){const nn=along?[ob.ux*sg,0,ob.uy*sg]:[-ob.uy*sg,0,ob.ux*sg];triO(out,P_(a,c0+o,yE+.05),P_(a,c1-o,yE+.05),P_(a,cm,yR-.1),mul(wall,.96),nn);}}
+      else{let r0=a0+hh,r1=a1-hh;if(r0>r1)r0=r1=(a0+a1)/2;
+        slope(P_(a0,c0,yE),P_(a1,c0,yE),P_(r1,cm,yR),P_(r0,cm,yR),true);slope(P_(a1,c1,yE),P_(a0,c1,yE),P_(r0,cm,yR),P_(r1,cm,yR),true);
+        for(const[a,b,c]of[[P_(a0,c1,yE),P_(a0,c0,yE),P_(r0,cm,yR)],[P_(a1,c0,yE),P_(a1,c1,yE),P_(r1,cm,yR)]]){let nn=nrm(cross(sub(b,a),sub(c,a)));if(nn[1]<0)nn=mul(nn,-1);triO(out,a,b,c,mul(roof,shadeOf(nn)),nn);triO(out,a,b,c,mul(trim,.8),mul(nn,-1));}}
+      if(k===0){top=P_(a0+(a1-a0)*.78,cm,yR);peak=P_((a0+a1)/2,cm,yR);
+        // dormers along both long slopes of the main wing
+        if(club&&LK&&LK.dm){const nd=Math.min(LK.dm,Math.max(1,Math.floor((L2-6)/4.5)));for(const sd of[-1,1])for(let j=0;j<nd;j++){const a=a0+o+(L2)*(j+.5)/nd,cE=sd<0?c0+o:c1-o,cin=cE-sd*Math.min(hh*.55,2.4),yb=yE+rs*(1-Math.abs(cin-cm)/hh)*.05+.15,
+          yb2=yE+rs*Math.max(0,1-Math.abs(cE-sd*1.1-cm)/hh)+.05,hw=.8,ft=yE+.35,fh=1.5,dc=hexc(LK.t||'#f2f0ea');
+          const F0=P_(a-hw,cE-sd*.9,ft),F1=P_(a+hw,cE-sd*.9,ft),F2=P_(a+hw,cE-sd*.9,ft+fh),F3=P_(a-hw,cE-sd*.9,ft+fh),Ap=P_(a,cE-sd*.9,ft+fh+.75),nf=along?[-ob.uy*sd,0,ob.ux*sd]:[ob.ux*sd,0,ob.uy*sd];
+          quadO(out,F0,F1,F2,F3,dc,nf);triO(out,F3,F2,Ap,dc,nf);const g0=P_(a-hw*.6,cE-sd*.93,ft+.2),g1=P_(a+hw*.6,cE-sd*.93,ft+.2),g2=P_(a+hw*.6,cE-sd*.93,ft+fh-.15),g3=P_(a-hw*.6,cE-sd*.93,ft+fh-.15);quadO(out,g0,g1,g2,g3,glass,nf);
+          const B0=P_(a-hw-.15,cE-sd*.8,ft+fh-.05),B1=P_(a+hw+.15,cE-sd*.8,ft+fh-.05),Bk0=P_(a-hw-.15,cin,ft+fh+.5),Bk1=P_(a+hw+.15,cin,ft+fh+.5);
+          slope(B0,P_(a,cE-sd*.8,ft+fh+.8),P_(a,cin,ft+fh+.95),Bk0,false);slope(B1,P_(a,cE-sd*.8,ft+fh+.8),P_(a,cin,ft+fh+.95),Bk1,false);
+          for(const sg of[-1,1]){const S0=P_(a+sg*hw,cE-sd*.9,ft),S1=P_(a+sg*hw,cin,ft),S2=P_(a+sg*hw,cin,ft+fh+.4),S3=P_(a+sg*hw,cE-sd*.9,ft+fh);quadO(out,S0,S1,S2,S3,mul(dc,.9),along?[ob.ux*sg,0,ob.uy*sg]:[-ob.uy*sg,0,ob.ux*sg]);}}}}});
+    if(club&&!simple&&top)boxO(out,top[0],top[1]+.6,top[2],.8,1.6,.8,ob.t,chim);}
+  else if(rt===2&&!rect){
     // hipped roof: overhanging eave ring rising to an inset ridge ring
     const minW=Math.sqrt(A)*.5;let rd=Math.min(club?7:4.5,minW*.45);if(ex&&ob)rd=Math.min(rd,(ob.v1-ob.v0)*.45);const rh=rise!=null?rise:club?rd*.62:rd*.7;
     const eave=insetPoly(p,-.7),ridge=insetPoly(p,rd),yE=gh+H1-.05,yR=gh+H1+rh;
