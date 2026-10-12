@@ -2487,6 +2487,23 @@ function shapedNoise(len,env,lpf){const a=S.ctx,sr=a.sampleRate,n=Math.ceil(len*
 function playTurf(amt,v){const a=A();if(!a)return;S.turf=S.turf||shapedNoise(.11,t=>Math.pow(1-t,3)*Math.min(1,t*40),.35);playBuf(S.turf,.35*amt*v);}
 function playSand(v){const a=A();if(!a)return;S.sand=S.sand||shapedNoise(.45,t=>Math.pow(1-t,2)*Math.min(1,t*25),.6);playBuf(S.sand,.5*v);}
 function playSwoosh(v){const a=A();if(!a)return;S.sw=S.sw||shapedNoise(.2,t=>Math.pow(Math.sin(Math.PI*Math.pow(t,1.6)),2),.18);playBuf(S.sw,.22*v);}
+/* cup sound (Oct 2026): modal synthesis of a ball dropping into a plastic cup. Each contact excites the cup's shell modes
+   (a hollow 500 Hz-4 kHz ring that dies in a few hundredths of a second) plus a short low "thock" from the ball on the bottom.
+   Normal: the drop and two or three shrinking bounces. Hard (a firm putt that rattled): quick bright rim clicks, then the drop. */
+function cupBuf(hard,vr){const a=S.ctx,key='cup'+hard+vr;S.ib=S.ib||{};if(S.ib[key])return S.ib[key];
+  const sr=a.sampleRate,n=Math.ceil(.42*sr),buf=a.createBuffer(1,n,sr),d=buf.getChannelData(0),R=rng(91+hard*17+vr*5);
+  const MODES=[[505,.55,.05],[1180,1,.036],[1930,.6,.026],[2980,.38,.018],[4250,.2,.011]];
+  const j=v=>v*(1+(R()-.5)*.05);
+  let hits=hard?[[0,.4,1.6,0],[j(.028),.36,1.5,0],[j(.051),.3,1.4,0],[j(.088),1,1,1],[j(.152),.34,.85,1],[j(.192),.12,.7,1]]
+               :[[0,1,1,1],[j(.066),.36,.85,1],[j(.108),.13,.7,1],[j(.136),.045,.6,1]];
+  for(const[t0,amp,br,low]of hits){const i0=Math.floor(t0*sr),M=MODES.map(([f,g,tau],k)=>({w:TAU*j(f),g:g*amp*Math.pow(br,k-1.5),k:1/tau,ph:R()*TAU}));
+    let l=0;const cl=.0009*sr,lp=1-Math.exp(-TAU*(2500*br)/sr);
+    for(let i=i0;i<n;i++){const t=(i-i0)/sr;if(t>.12)break;let x=0;for(const m of M)x+=m.g*Math.sin(m.w*t+m.ph)*Math.exp(-m.k*t);
+      if(low)x+=amp*.9*Math.sin(TAU*185*t)*Math.exp(-t/.022);
+      if(i-i0<cl*6){l+=lp*((R()*2-1)*Math.exp(-(i-i0)/cl)-l);x+=amp*1.6*l;}
+      d[i]+=x*Math.min(1,(i-i0)/(sr*.0003));}}
+  let pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));if(pk>0)for(let i=0;i<n;i++)d[i]*=.9/pk;
+  return S.ib[key]=buf;}
 const sfx={
   tick:()=>tone(880,.05,'square',.04),
   hit:p=>{tone(170,.12,'sine',.35,60);noise(.4,.08+.2*p,'bandpass',500,3200);},
@@ -2500,7 +2517,8 @@ const sfx={
   swoosh:v=>{playSwoosh(v);},
   putt:()=>tone(430,.08,'triangle',.2,220),
   land:()=>noise(.12,.12,'lowpass',500),
-  cup:()=>{tone(1250,.12,'sine',.2);setTimeout(()=>tone(1660,.22,'sine',.2),110);},
+  // the ball dropping into the cup: a hollow plastic clunk and two or three small bounces on the bottom (hard: rim clicks first)
+  cup:hard=>{const a=A();if(!a)return;const b=cupBuf(hard?1:0,(Math.random()*3)|0);playBuf(b,hard?.7:.65,.95+Math.random()*.1);},
   splash:()=>noise(.7,.3,'lowpass',2000,200),
   lip:()=>{tone(1900,.07,'sine',.07);tone(2860,.05,'sine',.04);},
   tree:()=>{tone(190,.07,'triangle',.12);noise(.3,.12,'highpass',1800);},
@@ -2509,7 +2527,7 @@ const sfx={
     const s=a.createBufferSource(),hp=a.createBiquadFilter(),g=a.createGain();hp.type='highpass';hp.frequency.value=2000;s.buffer=S.rus;s.playbackRate.value=.85+Math.random()*.3;g.gain.value=.3*(v??1);s.connect(hp).connect(g).connect(OUT());s.start();},
   pin:(v=1)=>{tone(2350,.2,'sine',.11*v);tone(3720,.13,'sine',.06*v);tone(5180,.07,'sine',.035*v);noise(.035,.09*v,'highpass',3000);},
   rim:()=>{for(let i=0;i<5;i++)setTimeout(()=>tone(1400+Math.random()*900,.03,'triangle',.05),i*(46-i*6));},
-  rattle:()=>{for(let i=0;i<4;i++)setTimeout(()=>{tone(850+Math.random()*500,.035,'triangle',.08);noise(.03,.05,'bandpass',2600);},i*36);setTimeout(()=>tone(320,.09,'sine',.12,180),160);},
+
   plop:soft=>{tone(soft?440:300,soft?.1:.15,'sine',soft?.09:.18,soft?210:105);if(!soft)for(let i=0;i<7;i++)setTimeout(()=>tone(1800+Math.random()*2600,.025,'sine',.025),200+Math.random()*800);},
   mtick:k=>tone(480+k*420,.022,'square',.016),
   flutter:(v=1)=>{for(let i=0;i<8;i++)setTimeout(()=>noise(.045,.05*v,'bandpass',700+Math.random()*500),i*48+Math.random()*20);setTimeout(()=>tone(3300,.07,'sine',.02*v,2600),90);},
@@ -3005,7 +3023,7 @@ function holed(kind){const gim=kind==='Gimme';
   if(!sub&&G.fromLie!=='green'&&G.strokes>1)sub='Chip-in';
   if(!sub&&G.fromLie==='green'){const d=hyp(G.prev.x-p[0],G.prev.y-p[1])*3;if(d>20)sub=Math.round(d)+' ft putt';}
   const good=G.strokes<G.hole.par;
-  if(!gim){if(G.cupHard){sfx.rattle();setTimeout(sfx.cup,180);}else sfx.cup();}G.cupHard=false;if(!gim&&!G.aiTurn)haptic('cup');if(good&&!G.aiTurn)setTimeout(sfx.fanfare,250);
+  if(!gim)sfx.cup(!!G.cupHard);G.cupHard=false;if(!gim&&!G.aiTurn)haptic('cup');if(good&&!G.aiTurn)setTimeout(sfx.fanfare,250);
   toast(name,sub,good?'#ffc93c':G.strokes===G.hole.par?'#8ee6a8':'#fff6dc');
   const highlight=!gim&&(G.strokes===1||G.fromLie!=='green'||(G.fromLie==='green'&&hyp(G.prev.x-p[0],G.prev.y-p[1])*3>25));
   const nx=MATCH.on?mHoled:showCard;
@@ -6599,6 +6617,7 @@ const UPDATES=[
     "Vibration: a light tap on each swing tap and a double pulse on a perfect strike (turn it off in the pause menu). On iPhone it comes as your finger lifts.",
     "A perfect strike holds the moment of impact for a blink.",
     "Lip-outs ride the rim before spinning out, and now and then one rattles in. A ball can hit the flagstick, with a clang.",
+    "The ball drops into the cup with a hollow plastic clunk and a couple of little bounces (a firm putt clicks off the rim first), instead of a chime.",
     "The ball rocks once before it settles, and the flag snaps in the gusts.",
     "Course sounds: wind, birds by region (loons up north, cicadas down south, quail in the desert) and a mower far off.",
     "Leaves fall and birds scatter when a shot goes through a tree, and big drives sometimes flush a few birds.",
