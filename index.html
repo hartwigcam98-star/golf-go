@@ -376,6 +376,86 @@ td.won{background:rgba(255,201,60,.38)}
 .legend{font-size:12px;color:var(--muted);margin-bottom:14px}
 @media (prefers-reduced-motion:reduce){#toast.show{animation-duration:1.8s;animation-timing-function:linear}.card{animation:none}}
 .chtags{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 2px}.chtags span{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:10px}.chtags .up{background:#d8f0cf;color:#1f5d1a}.chtags .dn{background:#f6dcd2;color:#7a2c14}
+
+/* ===== HUD styles (Oct 2026): Classic (default) plus Arcade, Broadcast and Minimal, picked in the pause menu (golf-hud) ===== */
+/* --- A: Arcade --- */
+#game.hud-a .top .plate:not(.wind){background:none;box-shadow:none;padding:0}
+#game.hud-a .top .plate .course{display:none}
+#game.hud-a .hl{gap:0;margin:0}
+#game.hud-a .hl .n{width:66px;height:66px;border-radius:50%;display:grid;place-items:center;font-size:36px;color:#0f2233;background:radial-gradient(circle at 35% 30%,#fff3c8,#ffc93c 55%,#e0a020);border:4px solid #fff;box-shadow:0 4px 0 #b07c10,0 6px 14px rgba(0,0,0,.3);position:relative;z-index:1;flex:0 0 auto}
+#game.hud-a .hl>div:last-child{background:rgba(12,30,46,.9);border:2px solid rgba(255,255,255,.18);border-left:0;border-radius:0 14px 14px 0;padding:6px 12px 6px 16px;margin-left:-10px}
+#game.hud-a .hl .l1{font-size:16px;font-weight:800}
+#game.hud-a .wind{width:76px;height:76px;border-radius:50%;flex-direction:column;justify-content:center;gap:0;padding:0;border:3px solid #fff;position:relative}
+#game.hud-a .wind .dial{position:absolute;inset:3px;width:auto;height:auto;opacity:.5}
+#game.hud-a .wind .dial svg{width:100%;height:100%}
+#game.hud-a .wind>div:last-child{position:relative;text-align:center}
+#game.hud-a .wind .v{font-size:26px}
+#game.hud-a .iconbtn{border-radius:50%;border:2px solid rgba(255,255,255,.5)}
+#game.hud-a .club{background:linear-gradient(180deg,#14324c,#0f2233);border:3px solid var(--sun);border-radius:16px;box-shadow:0 4px 0 #08141f;transform:rotate(-1.5deg)}
+#game.hud-a .clubname b{font-size:27px;text-transform:uppercase}
+#game.hud-a .chip{font-size:15px;font-weight:800}
+#game.hud-a .spin{border:2px solid rgba(255,255,255,.3);border-radius:50%;min-width:58px;max-width:58px;height:58px;padding:2px}
+#game.hud-a .shots{background:none;padding:0;gap:4px}
+#game.hud-a .shots button{background:rgba(12,30,46,.85);border:2px solid rgba(255,255,255,.22);border-radius:12px;font-size:12.5px;font-weight:800;text-transform:uppercase}
+#game.hud-a .shots button.on{border-color:#fff}
+#game.hud-a .meter{height:40px;border-radius:22px;border:4px solid #fff;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+#game.hud-a .meter .track{border-radius:18px;background:linear-gradient(90deg,#0f2233 0 12%,#42c8ff 12%,#7ee08a 45%,#ffd34a 75%,#ff6a48)!important;opacity:.55}
+#game.hud-a .controls .sq{border-radius:50%;width:54px;height:54px;background:rgba(12,30,46,.9);border:3px solid rgba(255,255,255,.55)}
+#game.hud-a #swing{height:64px;border-radius:32px;background:radial-gradient(circle at 40% 30%,#ffe58a,#ffc93c 60%,#e0a020);border:4px solid #fff;box-shadow:0 6px 0 #a87310,0 10px 18px rgba(0,0,0,.3);font-size:30px}
+#game.hud-a #swing.power{background:radial-gradient(circle at 40% 30%,#ffc29a,#ff8a4a 60%,#d4602a)}
+#game.hud-a #swing.acc{background:#fff}
+/* --- B: Broadcast --- */
+#bcBar,#bcPlate{display:none}
+#game.hud-b .top .plate:not(.wind),#game.hud-b .wind{display:none}
+#game.hud-b #bcBar{display:flex;flex:1 1 auto;min-width:0;align-items:stretch;height:44px;background:linear-gradient(180deg,rgba(9,22,34,.95),rgba(15,34,51,.92));border-bottom:3px solid var(--sun);box-shadow:0 3px 10px rgba(0,0,0,.3)}
+#game.hud-b #bcBar>div{display:flex;flex-direction:column;justify-content:center;padding:0 8px;border-right:1px solid rgba(255,255,255,.12);min-width:0}
+#game.hud-b #bcBar .k{font-size:8.5px;font-weight:700;letter-spacing:.14em;opacity:.6;white-space:nowrap}
+#game.hud-b #bcBar .vv{font-size:17px;line-height:19px;white-space:nowrap}
+#game.hud-b #bcBar .hole{background:var(--sun);color:var(--ink)}#game.hud-b #bcBar .hole .k{opacity:.75}
+#game.hud-b #bcBar .wd{flex-direction:row;align-items:center;gap:5px;margin-left:auto;border-right:0}
+#game.hud-b #bcBar .wd svg{width:18px;height:18px}
+#game.hud-b .top{padding-left:0;padding-right:8px}
+#game.hud-b .iconbtn{border-radius:4px}
+#game.hud-b #bcPlate{display:flex;position:absolute;left:12px;align-items:stretch;box-shadow:0 6px 16px rgba(0,0,0,.35);pointer-events:none;z-index:2}
+#game.hud-b #bcPlate .nm{background:#fff;color:var(--ink);padding:4px 10px;font-size:15px;letter-spacing:.02em;text-transform:uppercase}
+#game.hud-b #bcPlate .sc{background:var(--mint);color:var(--ink);padding:4px 9px;font-size:15px}
+#game.hud-b #bcPlate .th{background:rgba(15,34,51,.92);padding:4px 9px;font-size:12.5px;font-weight:700;display:flex;align-items:center;color:#fff6dc}
+#game.hud-b .bottom{background:linear-gradient(to top,rgba(9,24,36,.9) 55%,rgba(9,24,36,0))}
+#game.hud-b .club,#game.hud-b .spin,#game.hud-b .shots,#game.hud-b .controls .sq{border-radius:3px}
+#game.hud-b .row:not(.controls){background:rgba(15,34,51,.9);border-left:5px solid var(--sun);padding:3px 6px 3px 0}
+#game.hud-b .club{background:none}
+#game.hud-b .shots{gap:2px;padding:0;background:none}
+#game.hud-b .shots button{border-radius:2px;background:rgba(15,34,51,.8);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+#game.hud-b .shots button.on{background:#fff}
+#game.hud-b .meter{height:24px;border-radius:2px;border:2px solid rgba(255,255,255,.75)}
+#game.hud-b .meter .track{border-radius:0}
+#game.hud-b #swing{border-radius:3px;letter-spacing:.22em;height:54px;font-size:22px}
+/* --- C: Minimal glass --- */
+#game.hud-c .plate,#game.hud-c .iconbtn,#game.hud-c .club,#game.hud-c .spin,#game.hud-c .shots,#game.hud-c .controls .sq,#game.hud-c .lookbtn{background:rgba(15,34,51,.36);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.28);box-shadow:none}
+#game.hud-c .top .plate .course{display:none}
+#game.hud-c .hl .n{font-size:28px}#game.hud-c .hl .l1{font-size:13.5px}#game.hud-c .hl .l2{font-size:12px}
+#game.hud-c .wind .v{font-size:18px}#game.hud-c .wind .dial{width:28px;height:28px}
+#game.hud-c .bottom{background:none;padding-top:0}
+#game.hud-c .inner{margin:0 auto 0 0}
+#game.hud-c .club{border-radius:18px}#game.hud-c .clubname b{font-size:21px}
+#game.hud-c .chip{font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+#game.hud-c .shots{border-radius:14px}#game.hud-c .shots button{font-size:12px;height:26px}
+#game.hud-c .meter{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 384px);width:264px;height:40px;transform-origin:100% 100%;transform:rotate(-90deg);border-radius:20px;border:1px solid rgba(255,255,255,.4);background:rgba(15,34,51,.4);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+#game.hud-c .meter .track{border-radius:20px}
+#game.hud-c .mlabels{display:none}
+#game.hud-c .controls{justify-content:flex-start}
+#game.hud-c #swing{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);width:88px;height:88px;flex:0 0 auto;border-radius:50%;font-size:17px;border:3px solid rgba(255,255,255,.8);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+#game.hud-c .controls .sq{width:46px;height:46px;border-radius:50%}
+#game.hud-c .hint{text-align:left;font-size:11px}
+#game.hud-c .lookbtn{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 66px)}
+#game.hud-a .right{display:grid;grid-template-columns:40px 40px;gap:8px;justify-items:end}
+#game.hud-a .right .wind{grid-column:1/3;grid-row:2;margin-top:2px}
+#game.hud-a .wind .dial{opacity:.8}
+#game.hud-a .shots button.on{background:var(--sun);color:var(--ink);border-color:#fff}
+#game.hud-b .shots button.on{background:#fff;color:var(--ink)}
+#game.hud-c .inner{max-width:300px}
+#game.hud-c .spin span{display:none}#game.hud-c .spin{min-width:44px;max-width:48px}#game.hud-c .clubname{min-width:74px}#game.hud-c .club button{width:22px}#game.hud-c .chip{font-size:12.5px}
+#game.hud-b #bcPlate{left:66px}
 </style>
 <style>/* Pause screen and feedback (v102) */
 #pauseM{background:rgba(6,18,28,.55);z-index:20}
@@ -384,7 +464,7 @@ td.won{background:rgba(255,201,60,.38)}
 .pausecard .psub{font-size:14px;color:#51606b;margin:2px 0 14px;font-variant-numeric:tabular-nums}
 .pausecard .ghost{margin-bottom:9px}
 .pset{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 10px;font-weight:700;color:#12283b;font-size:15px}
-.pseg{display:grid;gap:4px;background:#e3dccb;border-radius:10px;padding:3px}.pseg button{padding:7px 0;border-radius:8px;font-weight:700;font-size:14px;color:#12283b}.pseg button.on{background:#12283b;color:var(--sun)}
+.pseg{display:grid;gap:4px;background:#e3dccb;border-radius:10px;padding:3px}.hudseg button{font-size:12.5px!important}.pseg button{padding:7px 0;border-radius:8px;font-weight:700;font-size:14px;color:#12283b}.pseg button.on{background:#12283b;color:var(--sun)}
 .pset .pseg{width:150px;grid-template-columns:repeat(2,1fr)}
 .fbkind{grid-template-columns:repeat(4,1fr)!important;margin-bottom:10px}
 #fbText{box-sizing:border-box;width:100%;min-height:110px;border-radius:12px;border:2px solid #12283b;padding:10px;font:inherit;font-size:16px;color:#12283b;background:#fffdf5;resize:vertical}
@@ -434,6 +514,7 @@ td.won{background:rgba(255,201,60,.38)}
   <div class="vig" aria-hidden="true"></div>
 
   <div class="top">
+    <div id="bcBar" aria-hidden="true"><div class="hole"><span class="k">HOLE</span><span class="vv disp" id="bcHole">1</span></div><div><span class="k">PAR</span><span class="vv disp" id="bcPar">4</span></div><div><span class="k">YDS</span><span class="vv disp" id="bcYds">0</span></div><div><span class="k">STROKE</span><span class="vv disp" id="bcStk">1</span></div><div class="wd"><svg viewBox="0 0 24 24" id="bcArrow"><path d="M12 2 L18 11 H14 V22 H10 V11 H6 Z" fill="#6cc8ff"/></svg><span class="vv disp" id="bcWind">0</span></div></div>
     <div class="plate">
       <div class="course"><span id="courseLbl">Troy Burne · Hudson, WI</span></div>
       <div class="hl">
@@ -462,6 +543,7 @@ td.won{background:rgba(255,201,60,.38)}
   <button id="flyCamBtn" class="flycam disp" hidden aria-label="Switch the ball-flight camera">📺 TV view</button>
   <div id="rpBar" class="rpbar" hidden><button id="rpSave" class="disp">☆ Save</button><button id="rpVideo" class="disp">⬇ Video</button></div>
   <div id="specBar" class="specbar" hidden><button id="specFF" class="disp" aria-label="Playback speed">⏩ 1×</button><button id="specNext" class="disp">Next hole ›</button><button id="specExit" class="disp">✕ Done</button></div>
+  <div id="bcPlate" aria-hidden="true"><span class="nm disp" id="bcName">The Boss</span><span class="sc disp" id="bcScore">E</span><span class="th" id="bcThru">thru 0</span></div>
   <div id="toast"><div class="t1 disp"></div><div class="t2"></div></div>
   <div id="shotStats" class="shotstats" hidden></div>
   <div id="matchTag" class="matchtag" hidden></div>
@@ -719,6 +801,7 @@ td.won{background:rgba(255,201,60,.38)}
         <button class="primary disp" id="pResume">Resume</button>
         <div class="pset"><span>Sound</span><div class="pseg" id="pSound"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
         <div class="pset"><span>Vibration</span><div class="pseg" id="pHap"><button data-h="1">On</button><button data-h="0">Off</button></div></div>
+        <div class="pset"><span>HUD</span><div class="pseg hudseg" id="pHud"><button data-u="">Classic</button><button data-u="a">Arcade</button><button data-u="b">TV</button><button data-u="c">Minimal</button></div></div>
         <div class="pset"><span>Graphics</span><div class="pseg" id="pGfx"><button data-g="high">High</button><button data-g="fast">Fast</button></div></div>
         <div class="pset" id="pMixRow" hidden><span>Other music</span><div class="pseg" id="pMix"><button data-mix="0">Pause it</button><button data-mix="1">Keep playing</button></div></div>
         <button class="ghost disp" id="pFaq">Help &amp; FAQ</button>
@@ -6268,6 +6351,12 @@ function render(){
 /* ---------- hud ---------- */
 function impShort(){const x=G.imp.x,y=G.imp.y,h=G.traj>0?'High':G.traj<0?'Low':'';if(Math.hypot(x,y)<.15)return h||'Centre';const a=h?[h]:[];if(y>.2)a.push('Top');else if(y<-.2)a.push('Back');if(x<-.2)a.push('Draw');else if(x>.2)a.push('Fade');return a.join(' ')||'Centre';}
 function impName(){const x=G.imp.x,y=G.imp.y,h=G.traj>0?'High':G.traj<0?'Low':'';if(Math.hypot(x,y)<.15)return h?h+' \u00b7 centre':'Centre';const a=h?[h]:[];if(y>.2)a.push('Topspin');else if(y<-.2)a.push('Backspin');if(x<-.2)a.push('Draw');else if(x>.2)a.push('Fade');return a.join(' \u00b7 ')||'Centre';}
+/* HUD style: '' classic, 'a' arcade, 'b' broadcast (TV), 'c' minimal glass */
+let HUD_STYLE=(()=>{try{return localStorage.getItem('golf-hud')||'';}catch(e){return'';}})();
+function hudApply(){const g=$('game');g.classList.remove('hud-a','hud-b','hud-c');if(HUD_STYLE)g.classList.add('hud-'+HUD_STYLE);
+  document.querySelectorAll('#pHud button').forEach(b=>b.classList.toggle('on',b.dataset.u===HUD_STYLE));for(const k in cache)if(/^bc/.test(k))delete cache[k];try{resize();}catch(e){}}
+document.querySelectorAll('#pHud button').forEach(b=>b.addEventListener('click',()=>{HUD_STYLE=b.dataset.u;try{localStorage.setItem('golf-hud',HUD_STYLE);}catch(e){}hudApply();}));
+hudApply();
 function updHud(){
   const h=G.hole;if(!h)return;
   $('replayBtn').hidden=!(G.state==='aim'&&G.canReplay&&!G.overview&&!G.aiTurn&&!G.fc);
@@ -6281,6 +6370,11 @@ function updHud(){
   if(MATCH.on){setT('hStroke',(G.aiTurn?rn(MATCH.r):'You')+' \u00b7 stroke '+sn);const up=matchUp(),n=holesPlayed();setT('matchTag',(G.state==='card'||G.state==='intro'?'vs '+rn(MATCH.r):G.aiTurn?rn(MATCH.r)+'\u2019s shot':'Your shot')+' \u00b7 '+statusShort(up)+(n?' thru '+Math.min(18,n):''));}
   else setT('hStroke','Stroke '+sn+(G.mode==='practice'?' \u00b7 Practice':' \u00b7 Round '+fmtDiff(roundDiff())));
   setT('windV',String(G.wind.mph));
+  if(HUD_STYLE==='b'){setT('bcHole',String(G.hi+1));setT('bcPar',String(h.par));setT('bcYds',String(h.len));setT('bcStk',String(sn));setT('bcWind',G.wind.mph+' mph');
+    $('bcArrow').style.transform='rotate('+((G.wind.a-V.yaw)*180/Math.PI)+'deg)';
+    const ch=MATCH.on&&G.aiTurn?{name:rn(MATCH.r)}:curChar(),pl=$('bcPlate');setT('bcName',ch.name);
+    setT('bcScore',MATCH.on?statusShort(matchUp()):G.mode==='practice'?'PRAC':fmtDiff(roundDiff()));setT('bcThru','thru '+Math.min(18,G.hi));pl.style.bottom=(botH+6)+'px';
+    pl.style.visibility=(G.state==='aim'||G.state==='power'||G.state==='acc')&&!G.overview?'visible':'hidden';}
   $('windArrow').style.transform='rotate('+((G.wind.a-V.yaw)*180/Math.PI)+'deg)';
   const c=curClub();setT('clubId',clubLabel(c));
   const lr0=c.putter?'':lieRange(c,G.lie);setT('clubInfo',c.putter?'Putter · '+Math.round(G.puttMax*3)+' ft':(lr0?'Lie '+lr0:c.id==='1W'?(onTeeBox()?'Off the tee':'Off the deck'):c.name)+' · '+Math.round(previewDist())+'y');   // rough/fescue: the lie's power range (rolled per shot) in place of the club's name
@@ -6709,6 +6803,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-12-hud",date:"Oct 12, 2026",title:"Pick your HUD style",items:[
+    "The pause menu has a new HUD setting with four looks: Classic (as before), Arcade (gold hole coin, round wind dial, chunky meter and SWING button), TV (a broadcast scoreboard across the top and a name plate with your score) and Minimal (see-through glass panels and a tall power meter by your thumb)."]},
   {id:"2026-10-12-sgputt",date:"Oct 12, 2026",title:"Short game and putting count for more",items:[
     "The Short game and Putting stats now matter as much as Power and Impact: their timing windows range about twice as wide from a 1 to a 10.",
     "Short game now also decides how far offline a mistimed chip or pitch goes and how much its distance scatters. Good putters lose less pace on a mistimed putt, so fewer three-putts.",
