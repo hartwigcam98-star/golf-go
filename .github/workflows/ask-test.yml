@@ -12,6 +12,8 @@ jobs:
           K=$(grep -o "key:'eyJ[^']*'" index.html | head -1 | cut -d"'" -f2)
           ask(){ R=$(curl -sS --max-time 60 -X POST https://rgzpfjstfgygqdfmiqdh.supabase.co/functions/v1/ask -H "apikey: $K" -H "Authorization: Bearer $K" -H "Content-Type: application/json" -d "$(jq -nc --arg q "$1" '{q:$q,pid:"ci-test"}')");
             echo "::notice title=Q: $1::$(echo "$R" | jq -r '.a // .error // .' | tr '\n' ' ')"; }
+          ask "What is the difference between control and impact stats?"
+          ask "Which golfer is best?"
           ask "How do I watch someone else's round"
           ask "Can I watch someone's daily round"
           ask "Is there a way to save a video of a shot?"
