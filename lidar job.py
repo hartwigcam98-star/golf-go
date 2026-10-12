@@ -12,7 +12,8 @@ files, url = [], API
 while url:
     r = requests.get(url, timeout=60); r.raise_for_status(); files += r.json()
     m = re.search(r'<([^>]+)>;\s*rel="next"', r.headers.get('Link', '')); url = m.group(1) if m else None
-fbx = [f for f in files if f.get('type') == 'file' and f['path'].lower().endswith('.fbx')]
+WANT = {'Joe.fbx', 'David.fbx'}   # full-quality exports of the picked bodies
+fbx = [f for f in files if f.get('type') == 'file' and f['path'] in WANT]
 print('fbx files', len(fbx), flush=True)
 res = []
 for f in fbx:
@@ -23,7 +24,7 @@ for f in fbx:
             r.raise_for_status()
             with open(p, 'wb') as o:
                 for ch in r.iter_content(1 << 20): o.write(ch)
-        js, out = export(p, 'mx_' + slug, (), atlas=1024)
+        js, out = export(p, 'mx_' + slug, (), atlas=2048)
         open(f'{OUT}/char_mx_{slug}.js', 'w').write(js)
         res.append(dict(name=name, slug=slug, size=f.get('size'), kb=len(js) // 1024, verts=out['mesh']['n'], ok=1))
         print('ok', name, len(js) // 1024, 'KB', round(time.time() - t0), 's', flush=True)
