@@ -64,7 +64,7 @@ THE BAG (on the Golfers screen)
 - Your gear shows on the course: model colours on the club heads, and the ball (Distance is yellow, Low spin orange, Tour urethane has a red band).
 
 GOLFERS
-- 30 golfers (20 originals plus 10 tour legends), each with Power, Control, Impact, Short game, Putting and Spin rated 1-10, plus a trait. Pick one on the Golfers screen. Stats count in the daily round, full rounds and single holes. Every golfer's stats add up to the same total (33; Brick 29 and Rory McAllroy 31 because of their Bomber trait), so golfers are different, not better.
+- 30 golfers (20 originals plus 10 tour legends), each with Power, Control, Impact, Short game, Putting and Spin rated 1-10, plus a trait. Pick one on the Golfers screen. Stats count in the daily round, full rounds and single holes. The 20 original golfers' stats add up to 33 (Brick 29 because of his Bomber trait); the 10 tour legends get one extra point of Power (34, Rory McAllroy 32 with his Bomber trait), so they are a touch longer but otherwise balanced the same way.
 - What each stat does (1 to 10 runs from about -2 to +2 around an average golfer at 5.5):
   - Power: full-shot carry, about 5% shorter at 1 to 5% longer at 10.
   - Impact: makes the TARGET easier to hit. It widens the Nice/Perfect window on the impact line for full swings (about 14% narrower at 1 to 14% wider at 10), so more perfect strikes. Chips, pitches and putts use Short game and Putting for their windows instead.
