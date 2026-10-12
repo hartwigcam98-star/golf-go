@@ -64,14 +64,15 @@ THE BAG (on the Golfers screen)
 - Your gear shows on the course: model colours on the club heads, and the ball (Distance is yellow, Low spin orange, Tour urethane has a red band).
 
 GOLFERS
+- The golfer picker tags each golfer's standout strengths (green, stats of 8+) and weaknesses (red, stats of 2 or less).
 - 30 golfers (20 originals plus 10 tour legends), each with Power, Control, Impact, Short game, Putting and Spin rated 1-10, plus a trait. Pick one on the Golfers screen. Stats count in the daily round, full rounds and single holes. The 20 original golfers' stats add up to 33 (Brick 29 because of his Bomber trait); the 10 tour legends get one extra point of Power (34, Rory McAllroy 32 with his Bomber trait), so they are a touch longer but otherwise balanced the same way.
 - What each stat does (1 to 10 runs from about -2 to +2 around an average golfer at 5.5):
   - Power: full-shot carry, about 5% shorter at 1 to 5% longer at 10.
   - Impact: makes the TARGET easier to hit. It widens the Nice/Perfect window on the impact line for full swings (about 14% narrower at 1 to 14% wider at 10), so more perfect strikes. Chips, pitches and putts use Short game and Putting for their windows instead.
-  - Control: limits the DAMAGE when you miss the target. A tap that is early or late hooks or slices; Control shrinks how far it goes offline (about 16% more at 1 to 16% less at 10).
+  - Control: limits the DAMAGE when you miss the target on full swings. A tap that is early or late hooks or slices; Control shrinks how far it goes offline (about 16% more at 1 to 16% less at 10). On chips and pitches Short game does this job instead.
   - Impact vs Control in one line: Impact = hit the sweet spot more often; Control = your misses stay in play. Example: Ben Hoagan is Control 10, Impact 7 (rarely wild); Scout is Impact 10, Control 5 (flushes it often, sprays it when he doesn't).
-  - Short game: wider timing window on chips, pitches, flops and bunker shots, and lighter chunks/blades when you miss it.
-  - Putting: wider putting window and straighter missed putts.
+  - Short game: timing window on chips, pitches, flops and bunker shots (about 30% narrower at 1 to 30% wider at 10); it also decides how far offline a mistimed chip or pitch goes (instead of Control), how much the distance scatters, and how bad chunks/blades are.
+  - Putting: putting window (about 30% narrower at 1 to 30% wider at 10), straighter missed putts, and distance control: a mistimed putt loses less pace for a good putter, so fewer three-putts.
   - Spin: more backspin bite and more curve from the spin dial.
 
 WATCHING ROUNDS, REPLAYS AND SAVED SHOTS

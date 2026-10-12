@@ -375,6 +375,7 @@ td.won{background:rgba(255,201,60,.38)}
 .ptot{font-size:18px;color:#c0542f}
 .legend{font-size:12px;color:var(--muted);margin-bottom:14px}
 @media (prefers-reduced-motion:reduce){#toast.show{animation-duration:1.8s;animation-timing-function:linear}.card{animation:none}}
+.chtags{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 2px}.chtags span{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:10px}.chtags .up{background:#d8f0cf;color:#1f5d1a}.chtags .dn{background:#f6dcd2;color:#7a2c14}
 </style>
 <style>/* Pause screen and feedback (v102) */
 #pauseM{background:rgba(6,18,28,.55);z-index:20}
@@ -2744,7 +2745,7 @@ function strikeShot(power,e){
     const bs=clamp((.14+G.missBy*9)*amp,.14,.9);
     mis=e>0?{k:'chunk',c:1-clamp((.1+G.missBy*10)*amp,.1,.75),a:.75,r:.5}:{k:'blade',c:1+bs,a:.3,r:G.stype==='chip'?BLADE.chipR:2.2,rel:(BLADE.rel[G.stype]??0)*bs/.9};}
   const sgl=isShort()&&!miss?SG_LIE[lie]:null,sgk=cmod().sgLie??1;let sgv=1,sgChunk=false;
-  if(sgl){sgv=1+(Math.random()*2-1)*sgl.v*sgk*(G.stype==='flop'?.7:1);
+  if(sgl){sgv=1+(Math.random()*2-1)*sgl.v*sgk*(G.stype==='flop'?.7:1)*(cmod().sgVar??1);
     if(sgl.chunk&&!mis&&Math.random()<sgl.chunk*sgk){sgChunk=true;sgv*=.62+Math.random()*.16;if(!G.aiTurn)setTimeout(()=>toast('GRABBED!','The fescue caught the club','#ffb46a'),300);}}
   const flyer=!isShort()&&G.stype!=='punch'&&FLYER[lie]?FLYER[lie][clubGroup(club)]:1;
   const carry=sgv*(mis?mis.c:1)*Math.max(isShort()&&G.swMax?.5:2,(isShort()&&G.swMax?G.swMax:clubCarry(club)*lm*ST.c)*power*M.carry*(perfTee?(cmod().perf??1.03):1)*(1-(HARSH?Math.min(.32,G.missBy*3.6*(cmod().misFull??1)):Math.min(.16,G.missBy*1.6))));
@@ -3635,10 +3636,10 @@ let CHAR_ID=(()=>{try{const v=localStorage.getItem('golf-char');return CHARS.som
 const curChar=()=>CHARS.find(c=>c.id===CHAR_ID)||CHARS[0];
 function charMods(ch){const S=ch.st,F=ch.fx||{},d=k=>d10(S[k]);return{
   carry:c=>1+.025*d('pow')+(F.bomb&&c.kind==='wood'?.05:0)+(F.carry?F.carry-1:0),
-  err:c=>Math.max(.5,1-.08*d('ctl')-((c.kind==='iron'||c.kind==='hybrid')&&F.iron?1-F.iron:0)-(c.kind==='wood'&&F.wood?1-F.wood:0)),
-  win:c=>c.putter?(1+.08*d('putt'))*(F.putw||1):isShort()?(1+.08*d('sg'))*(G.stype==='flop'&&F.flop?F.flop:1)*(F.sgw||1):1+.07*d('imp'),
+  err:c=>isShort()&&!c.putter?Math.max(.5,1-.1*d('sg')):Math.max(.5,1-.08*d('ctl')-((c.kind==='iron'||c.kind==='hybrid')&&F.iron?1-F.iron:0)-(c.kind==='wood'&&F.wood?1-F.wood:0)),
+  win:c=>c.putter?(1+.15*d('putt'))*(F.putw||1):isShort()?(1+.15*d('sg'))*(G.stype==='flop'&&F.flop?F.flop:1)*(F.sgw||1):1+.07*d('imp'),
   curve:1+.08*d('spin'),spin:1+.15*d('spin'),wind:F.wind||1,putt:Math.max(.5,1-.07*d('putt')),
-  mis:(1-.1*d('sg'))*(F.grind?.7:1)*(F.bomb?1.25:1),misFull:(F.grind?.7:1)*(F.bomb?1.15:1),perf:F.perf||1.03};}
+  mis:(1-.1*d('sg'))*(F.grind?.7:1)*(F.bomb?1.25:1),sgVar:Math.max(.4,1-.15*d('sg')),puttD:Math.max(.4,1-.15*d('putt')),misFull:(F.grind?.7:1)*(F.bomb?1.15:1),perf:F.perf||1.03};}
 let CHAR_M=null,CHAR_MID=null;const curCharMods=()=>{if(CHAR_MID!==CHAR_ID){CHAR_MID=CHAR_ID;CHAR_M=charMods(curChar());}return CHAR_M;};
 function golferRow(){const c=curChar();$('mGolferImg').src=CHAR_PIC[c.id];setT('mGolferName',c.name);setT('mGolferSub',c.trait.name+' \u00b7 change golfer');}
 let chSel=null;
@@ -3648,6 +3649,9 @@ function renderChars(){const g=$('chGrid');g.innerHTML='';
     b.innerHTML='<img alt="" src="'+CHAR_PIC[c.id]+'"><b>'+c.name+'</b>';b.onclick=()=>{chSel=c.id;sfx.tick();renderChars();try{$('chDet').scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}};g.appendChild(b);}   // 20 golfers: bring the details into view
   const c=CHARS.find(x=>x.id===chSel);let h='<h2>'+c.name+'</h2><div class="nick">'+c.nick+'</div><p>'+c.blurb+'</p><div class="chstats">';
   for(const[k,n]of CHAR_STATS){const v=c.st[k];h+='<span>'+n+'</span><div class="chbar'+(v>=9?' hi':'')+'" aria-label="'+n+' '+v+' of 10">'+[1,2,3,4,5,6,7,8,9,10].map(i=>'<i class="'+(i<=v?'f':'')+'"></i>').join('')+'</div>';}
+  {const T={pow:'Long hitter',ctl:'Keeps it in play',imp:'Pure striker',sg:'Short-game wizard',putt:'Elite putter',spin:'Spin master'},W={pow:'Short off the tee',ctl:'Wild when he misses',imp:'Tight timing window',sg:'Shaky around the greens',putt:'Streaky putter',spin:'Little spin'};
+    const hi=CHAR_STATS.filter(([k])=>c.st[k]>=8).map(([k])=>T[k]),lo=CHAR_STATS.filter(([k])=>c.st[k]<=2).map(([k])=>W[k]);
+    if(hi.length||lo.length)h+='</div><div class="chtags">'+hi.map(t=>'<span class="up">'+t+'</span>').join('')+lo.map(t=>'<span class="dn">'+t+'</span>').join('');}
   h+='</div><div class="chtrait"><b>'+c.trait.name+'</b>'+c.trait.d+'</div>';$('chDet').innerHTML=h;
   $('chGo').textContent=c.id===CHAR_ID?'Keep '+c.name:'Play as '+c.name;renderBag();}
 function pickChar(){const id=chSel,prev=CHAR_ID;const done=ok=>{if(!ok){CHAR_ID=prev;try{localStorage.setItem('golf-char',prev);}catch(e){}toast('COULD NOT LOAD','That golfer did not download. Try again.','#ff9b6a');}golferRow();};
@@ -3777,7 +3781,7 @@ function bagFx(b){const W=c=>c&&c.kind==='wood',I=c=>c&&(c.kind==='iron'||c.kind
 function bagWrap(m,b){const B=bagFx(b||BAG),cc=()=>curClub(),pd=()=>G.hole?pinDist():0;
   return{...m,carry:c=>m.carry(c)+B.carry(c),err:c=>m.err(c)*B.err(c),win:c=>m.win(c)*B.win(c),
     get curve(){return m.curve*B.curve(cc());},get spin(){return m.spin*B.spin(cc());},wind:m.wind*B.wind,
-    get putt(){return m.putt*B.putt(pd());},get puttD(){return B.puttD(pd());},get puttM(){return B.puttM(pd());},
+    get putt(){return m.putt*B.putt(pd());},get puttD(){return (m.puttD??1)*B.puttD(pd());},get puttM(){return B.puttM(pd());},
     get mis(){return(m.mis??1)*B.mis(cc());},get misFull(){return(m.misFull??1)*B.misFull(cc());},perf:m.perf,
     get bite(){return B.bite(cc());},roll:(c,t)=>B.roll(c,t),get sgLie(){return B.sgLie(cc());}};}
 const BAGC=new WeakMap();
@@ -6705,6 +6709,10 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-12-sgputt",date:"Oct 12, 2026",title:"Short game and putting count for more",items:[
+    "The Short game and Putting stats now matter as much as Power and Impact: their timing windows range about twice as wide from a 1 to a 10.",
+    "Short game now also decides how far offline a mistimed chip or pitch goes and how much its distance scatters. Good putters lose less pace on a mistimed putt, so fewer three-putts.",
+    "The golfer picker tags each golfer's standout strengths and weaknesses."]},
   {id:"2026-10-12-legends",date:"Oct 12, 2026",title:"Ten tour legends join the roster",items:[
     "Tyger Woodz, Jack Nickels, Arnie Palmtree, Phil Pickelson, Rory McAllroy, Scotty Shuffler, Sevvy Ballestrada, Barry Player, Ben Hoagan and Payne Stewie are now in Play Now.",
     "Each wears his signature look (Sunday red, the visor and aviators, knickers and argyle, the white flat cap) and plays to his real strengths with a matching trait. They use the same 33-point stat total as everyone else, so they're different, not better."]},
