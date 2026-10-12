@@ -30,4 +30,6 @@ jobs:
           if [ -n "$ANTHROPIC_API_KEY" ]; then supabase secrets set ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" --project-ref "$PROJECT_REF"; else echo "::warning::ANTHROPIC_API_KEY secret is missing"; fi
       - name: Deploy function
         if: env.SKIP != '1'
-        run: supabase functions deploy ask --project-ref "$PROJECT_REF" --use-api
+        run: |
+          set -o pipefail
+          supabase functions deploy ask --project-ref "$PROJECT_REF" --use-api 2>&1 | tee deploy.log || { echo "::error title=deploy::$(tail -c 1500 deploy.log | tr '\n' ' ')"; exit 1; }
