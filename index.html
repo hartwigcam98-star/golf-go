@@ -6354,7 +6354,7 @@ function impName(){const x=G.imp.x,y=G.imp.y,h=G.traj>0?'High':G.traj<0?'Low':''
 /* HUD style: '' classic, 'a' arcade, 'b' broadcast (TV), 'c' minimal glass */
 let HUD_STYLE=(()=>{try{return localStorage.getItem('golf-hud')||'';}catch(e){return'';}})();
 function hudApply(){const g=$('game');g.classList.remove('hud-a','hud-b','hud-c');if(HUD_STYLE)g.classList.add('hud-'+HUD_STYLE);
-  document.querySelectorAll('#pHud button').forEach(b=>b.classList.toggle('on',b.dataset.u===HUD_STYLE));for(const k in cache)if(/^bc/.test(k))delete cache[k];try{resize();}catch(e){}}
+  document.querySelectorAll('#pHud button').forEach(b=>b.classList.toggle('on',b.dataset.u===HUD_STYLE));for(const k in cache)if(/^bc/.test(k))delete cache[k];if(typeof MCLK==='object'&&MCLK)MCLK.w=0;try{resize();}catch(e){}}   // the meter's width is re-measured (Minimal's upright meter is shorter)
 document.querySelectorAll('#pHud button').forEach(b=>b.addEventListener('click',()=>{HUD_STYLE=b.dataset.u;try{localStorage.setItem('golf-hud',HUD_STYLE);}catch(e){}hudApply();}));
 hudApply();
 function updHud(){
@@ -6777,6 +6777,7 @@ function resize(){
   dpr=d0;W=w0;H=h0;
   if(!same)for(const c of[cv,glc]){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);}
   const tp=document.querySelector('.top').getBoundingClientRect();topH=tp.bottom+6;
+  if(typeof MCLK==='object'&&MCLK)MCLK.w=0;
   const inner=document.querySelector('.bottom .inner').getBoundingClientRect();botH=inner.height>0?H-inner.top+8:96;   /* spectating hides the controls */
   if(R3.on&&!same)r3Resize();
 }
