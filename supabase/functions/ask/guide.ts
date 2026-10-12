@@ -64,7 +64,15 @@ THE BAG (on the Golfers screen)
 - Your gear shows on the course: model colours on the club heads, and the ball (Distance is yellow, Low spin orange, Tour urethane has a red band).
 
 GOLFERS
-- 20 golfers, each with Power, Control, Impact (timing window), Short game, Putting and Spin rated 1-10, plus a trait. Pick one on the Golfers screen. Stats count in the daily round, full rounds and single holes.
+- 30 golfers (20 originals plus 10 tour legends), each with Power, Control, Impact, Short game, Putting and Spin rated 1-10, plus a trait. Pick one on the Golfers screen. Stats count in the daily round, full rounds and single holes. Every golfer's stats add up to the same total (33; Brick 29 and Rory McAllroy 31 because of their Bomber trait), so golfers are different, not better.
+- What each stat does (1 to 10 runs from about -2 to +2 around an average golfer at 5.5):
+  - Power: full-shot carry, about 5% shorter at 1 to 5% longer at 10.
+  - Impact: makes the TARGET easier to hit. It widens the Nice/Perfect window on the impact line for full swings (about 14% narrower at 1 to 14% wider at 10), so more perfect strikes. Chips, pitches and putts use Short game and Putting for their windows instead.
+  - Control: limits the DAMAGE when you miss the target. A tap that is early or late hooks or slices; Control shrinks how far it goes offline (about 16% more at 1 to 16% less at 10).
+  - Impact vs Control in one line: Impact = hit the sweet spot more often; Control = your misses stay in play. Example: Ben Hoagan is Control 10, Impact 7 (rarely wild); Scout is Impact 10, Control 5 (flushes it often, sprays it when he doesn't).
+  - Short game: wider timing window on chips, pitches, flops and bunker shots, and lighter chunks/blades when you miss it.
+  - Putting: wider putting window and straighter missed putts.
+  - Spin: more backspin bite and more curve from the spin dial.
 
 WATCHING ROUNDS, REPLAYS AND SAVED SHOTS
 - Watch other players' daily rounds: open Daily round, then the leaderboard (By day, All-time or a past day from the Calendar). Tap a player's name to open their scorecard, then tap "Watch round" or tap a hole number to watch that hole. Every shot plays back on the course with the replay camera. Speed it up with the 1x/2x/4x button. Rounds played before replays were saved can't be watched.
