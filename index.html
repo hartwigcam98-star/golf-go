@@ -2487,23 +2487,29 @@ function shapedNoise(len,env,lpf){const a=S.ctx,sr=a.sampleRate,n=Math.ceil(len*
 function playTurf(amt,v){const a=A();if(!a)return;S.turf=S.turf||shapedNoise(.11,t=>Math.pow(1-t,3)*Math.min(1,t*40),.35);playBuf(S.turf,.35*amt*v);}
 function playSand(v){const a=A();if(!a)return;S.sand=S.sand||shapedNoise(.45,t=>Math.pow(1-t,2)*Math.min(1,t*25),.6);playBuf(S.sand,.5*v);}
 function playSwoosh(v){const a=A();if(!a)return;S.sw=S.sw||shapedNoise(.2,t=>Math.pow(Math.sin(Math.PI*Math.pow(t,1.6)),2),.18);playBuf(S.sw,.22*v);}
-/* cup sound (Oct 2026): modal synthesis of a ball dropping into a plastic cup. Each contact excites the cup's shell modes
-   (a hollow 500 Hz-4 kHz ring that dies in a few hundredths of a second) plus a short low "thock" from the ball on the bottom.
-   Normal: the drop and two or three shrinking bounces. Hard (a firm putt that rattled): quick bright rim clicks, then the drop. */
-function cupBuf(hard,vr){const a=S.ctx,key='cup'+hard+vr;S.ib=S.ib||{};if(S.ib[key])return S.ib[key];
-  const sr=a.sampleRate,n=Math.ceil(.5*sr),buf=a.createBuffer(1,n,sr),d=buf.getChannelData(0),R=rng(91+hard*17+vr*5);
-  const MODES=[[420,.7,.06],[980,1,.04],[1650,.7,.028],[2700,.45,.018],[4000,.26,.011],[5600,.12,.006]];   // v3: some hollow body, crisper top
-  const j=v=>v*(1+(R()-.5)*.05);
-  let hits=hard?[[0,.4,1.6,0],[j(.028),.36,1.5,0],[j(.051),.3,1.4,0],[j(.088),1,1,1],[j(.152),.34,.85,1],[j(.192),.12,.7,1]]
-               :[[0,1,1,1],[j(.066),.36,.85,1],[j(.108),.13,.7,1],[j(.136),.045,.6,1]];
-  for(const[t0,amp,br,low]of hits){const i0=Math.floor(t0*sr),M=MODES.map(([f,g,tau],k)=>({w:TAU*j(f),g:g*amp*Math.pow(br,k-1),k:1/tau,ph:R()*TAU}));
-    let l=0;const cl=.0006*sr,lp=1-Math.exp(-TAU*(4200*br)/sr);
-    for(let i=i0;i<n;i++){const t=(i-i0)/sr;if(t>.2)break;let x=0;for(const m of M)x+=m.g*Math.sin(m.w*t+m.ph)*Math.exp(-m.k*t);
-      if(low)x+=amp*.7*Math.sin(TAU*180*t)*Math.exp(-t/.02);
-      if(i-i0<cl*6){l+=lp*((R()*2-1)*Math.exp(-(i-i0)/cl)-l);x+=amp*2.4*l;}
-      d[i]+=x*Math.min(1,(i-i0)/(sr*.0003));}}
-  {const D=Math.round(sr/415);for(let i=D;i<n;i++)d[i]+=.3*d[i-D];}   // the cup's tube: a short feedback echo gives the hollow 'tunk'
-  let pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));if(pk>0)for(let i=0;i<n;i++)d[i]*=.9/pk;
+/* cup sound (Oct 2026, v4 "cup mic"): what a microphone inside the cup hears, as on golf broadcasts - modal synthesis.
+   A loud, close, dry clack of ball on hard plastic with a deep boom from the cavity, two quick bounces, then the ball
+   rattling round the bottom of the cup, faster and faster as it settles (like a spun coin). Hard: rim clicks first. */
+function cupBuf(hard,vr){const a=S.ctx,key='cup4'+hard+vr;S.ib=S.ib||{};if(S.ib[key])return S.ib[key];
+  const sr=a.sampleRate,n=Math.ceil(.95*sr),buf=a.createBuffer(1,n,sr),d=buf.getChannelData(0),R=rng(91+hard*17+vr*5);
+  const MODES=[[430,.75,.055],[1020,1,.035],[1720,.75,.024],[2850,.5,.015],[4300,.3,.009],[6100,.15,.005]];
+  const j=v=>v*(1+(R()-.5)*.06);
+  const hits=[];const t0=hard?j(.085):0;
+  if(hard)[0,j(.026),j(.049),j(.068)].forEach((t,k)=>hits.push([t,.42-.04*k,1.6,0,0]));     // clicks off the rim
+  hits.push([t0,1,1.15,1,1],[t0+j(.058),.42,1,1,.5],[t0+j(.094),.17,.9,1,.2]);            // the drop and two bounces on the bottom
+  // the roll: round and round the bottom, each lap a small click, laps getting quicker as it settles
+  {let t=t0+j(.13),f=7+R()*3;const T=t0+.62+R()*.12;while(t<T){const u=(t-t0-.13)/(T-t0-.13);hits.push([t,.28*Math.pow(1-u,1.2)*(.7+R()*.6),.9+R()*.3,0,0]);f+=4+u*9;t+=1/f;}}
+  for(const[h0,amp,br,low,boom]of hits){const i0=Math.floor(h0*sr),M=MODES.map(([f,g,tau],k)=>({w:TAU*j(f),g:g*amp*Math.pow(br,k-1.2),k:1/(tau*(low?1:.7)),ph:R()*TAU}));
+    let l=0;const cl=.00045*sr,lp=1-Math.exp(-TAU*(5200*br)/sr);
+    for(let i=i0;i<n;i++){const t=(i-i0)/sr;if(t>.16)break;let x=0;for(const m of M)x+=m.g*Math.sin(m.w*t+m.ph)*Math.exp(-m.k*t);
+      if(low)x+=amp*(1.2*boom+.3)*Math.sin(TAU*(120+40*Math.exp(-t/.01))*t)*Math.exp(-t/.045);   // cavity boom (the mic is right inside it)
+      if(i-i0<cl*6){l+=lp*((R()*2-1)*Math.exp(-(i-i0)/cl)-l);x+=amp*2.8*l;}
+      d[i]+=x*Math.min(1,(i-i0)/(sr*.00025));}}
+  // a faint rolling rumble under the laps
+  {let l=0;const i1=Math.floor((t0+.12)*sr),i2=Math.floor((t0+.7)*sr),k=1-Math.exp(-TAU*900/sr);for(let i=i1;i<Math.min(n,i2);i++){const u=(i-i1)/(i2-i1);l+=k*((R()*2-1)-l);d[i]+=l*.18*Math.pow(1-u,1.5)*Math.min(1,u*20);}}
+  {const D=Math.round(sr/440);for(let i=D;i<n;i++)d[i]+=.22*d[i-D];}   // a touch of the cup's tube
+  let pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));for(let i=0;i<n;i++)d[i]=Math.tanh(1.8*d[i]/(pk||1));   // broadcast punch: a little saturation
+  pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));if(pk>0)for(let i=0;i<n;i++)d[i]*=.92/pk;
   return S.ib[key]=buf;}
 const sfx={
   tick:()=>tone(880,.05,'square',.04),
@@ -2519,7 +2525,7 @@ const sfx={
   putt:()=>tone(430,.08,'triangle',.2,220),
   land:()=>noise(.12,.12,'lowpass',500),
   // the ball dropping into the cup: a hollow plastic clunk and two or three small bounces on the bottom (hard: rim clicks first)
-  cup:hard=>{const a=A();if(!a)return;const b=cupBuf(hard?1:0,(Math.random()*3)|0);playBuf(b,hard?.7:.65,.95+Math.random()*.1);},
+  cup:hard=>{const a=A();if(!a)return;const b=cupBuf(hard?1:0,(Math.random()*3)|0);playBuf(b,hard?.8:.75,.96+Math.random()*.08);},
   splash:()=>noise(.7,.3,'lowpass',2000,200),
   lip:()=>{tone(1900,.07,'sine',.07);tone(2860,.05,'sine',.04);},
   tree:()=>{tone(190,.07,'triangle',.12);noise(.3,.12,'highpass',1800);},
@@ -6618,7 +6624,7 @@ const UPDATES=[
     "Vibration: a light tap on each swing tap and a double pulse on a perfect strike (turn it off in the pause menu). On iPhone it comes as your finger lifts.",
     "A perfect strike holds the moment of impact for a blink.",
     "Lip-outs ride the rim before spinning out, and now and then one rattles in. A ball can hit the flagstick, with a clang.",
-    "The ball drops into the cup with a hollow plastic clunk and a couple of little bounces (a firm putt clicks off the rim first), instead of a chime.",
+    "The ball drops into the cup like the cup mics on TV: a close, punchy clack, a couple of bounces and a rattle round the bottom as it settles (a firm putt clicks off the rim first), instead of a chime.",
     "The ball rocks once before it settles, and the flag snaps in the gusts.",
     "Course sounds: wind, birds by region (loons up north, cicadas down south, quail in the desert) and a mower far off.",
     "Leaves fall and birds scatter when a shot goes through a tree, and big drives sometimes flush a few birds.",
