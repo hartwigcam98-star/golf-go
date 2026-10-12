@@ -2491,17 +2491,18 @@ function playSwoosh(v){const a=A();if(!a)return;S.sw=S.sw||shapedNoise(.2,t=>Mat
    (a hollow 500 Hz-4 kHz ring that dies in a few hundredths of a second) plus a short low "thock" from the ball on the bottom.
    Normal: the drop and two or three shrinking bounces. Hard (a firm putt that rattled): quick bright rim clicks, then the drop. */
 function cupBuf(hard,vr){const a=S.ctx,key='cup'+hard+vr;S.ib=S.ib||{};if(S.ib[key])return S.ib[key];
-  const sr=a.sampleRate,n=Math.ceil(.42*sr),buf=a.createBuffer(1,n,sr),d=buf.getChannelData(0),R=rng(91+hard*17+vr*5);
-  const MODES=[[505,.55,.05],[1180,1,.036],[1930,.6,.026],[2980,.38,.018],[4250,.2,.011]];
+  const sr=a.sampleRate,n=Math.ceil(.5*sr),buf=a.createBuffer(1,n,sr),d=buf.getChannelData(0),R=rng(91+hard*17+vr*5);
+  const MODES=[[340,.95,.085],[690,.85,.06],[1150,.6,.04],[1900,.32,.024],[2950,.15,.015],[4200,.06,.009]];   // v2: lower, longer cavity modes (more hollow)
   const j=v=>v*(1+(R()-.5)*.05);
   let hits=hard?[[0,.4,1.6,0],[j(.028),.36,1.5,0],[j(.051),.3,1.4,0],[j(.088),1,1,1],[j(.152),.34,.85,1],[j(.192),.12,.7,1]]
                :[[0,1,1,1],[j(.066),.36,.85,1],[j(.108),.13,.7,1],[j(.136),.045,.6,1]];
-  for(const[t0,amp,br,low]of hits){const i0=Math.floor(t0*sr),M=MODES.map(([f,g,tau],k)=>({w:TAU*j(f),g:g*amp*Math.pow(br,k-1.5),k:1/tau,ph:R()*TAU}));
-    let l=0;const cl=.0009*sr,lp=1-Math.exp(-TAU*(2500*br)/sr);
-    for(let i=i0;i<n;i++){const t=(i-i0)/sr;if(t>.12)break;let x=0;for(const m of M)x+=m.g*Math.sin(m.w*t+m.ph)*Math.exp(-m.k*t);
-      if(low)x+=amp*.9*Math.sin(TAU*185*t)*Math.exp(-t/.022);
-      if(i-i0<cl*6){l+=lp*((R()*2-1)*Math.exp(-(i-i0)/cl)-l);x+=amp*1.6*l;}
+  for(const[t0,amp,br,low]of hits){const i0=Math.floor(t0*sr),M=MODES.map(([f,g,tau],k)=>({w:TAU*j(f),g:g*amp*Math.pow(br,k-1),k:1/tau,ph:R()*TAU}));
+    let l=0;const cl=.0008*sr,lp=1-Math.exp(-TAU*(1700*br*br)/sr);
+    for(let i=i0;i<n;i++){const t=(i-i0)/sr;if(t>.2)break;let x=0;for(const m of M)x+=m.g*Math.sin(m.w*t+m.ph)*Math.exp(-m.k*t);
+      if(low)x+=amp*1.1*Math.sin(TAU*170*t)*Math.exp(-t/.03);
+      if(i-i0<cl*6){l+=lp*((R()*2-1)*Math.exp(-(i-i0)/cl)-l);x+=amp*1.1*l;}
       d[i]+=x*Math.min(1,(i-i0)/(sr*.0003));}}
+  {const D=Math.round(sr/415);for(let i=D;i<n;i++)d[i]+=.5*d[i-D];}   // the cup's tube: a short feedback echo gives the hollow 'tunk'
   let pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));if(pk>0)for(let i=0;i<n;i++)d[i]*=.9/pk;
   return S.ib[key]=buf;}
 const sfx={
