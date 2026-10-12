@@ -2521,9 +2521,19 @@ const sfx={
 const HAP={on:(()=>{try{return localStorage.getItem('golf-hap')!=='0';}catch(e){return true;}})(),el:null,ios:/iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)};
 function hapEl(){if(HAP.el)return HAP.el;const l=document.createElement('label');l.setAttribute('aria-hidden','true');l.style.cssText='position:fixed;left:-200px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
   const i=document.createElement('input');i.type='checkbox';i.setAttribute('switch','');i.tabIndex=-1;l.appendChild(i);l.addEventListener('click',e=>e.stopPropagation());document.body.appendChild(l);return HAP.el=l;}
+function hapClick(n){try{const l=hapEl();l.click();for(let j=1;j<n;j++)setTimeout(()=>l.click(),j*75);}catch(e){}}
+/* iPhone only gives the switch haptic inside a real user activation (WebKit, Jan 2025), and a finger going DOWN doesn't count -
+   lifting it does. Swing taps register on touch-down for timing, so the haptic is queued and fired as the finger lifts. */
+function hapFlush(){const n=HAP.q;HAP.q=0;if(n)hapClick(n);}
+['pointerup','touchend'].forEach(ev=>window.addEventListener(ev,hapFlush,{capture:true,passive:true}));
 function haptic(k){if(!HAP.on||G.aiTurn||G.replay||G.mode==='spectate')return;const pat={tap:9,perfect:[16,45,26],thud:24,cup:[12,60,12,60,30]}[k]||9;
   try{if(navigator.vibrate&&!HAP.ios){navigator.vibrate(pat);return;}}catch(e){}
-  if(HAP.ios)try{const l=hapEl(),n=Array.isArray(pat)?Math.ceil(pat.length/2):1;l.click();for(let j=1;j<n;j++)setTimeout(()=>l.click(),j*75);}catch(e){}}
+  if(!HAP.ios)return;const n=Array.isArray(pat)?Math.ceil(pat.length/2):1;
+  let act=false;try{act=!!(navigator.userActivation&&navigator.userActivation.isActive);}catch(e){}
+  if(act&&!HAP.down){hapClick(n);return;}if(HAP.down)HAP.q=Math.max(HAP.q||0,n);}   // nothing to ride on (e.g. the ball dropping later): skip
+window.addEventListener('pointerdown',()=>{HAP.down=true;},{capture:true,passive:true});
+window.addEventListener('pointerup',()=>{HAP.down=false;},{capture:true,passive:true});
+window.addEventListener('pointercancel',()=>{HAP.down=false;HAP.q=0;},{capture:true,passive:true});
 /* ---------- ambience (Oct 2026): a soft bed under the game. Wind that follows the hole's wind (with gusts), birds by region
    (Minnesota/Wisconsin: chickadees and robins, a loon now and then on holes with water; the South: mockingbirds and cicadas;
    the desert: quail and wrens, sparse), and once in a while a mower far off. Fades out on menus and pause, off with the sound. ---------- */
@@ -6223,7 +6233,6 @@ function update(dt){
   const m=G.meter,putt=curClub().putter;
   const mdt=G.hudSkip?dt:Math.min(dt*2,MCLK.dt);
   if(G.state==='power'){const p0=m.pos;m.pos+=(m.dir||1)*mdt*(putt?.7:isShort()?.85:1.0);
-    if((m.dir||1)>0&&!G.aiTurn){const q0=(p0-IMPACT)/(1-IMPACT),q1=(Math.min(m.pos,1)-IMPACT)/(1-IMPACT);for(const k of[.25,.5,.75,1])if(q0<k&&q1>=k){sfx.mtick(k);break;}}
     if(m.pos>=1){m.pos=1;m.dir=-1;}
     else if(m.dir<0&&m.pos<=IMPACT){m.pos=IMPACT;m.dir=1;G.state='aim';toast('NO POWER SET','Tap once more during the backswing','#fff6dc');sfx.miss();}}
   else if(G.state==='acc'){m.pos-=mdt*(putt?.6:isShort()?.8:.95*(G.pshot?1.2:1));if(m.pos<=0){m.pos=0;executeShot(m.power,null);}}
@@ -6587,8 +6596,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 (()=>{
 const UPDATES=[
   {id:"2026-10-11-feel",date:"Oct 11, 2026",title:"Little things that make it feel better",items:[
-    "Vibration: a light tap on each swing tap and a double pulse on a perfect strike (turn it off in the pause menu).",
-    "A perfect strike holds the moment of impact for a blink, and the swing meter ticks softly as the power climbs.",
+    "Vibration: a light tap on each swing tap and a double pulse on a perfect strike (turn it off in the pause menu). On iPhone it comes as your finger lifts.",
+    "A perfect strike holds the moment of impact for a blink.",
     "Lip-outs ride the rim before spinning out, and now and then one rattles in. A ball can hit the flagstick, with a clang.",
     "The ball rocks once before it settles, and the flag snaps in the gusts.",
     "Course sounds: wind, birds by region (loons up north, cicadas down south, quail in the desert) and a mower far off.",
