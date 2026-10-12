@@ -6269,10 +6269,8 @@ function update(dt){
     if(m.pos>=1){m.pos=1;m.dir=-1;}
     else if(m.dir<0&&m.pos<=IMPACT){m.pos=IMPACT;m.dir=1;G.state='aim';toast('NO POWER SET','Tap once more during the backswing','#fff6dc');sfx.miss();}}
   else if(G.state==='acc'){m.pos-=mdt*(putt?.6:isShort()?.8:.95*(G.pshot?1.2:1));if(m.pos<=0){m.pos=0;executeShot(m.power,null);}}
-  const fT0=G.followT;if(G.followT>0)G.followT+=dt;
+  if(G.followT>0)G.followT+=dt;
   const launched=!(G.followT>0&&G.followT<(G.launchAt||0));
-  // a perfect strike holds the moment of impact for a blink (frame() skips the next few updates)
-  if(fT0>0&&fT0<(G.launchAt||0)&&launched&&G.lastPerf===2&&!G.aiTurn&&!G.replay&&G.mode!=='spectate'&&G.swingType!=='putt'&&!G.hudSkip)HITSTOP=.075;
   if(G.divotQ&&launched){spawnDivot(G.divotQ);G.divotQ=null;}stepDivots(dt);
   if(G.teeQ&&launched){spawnTee(G.teeQ);G.teeQ=null;}
   if(G.birdQ&&launched){const q=G.birdQ;G.birdQ=null;if(Math.random()<.4)birdsNear(q.p,q.T);}
@@ -6290,7 +6288,6 @@ let last=performance.now();
 /* the swing meter runs on the average of the last 8 frame times, so one slow frame (or a phone alternating quick and slow frames)
    doesn't make the cursor leap: it keeps an even step and the same speed overall */
 var MCLK={q:[],dt:1/60,w:0};
-var HITSTOP=0;
 /* smoothness stats: frame times per hole (all play, and while the swing meter runs), sent quietly to the perf_stats table
    when the hole changes or the app goes to the background. Nothing is shown in the game. */
 var PSTAT={all:[],met:[],hole:null};
@@ -6408,7 +6405,7 @@ const COVERS=['menuM','dailyM','recM','careerM','hlM','charM'].map(id=>$(id));
 function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
   const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);{const Q=MCLK.q;Q.push(Math.min(.05,Math.max(.004,raw)));if(Q.length>8)Q.shift();MCLK.dt=Q.reduce((a,b)=>a+b,0)/Q.length;}if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
   try{ambTick(dt);}catch(e){}
-  if(G.hole){if(!G.paused){if(HITSTOP>0){HITSTOP-=raw;}else{const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}}   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}}
+  if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}}
 
 /* ---------- input ---------- */
 let drag=null;const PTS=new Map();
@@ -6632,8 +6629,7 @@ const UPDATES=[
     "Fescue is no longer a flat straw colour: it's sage and olive green underneath with drifts of golden seed heads, grows in clumps, and sways more in the wind. Desert courses keep their desert look."]},
   {id:"2026-10-11-feel",date:"Oct 11, 2026",title:"Little things that make it feel better",items:[
     "Vibration: a light tap on each swing tap and a double pulse on a perfect strike (turn it off in the pause menu). On iPhone it comes as your finger lifts.",
-    "A perfect strike holds the moment of impact for a blink.",
-    "Lip-outs ride the rim before spinning out, and now and then one rattles in. A ball can hit the flagstick, with a clang.",
+        "Lip-outs ride the rim before spinning out, and now and then one rattles in. A ball can hit the flagstick, with a clang.",
     "The ball drops into the cup like the cup mics on TV: a close, punchy clack, a couple of bounces and a rattle round the bottom as it settles (a firm putt clicks off the rim first), instead of a chime.",
     "The ball rocks once before it settles, and the flag snaps in the gusts.",
     "Course sounds: wind, birds by region (loons up north, cicadas down south, quail in the desert) and a mower far off.",
