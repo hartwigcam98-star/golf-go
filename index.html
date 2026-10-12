@@ -2383,7 +2383,7 @@ function stanceLabel(){if(curClub().putter||G.lie==='green')return'';const S=sta
 const SPIN_K={chip:.7,pitch:.6};
 function shotMods(){const c=curClub();if(c.putter)return{carry:1,apex:1,roll:1,curve:0,win:1,back:0,wind:1};const tj=G.traj||0;
   const S=stance(),ix=G.imp.x,iy=G.imp.y,ps=G.pshot?1:0;
-  return{carry:(1+.1*ps)*(1-clamp(S.along,-.15,.15)*1.1)*(1-Math.abs(ix)*.04)*(iy<0?1+iy*.04:1)*(tj>0?.97:1),
+  return{carry:(1+.15*ps)*(1-clamp(S.along,-.15,.15)*1.1)*(1-Math.abs(ix)*.04)*(iy<0?1+iy*.04:1)*(tj>0?.97:1),
     apex:(1+clamp(S.along,-.15,.15)*1.8)*(1-.08*ps)*(tj>0?1.3:tj<0?.68:1),
     roll:(1-clamp(S.along,-.15,.15)*1.5)*(iy>0?1+.9*iy:1+.72*iy*(SPIN_K[G.stype]??1))*(tj>0?.55:tj<0?1.6:1),wind:tj>0?1.35:tj<0?.55:1,
     curve:ix*.085-clamp(S.side,-.15,.15)*.55-clamp(S.along,-.15,.15)*.12,
@@ -2651,7 +2651,7 @@ function strikeShot(power,e){
   const lat=-e*1.8*em*carry*cmod().err(club)+M.curve*cmod().curve*carry;
   const w=dirOf(G.wind.a),wk=G.wind.mph*.85*(carry/200)*club.loft*ST.w*M.wind*cmod().wind;
   const thin=HARSH?Math.min(1,G.missBy/.06):0;const apex=shotApex(club,carry)*M.apex*(1-.3*thin)*(mis?mis.a:1);
-  const usedPower=G.pshot;if(G.pshot){G.psLeft=Math.max(0,G.psLeft-1);G.pshot=false;}
+  const usedPower=G.pshot;if(G.pshot)G.pshot=false;   // power shots are unlimited (Oct 11 2026)
   G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll*(1+.7*thin)*(mis?mis.r:1)*(flyer>1?1-(1-perfBite)*.5:perfBite)*flyer*(sgl?1+((G.stype==='chip'?sgl.chip:sgl.r)-1)*sgk:1)*(sgChunk?.5:1)*(cmod().roll?cmod().roll(club,G.stype):1),rel:mis&&mis.rel||0,back:mis&&mis.k==='blade'?0:M.back*cmod().spin*(1-.8*thin)*(sgl?sgl.back:1),
     fly:flyer>1&&lie!=='cut',full:isShort()?0:clubCarry(club)*lm*ST.c*M.carry};
   // a pure approach that comes down close: he twirls the club as it drops from the finish (r3golfer.js)
@@ -3302,7 +3302,7 @@ const FAQ=[
  ['How far do approach shots roll on the green?','For a normal full swing: 3 wood about 19 yards, 5 wood 16, 4 hybrid 11, 5 iron 8, 7 iron 6, 9 iron 4, pitching wedge about 3, sand wedge about 1. Perfect strikes with irons roll about 15% less. That’s roughly a normal tour week; real major-championship greens are firmer.'],
  ['What do the bag models do? Are they fair?','Each slot (woods, irons, wedges, putter, ball) has Standard plus models that trade a strength for a weakness, e.g. the Bomber driver flies 5% further but strays 10% wider. They were tested in hundreds of simulated rounds to be roughly even overall, but some suit some courses: a Bomber helps on open courses and hurts in the trees. Pick them on the Golfers screen.'],
  ['Can I change the clubs in my bag?','Yes, on the Golfers screen under Clubs & yardages. Slots marked ⇄ can swap: 4 wood or mini driver for the 3 wood, 7 wood or 3 hybrid for the 5 wood, a 3 or 5 hybrid, 4 iron or driving iron for the 4 hybrid, a 5 hybrid for the 5 iron, and 52°, 54°, 58° or 64° wedges. The table shows each club’s carry and the gaps.'],
- ['What’s a power shot?','The lightning button: +10% distance, but the timing at impact is faster and harder. You get 3 per round.'],
+ ['What’s a power shot?','The lightning button: +15% distance, but the timing at impact is faster and harder. Use it as often as you like.'],
  ['What do strike point and shot height do?','Strike point (the ball icon): hit the top for topspin (lower, more roll), the bottom for backspin (stops quicker; wedges can spin back), left or right to draw or fade. Shot height: High lands softer and stops quicker but the wind moves it more; Low stays under the wind and runs.'],
  ['How do I read a putt?','The grid lines on the green show the slope: red is steep, green is gentle, and the glow runs downhill. Aim above the hole on a side slope and hit uphill putts firmer. The flag on the putting meter marks the hole’s distance.'],
  ['Flag in or flag out?','Inside 15 feet the flag comes out automatically. Tap the small Flag chip at the top right to change it. With the flag in, a firm putt that hits it is more likely to drop.'],
@@ -6035,7 +6035,7 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   $('spinBtn').disabled=!aiming||c.putter;
   if(G.state!=='aim'||c.putter)$('impPop').hidden=true;
   setT('spinTxt',c.putter?'\u2014':impShort());$('spinDot').setAttribute('cx',12+G.imp.x*6);$('spinDot').setAttribute('cy',12-G.imp.y*6);
-  { const pb=$('psBtn'),ok=aiming&&!c.putter&&G.stype==='full'&&G.psLeft>0;pb.disabled=!ok&&!G.pshot;pb.classList.toggle('on',G.pshot);setT('psBtn','\u26a1'+G.psLeft);
+  { const pb=$('psBtn'),ok=aiming&&!c.putter&&G.stype==='full';pb.disabled=!ok&&!G.pshot;pb.classList.toggle('on',G.pshot);setT('psBtn','\u26a1');
     if(G.pshot&&(c.putter||G.stype!=='full')&&aiming)G.pshot=false;$('meter').classList.toggle('power',G.pshot); }
   { const base=lieNm(lie)||'',sl=(G.state==='aim'||G.state==='power'||G.state==='acc')?stanceLabel().replace(/ feet/g,''):'';setT('lieTxt',sl?base+' \u00b7 '+sl:base); }
   $('aimL').disabled=$('aimR').disabled=$('mapBtn').disabled=!aiming;
@@ -6298,7 +6298,7 @@ function drawImp(){document.querySelectorAll('.trajseg button[data-tj]').forEach
   document.querySelectorAll('.trajseg button[data-tj]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();G.traj=+b.dataset.tj;drawImp();sfx.tick();}));
   $('impDone').addEventListener('click',e=>{e.stopPropagation();$('impPop').hidden=true;sfx.tick();});
   $('impPop').addEventListener('pointerdown',e=>e.stopPropagation()); }
-$('psBtn').addEventListener('click',e=>{e.stopPropagation();if((G.state!=='aim'||G.aiTurn)||curClub().putter)return;if(!G.pshot&&(G.psLeft<=0||G.stype!=='full'))return;G.pshot=!G.pshot;sfx.tick();if(G.pshot)toast('POWER SHOT','+10% distance \u00b7 faster impact','#ff9a3c');});
+$('psBtn').addEventListener('click',e=>{e.stopPropagation();if((G.state!=='aim'||G.aiTurn)||curClub().putter)return;if(!G.pshot&&G.stype!=='full')return;G.pshot=!G.pshot;sfx.tick();if(G.pshot)toast('POWER SHOT','+15% distance \u00b7 faster impact','#ff9a3c');});
 $('mapBtn').addEventListener('click',()=>{if(G.state==='aim'&&!G.aiTurn){G.fc=null;G.overview=!G.overview;}});
 $('teeBtn').addEventListener('click',teeOff);
 $('menuBtn').addEventListener('click',()=>{A();if(SPEC.on){specEnd();return;}if(G.replay)endReplay();if(inRound())openPause();else openMenu(true);});
@@ -6446,6 +6446,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-11-pshot",date:"Oct 11, 2026",title:"Unlimited power shots",items:[
+    "Power shots are now unlimited and add 15% distance (was 10%, 3 per round). The faster timing at impact still applies."]},
   {id:"2026-10-11-holes",date:"Oct 11, 2026",title:"Hole fixes from a full course check",items:[
     "Every course was checked for holes that end on the wrong green, start from the wrong tee or play far from the scorecard length.",
     "Fixed: Sedge Valley 4, 10 and 11, Senator 3, 4, 7, 15 and 17, Judge 10, Legislator 16, Pawleys Plantation 13 and 16 (now two separate greens), Cambrian Ridge (Sherling/Canyon) 11 and 17, Deacon's Lodge 1, 12 and 18, Grand National Lake 16, The Lehman 18's 3rd and StoneRidge 9."]},

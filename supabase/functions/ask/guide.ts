@@ -16,7 +16,7 @@ THE SWING (full shots)
 - Hitting the impact line dead centre is a PERFECT strike (flames on the ball; red flames at full power). Close to the line is a NICE SHOT. Missing the line sends the ball offline and costs distance; missing it badly is a MISHIT.
 - The perfect window is smaller from rough, bunkers and fescue, a little smaller from the first cut, and smaller on power shots.
 - Perfect strikes: any wood (driver, 3 wood, 5 wood and friends) gets +3% carry. Irons, hybrids and wedges keep the distance you set but spin more, so they roll out about 15% less on the green. Some golfers' traits make this +5% or +6%.
-- Power shot (the lightning button, 3 per round): +10% distance, but a faster, harder timing tap.
+- Power shot (the lightning button, unlimited): +15% distance, but a faster, harder timing tap.
 - Strike point (the ball icon): hit the top for topspin (lower, more roll), the bottom for backspin (higher, less roll; wedges can spin back), left or right to draw or fade it.
 - Shot height: High flies higher, lands softer, stops quicker but the wind moves it more and it carries a touch less. Low flies under the wind and runs out much more.
 - Shot types: Full; Punch (low, runs out, stays under branches, 4 hybrid to PW); Pitch (soft, checks up); Chip (low hop then rolls like a putt); Flop (sky high, stops dead, tight timing); Spinner (a pitch with heavy backspin, only from the fairway, first cut or tee); around greenside bunkers: Splash (standard), Pick (clean, stops, tight timing), Blast (forgiving, runs out).
