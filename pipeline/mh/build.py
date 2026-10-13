@@ -62,6 +62,8 @@ for g in G:
         bpy.context.view_layer.objects.active = root
         bpy.ops.export_scene.fbx(filepath=f"{OUT}/{g['id']}.fbx", use_selection=True, add_leaf_bones=False, bake_anim=False, path_mode='COPY', embed_textures=True)
         bpy.ops.export_scene.gltf(filepath=f"{OUT}/{g['id']}.glb", use_selection=True, export_format='GLB', export_animations=False)
+        print('DONE', g['id'], flush=True)
+        if not g.get('render', True): continue
         # hide the originals, render the export copy
         for o in bpy.data.objects:
             if o.name.endswith('_x') or o == root or o.parent == root or (o.parent and o.parent.parent == root): continue

@@ -9,32 +9,744 @@
    "height": 0.62,
    "proportions": 0.75,
    "race": {
-    "african": 0.6,
+    "african": 0.5,
     "asian": 0.15,
-    "caucasian": 0.25
+    "caucasian": 0.35
    }
   },
-  "skin": "young_african_male.mhmat",
+  "skin": "toigo_light_skin_male_bronze.mhmat",
   "rig": "mixamo",
   "targets": [
    [
     "head/head-square",
-    0.3
+    0.45
    ],
    [
     "chin/chin-width-incr",
-    0.35
+    0.5
    ],
    [
     "chin/chin-prominent-incr",
+    0.3
+   ],
+   [
+    "cheek/l-cheek-bones-incr",
+    0.3
+   ],
+   [
+    "cheek/r-cheek-bones-incr",
+    0.3
+   ],
+   [
+    "nose/nose-flaring-incr",
+    0.3
+   ],
+   [
+    "nose/nose-width1-incr",
     0.2
    ],
    [
     "torso/torso-vshape-incr",
-    0.5
+    0.55
    ],
    [
     "neck/neck-scale-horiz-incr",
+    0.35
+   ],
+   [
+    "mouth/mouth-lowerlip-volume-incr",
+    0.2
+   ]
+  ],
+  "assets": [
+   [
+    "eyes",
+    "low-poly.mhclo"
+   ],
+   [
+    "eyelashes",
+    "eyelashes01.mhclo"
+   ],
+   [
+    "teeth",
+    "teeth_base.mhclo"
+   ],
+   [
+    "tongue",
+    "tongue01.mhclo"
+   ],
+   [
+    "eyebrows",
+    "eyebrow002.mhclo"
+   ],
+   [
+    "hair",
+    "short01.mhclo"
+   ],
+   [
+    "clothes",
+    "namuhekam_male_polo_shirt.mhclo"
+   ],
+   [
+    "clothes",
+    "toigo_wool_pants.mhclo"
+   ],
+   [
+    "clothes",
+    "shoes06.mhclo"
+   ]
+  ],
+  "render": false
+ },
+ {
+  "id": "mh_jack",
+  "macro": {
+   "gender": 1,
+   "age": 0.6,
+   "muscle": 0.5,
+   "weight": 0.68,
+   "height": 0.5,
+   "proportions": 0.6,
+   "race": {
+    "african": 0,
+    "asian": 0,
+    "caucasian": 1
+   }
+  },
+  "skin": "young_caucasian_male.mhmat",
+  "rig": "mixamo",
+  "targets": [
+   [
+    "head/head-round",
+    0.7
+   ],
+   [
+    "head/head-fat-incr",
+    0.5
+   ],
+   [
+    "cheek/l-cheek-volume-incr",
+    0.5
+   ],
+   [
+    "cheek/r-cheek-volume-incr",
+    0.5
+   ],
+   [
+    "chin/chin-width-incr",
+    0.3
+   ],
+   [
+    "nose/nose-volume-incr",
+    0.3
+   ],
+   [
+    "mouth/mouth-scale-horiz-incr",
+    0.2
+   ],
+   [
+    "neck/neck-double-incr",
+    0.2
+   ]
+  ],
+  "assets": [
+   [
+    "eyes",
+    "low-poly.mhclo"
+   ],
+   [
+    "eyelashes",
+    "eyelashes01.mhclo"
+   ],
+   [
+    "teeth",
+    "teeth_base.mhclo"
+   ],
+   [
+    "tongue",
+    "tongue01.mhclo"
+   ],
+   [
+    "eyebrows",
+    "eyebrow001.mhclo"
+   ],
+   [
+    "hair",
+    "short02.mhclo"
+   ],
+   [
+    "clothes",
+    "namuhekam_male_polo_shirt.mhclo"
+   ],
+   [
+    "clothes",
+    "toigo_wool_pants.mhclo"
+   ],
+   [
+    "clothes",
+    "shoes06.mhclo"
+   ]
+  ],
+  "render": false
+ },
+ {
+  "id": "mh_arnie",
+  "macro": {
+   "gender": 1,
+   "age": 0.66,
+   "muscle": 0.66,
+   "weight": 0.55,
+   "height": 0.55,
+   "proportions": 0.65,
+   "race": {
+    "african": 0,
+    "asian": 0,
+    "caucasian": 1
+   }
+  },
+  "skin": "middleage_caucasian_male.mhmat",
+  "rig": "mixamo",
+  "targets": [
+   [
+    "head/head-rectangular",
+    0.5
+   ],
+   [
+    "nose/nose-hump-incr",
+    0.5
+   ],
+   [
+    "nose/nose-volume-incr",
+    0.35
+   ],
+   [
+    "nose/nose-point-down",
+    0.3
+   ],
+   [
+    "chin/chin-prominent-incr",
+    0.4
+   ],
+   [
+    "forehead/forehead-scale-vert-incr",
+    0.3
+   ],
+   [
+    "torso/torso-vshape-incr",
+    0.45
+   ]
+  ],
+  "assets": [
+   [
+    "eyes",
+    "low-poly.mhclo"
+   ],
+   [
+    "eyelashes",
+    "eyelashes01.mhclo"
+   ],
+   [
+    "teeth",
+    "teeth_base.mhclo"
+   ],
+   [
+    "tongue",
+    "tongue01.mhclo"
+   ],
+   [
+    "eyebrows",
+    "eyebrow003.mhclo"
+   ],
+   [
+    "hair",
+    "short02.mhclo"
+   ],
+   [
+    "clothes",
+    "namuhekam_male_polo_shirt.mhclo"
+   ],
+   [
+    "clothes",
+    "toigo_wool_pants.mhclo"
+   ],
+   [
+    "clothes",
+    "shoes06.mhclo"
+   ]
+  ],
+  "render": false
+ },
+ {
+  "id": "mh_phil",
+  "macro": {
+   "gender": 1,
+   "age": 0.66,
+   "muscle": 0.45,
+   "weight": 0.68,
+   "height": 0.66,
+   "proportions": 0.55,
+   "race": {
+    "african": 0,
+    "asian": 0,
+    "caucasian": 1
+   }
+  },
+  "skin": "middleage_caucasian_male.mhmat",
+  "rig": "mixamo",
+  "targets": [
+   [
+    "head/head-fat-incr",
+    0.5
+   ],
+   [
+    "head/head-round",
+    0.3
+   ],
+   [
+    "chin/chin-width-incr",
+    0.4
+   ],
+   [
+    "neck/neck-double-incr",
+    0.4
+   ],
+   [
+    "mouth/mouth-scale-horiz-incr",
+    0.3
+   ],
+   [
+    "cheek/l-cheek-volume-incr",
+    0.3
+   ],
+   [
+    "cheek/r-cheek-volume-incr",
+    0.3
+   ]
+  ],
+  "assets": [
+   [
+    "eyes",
+    "low-poly.mhclo"
+   ],
+   [
+    "eyelashes",
+    "eyelashes01.mhclo"
+   ],
+   [
+    "teeth",
+    "teeth_base.mhclo"
+   ],
+   [
+    "tongue",
+    "tongue01.mhclo"
+   ],
+   [
+    "eyebrows",
+    "eyebrow004.mhclo"
+   ],
+   [
+    "hair",
+    "short04.mhclo"
+   ],
+   [
+    "clothes",
+    "namuhekam_male_polo_shirt.mhclo"
+   ],
+   [
+    "clothes",
+    "toigo_wool_pants.mhclo"
+   ],
+   [
+    "clothes",
+    "shoes06.mhclo"
+   ]
+  ],
+  "render": false
+ },
+ {
+  "id": "mh_rory",
+  "macro": {
+   "gender": 1,
+   "age": 0.52,
+   "muscle": 0.72,
+   "weight": 0.45,
+   "height": 0.44,
+   "proportions": 0.7,
+   "race": {
+    "african": 0,
+    "asian": 0,
+    "caucasian": 1
+   }
+  },
+  "skin": "young_caucasian_male2.mhmat",
+  "rig": "mixamo",
+  "targets": [
+   [
+    "head/head-oval",
+    0.5
+   ],
+   [
+    "chin/chin-prominent-incr",
+    0.35
+   ],
+   [
+    "chin/chin-height-incr",
+    0.2
+   ],
+   [
+    "nose/nose-scale-vert-incr",
+    0.2
+   ],
+   [
+    "eyebrows/eyebrows-trans-down",
+    0.3
+   ],
+   [
+    "mouth/mouth-scale-horiz-decr",
+    0.15
+   ]
+  ],
+  "assets": [
+   [
+    "eyes",
+    "low-poly.mhclo"
+   ],
+   [
+    "eyelashes",
+    "eyelashes01.mhclo"
+   ],
+   [
+    "teeth",
+    "teeth_base.mhclo"
+   ],
+   [
+    "tongue",
+    "tongue01.mhclo"
+   ],
+   [
+    "eyebrows",
+    "eyebrow005.mhclo"
+   ],
+   [
+    "hair",
+    "cortu_short_messy_hair.mhclo"
+   ],
+   [
+    "clothes",
+    "namuhekam_male_polo_shirt.mhclo"
+   ],
+   [
+    "clothes",
+    "toigo_wool_pants.mhclo"
+   ],
+   [
+    "clothes",
+    "shoes06.mhclo"
+   ]
+  ],
+  "render": false
+ },
+ {
+  "id": "mh_scotty",
+  "macro": {
+   "gender": 1,
+   "age": 0.52,
+   "muscle": 0.6,
+   "weight": 0.52,
+   "height": 0.72,
+   "proportions": 0.65,
+   "race": {
+    "african": 0,
+    "asian": 0,
+    "caucasian": 1
+   }
+  },
+  "skin": "young_caucasian_male.mhmat",
+  "rig": "mixamo",
+  "targets": [
+   [
+    "head/head-rectangular",
+    0.5
+   ],
+   [
+    "chin/chin-height-incr",
+    0.4
+   ],
+   [
+    "chin/chin-width-incr",
+    0.2
+   ],
+   [
+    "nose/nose-scale-vert-incr",
+    0.3
+   ],
+   [
+    "forehead/forehead-scale-vert-incr",
+    0.3
+   ]
+  ],
+  "assets": [
+   [
+    "eyes",
+    "low-poly.mhclo"
+   ],
+   [
+    "eyelashes",
+    "eyelashes01.mhclo"
+   ],
+   [
+    "teeth",
+    "teeth_base.mhclo"
+   ],
+   [
+    "tongue",
+    "tongue01.mhclo"
+   ],
+   [
+    "eyebrows",
+    "eyebrow001.mhclo"
+   ],
+   [
+    "hair",
+    "short02.mhclo"
+   ],
+   [
+    "clothes",
+    "namuhekam_male_polo_shirt.mhclo"
+   ],
+   [
+    "clothes",
+    "toigo_wool_pants.mhclo"
+   ],
+   [
+    "clothes",
+    "shoes06.mhclo"
+   ]
+  ],
+  "render": false
+ },
+ {
+  "id": "mh_seve",
+  "macro": {
+   "gender": 1,
+   "age": 0.5,
+   "muscle": 0.62,
+   "weight": 0.5,
+   "height": 0.58,
+   "proportions": 0.7,
+   "race": {
+    "african": 0.05,
+    "asian": 0,
+    "caucasian": 0.95
+   }
+  },
+  "skin": "toigo_light_skin_male_bronze.mhmat",
+  "rig": "mixamo",
+  "targets": [
+   [
+    "nose/nose-volume-incr",
+    0.45
+   ],
+   [
+    "nose/nose-hump-incr",
+    0.4
+   ],
+   [
+    "nose/nose-point-down",
+    0.3
+   ],
+   [
+    "eyebrows/eyebrows-trans-down",
+    0.4
+   ],
+   [
+    "cheek/l-cheek-bones-incr",
+    0.3
+   ],
+   [
+    "cheek/r-cheek-bones-incr",
+    0.3
+   ],
+   [
+    "chin/chin-width-incr",
+    0.3
+   ],
+   [
+    "head/head-square",
+    0.3
+   ]
+  ],
+  "assets": [
+   [
+    "eyes",
+    "low-poly.mhclo"
+   ],
+   [
+    "eyelashes",
+    "eyelashes01.mhclo"
+   ],
+   [
+    "teeth",
+    "teeth_base.mhclo"
+   ],
+   [
+    "tongue",
+    "tongue01.mhclo"
+   ],
+   [
+    "eyebrows",
+    "eyebrow006.mhclo"
+   ],
+   [
+    "hair",
+    "short04.mhclo"
+   ],
+   [
+    "clothes",
+    "namuhekam_male_polo_shirt.mhclo"
+   ],
+   [
+    "clothes",
+    "toigo_wool_pants.mhclo"
+   ],
+   [
+    "clothes",
+    "shoes06.mhclo"
+   ]
+  ],
+  "render": false
+ },
+ {
+  "id": "mh_barry",
+  "macro": {
+   "gender": 1,
+   "age": 0.62,
+   "muscle": 0.72,
+   "weight": 0.4,
+   "height": 0.3,
+   "proportions": 0.7,
+   "race": {
+    "african": 0,
+    "asian": 0,
+    "caucasian": 1
+   }
+  },
+  "skin": "middleage_caucasian_male.mhmat",
+  "rig": "mixamo",
+  "targets": [
+   [
+    "head/head-oval",
+    0.3
+   ],
+   [
+    "cheek/l-cheek-bones-incr",
+    0.5
+   ],
+   [
+    "cheek/r-cheek-bones-incr",
+    0.5
+   ],
+   [
+    "chin/chin-prominent-incr",
+    0.3
+   ],
+   [
+    "nose/nose-hump-incr",
+    0.2
+   ],
+   [
+    "mouth/mouth-scale-horiz-incr",
+    0.3
+   ]
+  ],
+  "assets": [
+   [
+    "eyes",
+    "low-poly.mhclo"
+   ],
+   [
+    "eyelashes",
+    "eyelashes01.mhclo"
+   ],
+   [
+    "teeth",
+    "teeth_base.mhclo"
+   ],
+   [
+    "tongue",
+    "tongue01.mhclo"
+   ],
+   [
+    "eyebrows",
+    "eyebrow003.mhclo"
+   ],
+   [
+    "hair",
+    "short01.mhclo"
+   ],
+   [
+    "clothes",
+    "namuhekam_male_polo_shirt.mhclo"
+   ],
+   [
+    "clothes",
+    "toigo_wool_pants.mhclo"
+   ],
+   [
+    "clothes",
+    "shoes06.mhclo"
+   ]
+  ],
+  "render": false
+ },
+ {
+  "id": "mh_hoagan",
+  "macro": {
+   "gender": 1,
+   "age": 0.64,
+   "muscle": 0.55,
+   "weight": 0.4,
+   "height": 0.42,
+   "proportions": 0.65,
+   "race": {
+    "african": 0,
+    "asian": 0,
+    "caucasian": 1
+   }
+  },
+  "skin": "middleage_caucasian_male.mhmat",
+  "rig": "mixamo",
+  "targets": [
+   [
+    "head/head-fat-decr",
+    0.5
+   ],
+   [
+    "head/head-triangular",
+    0.4
+   ],
+   [
+    "cheek/l-cheek-bones-incr",
+    0.4
+   ],
+   [
+    "cheek/r-cheek-bones-incr",
+    0.4
+   ],
+   [
+    "chin/chin-prominent-incr",
+    0.4
+   ],
+   [
+    "nose/nose-scale-vert-incr",
+    0.3
+   ],
+   [
+    "mouth/mouth-scale-horiz-decr",
+    0.3
+   ],
+   [
+    "eyebrows/eyebrows-trans-down",
     0.3
    ]
   ],
@@ -75,93 +787,16 @@
     "clothes",
     "shoes06.mhclo"
    ]
-  ]
- },
- {
-  "id": "mh_jack",
-  "macro": {
-   "gender": 1,
-   "age": 0.6,
-   "muscle": 0.5,
-   "weight": 0.68,
-   "height": 0.5,
-   "proportions": 0.6,
-   "race": {
-    "african": 0,
-    "asian": 0,
-    "caucasian": 1
-   }
-  },
-  "skin": "young_caucasian_male.mhmat",
-  "rig": "mixamo",
-  "targets": [
-   [
-    "head/head-round",
-    0.5
-   ],
-   [
-    "head/head-fat-incr",
-    0.35
-   ],
-   [
-    "cheek/l-cheek-volume-incr",
-    0.3
-   ],
-   [
-    "cheek/r-cheek-volume-incr",
-    0.3
-   ],
-   [
-    "nose/nose-volume-incr",
-    0.15
-   ]
   ],
-  "assets": [
-   [
-    "eyes",
-    "low-poly.mhclo"
-   ],
-   [
-    "eyelashes",
-    "eyelashes01.mhclo"
-   ],
-   [
-    "teeth",
-    "teeth_base.mhclo"
-   ],
-   [
-    "tongue",
-    "tongue01.mhclo"
-   ],
-   [
-    "eyebrows",
-    "eyebrow001.mhclo"
-   ],
-   [
-    "hair",
-    "short02.mhclo"
-   ],
-   [
-    "clothes",
-    "namuhekam_male_polo_shirt.mhclo"
-   ],
-   [
-    "clothes",
-    "toigo_wool_pants.mhclo"
-   ],
-   [
-    "clothes",
-    "shoes06.mhclo"
-   ]
-  ]
+  "render": false
  },
  {
-  "id": "mh_arnie",
+  "id": "mh_payne",
   "macro": {
    "gender": 1,
-   "age": 0.62,
-   "muscle": 0.66,
-   "weight": 0.55,
+   "age": 0.58,
+   "muscle": 0.58,
+   "weight": 0.45,
    "height": 0.55,
    "proportions": 0.65,
    "race": {
@@ -170,159 +805,7 @@
     "caucasian": 1
    }
   },
-  "skin": "middleage_caucasian_male.mhmat",
-  "rig": "mixamo",
-  "targets": [
-   [
-    "torso/torso-vshape-incr",
-    0.45
-   ],
-   [
-    "nose/nose-hump-incr",
-    0.35
-   ],
-   [
-    "nose/nose-volume-incr",
-    0.25
-   ],
-   [
-    "chin/chin-prominent-incr",
-    0.3
-   ],
-   [
-    "head/head-rectangular",
-    0.3
-   ]
-  ],
-  "assets": [
-   [
-    "eyes",
-    "low-poly.mhclo"
-   ],
-   [
-    "eyelashes",
-    "eyelashes01.mhclo"
-   ],
-   [
-    "teeth",
-    "teeth_base.mhclo"
-   ],
-   [
-    "tongue",
-    "tongue01.mhclo"
-   ],
-   [
-    "eyebrows",
-    "eyebrow003.mhclo"
-   ],
-   [
-    "hair",
-    "short02.mhclo"
-   ],
-   [
-    "clothes",
-    "namuhekam_male_polo_shirt.mhclo"
-   ],
-   [
-    "clothes",
-    "toigo_wool_pants.mhclo"
-   ],
-   [
-    "clothes",
-    "shoes06.mhclo"
-   ]
-  ]
- },
- {
-  "id": "mh_phil",
-  "macro": {
-   "gender": 1,
-   "age": 0.64,
-   "muscle": 0.45,
-   "weight": 0.68,
-   "height": 0.66,
-   "proportions": 0.55,
-   "race": {
-    "african": 0,
-    "asian": 0,
-    "caucasian": 1
-   }
-  },
-  "skin": "middleage_caucasian_male.mhmat",
-  "rig": "mixamo",
-  "targets": [
-   [
-    "head/head-fat-incr",
-    0.3
-   ],
-   [
-    "chin/chin-width-incr",
-    0.3
-   ],
-   [
-    "neck/neck-double-incr",
-    0.25
-   ],
-   [
-    "mouth/mouth-scale-horiz-incr",
-    0.2
-   ]
-  ],
-  "assets": [
-   [
-    "eyes",
-    "low-poly.mhclo"
-   ],
-   [
-    "eyelashes",
-    "eyelashes01.mhclo"
-   ],
-   [
-    "teeth",
-    "teeth_base.mhclo"
-   ],
-   [
-    "tongue",
-    "tongue01.mhclo"
-   ],
-   [
-    "eyebrows",
-    "eyebrow004.mhclo"
-   ],
-   [
-    "hair",
-    "short04.mhclo"
-   ],
-   [
-    "clothes",
-    "namuhekam_male_polo_shirt.mhclo"
-   ],
-   [
-    "clothes",
-    "toigo_wool_pants.mhclo"
-   ],
-   [
-    "clothes",
-    "shoes06.mhclo"
-   ]
-  ]
- },
- {
-  "id": "mh_rory",
-  "macro": {
-   "gender": 1,
-   "age": 0.52,
-   "muscle": 0.72,
-   "weight": 0.45,
-   "height": 0.44,
-   "proportions": 0.7,
-   "race": {
-    "african": 0,
-    "asian": 0,
-    "caucasian": 1
-   }
-  },
-  "skin": "young_caucasian_male2.mhmat",
+  "skin": "young_caucasian_male.mhmat",
   "rig": "mixamo",
   "targets": [
    [
@@ -331,77 +814,11 @@
    ],
    [
     "chin/chin-prominent-incr",
-    0.2
-   ],
-   [
-    "eyebrows/eyebrows-trans-down",
-    0.2
-   ]
-  ],
-  "assets": [
-   [
-    "eyes",
-    "low-poly.mhclo"
-   ],
-   [
-    "eyelashes",
-    "eyelashes01.mhclo"
-   ],
-   [
-    "teeth",
-    "teeth_base.mhclo"
-   ],
-   [
-    "tongue",
-    "tongue01.mhclo"
-   ],
-   [
-    "eyebrows",
-    "eyebrow005.mhclo"
-   ],
-   [
-    "hair",
-    "cortu_short_messy_hair.mhclo"
-   ],
-   [
-    "clothes",
-    "namuhekam_male_polo_shirt.mhclo"
-   ],
-   [
-    "clothes",
-    "toigo_wool_pants.mhclo"
-   ],
-   [
-    "clothes",
-    "shoes06.mhclo"
-   ]
-  ]
- },
- {
-  "id": "mh_scotty",
-  "macro": {
-   "gender": 1,
-   "age": 0.52,
-   "muscle": 0.6,
-   "weight": 0.52,
-   "height": 0.72,
-   "proportions": 0.65,
-   "race": {
-    "african": 0,
-    "asian": 0,
-    "caucasian": 1
-   }
-  },
-  "skin": "young_caucasian_male.mhmat",
-  "rig": "mixamo",
-  "targets": [
-   [
-    "head/head-rectangular",
-    0.35
-   ],
-   [
-    "chin/chin-height-incr",
     0.25
+   ],
+   [
+    "mouth/mouth-scale-horiz-incr",
+    0.2
    ],
    [
     "nose/nose-scale-vert-incr",
@@ -445,102 +862,37 @@
     "clothes",
     "shoes06.mhclo"
    ]
-  ]
+  ],
+  "render": false
  },
  {
-  "id": "mh_seve",
+  "id": "mh_tyger2",
   "macro": {
    "gender": 1,
-   "age": 0.5,
-   "muscle": 0.62,
+   "age": 0.56,
+   "muscle": 0.82,
    "weight": 0.5,
-   "height": 0.58,
-   "proportions": 0.7,
+   "height": 0.62,
+   "proportions": 0.75,
    "race": {
-    "african": 0.05,
-    "asian": 0,
-    "caucasian": 0.95
+    "african": 0.5,
+    "asian": 0.15,
+    "caucasian": 0.35
    }
   },
-  "skin": "toigo_light_skin_male_bronze.mhmat",
+  "skin": "mindfront_skin_male_african_middleage.mhmat",
   "rig": "mixamo",
   "targets": [
    [
-    "nose/nose-volume-incr",
-    0.3
-   ],
-   [
-    "nose/nose-hump-incr",
-    0.3
-   ],
-   [
-    "eyebrows/eyebrows-trans-down",
-    0.25
+    "head/head-square",
+    0.45
    ],
    [
     "chin/chin-width-incr",
-    0.2
-   ]
-  ],
-  "assets": [
-   [
-    "eyes",
-    "low-poly.mhclo"
+    0.5
    ],
    [
-    "eyelashes",
-    "eyelashes01.mhclo"
-   ],
-   [
-    "teeth",
-    "teeth_base.mhclo"
-   ],
-   [
-    "tongue",
-    "tongue01.mhclo"
-   ],
-   [
-    "eyebrows",
-    "eyebrow006.mhclo"
-   ],
-   [
-    "hair",
-    "short04.mhclo"
-   ],
-   [
-    "clothes",
-    "namuhekam_male_polo_shirt.mhclo"
-   ],
-   [
-    "clothes",
-    "toigo_wool_pants.mhclo"
-   ],
-   [
-    "clothes",
-    "shoes06.mhclo"
-   ]
-  ]
- },
- {
-  "id": "mh_barry",
-  "macro": {
-   "gender": 1,
-   "age": 0.6,
-   "muscle": 0.72,
-   "weight": 0.4,
-   "height": 0.3,
-   "proportions": 0.7,
-   "race": {
-    "african": 0,
-    "asian": 0,
-    "caucasian": 1
-   }
-  },
-  "skin": "middleage_caucasian_male.mhmat",
-  "rig": "mixamo",
-  "targets": [
-   [
-    "head/head-oval",
+    "chin/chin-prominent-incr",
     0.3
    ],
    [
@@ -550,80 +902,26 @@
    [
     "cheek/r-cheek-bones-incr",
     0.3
-   ]
-  ],
-  "assets": [
-   [
-    "eyes",
-    "low-poly.mhclo"
    ],
    [
-    "eyelashes",
-    "eyelashes01.mhclo"
+    "nose/nose-flaring-incr",
+    0.3
    ],
    [
-    "teeth",
-    "teeth_base.mhclo"
+    "nose/nose-width1-incr",
+    0.2
    ],
    [
-    "tongue",
-    "tongue01.mhclo"
+    "torso/torso-vshape-incr",
+    0.55
    ],
    [
-    "eyebrows",
-    "eyebrow003.mhclo"
-   ],
-   [
-    "hair",
-    "short01.mhclo"
-   ],
-   [
-    "clothes",
-    "namuhekam_male_polo_shirt.mhclo"
-   ],
-   [
-    "clothes",
-    "toigo_wool_pants.mhclo"
-   ],
-   [
-    "clothes",
-    "shoes06.mhclo"
-   ]
-  ]
- },
- {
-  "id": "mh_hoagan",
-  "macro": {
-   "gender": 1,
-   "age": 0.62,
-   "muscle": 0.55,
-   "weight": 0.4,
-   "height": 0.42,
-   "proportions": 0.65,
-   "race": {
-    "african": 0,
-    "asian": 0,
-    "caucasian": 1
-   }
-  },
-  "skin": "middleage_caucasian_male.mhmat",
-  "rig": "mixamo",
-  "targets": [
-   [
-    "head/head-fat-decr",
+    "neck/neck-scale-horiz-incr",
     0.35
    ],
    [
-    "head/head-triangular",
-    0.3
-   ],
-   [
-    "chin/chin-prominent-incr",
-    0.3
-   ],
-   [
-    "mouth/mouth-scale-horiz-decr",
-    0.15
+    "mouth/mouth-lowerlip-volume-incr",
+    0.2
    ]
   ],
   "assets": [
@@ -663,76 +961,7 @@
     "clothes",
     "shoes06.mhclo"
    ]
-  ]
- },
- {
-  "id": "mh_payne",
-  "macro": {
-   "gender": 1,
-   "age": 0.58,
-   "muscle": 0.58,
-   "weight": 0.45,
-   "height": 0.55,
-   "proportions": 0.65,
-   "race": {
-    "african": 0,
-    "asian": 0,
-    "caucasian": 1
-   }
-  },
-  "skin": "young_caucasian_male.mhmat",
-  "rig": "mixamo",
-  "targets": [
-   [
-    "head/head-oval",
-    0.3
-   ],
-   [
-    "chin/chin-prominent-incr",
-    0.15
-   ],
-   [
-    "mouth/mouth-scale-horiz-incr",
-    0.15
-   ]
   ],
-  "assets": [
-   [
-    "eyes",
-    "low-poly.mhclo"
-   ],
-   [
-    "eyelashes",
-    "eyelashes01.mhclo"
-   ],
-   [
-    "teeth",
-    "teeth_base.mhclo"
-   ],
-   [
-    "tongue",
-    "tongue01.mhclo"
-   ],
-   [
-    "eyebrows",
-    "eyebrow001.mhclo"
-   ],
-   [
-    "hair",
-    "short02.mhclo"
-   ],
-   [
-    "clothes",
-    "namuhekam_male_polo_shirt.mhclo"
-   ],
-   [
-    "clothes",
-    "toigo_wool_pants.mhclo"
-   ],
-   [
-    "clothes",
-    "shoes06.mhclo"
-   ]
-  ]
+  "render": false
  }
 ]
