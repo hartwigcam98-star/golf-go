@@ -41,9 +41,10 @@ for g in G:
         TS = dyn("mpfb.services.targetservice", "TargetService"); md = TS.get_default_macro_info_dict(); md.update(g.get('macro', {}))
         print('macro', md, flush=True)
         bm = HumanService.create_human(macro_detail_dict=md)
-        for k, v in g.get('targets', {}).items():
-            try: dyn("mpfb.services.targetservice", "TargetService").set_target_value(bm, k, v)
-            except Exception as e: print('target', k, e)
+        troot = LocationService.get_mpfb_data('targets')
+        for t, w in g.get('targets', []):
+            try: TS.load_target(bm, os.path.join(troot, t + '.target.gz'), weight=w)
+            except Exception as e: print('target', t, e, flush=True)
         sk = find(g['skin'], 'skins')
         if sk: HumanService.set_character_skin(sk, bm, skin_type='GAMEENGINE')
         else: print('no skin', g['skin'])
@@ -65,17 +66,21 @@ for g in G:
         for o in bpy.data.objects:
             if o.name.endswith('_x') or o == root or o.parent == root or (o.parent and o.parent.parent == root): continue
             o.hide_render = True
-        sc = bpy.context.scene; sc.render.engine = 'CYCLES'; sc.cycles.samples = 48; sc.cycles.device = 'CPU'
+        sc = bpy.context.scene; sc.render.engine = 'CYCLES'; sc.cycles.samples = 32; sc.cycles.device = 'CPU'
         sc.render.resolution_x, sc.render.resolution_y = 720, 1100
         if not sc.world: sc.world = bpy.data.worlds.new('w')
         sc.world.use_nodes = True; bg = sc.world.node_tree.nodes.get('Background'); bg.inputs[0].default_value = (.62, .72, .85, 1); bg.inputs[1].default_value = 1.2
         sun = bpy.data.objects.new('sun', bpy.data.lights.new('sun', 'SUN')); sun.data.energy = 3.5; sun.rotation_euler = (0.9, 0.2, 0.7); sc.collection.objects.link(sun)
-        for ang, nm in [(0.45, 'front'), (2.75, 'back')]:
+        ftop = max((xb.matrix_world @ v.co).z for v in xb.data.vertices); print('top', ftop, flush=True)
+        for ang, nm in [(0.25, 'front')]:
             import math
             cam = bpy.data.objects.new('cam', bpy.data.cameras.new('cam')); sc.collection.objects.link(cam)
             cam.data.lens = 60; d = 3.4
             cam.location = (math.sin(ang) * d, -math.cos(ang) * d, 1.0); cam.rotation_euler = (math.radians(89), 0, ang)
             sc.camera = cam; sc.render.filepath = f"{OUT}/{g['id']}_{nm}.png"; bpy.ops.render.render(write_still=True)
+            cam.data.lens = 160; cam.location = (math.sin(ang) * 2.2, -math.cos(ang) * 2.2, ftop - 0.11); cam.rotation_euler = (math.radians(90), 0, ang)
+            sc.render.resolution_x, sc.render.resolution_y = 600, 600; sc.render.filepath = f"{OUT}/{g['id']}_face.png"; bpy.ops.render.render(write_still=True)
+            sc.render.resolution_x, sc.render.resolution_y = 720, 1100
             bpy.data.objects.remove(cam, do_unlink=True)
         bpy.data.objects.remove(sun, do_unlink=True)
         print('DONE', g['id'], flush=True)
