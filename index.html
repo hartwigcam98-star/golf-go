@@ -2465,7 +2465,9 @@ function autoClub(d){
 function stance(){const b=G.ball,[dx,dy]=dirOf(G.aim),px=-dy,py=dx,r=1.6;
   const gx=(hAt(b.x+r,b.y)-hAt(b.x-r,b.y))/(2*r),gy=(hAt(b.x,b.y+r)-hAt(b.x,b.y-r))/(2*r);
   let along=gx*dx+gy*dy,side=gx*px+gy*py;const dz=v=>Math.abs(v)<.022?0:v-Math.sign(v)*.022;return{along:dz(along),side:dz(side)};}
-function stanceLabel(){if(curClub().putter||G.lie==='green')return'';const S=stance(),a=[];
+// -1 when the golfer on screen swings left-handed (lg.lefty): mirrors which way a mistimed strike curves, and which side of the ball his feet are on
+function lefty(){return typeof R3B!=='undefined'&&R3B.lg&&R3B.lg.lefty?-1:1;}
+function stanceLabel(){if(curClub().putter||G.lie==='green')return'';const S=stance(),a=[];S.side*=lefty();
   if(S.along>.02)a.push('Uphill');else if(S.along<-.02)a.push('Downhill');if(S.side>.02)a.push('Above feet');else if(S.side<-.02)a.push('Below feet');return a.join(' \u00b7 ');}
 /* backspin on chips and pitches: it takes some of the release off but never checks them up or draws them back (that's
    what the flop and the spinner are for). Factor on the backspin's roll cut; 1 = full effect. */
@@ -2833,7 +2835,7 @@ function strikeShot(power,e){
   const flyer=!isShort()&&G.stype!=='punch'&&FLYER[lie]?FLYER[lie][clubGroup(club)]:1;
   const carry=sgv*(mis?mis.c:1)*Math.max(isShort()&&G.swMax?.5:2,(isShort()&&G.swMax?G.swMax:clubCarry(club)*lm*ST.c)*power*M.carry*(perfTee?(cmod().perf??1.03):1)*(1-(HARSH?Math.min(.32,G.missBy*3.6*(cmod().misFull??1)):Math.min(.16,G.missBy*1.6))));
   const[dx,dy]=dirOf(G.aim),px=-dy,py=dx;
-  const lat=-e*1.8*em*carry*cmod().err(club)+M.curve*cmod().curve*carry;
+  const lat=-e*1.8*em*carry*cmod().err(club)*lefty()+M.curve*cmod().curve*carry;   // a left-hander's hook goes right, his slice left (Oct 13 2026)
   const w=dirOf(G.wind.a),wk=G.wind.mph*.85*(carry/200)*club.loft*ST.w*M.wind*cmod().wind;
   const thin=HARSH?Math.min(1,G.missBy/.06):0;const apex=shotApex(club,carry)*M.apex*(1-.3*thin)*(mis?mis.a:1);
   const usedPower=G.pshot;if(G.pshot)G.pshot=false;   // power shots are unlimited (Oct 11 2026)
@@ -6872,7 +6874,7 @@ const UPDATES=[
     "All ten legends have new, realistic bodies, each built at the real player's height, from Barry Player at 5'7\" to Phil Pickelson and Scotty Shuffler at 6'4\".",
     "Each has his own face shape, skin tone and hairstyle, and you now see hair under the caps and flat caps.",
     "Payne Stewie is back in plus-fours with argyle stockings, and the golfer picker has new portraits.",
-    "Phil Pickelson now plays left-handed: he stands on the other side of the ball and swings as a lefty."]},
+    "Phil Pickelson now plays left-handed: he stands on the other side of the ball and swings as a lefty, so his hooks curve right and his slices left, and \"above/below feet\" reads for his stance."]},
   {id:"2026-10-12-perf",date:"Oct 12, 2026",title:"Smoother frames",items:[
     "The swing meter runs lighter: the trees' shadows are kept while you swing and only the golfer's shadow is redrawn, so the meter moves more evenly on older phones.",
     "Trees behind the camera and well off to the sides are no longer drawn: on most fairway shots that is more than half of the course's trees.",
