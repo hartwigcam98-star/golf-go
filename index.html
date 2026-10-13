@@ -4749,11 +4749,11 @@ function r3bClear(reuse){const I=R3B.idx,B=R3B.bones,M=R3B.mesh;if(!R3B.tor)r3bT
   const C=R3B_CL,a0=r3bWP(B[I.Hips]),a1=r3bWP(B[I.Spine2]),ax=a1.sub(a0).normalize();
   const fw=r3bDir(I.Spine1,[0,0,1]);fw.sub(C.t.copy(ax).multiplyScalar(fw.dot(ax))).normalize();const sd=C.sd.copy(ax).cross(fw);
   const v=C.v,polar=(p,o)=>{const d=C.d.copy(p).sub(a0),h=d.dot(ax);d.sub(C.t.copy(ax).multiplyScalar(h));o[0]=h;o[1]=Math.atan2(d.dot(sd),d.dot(fw));o[2]=d.length();return d;};
-  const TH=R3B.torH,o=C.o;if(!reuse){   // skin the torso points to this pose (the same sums three.js does per vertex, with each bone's matrix worked out once)
+  const TH=R3B.torH,o=C.o;if(!reuse){   // skin the torso points to this pose (bind matrix is identity; the mesh's own mirror for a left-hander is left out, as three.js cancels it when it draws) (the same sums three.js does per vertex, with each bone's matrix worked out once)
     const sk=M.skeleton,TB=R3B.torB,TI=R3B.torI,TW=R3B.torW,done=C.done,mats=C.mats,b=C.b,u=C.u;done.length=0;
     for(let k=0;k<R3B.tor.length;k++){b.set(TB[k*3],TB[k*3+1],TB[k*3+2]);v.set(0,0,0);
       for(let e=0;e<4;e++){const w=TW[k*4+e];if(w!==0){const bi=TI[k*4+e];if(!done[bi]){done[bi]=true;(mats[bi]||(mats[bi]=new THREE.Matrix4())).multiplyMatrices(sk.bones[bi].matrixWorld,sk.boneInverses[bi]);}v.addScaledVector(u.copy(b).applyMatrix4(mats[bi]),w);}}
-      v.applyMatrix4(M.bindMatrixInverse);polar(v,o);TH[k*3]=o[0];TH[k*3+1]=o[1];TH[k*3+2]=o[2];}}
+      polar(v,o);TH[k*3]=o[0];TH[k*3+1]=o[1];TH[k*3+2]=o[2];}}
   let best=0,dir=null;const P=C.P,p=C.p,q=C.q;
   for(const side of R3B_SIDES){B[I[side+'Arm']].getWorldPosition(P[0]);B[I[side+'ForeArm']].getWorldPosition(P[1]);B[I[side+'Hand']].getWorldPosition(P[2]);
     for(const[i0,i1,t,r]of R3B_CLPTS){p.copy(P[i0]).lerp(P[i1],t);const rd=polar(p,q);let R=-1;
