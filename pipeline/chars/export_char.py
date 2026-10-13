@@ -10,7 +10,7 @@ b64 = lambda a: base64.b64encode(np.ascontiguousarray(a).tobytes()).decode()
 clean = lambda s: re.sub(r'^mixamorig\d*:', '', s.split('\x00')[0])
 
 
-def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blender=False, tpose=None, body='Human_x', cover_cm=2.5):
+def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blender=False, tpose=None, body='Human_x', cover_cm=2.5, hair_label=23, dbg=False, height_cm=None):
     S = Scene(path)
     N = {i: clean(o.props[1]) for i, o in S.models.items()}
     bones = [i for i in S.models if S.models[i].props[2] == 'LimbNode']
@@ -129,6 +129,7 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blend
             im = Image.new('RGBA', (cell, cell), tuple(int(255 * min(1, x ** (1 / 2.2))) for x in k[1]) + (255,))
         else:
             im = Image.open(io.BytesIO(byname[k])).convert('RGBA').resize((cell, cell), Image.LANCZOS)
+            if blender and not any(malpha.get(m) and mdiff.get(m) == k for m in used): im.putalpha(255)   # opaque garments stay opaque under the cut-out test
         A.paste(im, (cx * cell, cy * cell)); cellOf[k] = (cx, cy)
     # ---- mesh
     P = []; Nn = []; UV = []; SI = []; SW = []; IDX = []; AL = []; MID = []
@@ -138,12 +139,25 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blend
         vtx = o.find('Vertices')
         if vtx is None: continue
         V = np.array(vtx.props[0]).reshape(-1, 3)
+        if blender:   # shape keys (MakeHuman's body and face settings) come as blend shapes: apply them at their weights
+            for bsd, ps in S.parent.items():
+                ob = S.obj.get(bsd)
+                if ob is None or ob.name != 'Deformer' or ob.props[2] != 'BlendShape' or g not in ps: continue
+                for chn, ps2 in S.parent.items():
+                    oc = S.obj.get(chn)
+                    if oc is None or oc.name != 'Deformer' or oc.props[2] != 'BlendShapeChannel' or bsd not in ps2: continue
+                    pct = (oc.find('DeformPercent').props[0] if oc.find('DeformPercent') else 0) / 100
+                    for shp, ps3 in S.parent.items():
+                        osh = S.obj.get(shp)
+                        if osh is None or osh.name != 'Geometry' or chn not in ps3: continue
+                        ix = np.array(osh.find('Indexes').props[0]); dv = np.array(osh.find('Vertices').props[0]).reshape(-1, 3)
+                        V[ix] += dv * pct
         # geometry to bind-world (Mixamo meshes sit at the origin; apply the model's own transform if any)
         cs = clusters.get(g, []); Rn = None
         if cs:
             b0, _, _, TL, TR = cs[0]; d = np.abs(TR @ TL - np.eye(4)).max()
             if blender and d > 1e-3:   # (Blender exports) the mesh carries its own transform: put it into bind-world like a Mixamo mesh
-                M = TL @ TR; V = (V @ M[:3, :3].T) + M[:3, 3]; Rn = np.linalg.inv(M[:3, :3]).T   # cluster Transform = inv(bone bind) x mesh
+                M = TL @ TR; (print('  M', nm, np.round(M[:3, 3], 2), np.round(np.linalg.norm(M[:3, :3], axis=0), 3)) if dbg else None); V = (V @ M[:3, :3].T) + M[:3, 3]; Rn = np.linalg.inv(M[:3, :3]).T   # cluster Transform = inv(bone bind) x mesh
         if o.find('PolygonVertexIndex') is None: continue   # shape-key geometry (Blender exports)
         pvi = o.find('PolygonVertexIndex').props[0]
         ln = o.find('LayerElementNormal'); nor = np.array(ln.find('Normals').props[0]).reshape(-1, 3)
@@ -184,12 +198,19 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blend
     if blender and body:   # skin under the clothes: drop body triangles lying just inside a garment (stops the skin poking through)
         from scipy.spatial import cKDTree
         MIDa = np.array(MID); isb = MIDa == body
-        cl = np.array([not isb[i] and not any(w in MIDa[i].lower() for w in ('eye', 'brow', 'lash', 'teeth', 'tongue', 'hair', 'short0', 'long0')) for i in range(len(P))])
+        cl = np.array([not isb[i] and not any(w in MIDa[i].lower() for w in ('eye', 'brow', 'lash', 'teeth', 'tongue', 'hair', 'short0', 'long0', 'low-poly', 'high-poly')) for i in range(len(P))])
         if cl.any():
             T = cKDTree(P[cl]); dd, _ = T.query(P[isb]); cov = np.zeros(len(P), bool); cov[np.where(isb)[0]] = dd < cover_cm
             I3 = np.array(IDX, np.int64).reshape(-1, 3); keep = ~(cov[I3[:, 0]] & cov[I3[:, 1]] & cov[I3[:, 2]])
             print('  covered body triangles dropped', int((~keep).sum()))
             IDX = I3[keep].reshape(-1).tolist()
+    if blender:   # trousers' waistband under the shirt: drop it too (it shows through a loose polo)
+        MIDa = np.array(MID); sh = np.array(['shirt' in m.lower() or 'polo' in m.lower() for m in MIDa]); pa = np.array(['pants' in m.lower() or 'trouser' in m.lower() for m in MIDa])
+        if sh.any() and pa.any():
+            from scipy.spatial import cKDTree
+            dd, _ = cKDTree(P[sh]).query(P[pa]); cov = np.zeros(len(P), bool); cov[np.where(pa)[0]] = dd < 1.6
+            I3 = np.array(IDX, np.int64).reshape(-1, 3); keep = ~(cov[I3[:, 0]] & cov[I3[:, 1]] & cov[I3[:, 2]])
+            print('  covered trouser triangles dropped', int((~keep).sum())); IDX = I3[keep].reshape(-1).tolist()
     if blender:   # (Blender exports) the file's normals don't survive the trip: smooth normals from the geometry, shared across seams
         I3 = np.array(IDX, np.int64).reshape(-1, 3); fn = np.cross(P[I3[:, 1]] - P[I3[:, 0]], P[I3[:, 2]] - P[I3[:, 0]])
         key = np.round(P / 0.05).astype(np.int64); _, grp = np.unique(key, axis=0, return_inverse=True); grp = grp.reshape(-1)
@@ -200,6 +221,13 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blend
         P, Nn, restW = rebind_tpose(P, Nn, SI, SW, restW, par, [N[b] for b in order], tpose)
         inv = np.array([np.linalg.inv(restW[k]) for k in range(len(order))], np.float32)
         Lt = np.array([((np.linalg.inv(restW[par[k]]) if par[k] >= 0 else np.eye(4)) @ restW[k])[:3, 3] for k in range(len(order))], np.float32)
+    if height_cm:   # stand him at a chosen height (top of head, rest pose)
+        sk = height_cm / float(P[:, 1].max() - P[:, 1].min()); P = P * sk
+        restW = [np.array(m, np.float64) for m in restW]
+        for m in restW: m[:3, 3] *= sk
+        inv = np.array([np.linalg.inv(restW[k]) for k in range(len(order))], np.float32)
+        Lt = np.array([((np.linalg.inv(restW[par[k]]) if par[k] >= 0 else np.eye(4)) @ restW[k])[:3, 3] for k in range(len(order))], np.float32)
+        print('  scaled to', height_cm, 'cm (x', round(sk, 3), ')')
     IDX = np.array(IDX, np.uint16 if len(P) < 65536 else np.uint32)
     lo, hi = P.min(0), P.max(0)
     print(cid, 'bones', len(order), 'verts', len(P), 'tris', len(IDX) // 3, 'height', round(float(hi[1] - lo[1]), 1), 'atlas', G, 'x', G, 'cells', keys)
@@ -208,13 +236,29 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blend
     UVq = np.round(np.clip(UV, 0, 1) * 65535).astype(np.uint16)
     SWq = np.round(SW * 255).astype(np.uint8); SWq[:, 0] += (255 - SWq.sum(1)).astype(np.uint8)
     PT = np.zeros(len(P), np.uint8)           # part 0 everywhere: no outfit tinting, torso found by skin weights
+    pmean = None
+    if blender:   # outfit labels from the garment each vertex came from, so a legend's colours can be laid on (0 shirt, 9 trousers, 20 shoes, 23 hair, 3 the rest)
+        def lab(m):
+            m = m.lower()
+            if 'shirt' in m or 'polo' in m: return 0
+            if 'pants' in m or 'trouser' in m or 'jeans' in m: return 9
+            if 'shoe' in m or 'boot' in m: return 20
+            if any(h in m for h in ('short0', 'long0', 'hair', 'afro', 'bob0')): return hair_label
+            return 3
+        PT = np.array([lab(m) for m in MID], np.uint8)
+        Aa = np.asarray(A.convert('RGB')).astype(np.float64) / 255; Wd = Aa.shape[0]
+        px = Aa[np.clip(((1 - UV[:, 1]) * Wd).astype(int), 0, Wd - 1), np.clip((UV[:, 0] * Wd).astype(int), 0, Wd - 1)]
+        pmean = [[.5, .5, .5]] * 26
+        for k in set(PT.tolist()):
+            sel = PT == k
+            if sel.any(): pmean[k] = [round(float(x), 3) for x in px[sel].mean(0)]
     hasAlpha = any(malpha.get(m) for m in used)
     if not hasAlpha:
         A = A.convert('RGB').convert('RGBA')
     buf = io.BytesIO(); A.save(buf, 'WEBP', quality=84, method=6, alpha_quality=85)
     out = dict(id=cid, names=[N[b] for b in order], parent=par, lt=b64(Lt), inv=b64(inv),
                mesh=dict(n=len(P), lo=lo.tolist(), hi=hi.tolist(), p=b64(Pq), nr=b64(Nq), uv=b64(UVq), si=b64(SI), sw=b64(SWq), pt=b64(PT), idx=b64(IDX), i32=bool(IDX.dtype == np.uint32)),
-               alpha=hasAlpha, tex=dict(d='data:image/webp;base64,' + base64.b64encode(buf.getvalue()).decode()))
+               **({'pmean': pmean} if pmean else {}), alpha=hasAlpha, tex=dict(d='data:image/webp;base64,' + base64.b64encode(buf.getvalue()).decode()))
     js = 'R3CHAR(' + json.dumps(out, separators=(',', ':')) + ');\n'
     return js, out
 
