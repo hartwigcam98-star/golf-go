@@ -10,7 +10,7 @@ b64 = lambda a: base64.b64encode(np.ascontiguousarray(a).tobytes()).decode()
 clean = lambda s: re.sub(r'^mixamorig\d*:', '', s.split('\x00')[0])
 
 
-def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blender=False, tpose=None, body='Human_x', cover_cm=2.5, hair_label=23, dbg=False, height_cm=None):
+def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blender=False, tpose=None, body='Human_x', cover_cm=2.5, hair_label=23, dbg=False, height_cm=None, knickers=False):
     S = Scene(path)
     N = {i: clean(o.props[1]) for i, o in S.models.items()}
     bones = [i for i in S.models if S.models[i].props[2] == 'LimbNode']
@@ -246,6 +246,9 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blend
             if any(h in m for h in ('short0', 'long0', 'hair', 'afro', 'bob0')): return hair_label
             return 3
         PT = np.array([lab(m) for m in MID], np.uint8)
+        if knickers:   # plus-fours: below the knee the trouser leg becomes the (argyle) stocking
+            names_ = [N[b] for b in order]; ky = min(restW[names_.index(n)][1, 3] for n in ('LeftLeg', 'RightLeg') if n in names_)
+            PT[(PT == 9) & (P[:, 1] < ky - 3)] = 21
         Aa = np.asarray(A.convert('RGB')).astype(np.float64) / 255; Wd = Aa.shape[0]
         px = Aa[np.clip(((1 - UV[:, 1]) * Wd).astype(int), 0, Wd - 1), np.clip((UV[:, 0] * Wd).astype(int), 0, Wd - 1)]
         pmean = [[.5, .5, .5]] * 26
