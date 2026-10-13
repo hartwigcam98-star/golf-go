@@ -10,7 +10,7 @@ b64 = lambda a: base64.b64encode(np.ascontiguousarray(a).tobytes()).decode()
 clean = lambda s: re.sub(r'^mixamorig\d*:', '', s.split('\x00')[0])
 
 
-def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blender=False, tpose=None, body='Human_x', cover_cm=2.5, hair_label=23, dbg=False, height_cm=None, knickers=False):
+def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blender=False, tpose=None, body='Human_x', cover_cm=2.5, hair_label=23, dbg=False, height_cm=None, knickers=False, hair_rim=None):
     S = Scene(path)
     N = {i: clean(o.props[1]) for i, o in S.models.items()}
     bones = [i for i in S.models if S.models[i].props[2] == 'LimbNode']
@@ -254,6 +254,12 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blend
             if any(h in m for h in ('short0', 'long0', 'hair', 'afro', 'bob0')): return hair_label
             return 3
         PT = np.array([lab(m) for m in MID], np.uint8)
+        if hair_rim:   # hat wearers: hide only the hair the hat covers, keep what shows below the brim at the sides and back
+            nm_ = [N[b] for b in order]; hk = nm_.index('Head'); MIDa = np.array(MID)
+            hv = (MIDa == body) & (SI[:, 0] == hk) & (SW[:, 0] > .7)
+            if hv.any():
+                mn, mx = P[hv, 1].min(), P[hv, 1].max(); rim = mn + (mx - mn) * hair_rim
+                PT[(PT == 22) & (P[:, 1] < rim - .5)] = 23
         if knickers:   # plus-fours: below the knee the trouser leg becomes the (argyle) stocking
             names_ = [N[b] for b in order]; ky = min(restW[names_.index(n)][1, 3] for n in ('LeftLeg', 'RightLeg') if n in names_)
             PT[(PT == 9) & (P[:, 1] < ky - 3)] = 21
