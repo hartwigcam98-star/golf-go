@@ -4612,7 +4612,7 @@ function r3GolferBuild(D,cid){const T=THREE,nb=D.names.length;
   // clips
   const src=cid?(D._rt||(D._rt=r3Retarget(D))):R3BOSS.clips;   // retargeted once per character
   const clips={};for(const k in src){const c=src[k];clips[k]={...c,Q:c.Q||r3b64(c.q,Int16Array),QS:c.QS||r3b64(c.qs,Int16Array),HIP:c.HIP||r3b64(c.hip,Float32Array),na:c.anim.length};}
-  Object.assign(R3B,{root,bones,mesh,mat,TU,clips,nb,cid:cid||'boss',idx:Object.fromEntries(D.names.map((s,i)=>[s,i])),pa:new Float32Array(nb*4),pb:new Float32Array(nb*4),ha:[0,0,0],hb:[0,0,0],cache:{},tor:null,torH:null});
+  Object.assign(R3B,{axm:cid?r3AxMap(D):null,root,bones,mesh,mat,TU,clips,nb,cid:cid||'boss',idx:Object.fromEntries(D.names.map((s,i)=>[s,i])),pa:new Float32Array(nb*4),pb:new Float32Array(nb*4),ha:[0,0,0],hb:[0,0,0],cache:{},tor:null,torH:null});
   R3B.lg=D.lg||null;try{R3B.acc=r3LegAcc(D,bones,invs,g);}catch(e){console.error('[legend acc]',e);R3B.acc=null;}
   R3.boss=R3B;if(typeof R3R!=='undefined')R3R.key=null;}
 /* a legend's hat and sunglasses, sized from the head in the bind pose (rig space: cm, y up, facing +z) and parented to the Head bone */
@@ -4643,6 +4643,14 @@ function r3LegAcc(D,bones,invs,g){const L=D.lg;if(!L||!(L.hat||L.shades||L.belt)
     if(fz>-1e8)for(const sd of[-1,1]){const l=new T.SphereGeometry(1,14,8);l.scale(wx*.17,3.1,1.1);l.translate(cx+sd*wx*.2,ey,fz+.6);add(l,'#14181c');}}
   return out;}
 /* Boss clips onto another Mixamo rig: each joint keeps its world rotation relative to the bind pose, hips scaled by leg length */
+/* hand-made touches (crouch, breath, the fist's finger curl) turn bones about axes in the Boss's bone frames. Other bodies'
+   bones can sit in other frames (Blender-built MakeHuman bodies roll theirs differently), so each axis is carried into the
+   body's own frame through the two rest poses: then the same touch turns his bone the same way in the world. */
+function r3AxMap(D){const T=THREE,B=R3BOSS,bI=Object.fromEntries(B.names.map((s,i)=>[s,i])),rq=(inv,k)=>{const m=new T.Matrix4().fromArray(inv,k*16).transpose().invert(),q=new T.Quaternion();m.decompose(new T.Vector3(),q,new T.Vector3());return q;};
+  const iB=r3b64(B.inv,Float32Array),iC=r3b64(D.inv,Float32Array);return D.names.map((n,k)=>{const j=bI[n];if(j===undefined)return null;const m=rq(iC,k).invert().multiply(rq(iB,j));return Math.abs(m.w)>.9999?null:m;});}
+// a bone's axis given in the Boss's bone frame, as a world direction for this body (see r3AxMap)
+function r3bDir(k,ax){return new THREE.Vector3(...r3bAx(k,ax)).transformDirection(R3B.bones[k].matrixWorld);}
+function r3bAx(k,ax){const m=R3B.axm&&R3B.axm[k];if(!m)return ax;const v=new THREE.Vector3(ax[0],ax[1],ax[2]).applyQuaternion(m);return[v.x,v.y,v.z];}
 function r3Retarget(D){const T=THREE,B=R3BOSS,nbB=B.names.length,nb=D.names.length;
   const rot=(inv,k)=>{const m=new T.Matrix4().fromArray(inv,k*16).transpose().invert(),q=new T.Quaternion(),p=new T.Vector3();m.decompose(p,q,new T.Vector3());return{q,p};};
   const iB=r3b64(B.inv,Float32Array),iC=r3b64(D.inv,Float32Array),RB=[],RC=[];for(let k=0;k<nbB;k++)RB.push(rot(iB,k));for(let k=0;k<nb;k++)RC.push(rot(iC,k));
@@ -4739,7 +4747,7 @@ function r3bTorsoInit(){const g=R3B.mesh.geometry,pt=g.attributes.part.array,si=
     wi.fromBufferAttribute(g.attributes.skinIndex,i);ww.fromBufferAttribute(g.attributes.skinWeight,i);for(let e=0;e<4;e++){R3B.torI[k*4+e]=wi.getComponent(e);R3B.torW[k*4+e]=ww.getComponent(e);}}}
 function r3bClear(reuse){const I=R3B.idx,B=R3B.bones,M=R3B.mesh;if(!R3B.tor)r3bTorsoInit();
   const C=R3B_CL,a0=r3bWP(B[I.Hips]),a1=r3bWP(B[I.Spine2]),ax=a1.sub(a0).normalize();
-  const fw=new THREE.Vector3(0,0,1).transformDirection(B[I.Spine1].matrixWorld);fw.sub(C.t.copy(ax).multiplyScalar(fw.dot(ax))).normalize();const sd=C.sd.copy(ax).cross(fw);
+  const fw=r3bDir(I.Spine1,[0,0,1]);fw.sub(C.t.copy(ax).multiplyScalar(fw.dot(ax))).normalize();const sd=C.sd.copy(ax).cross(fw);
   const v=C.v,polar=(p,o)=>{const d=C.d.copy(p).sub(a0),h=d.dot(ax);d.sub(C.t.copy(ax).multiplyScalar(h));o[0]=h;o[1]=Math.atan2(d.dot(sd),d.dot(fw));o[2]=d.length();return d;};
   const TH=R3B.torH,o=C.o;if(!reuse){   // skin the torso points to this pose (the same sums three.js does per vertex, with each bone's matrix worked out once)
     const sk=M.skeleton,TB=R3B.torB,TI=R3B.torI,TW=R3B.torW,done=C.done,mats=C.mats,b=C.b,u=C.u;done.length=0;
@@ -4802,30 +4810,39 @@ function r3bCrouchW(t){const g=(c,w)=>Math.exp(-(((t-c)/w)**2));return clamp(smo
 function r3bLegIK(side,T){const I=R3B.idx,B=R3B.bones,up=B[I[side+'UpLeg']],lo=B[I[side+'Leg']],ft=B[I[side+'Foot']];if(!up||!lo||!ft)return;
   const fq=ft.getWorldQuaternion(new THREE.Quaternion()),A=r3bWP(up),E=r3bWP(lo),F=r3bWP(ft);
   const l1=E.distanceTo(A),l2=F.distanceTo(E);let d=T.distanceTo(A);const n=T.clone().sub(A);const dmax=(l1+l2)*.999;if(d>dmax)d=dmax;n.normalize();
-  const fw=new THREE.Vector3(0,0,1).transformDirection(B[I.Spine2].matrixWorld);fw.y=0;fw.normalize();
+  const fw=r3bDir(I.Spine2,[0,0,1]);fw.y=0;fw.normalize();
   const pole=E.clone().sub(A).addScaledVector(fw,8);pole.sub(n.clone().multiplyScalar(pole.dot(n)));if(pole.lengthSq()<1e-6)pole.copy(fw);pole.normalize();
   const x=(l1*l1-l2*l2+d*d)/(2*d),hh=Math.sqrt(Math.max(l1*l1-x*x,0)),E2=A.clone().add(n.clone().multiplyScalar(x)).add(pole.multiplyScalar(hh)),Tt=A.clone().add(n.clone().multiplyScalar(d));
   r3bAim(up,E,E2);r3bAim(lo,r3bWP(ft),Tt);const lq=lo.getWorldQuaternion(new THREE.Quaternion());ft.quaternion.copy(lq.invert().multiply(fq));ft.updateMatrixWorld(true);}
 function r3bPumpW(t){return smooth(.05,.3,t)*(1-smooth(1.6,2.1,t));}
+// celebrations on slimmer bodies: the mocap's free forearm splays out to the side (the Boss's belly turns it in),
+// so swing the free hand in across the front of the body, keeping the elbow where it is
+let R3B_TUCK=.8,R3B_FIST=.5;
+function r3bTuckHand(Rp){const I=R3B.idx,B=R3B.bones,A=r3bWP(B[I.RightArm]),E=r3bWP(B[I.RightForeArm]),sd=A.clone().sub(r3bWP(B[I.LeftArm])).normalize(),
+  up=r3bWP(B[I.Neck]).sub(r3bWP(B[I.Hips])).normalize(),fw=new THREE.Vector3().crossVectors(up,sd).normalize(),d=Rp.clone().sub(E),s=d.dot(sd)+.15*d.length();
+  let P=Rp;if(s>0){const L=d.length(),n=d.addScaledVector(sd,-s*R3B_TUCK).addScaledVector(fw,s*R3B_TUCK*.5);n.setLength(L);P=E.clone().add(n);}
+  // a raised hand comes in to a compact fist in front of the chest instead of hanging out at arm's length
+  const al=E.distanceTo(A)+r3bWP(B[I.RightHand]).distanceTo(E),h=P.clone().sub(A).dot(up),w=R3B_FIST*smooth(-.75*al,-.4*al,h)*(1-smooth(-.2*al,0,h));   // (not a hand raised to wave or wipe the brow)
+  if(w<=0)return P;const C=A.clone().addScaledVector(fw,.38*al).addScaledVector(up,-.3*al).addScaledVector(sd,-.12*al);return P.lerp(C,w);}
 function r3bPumpHand(Rp,t){const I=R3B.idx,B=R3B.bones,S=r3bWP(B[I.RightArm]),Ls=r3bWP(B[I.LeftArm]);
-  const sd=S.clone().sub(Ls);sd.y=0;sd.normalize();const fw=new THREE.Vector3(0,0,1).transformDirection(B[I.Spine2].matrixWorld);fw.y=0;fw.normalize();
+  const sd=S.clone().sub(Ls);sd.y=0;sd.normalize();const fw=r3bDir(I.Spine2,[0,0,1]);fw.y=0;fw.normalize();
   const at=k=>{const v=R3B_PUMP[k][1];return v==='rest'?Rp.clone():S.clone().add(new THREE.Vector3(0,v[0],0)).addScaledVector(fw,v[1]).addScaledVector(sd,v[2]);};
   R3B.armPole=t>.12&&t<2.1?new THREE.Vector3(0,-1,0).addScaledVector(fw,-.55):null;
   const K=R3B_PUMP;if(t<=0)return Rp;let k=0;while(k<K.length-2&&t>K[k+1][0])k++;const u=smooth(K[k][0],K[k+1][0],Math.min(t,K[K.length-1][0]));
   const p=at(k).lerp(at(k+1),u);if(t>.95&&t<1.55)p.y+=Math.sin(t*38)*.8;return p;}   // a little shake in the clenched pull
 // clench the right hand (finger curl about each joint's local axis)
 // rotate one bone's local quaternion by a small angle about a local axis (q * dq)
-function r3bRotL(q,k,ax,ang){const s=Math.sin(ang/2),c=Math.cos(ang/2),x=q[k*4],y=q[k*4+1],z=q[k*4+2],ww=q[k*4+3],ux=ax[0]*s,uy=ax[1]*s,uz=ax[2]*s;
+function r3bRotL(q,k,ax,ang){ax=r3bAx(k,ax);const s=Math.sin(ang/2),c=Math.cos(ang/2),x=q[k*4],y=q[k*4+1],z=q[k*4+2],ww=q[k*4+3],ux=ax[0]*s,uy=ax[1]*s,uz=ax[2]*s;
   q[k*4]=ww*ux+x*c+y*uz-z*uy;q[k*4+1]=ww*uy-x*uz+y*c+z*ux;q[k*4+2]=ww*uz+x*uy-y*ux+z*c;q[k*4+3]=ww*c-x*ux-y*uy-z*uz;}
 function r3bFist(q,w){if(w<=0)return;const I=R3B.idx;
-  const rot=(k,ax,ang)=>{const s=Math.sin(ang/2),c=Math.cos(ang/2),x=q[k*4],y=q[k*4+1],z=q[k*4+2],ww=q[k*4+3],ux=ax[0]*s,uy=ax[1]*s,uz=ax[2]*s;
+  const rot=(k,ax,ang)=>{ax=r3bAx(k,ax);const s=Math.sin(ang/2),c=Math.cos(ang/2),x=q[k*4],y=q[k*4+1],z=q[k*4+2],ww=q[k*4+3],ux=ax[0]*s,uy=ax[1]*s,uz=ax[2]*s;
     q[k*4]=ww*ux+x*c+y*uz-z*uy;q[k*4+1]=ww*uy-x*uz+y*c+z*ux;q[k*4+2]=ww*uz+x*uy-y*ux+z*c;q[k*4+3]=ww*c-x*ux-y*uy-z*uz;};
   for(const f of['Index','Middle','Ring','Pinky'])for(const j of[1,2,3])rot(I['RightHand'+f+j],R3B_FIST_AX,(j===1?1.2:1.35)*w);
   for(const j of[2,3])rot(I['RightHandThumb'+j],R3B_FIST_AX,.5*w);}
 let R3B_FIST_AX=[0,0,1];   // seconds into the post-swing clip a held finish relaxes to (club down, watching)
 // idle life on held poses: a slow breath through the chest and a faint weight shift (w: 0..1)
 function r3bBreathe(q,h,w){const I=R3B.idx,ph=T*1.9,a=Math.sin(ph)*.012*w,b=Math.sin(T*.73+1)*.006*w;
-  const rot=(k,ax,ang)=>{const s=Math.sin(ang/2),c=Math.cos(ang/2),x=q[k*4],y=q[k*4+1],z=q[k*4+2],ww=q[k*4+3],ux=ax[0]*s,uy=ax[1]*s,uz=ax[2]*s;   // q * dq (local axis)
+  const rot=(k,ax,ang)=>{ax=r3bAx(k,ax);const s=Math.sin(ang/2),c=Math.cos(ang/2),x=q[k*4],y=q[k*4+1],z=q[k*4+2],ww=q[k*4+3],ux=ax[0]*s,uy=ax[1]*s,uz=ax[2]*s;   // q * dq (local axis)
     q[k*4]=ww*ux+x*c+y*uz-z*uy;q[k*4+1]=ww*uy-x*uz+y*c+z*ux;q[k*4+2]=ww*uz+x*uy-y*ux+z*c;q[k*4+3]=ww*c-x*ux-y*uy-z*uz;};
   rot(I.Spine1,[1,0,0],-a*.6);rot(I.Spine2,[1,0,0],-a);rot(I.Neck,[1,0,0],a*.8);rot(I.Spine,[0,1,0],b);h[1]+=Math.sin(ph)*.25*w;h[0]+=Math.sin(T*.73+1)*.35*w;}   // cm from the lead palm down the grip to the trail palm
 const R3B_CFG={full:['drive',1,1],flop:['drive',1,1],punch:['drive',.6,.5],pitch:['chip',1,1],chip:['chip',.62,.62],spin:['chip',1,1],splash:['drive',.8,.85],pick:['chip',1,1],blast:['drive',.65,.7]};
@@ -4849,7 +4866,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
     if(!P.X){const fin=r3bHipAt(ck,c.fin),st=r3bHipAt(r.clip,pc.t0+r.t0);P.X=r3bAlign(st,fin,r.face?-st.yaw:undefined);}
     const tt=r.twirl?Math.min(Math.max(0,P.t-R3B_TWIRL_HOLD)*.8,R3B_RELAX):Math.max(0,Math.min(P.t,r.loop?r.dur-.001:1e9)),Lp=(pc.n-1)/pc.fps-r.t0;r3bPose(pc,pc.t0+r.t0+(r.loop?tt%Lp:tt),qa,ha);
     if(r.twirl)twU=clamp((P.t-R3B_TWIRL_HOLD)/R3B_TWIRL_T,0,1);
-    R3B.rpOv=r.pump?(Rp=>r3bPumpHand(Rp,P.t)):null;if(r.pump)r3bFist(qa,r3bPumpW(P.t));
+    R3B.rpOv=r.pump?(Rp=>r3bPumpHand(Rp,P.t)):R3B.cid!=='boss'?r3bTuckHand:null;if(r.pump)r3bFist(qa,r3bPumpW(P.t));
     if(r.travel){const k=Math.floor(tt/Lp),H=pc.HIP,e=(pc.n-1)*3;ha[0]+=k*(H[e]-H[0]);ha[2]+=k*(H[e+2]-H[2]);}
     r3bXf(qa,ha,P.X);wI=1;post=true;
     if(r.blendIn&&P.t<r.blendIn){r3bPose(c,c.fin,qb,hb);r3bBlend(qa,ha,qb,hb,1-smooth(0,r.blendIn,P.t));}   // ease out of the stroke's finish
@@ -4908,7 +4925,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
   const W=p=>[ox+(p[0]*X[0]+p[2]*Z[0]),oy+p[1]*k,oz+(p[0]*X[2]+p[2]*Z[2])],Wd=v=>nrm([v[0]*X[0]+v[2]*Z[0],v[1]*k,v[0]*X[2]+v[2]*Z[2]]);
   let cd=Wd(cdR);const fd0=Wd(r3bR(hd.R,fl)),grip=W(hd.H);
   // routines: carry the club calmly (shaft angled down and ahead, smoothed, never below the turf), easing into the address angle at the end
-  if((routine&&!swingSeg)||(post&&!R3R.post.r.twirl)){const e=R3B.bones[0].matrixWorld.elements,fw=nrm([e[8],0,e[10]]);let tgt=nrm(add(mul(fw,.5),[0,-.87,0]));
+  if((routine&&!swingSeg)||(post&&!R3R.post.r.twirl)){const fv=r3bDir(0,[0,0,1]),fw=nrm([fv.x,0,fv.z]);let tgt=nrm(add(mul(fw,.5),[0,-.87,0]));
     if(routine&&routine.blend){const left=routine.t1-(routine.t0+(R3R.t-routine.at)),w=1-clamp(left/.9,0,1);tgt=nrm(lerp3(tgt,cd,w*w));}
     const k=1-Math.exp(-dtR*7);R3B.cdS=R3B.cdS&&R3B.cdS.on?R3B.cdS:{on:true,v:tgt};R3B.cdS.v=nrm(lerp3(R3B.cdS.v,tgt,k));cd=R3B.cdS.v;
     const gy=hAt(grip[0],grip[2])+.03;if(grip[1]+cd[1]*Lm<gy){const dy=clamp((gy-grip[1])/Lm,-1,1),hz=Math.hypot(cd[0],cd[2])||1,sh=Math.sqrt(1-dy*dy);cd=[cd[0]/hz*sh,dy,cd[2]/hz*sh];}
@@ -6870,6 +6887,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-13-arms",date:"Oct 13, 2026",title:"Smoother legend celebrations",items:[
+    "After a short birdie putt the legends no longer hold their free arm stiffly out to the side as they walk to the cup: the hand comes in to a fist in front of the chest, and still reaches down for the ball and waves as before.",
+    "The legends' fist pump now curls a proper fist, and the crouch bends their backs the right way."]},
   {id:"2026-10-13-legends3",date:"Oct 13, 2026",title:"Lifelike tour legends",items:[
     "All ten legends have new, realistic bodies, each built at the real player's height, from Barry Player at 5'7\" to Phil Pickelson and Scotty Shuffler at 6'4\".",
     "Each has his own face shape, skin tone and hairstyle, and you now see hair under the caps and flat caps.",
