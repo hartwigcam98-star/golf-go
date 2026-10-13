@@ -10,7 +10,7 @@ b64 = lambda a: base64.b64encode(np.ascontiguousarray(a).tobytes()).decode()
 clean = lambda s: re.sub(r'^mixamorig\d*:', '', s.split('\x00')[0])
 
 
-def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None):
+def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blender=False, tpose=None, body='Human_x', cover_cm=2.5):
     S = Scene(path)
     N = {i: clean(o.props[1]) for i, o in S.models.items()}
     bones = [i for i in S.models if S.models[i].props[2] == 'LimbNode']
@@ -62,6 +62,10 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None):
             p = par[k]
             L = np.linalg.inv(W0[order[p]]) @ W0[b] if p >= 0 else W0[b]
             restW[k] = (restW[p] @ L) if p >= 0 else W0[b]
+    # (Blender exports) bones can carry the armature's x100 unit scale: keep only rotation + position, as Mixamo bones have
+    for k in range(len(order)):
+        R = restW[k][:3, :3]; sc = np.linalg.norm(R, axis=0)
+        if blender and np.abs(sc - 1).max() > 1e-3: restW[k] = restW[k].copy(); restW[k][:3, :3] = R / sc
     inv = np.array([np.linalg.inv(restW[k]) for k in range(len(order))], np.float32)
     Lt = []
     for k, b in enumerate(order):
@@ -83,6 +87,11 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None):
             base = os.path.basename(str(fn.props[0]).replace('\\', '/')) if fn else ''
             if pn == 'DiffuseColor' and base in byname: mdiff[parr] = base
             if pn == 'TransparentColor': malpha[parr] = True
+            if blender and pn == 'DiffuseColor' and base in byname:   # (Blender exports) cut-out textures: alpha in the image itself
+                try:
+                    im0 = Image.open(io.BytesIO(byname[base]))
+                    if im0.mode in ('RGBA', 'LA', 'P') and np.asarray(im0.convert('RGBA'))[..., 3].min() < 200: malpha[parr] = True
+                except Exception: pass
     mcol = {}
     for i, o in mats.items():
         P = {}
@@ -122,7 +131,7 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None):
             im = Image.open(io.BytesIO(byname[k])).convert('RGBA').resize((cell, cell), Image.LANCZOS)
         A.paste(im, (cx * cell, cy * cell)); cellOf[k] = (cx, cy)
     # ---- mesh
-    P = []; Nn = []; UV = []; SI = []; SW = []; IDX = []; AL = []
+    P = []; Nn = []; UV = []; SI = []; SW = []; IDX = []; AL = []; MID = []
     for g, o in geo.items():
         nm = N.get(geoModel.get(g), '')
         if any(s.lower() in nm.lower() for s in skip): continue
@@ -130,10 +139,12 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None):
         if vtx is None: continue
         V = np.array(vtx.props[0]).reshape(-1, 3)
         # geometry to bind-world (Mixamo meshes sit at the origin; apply the model's own transform if any)
-        cs = clusters.get(g, [])
+        cs = clusters.get(g, []); Rn = None
         if cs:
             b0, _, _, TL, TR = cs[0]; d = np.abs(TR @ TL - np.eye(4)).max()
-            if d > 1e-3: print('  note: mesh', nm, 'bind transform differs from identity by', round(float(d), 4))
+            if blender and d > 1e-3:   # (Blender exports) the mesh carries its own transform: put it into bind-world like a Mixamo mesh
+                M = TL @ TR; V = (V @ M[:3, :3].T) + M[:3, 3]; Rn = np.linalg.inv(M[:3, :3]).T   # cluster Transform = inv(bone bind) x mesh
+        if o.find('PolygonVertexIndex') is None: continue   # shape-key geometry (Blender exports)
         pvi = o.find('PolygonVertexIndex').props[0]
         ln = o.find('LayerElementNormal'); nor = np.array(ln.find('Normals').props[0]).reshape(-1, 3)
         nmap = ln.find('MappingInformationType').props[0]; nref = ln.find('ReferenceInformationType').props[0]
@@ -153,12 +164,14 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None):
             ck = mdiff.get(mat) or ('col', tuple(round(float(x), 3) for x in mcol[mat]))
             cx, cy = cellOf[ck]
             if nmap == 'ByPolygonVertex': nv = nor[nidx[k] if nref == 'IndexToDirect' else k]
-            else: nv = nor[a]
+            elif a < len(nor): nv = nor[a]
+            else: nv = np.array([0., 1., 0.])
+            if Rn is not None: nv = Rn @ nv; nv = nv / (np.linalg.norm(nv) or 1)
             u = uvs[uvi[k]]
             uu = ((u[0] % 1.0) + cx) / G; vv = 1 - ((1 - (u[1] % 1.0)) + cy) / G   # FBX v is up; atlas row cy counts down
             kk = (a, round(uu, 5), round(vv, 5), tuple(np.round(nv, 3)))
             if kk not in key:
-                key[kk] = len(P); P.append(V[a]); Nn.append(nv); UV.append([uu, vv])
+                key[kk] = len(P); P.append(V[a]); Nn.append(nv); UV.append([uu, vv]); MID.append(nm)
                 iw = sorted(inf[a], reverse=True)[:4]; tot = sum(w for w, _ in iw) or 1
                 iw = iw + [(0, 0)] * (4 - len(iw)); SI.append([b for _, b in iw]); SW.append([w / tot for w, _ in iw])
                 AL.append(1 if malpha.get(mat) else 0)
@@ -168,6 +181,25 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None):
                 poly = []; pi += 1
     P = np.array(P, np.float32); Nn = np.array(Nn, np.float32); UV = np.array(UV, np.float32)
     SI = np.array(SI, np.uint8); SW = np.array(SW, np.float32)
+    if blender and body:   # skin under the clothes: drop body triangles lying just inside a garment (stops the skin poking through)
+        from scipy.spatial import cKDTree
+        MIDa = np.array(MID); isb = MIDa == body
+        cl = np.array([not isb[i] and not any(w in MIDa[i].lower() for w in ('eye', 'brow', 'lash', 'teeth', 'tongue', 'hair', 'short0', 'long0')) for i in range(len(P))])
+        if cl.any():
+            T = cKDTree(P[cl]); dd, _ = T.query(P[isb]); cov = np.zeros(len(P), bool); cov[np.where(isb)[0]] = dd < cover_cm
+            I3 = np.array(IDX, np.int64).reshape(-1, 3); keep = ~(cov[I3[:, 0]] & cov[I3[:, 1]] & cov[I3[:, 2]])
+            print('  covered body triangles dropped', int((~keep).sum()))
+            IDX = I3[keep].reshape(-1).tolist()
+    if blender:   # (Blender exports) the file's normals don't survive the trip: smooth normals from the geometry, shared across seams
+        I3 = np.array(IDX, np.int64).reshape(-1, 3); fn = np.cross(P[I3[:, 1]] - P[I3[:, 0]], P[I3[:, 2]] - P[I3[:, 0]])
+        key = np.round(P / 0.05).astype(np.int64); _, grp = np.unique(key, axis=0, return_inverse=True); grp = grp.reshape(-1)
+        acc = np.zeros((grp.max() + 1, 3))
+        for e in range(3): np.add.at(acc, grp[I3[:, e]], fn)
+        Nn = acc[grp]; Nn = (Nn / np.maximum(np.linalg.norm(Nn, axis=1, keepdims=True), 1e-9)).astype(np.float32)
+    if tpose:   # re-bind in the Mixamo T-pose of a reference body, so the shared clips (retargeted by rest pose) fit
+        P, Nn, restW = rebind_tpose(P, Nn, SI, SW, restW, par, [N[b] for b in order], tpose)
+        inv = np.array([np.linalg.inv(restW[k]) for k in range(len(order))], np.float32)
+        Lt = np.array([((np.linalg.inv(restW[par[k]]) if par[k] >= 0 else np.eye(4)) @ restW[k])[:3, 3] for k in range(len(order))], np.float32)
     IDX = np.array(IDX, np.uint16 if len(P) < 65536 else np.uint32)
     lo, hi = P.min(0), P.max(0)
     print(cid, 'bones', len(order), 'verts', len(P), 'tris', len(IDX) // 3, 'height', round(float(hi[1] - lo[1]), 1), 'atlas', G, 'x', G, 'cells', keys)
@@ -185,6 +217,49 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None):
                alpha=hasAlpha, tex=dict(d='data:image/webp;base64,' + base64.b64encode(buf.getvalue()).decode()))
     js = 'R3CHAR(' + json.dumps(out, separators=(',', ':')) + ');\n'
     return js, out
+
+
+PREF = {'LeftHand': 'LeftHandMiddle1', 'RightHand': 'RightHandMiddle1', 'Spine2': 'Neck', 'LeftFoot': 'LeftToeBase', 'RightFoot': 'RightToeBase'}
+
+
+def rebind_tpose(P, Nn, SI, SW, restW, par, names, ref_js):
+    """Pose the skeleton so every bone points the way the reference (Mixamo) body's bone does at rest, skin the mesh into
+    that pose (linear blend), and return it as the new bind pose."""
+    D = json.loads(open(ref_js).read().strip()[len('R3CHAR('):-2])
+    rinv = np.frombuffer(base64.b64decode(D['inv']), np.float32).reshape(-1, 4, 4)
+    rW = {n: np.linalg.inv(rinv[i].T.astype(np.float64)) if False else np.linalg.inv(rinv[i].astype(np.float64)) for i, n in enumerate(D['names'])}
+    # stored inv may be column-major (three.js): pick the layout whose translation looks like a position
+    if abs(rW['Hips'][3, :3]).max() > abs(rW['Hips'][:3, 3]).max():
+        rW = {n: np.linalg.inv(rinv[i].T.astype(np.float64)) for i, n in enumerate(D['names'])}
+    nb = len(names); idx = {n: i for i, n in enumerate(names)}
+    kids = [[j for j in range(nb) if par[j] == k] for k in range(nb)]
+    def sub(k):
+        out = [k]
+        for c in kids[k]: out += sub(c)
+        return out
+    cur = [np.array(m, np.float64) for m in restW]
+    def rot_between(a, b):
+        a = a / np.linalg.norm(a); b = b / np.linalg.norm(b); v = np.cross(a, b); c = float(np.dot(a, b))
+        if np.linalg.norm(v) < 1e-8: return np.eye(3)
+        vx = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+        return np.eye(3) + vx + vx @ vx * (1 / (1 + c))
+    for k in range(nb):
+        n = names[k]
+        if n in ('Hips', 'Spine', 'Spine1', 'Spine2', 'Neck', 'Head') or n not in rW: continue   # limbs only: keep his own posture
+        ch = PREF.get(n) or next((names[c] for c in kids[k] if names[c] in rW), None)
+        if not ch or ch not in idx or ch not in rW: continue
+        dc = cur[idx[ch]][:3, 3] - cur[k][:3, 3]; dr = rW[ch][:3, 3] - rW[n][:3, 3]
+        if np.linalg.norm(dc) < 1e-6 or np.linalg.norm(dr) < 1e-6: continue
+        R = rot_between(dc, dr); p0 = cur[k][:3, 3].copy()
+        for j in sub(k):
+            cur[j][:3, :3] = R @ cur[j][:3, :3]; cur[j][:3, 3] = p0 + R @ (cur[j][:3, 3] - p0)
+    Sk = np.array([cur[k] @ np.linalg.inv(restW[k]) for k in range(nb)])
+    P2 = np.zeros_like(P, dtype=np.float64); N2 = np.zeros_like(Nn, dtype=np.float64)
+    for e in range(4):
+        w = SW[:, e:e + 1]; M = Sk[SI[:, e]]
+        P2 += w * (np.einsum('nij,nj->ni', M[:, :3, :3], P) + M[:, :3, 3]); N2 += w * np.einsum('nij,nj->ni', M[:, :3, :3], Nn)
+    N2 /= np.maximum(np.linalg.norm(N2, axis=1, keepdims=True), 1e-6)
+    return P2.astype(np.float32), N2.astype(np.float32), cur
 
 
 if __name__ == '__main__':
