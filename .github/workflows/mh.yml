@@ -1,0 +1,28 @@
+name: makehuman-golfer
+on:
+  workflow_dispatch:
+  push:
+    paths: ['pipeline/mh/**']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: deps
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libxi6 libxkbcommon0 libsm6 libxrender1 libxxf86vm1 libxfixes3 libgl1 libegl1 zip > /dev/null
+      - name: build
+        run: bash pipeline/mh/job.sh 2>&1 | tee run.log
+      - name: save
+        if: always()
+        run: |
+          mkdir -p /tmp/o
+          cp -r out/mh/. /tmp/o/ || true
+          cp run.log /tmp/o/ || true
+          cd /tmp/o
+          git init -q -b mh-data
+          git add -A
+          git -c user.name=mh-bot -c user.email=mh-bot@users.noreply.github.com commit -qm "makehuman run $GITHUB_RUN_ID"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" mh-data

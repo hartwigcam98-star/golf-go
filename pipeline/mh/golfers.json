@@ -1,0 +1,7 @@
+[
+ {"id": "mh_test1",
+  "macro": {"gender": 1.0, "age": 0.5, "muscle": 0.55, "weight": 0.5, "height": 0.55, "proportions": 0.6},
+  "skin": "young_caucasian_male.mhmat", "rig": "mixamo",
+  "assets": [["eyes", "low-poly.mhclo"], ["eyebrows", "eyebrow001.mhclo"], ["eyelashes", "eyelashes01.mhclo"], ["teeth", "teeth_base.mhclo"], ["tongue", "tongue01.mhclo"],
+             ["hair", "short02.mhclo"], ["clothes", "male_casualsuit04.mhclo"]]}
+]
