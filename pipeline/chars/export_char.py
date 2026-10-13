@@ -129,7 +129,10 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blend
             im = Image.new('RGBA', (cell, cell), tuple(int(255 * min(1, x ** (1 / 2.2))) for x in k[1]) + (255,))
         else:
             im = Image.open(io.BytesIO(byname[k])).convert('RGBA').resize((cell, cell), Image.LANCZOS)
-            if blender and not any(malpha.get(m) and mdiff.get(m) == k for m in used): im.putalpha(255)   # opaque garments stay opaque under the cut-out test
+            if blender and not any(malpha.get(m) and mdiff.get(m) == k for m in used): im.putalpha(255)
+            if blender and any(w in k.lower() for w in ('polo', 'shirt', 'pants', 'trouser')):   # garments get tinted: keep the fold shading, drop stains and patches baked into the texture
+                ar = np.asarray(im).astype(np.float64); rgb = ar[..., :3]; lum = rgb @ [.299, .587, .114]; med = np.median(rgb.reshape(-1, 3), 0); ml = float(med @ [.299, .587, .114]) or 1
+                r = np.clip(lum / ml, .82, 1.12)[..., None]; ar[..., :3] = np.clip(med * r, 0, 255); im = Image.fromarray(ar.astype(np.uint8), 'RGBA')   # opaque garments stay opaque under the cut-out test
         A.paste(im, (cx * cell, cy * cell)); cellOf[k] = (cx, cy)
     # ---- mesh
     P = []; Nn = []; UV = []; SI = []; SW = []; IDX = []; AL = []; MID = []
@@ -195,28 +198,33 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blend
                 poly = []; pi += 1
     P = np.array(P, np.float32); Nn = np.array(Nn, np.float32); UV = np.array(UV, np.float32)
     SI = np.array(SI, np.uint8); SW = np.array(SW, np.float32)
-    if blender and body:   # skin under the clothes: drop body triangles lying just inside a garment (stops the skin poking through)
-        from scipy.spatial import cKDTree
-        MIDa = np.array(MID); isb = MIDa == body
-        cl = np.array([not isb[i] and not any(w in MIDa[i].lower() for w in ('eye', 'brow', 'lash', 'teeth', 'tongue', 'hair', 'short0', 'long0', 'low-poly', 'high-poly')) for i in range(len(P))])
-        if cl.any():
-            T = cKDTree(P[cl]); dd, _ = T.query(P[isb]); cov = np.zeros(len(P), bool); cov[np.where(isb)[0]] = dd < cover_cm
-            I3 = np.array(IDX, np.int64).reshape(-1, 3); keep = ~(cov[I3[:, 0]] & cov[I3[:, 1]] & cov[I3[:, 2]])
-            print('  covered body triangles dropped', int((~keep).sum()))
-            IDX = I3[keep].reshape(-1).tolist()
-    if blender:   # trousers' waistband under the shirt: drop it too (it shows through a loose polo)
-        MIDa = np.array(MID); sh = np.array(['shirt' in m.lower() or 'polo' in m.lower() for m in MIDa]); pa = np.array(['pants' in m.lower() or 'trouser' in m.lower() for m in MIDa])
-        if sh.any() and pa.any():
-            from scipy.spatial import cKDTree
-            dd, _ = cKDTree(P[sh]).query(P[pa]); cov = np.zeros(len(P), bool); cov[np.where(pa)[0]] = dd < 1.6
-            I3 = np.array(IDX, np.int64).reshape(-1, 3); keep = ~(cov[I3[:, 0]] & cov[I3[:, 1]] & cov[I3[:, 2]])
-            print('  covered trouser triangles dropped', int((~keep).sum())); IDX = I3[keep].reshape(-1).tolist()
     if blender:   # (Blender exports) the file's normals don't survive the trip: smooth normals from the geometry, shared across seams
         I3 = np.array(IDX, np.int64).reshape(-1, 3); fn = np.cross(P[I3[:, 1]] - P[I3[:, 0]], P[I3[:, 2]] - P[I3[:, 0]])
         key = np.round(P / 0.05).astype(np.int64); _, grp = np.unique(key, axis=0, return_inverse=True); grp = grp.reshape(-1)
         acc = np.zeros((grp.max() + 1, 3))
         for e in range(3): np.add.at(acc, grp[I3[:, e]], fn)
         Nn = acc[grp]; Nn = (Nn / np.maximum(np.linalg.norm(Nn, axis=1, keepdims=True), 1e-9)).astype(np.float32)
+    if blender and body:   # skin under the clothes: drop body triangles lying just inside a garment (stops the skin poking through)
+        from scipy.spatial import cKDTree
+        MIDa = np.array(MID); isb = MIDa == body
+        cl = np.array([not isb[i] and not any(w in MIDa[i].lower() for w in ('eye', 'brow', 'lash', 'teeth', 'tongue', 'hair', 'short0', 'long0', 'low-poly', 'high-poly')) for i in range(len(P))])
+        if cl.any():
+            T = cKDTree(P[cl]); dd, ii = T.query(P[isb]); ii = np.where(cl)[0][ii]; cov = np.zeros(len(P), bool); cov[np.where(isb)[0]] = r3_outward(P, Nn, isb, cl, dd, ii, cover_cm)
+            I3 = np.array(IDX, np.int64).reshape(-1, 3); keep = ~(cov[I3[:, 0]] & cov[I3[:, 1]] & cov[I3[:, 2]])
+            print('  covered body triangles dropped', int((~keep).sum()))
+            IDX = I3[keep].reshape(-1).tolist()
+    if blender:   # trousers' waistband under the shirt: drop it too (it shows through a loose polo)
+        MIDa = np.array(MID)
+        for outer, inner in ((('shirt', 'polo'), ('pants', 'trouser')), (('pants', 'trouser'), ('shoe',))):   # shirt over trousers, trouser legs over shoe tops
+          sh = np.array([any(w in m.lower() for w in outer) for m in MIDa]); pa = np.array([any(w in m.lower() for w in inner) for m in MIDa])
+          if sh.any() and pa.any():
+              from scipy.spatial import cKDTree
+              Ts = cKDTree(P[sh][:, [0, 2]]); ys = P[sh][:, 1]; cov = np.zeros(len(P), bool)
+              for i in np.where(pa)[0]:   # the shirt hangs over this point: some shirt vertex beside it (4 cm across) reaches lower
+                  nb = Ts.query_ball_point(P[i, [0, 2]], 4.0)
+                  if nb and ys[nb].min() < P[i, 1] - 1.0: cov[i] = True
+              I3 = np.array(IDX, np.int64).reshape(-1, 3); keep = ~(cov[I3[:, 0]] & cov[I3[:, 1]] & cov[I3[:, 2]])
+              print('  covered trouser triangles dropped', int((~keep).sum())); IDX = I3[keep].reshape(-1).tolist()
     if tpose:   # re-bind in the Mixamo T-pose of a reference body, so the shared clips (retargeted by rest pose) fit
         P, Nn, restW = rebind_tpose(P, Nn, SI, SW, restW, par, [N[b] for b in order], tpose)
         inv = np.array([np.linalg.inv(restW[k]) for k in range(len(order))], np.float32)
@@ -264,6 +272,13 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blend
                **({'pmean': pmean} if pmean else {}), alpha=hasAlpha, tex=dict(d='data:image/webp;base64,' + base64.b64encode(buf.getvalue()).decode()))
     js = 'R3CHAR(' + json.dumps(out, separators=(',', ':')) + ');\n'
     return js, out
+
+
+def r3_outward(P, Nn, inner, outer, dd, ii, near):
+    """An inner-layer vertex counts as covered when a garment vertex is very close, or within 4.5 cm and lying outward along its normal."""
+    pi = np.where(inner)[0]; v = P[ii] - P[pi]; d = np.maximum(dd, 1e-6)[:, None]
+    out = (Nn[pi] * (v / d)).sum(1)
+    return (dd < near) | ((dd < 4.5) & (out > .45))
 
 
 PREF = {'LeftHand': 'LeftHandMiddle1', 'RightHand': 'RightHandMiddle1', 'Spine2': 'Neck', 'LeftFoot': 'LeftToeBase', 'RightFoot': 'RightToeBase'}
