@@ -38,7 +38,9 @@ def find(name, sub):
 for g in G:
     try:
         for o in list(bpy.data.objects): bpy.data.objects.remove(o, do_unlink=True)
-        bm = HumanService.create_human(macro_detail_dict=g.get('macro'))
+        TS = dyn("mpfb.services.targetservice", "TargetService"); md = TS.get_default_macro_info_dict(); md.update(g.get('macro', {}))
+        print('macro', md, flush=True)
+        bm = HumanService.create_human(macro_detail_dict=md)
         for k, v in g.get('targets', {}).items():
             try: dyn("mpfb.services.targetservice", "TargetService").set_target_value(bm, k, v)
             except Exception as e: print('target', k, e)

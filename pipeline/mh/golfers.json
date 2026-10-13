@@ -1,7 +1,110 @@
 [
- {"id": "mh_test1",
-  "macro": {"gender": 1.0, "age": 0.5, "muscle": 0.55, "weight": 0.5, "height": 0.55, "proportions": 0.6},
-  "skin": "young_caucasian_male.mhmat", "rig": "mixamo",
-  "assets": [["eyes", "low-poly.mhclo"], ["eyebrows", "eyebrow001.mhclo"], ["eyelashes", "eyelashes01.mhclo"], ["teeth", "teeth_base.mhclo"], ["tongue", "tongue01.mhclo"],
-             ["hair", "short02.mhclo"], ["clothes", "male_casualsuit04.mhclo"]]}
+ {
+  "id": "mh_polo",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.5,
+   "muscle": 0.6,
+   "weight": 0.5,
+   "height": 0.55,
+   "proportions": 0.7,
+   "race": {
+    "african": 0.0,
+    "asian": 0.0,
+    "caucasian": 1.0
+   }
+  },
+  "skin": "young_caucasian_male.mhmat",
+  "rig": "mixamo",
+  "assets": [
+   [
+    "eyes",
+    "low-poly.mhclo"
+   ],
+   [
+    "eyebrows",
+    "eyebrow001.mhclo"
+   ],
+   [
+    "eyelashes",
+    "eyelashes01.mhclo"
+   ],
+   [
+    "teeth",
+    "teeth_base.mhclo"
+   ],
+   [
+    "tongue",
+    "tongue01.mhclo"
+   ],
+   [
+    "hair",
+    "short02.mhclo"
+   ],
+   [
+    "clothes",
+    "namuhekam_male_polo_shirt.mhclo"
+   ],
+   [
+    "clothes",
+    "toigo_wool_pants.mhclo"
+   ],
+   [
+    "clothes",
+    "shoes06.mhclo"
+   ]
+  ]
+ },
+ {
+  "id": "mh_casual",
+  "macro": {
+   "gender": 1.0,
+   "age": 0.75,
+   "muscle": 0.5,
+   "weight": 0.62,
+   "height": 0.5,
+   "proportions": 0.6,
+   "race": {
+    "african": 0.0,
+    "asian": 0.0,
+    "caucasian": 1.0
+   }
+  },
+  "skin": "middleage_caucasian_male.mhmat",
+  "rig": "mixamo",
+  "assets": [
+   [
+    "eyes",
+    "low-poly.mhclo"
+   ],
+   [
+    "eyebrows",
+    "eyebrow001.mhclo"
+   ],
+   [
+    "eyelashes",
+    "eyelashes01.mhclo"
+   ],
+   [
+    "teeth",
+    "teeth_base.mhclo"
+   ],
+   [
+    "tongue",
+    "tongue01.mhclo"
+   ],
+   [
+    "hair",
+    "short04.mhclo"
+   ],
+   [
+    "clothes",
+    "male_casualsuit02.mhclo"
+   ],
+   [
+    "clothes",
+    "shoes02.mhclo"
+   ]
+  ]
+ }
 ]
