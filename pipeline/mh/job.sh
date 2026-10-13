@@ -10,4 +10,5 @@ $BL -b --command extension install-file -r user_default -e /tmp/mpfb.zip
 pip install -q requests && python pipeline/mh/fetch_packs.py
 mkdir -p out/mh && cp packs/packs.json out/mh/ 2>/dev/null
 $BL -b --python-exit-code 1 --python pipeline/mh/build.py 2>&1 | grep -v "^Fra:" | tail -400
+grep -q '"hairs": true' pipeline/mh/run.json 2>/dev/null && $BL -b --python pipeline/mh/hairs.py 2>&1 | grep -v "^Fra:" | tail -100
 ls -la out/mh

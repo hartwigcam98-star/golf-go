@@ -28,6 +28,8 @@ for sub in ['clothes', 'hair', 'skins', 'eyebrows', 'eyes', 'eyelashes', 'teeth'
 json.dump(lst, open(f'{OUT}/assets.json', 'w'), indent=1)
 print({k: len(v) for k, v in lst.items()}, flush=True)
 G = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'golfers.json')))
+RUN = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'run.json'))) if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'run.json')) else {}
+if not RUN.get('build', True): G = []
 def find(name, sub):
     p = AssetService.find_asset_absolute_path(name, asset_subdir=sub)
     if p: return p
