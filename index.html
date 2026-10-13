@@ -3691,7 +3691,7 @@ const LEGENDS=[
   lg:{top:'#7fb2d9',pants:'#c9b48a',shoe:'#f4f4f2',hat:'visor',hatc:'#f2efe6',belt:'#3a2a20',scale:1.01,girth:1.05}},
  {id:'lg_phil',base:'ch08',name:'Phil Pickelson',nick:'Lefty, the flop-shot wizard',blurb:'Aviators on, aggressive to every pin, and a short game from another planet. The driver goes wherever it likes.',
   st:{pow:6,ctl:3,imp:5,sg:8,putt:5,spin:7},trait:{name:'Flop Wizard',d:'Flop shots get a 40% wider timing window.'},fx:{flop:1.4},
-  lg:{top:'#f4f4f2',pants:'#1d2633',shoe:'#f4f4f2',hat:'visor',hatc:'#f4f4f2',shades:1,belt:'#16181c',scale:1.03,girth:1.12}},
+  lg:{top:'#f4f4f2',pants:'#1d2633',shoe:'#f4f4f2',hat:'visor',hatc:'#f4f4f2',shades:1,belt:'#16181c',scale:1.03,girth:1.12,lefty:1}},
  {id:'lg_rory',base:'ch42',name:'Rory McAllroy',nick:'Northern Irish bomber',blurb:'The fastest, freest swing on tour. When it is on he wins by eight; around the greens he is merely very good.',
   st:{pow:10,ctl:4,imp:6,sg:4,putt:4,spin:4},trait:{name:'Bomber',d:'+5% carry with the driver and woods, but his chunks are 25% heavier.'},fx:{bomb:1},
   lg:{top:'#1f2f4d',pants:'#9ba3ad',shoe:'#f4f4f2',belt:'#16181c',scale:.97}},
@@ -4889,7 +4889,9 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
     const v=new THREE.Vector3(...cdR).applyAxisAngle(ax,th);cdR=[v.x,v.y,v.z];}
   R3B.pushCap=putt&&!post&&!(routine&&!swingSeg)?R3B_PUTT_PUSH:null;hd.H=r3bArms(hd.H,cdR,!!((routine&&!swingSeg)||post||twirling));R3B.pushCap=null;const push={length:()=>R3B.lastPush};
   // place the rig so that the impact point lands on the ball: rig x -> away from the ball, y up, z -> target
-  const[ax,az]=dirOf(ga.aim),u=[ax,0,az],f=[-az,0,ax],k=.94/100;const P=S.Pimp;
+  // a left-hander (lg.lefty) is the whole rig mirrored across the target line: he stands on the other side of the ball and swings the other way
+  const sg=R3B.lg&&R3B.lg.lefty?-1:1;if(R3B.mesh.scale.x!==sg)R3B.mesh.scale.x=sg;   // the mesh's own mirror only flips which faces are front (it cancels in the skinning)
+  const[ax,az]=dirOf(ga.aim),u=[ax,0,az],f=[-az*sg,0,ax*sg],k=.94/100;const P=S.Pimp;
   const bx=ga.x,bz=ga.y,ox=bx-(P[0]*-f[0]+P[2]*u[0])*k,oz=bz-(P[0]*-f[2]+P[2]*u[2])*k,oy=hAt(bx,bz)-.02;R3B.org=[ox,oy,oz,bx,bz];
   const X=[-f[0]*k,0,-f[2]*k],Y=[0,k,0],Z=[u[0]*k,0,u[2]*k];
   R3B.root.matrix.set(X[0],Y[0],Z[0],ox, X[1],Y[1],Z[1],oy, X[2],Y[2],Z[2],oz, 0,0,0,1);R3B.root.matrixWorld.copy(R3B.root.matrix);R3B.bones[0].updateMatrixWorld(true);
@@ -4915,7 +4917,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
   const chead=add(grip,mul(cd,Lm));
   R3B.dbg={grip,chead,ball:[bx,hAt(bx,bz),bz],wI,S,push:push.length()};const fd=nrm(sub(fd0,mul(cd,dot3(fd0,cd))));const C_SHAFT=hexc('#c9d3da'),C_HEAD=hexc('#23292e');
   cylAB(add(grip,mul(cd,-.04)),chead,.011,C_SHAFT);cylAB(add(grip,mul(cd,-.045)),add(grip,mul(cd,.2)),.015,hexc('#1d1f22'));
-  const toe=nrm(cross(cd,fd));
+  const toe=mul(nrm(cross(cd,fd)),sg);
   drawClubHead(chead,cd,fd,toe,CLUBS[club],grip);
   return true;}
 
@@ -6869,7 +6871,8 @@ const UPDATES=[
   {id:"2026-10-13-legends3",date:"Oct 13, 2026",title:"Lifelike tour legends",items:[
     "All ten legends have new, realistic bodies, each built at the real player's height, from Barry Player at 5'7\" to Phil Pickelson and Scotty Shuffler at 6'4\".",
     "Each has his own face shape, skin tone and hairstyle, and you now see hair under the caps and flat caps.",
-    "Payne Stewie is back in plus-fours with argyle stockings, and the golfer picker has new portraits."]},
+    "Payne Stewie is back in plus-fours with argyle stockings, and the golfer picker has new portraits.",
+    "Phil Pickelson now plays left-handed: he stands on the other side of the ball and swings as a lefty."]},
   {id:"2026-10-12-perf",date:"Oct 12, 2026",title:"Smoother frames",items:[
     "The swing meter runs lighter: the trees' shadows are kept while you swing and only the golfer's shadow is redrawn, so the meter moves more evenly on older phones.",
     "Trees behind the camera and well off to the sides are no longer drawn: on most fairway shots that is more than half of the course's trees.",
