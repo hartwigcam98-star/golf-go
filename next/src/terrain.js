@@ -53,7 +53,7 @@ function weightTexture(D) {
 }
 
 export async function addGround(scene, D, H, q) {
-  const M = D.meta, L = M.lg;
+  const M = D.meta, L = M.lg, out = {};
   const [turf, sand, turfN, sandN, surr] = await Promise.all([load('./assets/turf.jpg', false), load('./assets/sand.jpg', false), load('./assets/turf_normal.jpg', false), load('./assets/sand_normal.jpg', false),
     M.surr && M.surr.tex ? load(D.dir + M.surr.tex, true, false) : null]);
 
@@ -102,7 +102,8 @@ export async function addGround(scene, D, H, q) {
       mat.normalNode = normalMap(n, vec2(near.mul(mix(float(.9), float(.6), w.x)))); }
     mat.roughnessNode = mix(float(.97), float(.86), w.x);   // mown grass a touch glossier
     const m = new THREE.Mesh(geo, mat); m.receiveShadow = true; m.name = 'hole'; scene.add(m);
-    const mg = new THREE.Mesh(geoG, mat); mg.receiveShadow = true; mg.name = 'hole'; scene.add(mg); }
+    const mg = new THREE.Mesh(geoG, mat); mg.receiveShadow = true; mg.name = 'hole'; scene.add(mg);
+    Object.assign(out, { hAt, surf, wt }); }
 
   // the surroundings past the hole, as the game builds them, painted with its surroundings map
   if (M.surr) { const S = M.surr, geo = new THREE.BufferGeometry();
@@ -130,4 +131,5 @@ export async function addGround(scene, D, H, q) {
     pole.position.set(px, gh + 1.165, py); pole.castShadow = true; scene.add(pole);
     const flag = new THREE.Mesh(new THREE.PlaneGeometry(.55, .38), new THREE.MeshStandardMaterial({ color: 0xffd23c, side: THREE.DoubleSide, roughness: .8 }));
     flag.position.set(px + .28, gh + 2.1, py); flag.castShadow = true; scene.add(flag); }
+  return out;
 }

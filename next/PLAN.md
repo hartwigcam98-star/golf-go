@@ -37,8 +37,12 @@ A more realistic version of Golf Go, built alongside the current game without di
      - Trees: the game's species prototypes and placements (`treeGroups` in the export) with bark normal maps, the leaf atlas
        and back-lit leaves; far trees as crossed-card impostors baked at load.
      - Quality tiers (`?q=low|med|high`, Med on phones) and a frame-cost readout (JS ms; GPU ms where the browser reports it).
-   - Part 2 (next):
-     - Dense grass blades round the camera (rough and fescue), with wind.
+   - Speed pass (done): shadow map drawn once, 2-yd terrain with a 0.5-yd green patch, tree LOD by distance. A phone on WebGPU
+     holds about 60 fps on High.
+   - Part 2:
+     - Grass (done): two layers of GPU-placed blades round the camera (near and dense, then wider), only in rough (about 4 in) and
+       fescue (knee-high, tufted, golden tips), standing on a baked height texture, swaying in rolling gusts, fading with
+       distance. High 120k blades, Med 65k, Low none. `?cam=x,y,h,tx,ty` places the camera anywhere for checking it.
      - Wind in the trees.
      - Distant forest silhouettes past the far trees; impostors that also work from above.
      - Mowing sheen, time-of-day presets.

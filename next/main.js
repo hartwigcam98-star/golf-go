@@ -7,6 +7,7 @@ import { loadHole, heightFn } from './src/data.js';
 import { addSky } from './src/sky.js';
 import { addGround } from './src/terrain.js';
 import { addTrees } from './src/trees.js';
+import { addGrass } from './src/grass.js';
 
 const Q = new URLSearchParams(location.search);
 const COURSE = Q.get('c') || 'troy', HOLE = +(Q.get('h') || 1);
@@ -16,9 +17,9 @@ const PHONE = /Mobi|iPhone|iPad|Android/.test(navigator.userAgent);
 
 // quality tiers: what each costs is what the frame readout is for
 const TIERS = {
-  high: { label: 'High', pr: 2, shadow: 4096, treeDetail: 'full', farTrees: 1, aa: true, skirtShadow: true },
-  med: { label: 'Med', pr: 1.5, shadow: 2048, treeDetail: 'full', farTrees: 1, aa: true, skirtShadow: false },
-  low: { label: 'Low', pr: 1, shadow: 1024, treeDetail: 'lite', farTrees: .5, aa: false, skirtShadow: false },
+  high: { label: 'High', pr: 2, shadow: 4096, treeDetail: 'full', farTrees: 1, aa: true, skirtShadow: true, grass: [{ n: 70000, tile: 26 }, { n: 50000, tile: 70 }] },
+  med: { label: 'Med', pr: 1.5, shadow: 2048, treeDetail: 'full', farTrees: 1, aa: true, skirtShadow: false, grass: [{ n: 40000, tile: 22 }, { n: 25000, tile: 56 }] },
+  low: { label: 'Low', pr: 1, shadow: 1024, treeDetail: 'lite', farTrees: .5, aa: false, skirtShadow: false, grass: null },
 };
 const tierName = TIERS[Q.get('q')] ? Q.get('q') : PHONE ? 'med' : 'high', q = TIERS[tierName];
 
@@ -39,7 +40,8 @@ async function start() {
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, .2, 40000);
   const cx = L.x0 + L.nx / 2, cy = L.y0 + L.ny / 2;
   const sky = addSky(renderer, scene, { center: { x: cx, y: cy }, span: Math.max(L.nx, L.ny) * .6, shadowSize: q.shadow });
-  $('msg').textContent = 'Painting the ground…'; await addGround(scene, D, H, q);
+  $('msg').textContent = 'Painting the ground…'; const ground = await addGround(scene, D, H, q);
+  const grass = addGrass(scene, D, ground, q);
   $('msg').textContent = 'Growing the trees…'; const trees = await addTrees(renderer, scene, D, q);
 
   { const hide = (Q.get('hide') || '').split(','); scene.traverse(o => { if (o.name && hide.includes(o.name)) o.visible = false; }); }   // debugging: ?hide=hole,skirt,apron
@@ -52,7 +54,9 @@ async function start() {
     above: () => { camera.position.set(cx, 420, cy + 260); controls.target.set(cx, 0, cy); },
   };
   for (const b of document.querySelectorAll('[data-view]')) b.onclick = () => { views[b.dataset.view](); controls.update(); };
-  (views[Q.get('view')] || views.tee)(); controls.update();
+  // ?cam=x,y,height,targetX,targetY (yards, hole frame; height above the ground) puts the camera anywhere (debugging)
+  views.cam = () => { const [x, y, h, tx, ty] = (Q.get('cam') || '').split(',').map(Number); camera.position.set(x, H(x, y) + h, y); controls.target.set(tx, H(tx, ty) + h * .5, ty); };
+  (Q.get('cam') ? views.cam : views[Q.get('view')] || views.tee)(); controls.update();
   // quality switch (reloads with ?q=)
   for (const b of document.querySelectorAll('[data-q]')) { b.classList.toggle('on', b.dataset.q === tierName); b.onclick = () => { Q.set('q', b.dataset.q); location.search = Q.toString(); }; }
 
@@ -65,13 +69,13 @@ async function start() {
   $('msg').hidden = true; $('hud').hidden = false;
   renderer.setAnimationLoop(now => {
     const dt = now - last; last = now; ft.push(dt); if (ft.length > 240) ft.shift();
-    const t0 = performance.now(); controls.update(); if (trees.updateLOD(camera.position)) sky.sun.shadow.needsUpdate = true; renderer.render(scene, camera); cpu.push(performance.now() - t0); if (cpu.length > 240) cpu.shift();
+    const t0 = performance.now(); controls.update(); if (trees.updateLOD(camera.position)) sky.sun.shadow.needsUpdate = true; if (grass) grass.update(camera); renderer.render(scene, camera); cpu.push(performance.now() - t0); if (cpu.length > 240) cpu.shift();
     if (gpuTimer && renderer.resolveTimestampsAsync) renderer.resolveTimestampsAsync().then(() => { const v = renderer.info.render.timestamp; if (v > 0) gpuMs = v; }).catch(() => {});
     if (now - shown > 500) { shown = now; const s = ft.slice().sort((a, b) => a - b), p95 = s[Math.floor(s.length * .95)] || 0, mean = ft.reduce((a, b) => a + b, 0) / ft.length;
       const c = cpu.slice().sort((a, b) => a - b), cMed = c[c.length >> 1] || 0;
       $('stats').textContent = `${backend} · ${q.label} · ${(1000 / mean).toFixed(0)} fps · slowest 5% ${p95.toFixed(1)} ms`;
       $('cost').textContent = `frame cost: JS ${cMed.toFixed(1)} ms` + (gpuMs != null ? ` · GPU ${gpuMs.toFixed(1)} ms` : ' · GPU time n/a here') +
-        ` · ${(renderer.info.render.triangles / 1e6).toFixed(2)}M tris · ${trees.near} trees + ${trees.far} far`; }
+        ` · ${(renderer.info.render.triangles / 1e6).toFixed(2)}M tris · ${trees.near} trees + ${trees.far} far` + (grass ? ` · ${(grass.blades / 1000).toFixed(0)}k blades` : ''); }
   });
 }
 start().catch(fail);
