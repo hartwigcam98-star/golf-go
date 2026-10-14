@@ -1,4 +1,4 @@
-# Desert Canyon Golf Club (Fountain Hills, AZ).
+# Desert Canyon Golf Club (Fountain Hills, AZ): point clouds round the traced greens.
 # Fetches OSM, NED, NAIP, 3DEP 1 m and lidar ground points around the greens; results go to the "course-data" branch.
 import json, math, os, sys, time, re, traceback
 import numpy as np, requests
@@ -6,7 +6,9 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 JOB = {"name": "desert canyon golf club, fountain hills az", "search": [[33.54, -111.76, 33.62, -111.67]],
        "want": {"desertcanyon": r"desert canyon"},
        "holes": {"desertcanyon": r"desert canyon"},
-       "steps": {"desertcanyon": "all"}}
+       "steps": {"desertcanyon": "points"},
+       # point clouds round the 18 greens traced from the photo (OSM maps only the hole lines)
+       "greens": {"desertcanyon": [[-111.717617, 33.583313, -111.717399, 33.583507], [-111.719664, 33.583199, -111.71928, 33.583428], [-111.718073, 33.585769, -111.717771, 33.585983], [-111.713033, 33.584494, -111.71276, 33.584668], [-111.710057, 33.584693, -111.709802, 33.584921], [-111.707761, 33.587149, -111.707537, 33.587432], [-111.708365, 33.584534, -111.70811, 33.584737], [-111.711151, 33.584087, -111.710885, 33.584266], [-111.71421, 33.581964, -111.71389, 33.582222], [-111.713328, 33.579418, -111.712908, 33.579786], [-111.709938, 33.581487, -111.70953, 33.581721], [-111.71037, 33.577409, -111.709962, 33.577756], [-111.712133, 33.57722, -111.711696, 33.577508], [-111.716813, 33.578957, -111.716564, 33.579165], [-111.720534, 33.580818, -111.720126, 33.58121], [-111.722149, 33.582257, -111.721841, 33.58248], [-111.719274, 33.582093, -111.719002, 33.582257], [-111.715653, 33.582604, -111.715411, 33.582778]]}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
