@@ -96,7 +96,8 @@
     "afro01.mhclo"
    ]
   ],
-  "render": false
+  "render": false,
+  "keep_scalp": true
  },
  {
   "id": "mh_jack",
@@ -962,6 +963,7 @@
     "afro01.mhclo"
    ]
   ],
-  "render": false
+  "render": false,
+  "keep_scalp": true
  }
 ]
