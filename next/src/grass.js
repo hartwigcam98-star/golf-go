@@ -6,7 +6,7 @@
    - Wind: a slow sway plus gusts rolling across the course; blades fade out with distance so the patch has no edge. */
 import * as THREE from 'three';
 import { Fn, uniform, instanceIndex, positionLocal, hash, texture, varying, vec2, vec3, float, sin, round, mix, smoothstep, cos, time,
-  dot, select, abs, transformNormalToView, mx_noise_float } from 'three/tsl';
+  dot, select, abs, transformNormalToView } from 'three/tsl';
 
 export function addGrass(scene, D, G, q) {
   if (!q.grass) return null;
@@ -18,13 +18,18 @@ export function addGrass(scene, D, G, q) {
   const hTex = new THREE.DataTexture(hd, hx, hy, THREE.RedFormat, THREE.HalfFloatType); hTex.magFilter = hTex.minFilter = THREE.LinearFilter; hTex.needsUpdate = true;
 
   const uCenter = uniform(new THREE.Vector2()), uWind = uniform(new THREE.Vector2(.8, .6).normalize());
+  // smooth value noise, 64 px tiling over 16 noise cells, for the tufts
+  const NS = 64, nd = new Uint8Array(NS * NS), lat = Array.from({ length: 17 * 17 }, (_, i) => { const x = Math.sin((i % 17 % 16) * 127.1 + (Math.floor(i / 17) % 16) * 311.7) * 43758.5453; return x - Math.floor(x); });
+  for (let j = 0; j < NS; j++) for (let i = 0; i < NS; i++) { const fx = i / 4, fy = j / 4, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0, sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty);
+    const v = (lat[y0 * 17 + x0] * (1 - sx) + lat[y0 * 17 + x0 + 1] * sx) * (1 - sy) + (lat[(y0 + 1) * 17 + x0] * (1 - sx) + lat[(y0 + 1) * 17 + x0 + 1] * sx) * sy; nd[j * NS + i] = v * 255; }
+  const nTex = new THREE.DataTexture(nd, NS, NS, THREE.RedFormat); nTex.wrapS = nTex.wrapT = THREE.RepeatWrapping; nTex.magFilter = nTex.minFilter = THREE.LinearFilter; nTex.needsUpdate = true;
 
-  // blade: three tapering segments, x across (-.5..5), y up (0..1)
+  // blade: two tapering segments and a tip, x across (-.5..5), y up (0..1)
   const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute([-.5, 0, 0, .5, 0, 0, -.36, .38, 0, .36, .38, 0, -.17, .74, 0, .17, .74, 0, 0, 1, 0], 3));
-  g.setIndex([0, 1, 2, 2, 1, 3, 2, 3, 4, 4, 3, 5, 4, 5, 6]);
+  g.setAttribute('position', new THREE.Float32BufferAttribute([-.5, 0, 0, .5, 0, 0, -.3, .5, 0, .3, .5, 0, 0, 1, 0], 3));   // 5 vertices, 3 triangles
+  g.setIndex([0, 1, 2, 2, 1, 3, 2, 3, 4]);
 
-  let N = 0;
+  let N = 0; const meshes = [];
   for (const [li, { n, tile: TILE }] of layers.entries()) { N += n;
   const id = instanceIndex.add(li * 1000003);   // each layer its own random spots
   const r1 = hash(id), r2 = hash(id.add(7919)), r3 = hash(id.add(15013)), r4 = hash(id.add(23011));
@@ -37,7 +42,7 @@ export function addGrass(scene, D, G, q) {
   const dist = p.sub(vec2(uCenter.x, uCenter.y)).length();
   const fade = float(1).sub(smoothstep(TILE * .32, TILE * .5, dist));
   const rough = w.y, fescue = w.z;
-  const clump = mx_noise_float(vec3(p.x.mul(.45), p.y.mul(.45), 0)).mul(.5).add(.5);   // fescue grows in tufts
+  const clump = texture(nTex, p.mul(.45 / 16)).level(0).r;   // fescue grows in tufts (one lookup in a small tiling noise texture)
   const bladeH = rough.mul(mix(.08, .15, r3)).add(fescue.mul(mix(.22, .62, r3)).mul(mix(.45, 1.25, clump))).mul(fade).mul(select(inHole, float(1), float(0)));
   const width = mix(.02, .036, r4).mul(fescue.mul(.7).add(1));
   const ang = r4.mul(6.2832), ca = cos(ang), sa = sin(ang);
@@ -56,10 +61,13 @@ export function addGrass(scene, D, G, q) {
   const base = texture(G.surf, vUV).rgb, bl = dot(base, vec3(.299, .587, .114)), tint = mix(vec3(bl), base, .8).mul(.86);
   mat.colorNode = mix(tint.mul(1.12), vec3(.78, .68, .4), vF.mul(vY).mul(vY).mul(.7)).mul(mix(.78, 1.18, vY)).mul(mix(.86, 1.12, vR));
   const mesh = new THREE.InstancedMesh(g, mat, n);
-  mesh.frustumCulled = false; mesh.receiveShadow = true; mesh.castShadow = false; scene.add(mesh);
+  mesh.frustumCulled = false; mesh.receiveShadow = li === 0; mesh.castShadow = false; scene.add(mesh); meshes.push({ mesh, n });   // shadows on the near layer only
   }
+  // density: a share of every layer's blades is drawn (the spots are random, so fewer blades thins the grass evenly)
+  let share = 1;
+  const setShare = v => { share = Math.max(.15, Math.min(1, v)); for (const m of meshes) m.mesh.count = Math.round(m.n * share); };
   return {
-    blades: N,
+    get blades() { return Math.round(N * share); }, setShare, get share() { return share; },
     // centre the patch a little ahead of the camera, along the ground
     update(camera) { const d = new THREE.Vector3(); camera.getWorldDirection(d); const k = Math.hypot(d.x, d.z) || 1;
       uCenter.value.set(camera.position.x + d.x / k * 8, camera.position.z + d.z / k * 8); },

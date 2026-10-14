@@ -17,8 +17,8 @@ const PHONE = /Mobi|iPhone|iPad|Android/.test(navigator.userAgent);
 
 // quality tiers: what each costs is what the frame readout is for
 const TIERS = {
-  high: { label: 'High', pr: 2, shadow: 4096, treeDetail: 'full', farTrees: 1, aa: true, skirtShadow: true, grass: [{ n: 70000, tile: 26 }, { n: 50000, tile: 70 }] },
-  med: { label: 'Med', pr: 1.5, shadow: 2048, treeDetail: 'full', farTrees: 1, aa: true, skirtShadow: false, grass: [{ n: 40000, tile: 22 }, { n: 25000, tile: 56 }] },
+  high: { label: 'High', pr: 2, shadow: 4096, treeDetail: 'full', farTrees: 1, aa: true, skirtShadow: true, grass: [{ n: 60000, tile: 26 }, { n: 35000, tile: 70 }] },
+  med: { label: 'Med', pr: 1.5, shadow: 2048, treeDetail: 'full', farTrees: 1, aa: true, skirtShadow: false, grass: [{ n: 35000, tile: 22 }, { n: 20000, tile: 56 }] },
   low: { label: 'Low', pr: 1, shadow: 1024, treeDetail: 'lite', farTrees: .5, aa: false, skirtShadow: false, grass: null },
 };
 const tierName = TIERS[Q.get('q')] ? Q.get('q') : PHONE ? 'med' : 'high', q = TIERS[tierName];
@@ -67,15 +67,21 @@ async function start() {
   sky.sun.shadow.autoUpdate = false; sky.sun.shadow.needsUpdate = true;
   trees.updateLOD(camera.position, true);
   $('msg').hidden = true; $('hud').hidden = false;
+  // grass density follows the phone: every second, thin it when frames run long, fill it back in when there is room
+  let tune = { t: performance.now() + 2500, ok: 0 };   // let the first frames (shader compiles) pass first
+  const tuneGrass = now => { if (!grass || now < tune.t || ft.length < 30) return; tune.t = now + 1000;
+    const s = ft.slice(-60).sort((a, b) => a - b), med = s[s.length >> 1];
+    if (med > 18.5) { grass.setShare(grass.share * (med > 25 ? .7 : .85)); tune.ok = 0; }
+    else if (med < 17.4 && ++tune.ok >= 3 && grass.share < 1) { grass.setShare(grass.share * 1.08); tune.ok = 0; } };
   renderer.setAnimationLoop(now => {
-    const dt = now - last; last = now; ft.push(dt); if (ft.length > 240) ft.shift();
+    const dt = now - last; last = now; ft.push(dt); if (ft.length > 240) ft.shift(); tuneGrass(now);
     const t0 = performance.now(); controls.update(); if (trees.updateLOD(camera.position)) sky.sun.shadow.needsUpdate = true; if (grass) grass.update(camera); renderer.render(scene, camera); cpu.push(performance.now() - t0); if (cpu.length > 240) cpu.shift();
     if (gpuTimer && renderer.resolveTimestampsAsync) renderer.resolveTimestampsAsync().then(() => { const v = renderer.info.render.timestamp; if (v > 0) gpuMs = v; }).catch(() => {});
     if (now - shown > 500) { shown = now; const s = ft.slice().sort((a, b) => a - b), p95 = s[Math.floor(s.length * .95)] || 0, mean = ft.reduce((a, b) => a + b, 0) / ft.length;
       const c = cpu.slice().sort((a, b) => a - b), cMed = c[c.length >> 1] || 0;
       $('stats').textContent = `${backend} · ${q.label} · ${(1000 / mean).toFixed(0)} fps · slowest 5% ${p95.toFixed(1)} ms`;
       $('cost').textContent = `frame cost: JS ${cMed.toFixed(1)} ms` + (gpuMs != null ? ` · GPU ${gpuMs.toFixed(1)} ms` : ' · GPU time n/a here') +
-        ` · ${(renderer.info.render.triangles / 1e6).toFixed(2)}M tris · ${trees.near} trees + ${trees.far} far` + (grass ? ` · ${(grass.blades / 1000).toFixed(0)}k blades` : ''); }
+        ` · ${(renderer.info.render.triangles / 1e6).toFixed(2)}M tris · ${trees.near} trees + ${trees.far} far` + (grass ? ` · ${(grass.blades / 1000).toFixed(0)}k blades (${Math.round(grass.share * 100)}%)` : ''); }
   });
 }
 start().catch(fail);

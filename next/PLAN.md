@@ -42,7 +42,9 @@ A more realistic version of Golf Go, built alongside the current game without di
    - Part 2:
      - Grass (done): two layers of GPU-placed blades round the camera (near and dense, then wider), only in rough (about 4 in) and
        fescue (knee-high, tufted, golden tips), standing on a baked height texture, swaying in rolling gusts, fading with
-       distance. High 120k blades, Med 65k, Low none. `?cam=x,y,h,tx,ty` places the camera anywhere for checking it.
+       distance. High 95k blades, Med 55k, Low none; tufts from a small noise texture, 5-vertex blades, shadows on the near layer
+       only. Density follows the phone: the drawn share drops when the median frame runs past ~18.5 ms and creeps back when
+       there is room (shown as % in the readout). `?cam=x,y,h,tx,ty` places the camera anywhere for checking it.
      - Wind in the trees.
      - Distant forest silhouettes past the far trees; impostors that also work from above.
      - Mowing sheen, time-of-day presets.
