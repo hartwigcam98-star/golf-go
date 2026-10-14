@@ -4363,8 +4363,9 @@ function earClip(pts){const P=pts.slice();let area=0;for(let i=0;i<P.length;i++)
   if(P.length===3)tris.push([P[0],P[1],P[2]]);return tris;}
 function drawMesh(mesh,Mx,Nx,tint,alpha=1){r3Push(mesh,Mx,tint,alpha);}
 // model matrix from an origin and three orthogonal (scaled) axis vectors
-function basisM(o,X,Y,Z){const M=new Float32Array([X[0],X[1],X[2],0,Y[0],Y[1],Y[2],0,Z[0],Z[1],Z[2],0,o[0],o[1],o[2],1]);
-  const x2=dot3(X,X)||1,y2=dot3(Y,Y)||1,z2=dot3(Z,Z)||1;const N=new Float32Array([X[0]/x2,X[1]/x2,X[2]/x2,Y[0]/y2,Y[1]/y2,Y[2]/y2,Z[0]/z2,Z[1]/z2,Z[2]/z2]);return[M,N];}
+// the matrix is scratch: every caller hands it straight to drawMesh, which copies it (the old normal matrix was never read)
+const BASIS_M=new Float32Array(16),BASIS_R=[BASIS_M,null];
+function basisM(o,X,Y,Z){const M=BASIS_M;M[0]=X[0];M[1]=X[1];M[2]=X[2];M[3]=0;M[4]=Y[0];M[5]=Y[1];M[6]=Y[2];M[7]=0;M[8]=Z[0];M[9]=Z[1];M[10]=Z[2];M[11]=0;M[12]=o[0];M[13]=o[1];M[14]=o[2];M[15]=1;return BASIS_R;}
 function perpOf(a){const t=Math.abs(a[1])<.9?[0,1,0]:[1,0,0];return nrm(cross(a,t));}
 function cylAB(A,B,r,col,alpha){const Y=sub(B,A);if(len3(Y)<1e-4)return;const X=mul(perpOf(nrm(Y)),r),Z=mul(nrm(cross(X,Y)),r);const[M,N]=basisM(A,X,Y,Z);drawMesh(M3.meshes.cyl,M,N,col,alpha);}
 function sphAt(C,rx,ry,rz,col,X=[1,0,0],Y=[0,1,0],Z=[0,0,1],alpha){const[M,N]=basisM(C,mul(X,rx),mul(Y,ry),mul(Z,rz));drawMesh(M3.meshes.sph,M,N,col,alpha);}
@@ -4739,8 +4740,10 @@ function r3LegAcc(D,bones,invs,g){const L=D.lg;if(!L||!(L.hat||L.shades||L.belt)
 function r3AxMap(D){const T=THREE,B=R3BOSS,bI=Object.fromEntries(B.names.map((s,i)=>[s,i])),rq=(inv,k)=>{const m=new T.Matrix4().fromArray(inv,k*16).transpose().invert(),q=new T.Quaternion();m.decompose(new T.Vector3(),q,new T.Vector3());return q;};
   const iB=r3b64(B.inv,Float32Array),iC=r3b64(D.inv,Float32Array);return D.names.map((n,k)=>{const j=bI[n];if(j===undefined)return null;const m=rq(iC,k).invert().multiply(rq(iB,j));return Math.abs(m.w)>.9999?null:m;});}
 // a bone's axis given in the Boss's bone frame, as a world direction for this body (see r3AxMap)
-function r3bDir(k,ax){return new THREE.Vector3(...r3bAx(k,ax)).transformDirection(R3B.bones[k].matrixWorld);}
-function r3bAx(k,ax){const m=R3B.axm&&R3B.axm[k];if(!m)return ax;const v=new THREE.Vector3(ax[0],ax[1],ax[2]).applyQuaternion(m);return[v.x,v.y,v.z];}
+function r3bDir(k,ax,o){const a=r3bAx(k,ax);return(o||new THREE.Vector3()).set(a[0],a[1],a[2]).transformDirection(R3B.bones[k].matrixWorld);}
+// (the remapped axis is scratch: every caller reads it straight away)
+function r3bAx(k,ax){const m=R3B.axm&&R3B.axm[k];if(!m)return ax;const v=R3B_AXV.set(ax[0],ax[1],ax[2]).applyQuaternion(m),o=R3B_AXO;o[0]=v.x;o[1]=v.y;o[2]=v.z;return o;}
+const R3B_AXV=new THREE.Vector3(),R3B_AXO=[0,0,0];
 function r3Retarget(D){const T=THREE,B=R3BOSS,nbB=B.names.length,nb=D.names.length;
   const rot=(inv,k)=>{const m=new T.Matrix4().fromArray(inv,k*16).transpose().invert(),q=new T.Quaternion(),p=new T.Vector3();m.decompose(p,q,new T.Vector3());return{q,p};};
   const iB=r3b64(B.inv,Float32Array),iC=r3b64(D.inv,Float32Array),RB=[],RC=[];for(let k=0;k<nbB;k++)RB.push(rot(iB,k));for(let k=0;k<nb;k++)RC.push(rot(iC,k));
@@ -4797,9 +4800,10 @@ function r3CharLoad(id,cb){if(!id||id==='boss'||R3CHARS[id]){cb&&cb(true);return
 // pose of a clip at time t (clip seconds) into q (bone quaternions) and h (hips translation)
 function r3bPose(c,t,q,h){const f=clamp((t-c.t0)*c.fps,0,c.n-1),i0=Math.floor(f),i1=Math.min(c.n-1,i0+1),a=f-i0,nb=R3B.nb;
   for(let k=0;k<nb;k++){q[k*4]=c.QS[k*4]/32767;q[k*4+1]=c.QS[k*4+1]/32767;q[k*4+2]=c.QS[k*4+2]/32767;q[k*4+3]=c.QS[k*4+3]/32767;}
-  for(let j=0;j<c.na;j++){const k=c.anim[j],o0=(i0*c.na+j)*4,o1=(i1*c.na+j)*4;let x=0,l=0;const v=[0,0,0,0];
+  const v=R3B_PV;for(let j=0;j<c.na;j++){const k=c.anim[j],o0=(i0*c.na+j)*4,o1=(i1*c.na+j)*4;let l=0;
     for(let e=0;e<4;e++){v[e]=(c.Q[o0+e]*(1-a)+c.Q[o1+e]*a)/32767;l+=v[e]*v[e];}l=Math.sqrt(l)||1;for(let e=0;e<4;e++)q[k*4+e]=v[e]/l;}
   for(let e=0;e<3;e++)h[e]=c.HIP[i0*3+e]*(1-a)+c.HIP[i1*3+e]*a;}
+const R3B_PV=new Float64Array(4);
 function r3bBlend(qa,ha,qb,hb,w){if(w<=0)return;const nb=R3B.nb;for(let k=0;k<nb;k++){let d=0;for(let e=0;e<4;e++)d+=qa[k*4+e]*qb[k*4+e];const s=d<0?-1:1;let l=0;
     for(let e=0;e<4;e++){qa[k*4+e]=qa[k*4+e]*(1-w)+qb[k*4+e]*s*w;l+=qa[k*4+e]*qa[k*4+e];}l=Math.sqrt(l)||1;for(let e=0;e<4;e++)qa[k*4+e]/=l;}
   for(let e=0;e<3;e++)ha[e]=ha[e]*(1-w)+hb[e]*w;}
@@ -4811,20 +4815,25 @@ function r3bHands(){const I=R3B.idx,B=R3B.bones;R3B.root.matrix.identity();R3B.r
   const R=[];for(const c of[0,4,8]){const s=Math.hypot(l[c],l[c+1],l[c+2]);R.push([l[c]/s,l[c+1]/s,l[c+2]/s]);}   // columns
   return{H,R};}
 /* ---- arm IK: hands onto the club, and arms kept outside the (much rounder than the actor's) torso ---- */
-function r3bWP(b){return b.getWorldPosition(new THREE.Vector3());}
+function r3bWP(b,o){return b.getWorldPosition(o||new THREE.Vector3());}
+/* scratch for the arm IK, which runs several times a frame whenever the golfer is on screen: same sums as before, without
+   a fresh vector or quaternion for every step (that garbage is what brings on the collector's pauses) */
+const R3B_V3=()=>new THREE.Vector3(),R3B_Q=()=>new THREE.Quaternion();
+const R3B_AIM={p:R3B_V3(),a:R3B_V3(),b:R3B_V3(),dq:R3B_Q(),wq:R3B_Q(),pq:R3B_Q()};
+const R3B_IKS={hq:R3B_Q(),lq:R3B_Q(),A:R3B_V3(),E:R3B_V3(),Wr:R3B_V3(),M:R3B_V3(),W2:R3B_V3(),palm:R3B_V3(),off:R3B_V3(),T:R3B_V3(),n:R3B_V3(),pole:R3B_V3(),t:R3B_V3(),E2:R3B_V3()};
 function r3bAim(bone,from,to){// rotate bone (world) so that the direction bone->from becomes bone->to
-  const p=r3bWP(bone),a=from.clone().sub(p).normalize(),b=to.clone().sub(p).normalize();if(a.dot(b)>.99999)return;
-  const dq=new THREE.Quaternion().setFromUnitVectors(a,b),wq=bone.getWorldQuaternion(new THREE.Quaternion()),pq=bone.parent.getWorldQuaternion(new THREE.Quaternion());
+  const S=R3B_AIM,p=r3bWP(bone,S.p),a=S.a.copy(from).sub(p).normalize(),b=S.b.copy(to).sub(p).normalize();if(a.dot(b)>.99999)return;
+  const dq=S.dq.setFromUnitVectors(a,b),wq=bone.getWorldQuaternion(S.wq),pq=bone.parent.getWorldQuaternion(S.pq);
   bone.quaternion.copy(pq.invert().multiply(dq.multiply(wq)));bone.updateMatrixWorld(true);}
-function r3bIK(side,palmTarget){const I=R3B.idx,B=R3B.bones,up=B[I[side+'Arm']],lo=B[I[side+'ForeArm']],hd=B[I[side+'Hand']],mid=B[I[side+'HandMiddle1']];
-  const hq=hd.getWorldQuaternion(new THREE.Quaternion());
-  const A=r3bWP(up),E=r3bWP(lo),Wr=r3bWP(hd),palm=Wr.clone().add(r3bWP(mid)).multiplyScalar(.5),off=palm.clone().sub(Wr);
-  const T=palmTarget.clone().sub(off);const l1=E.distanceTo(A),l2=Wr.distanceTo(E);let d=T.distanceTo(A);const dmax=(l1+l2)*.999,dmin=Math.abs(l1-l2)+.5;
-  const n=T.clone().sub(A);if(d>dmax){n.setLength(dmax);T.copy(A).add(n);d=dmax;}if(d<dmin){n.setLength(dmin);T.copy(A).add(n);d=dmin;}n.normalize();
-  const pole=side==='Right'&&R3B.armPole?R3B.armPole.clone():E.clone().sub(A);pole.sub(n.clone().multiplyScalar(pole.dot(n)));if(pole.lengthSq()<1e-6)pole.set(0,-1,0);pole.normalize();
-  const x=(l1*l1-l2*l2+d*d)/(2*d),hh=Math.sqrt(Math.max(l1*l1-x*x,0)),E2=A.clone().add(n.clone().multiplyScalar(x)).add(pole.multiplyScalar(hh));
-  r3bAim(up,E,E2);r3bAim(lo,r3bWP(hd),T);
-  const lq=lo.getWorldQuaternion(new THREE.Quaternion());hd.quaternion.copy(lq.invert().multiply(hq));hd.updateMatrixWorld(true);}
+function r3bIK(side,palmTarget){const I=R3B.idx,B=R3B.bones,up=B[I[side+'Arm']],lo=B[I[side+'ForeArm']],hd=B[I[side+'Hand']],mid=B[I[side+'HandMiddle1']],S=R3B_IKS;
+  const hq=hd.getWorldQuaternion(S.hq);
+  const A=r3bWP(up,S.A),E=r3bWP(lo,S.E),Wr=r3bWP(hd,S.Wr),palm=S.palm.copy(Wr).add(r3bWP(mid,S.M)).multiplyScalar(.5),off=S.off.copy(palm).sub(Wr);
+  const T=S.T.copy(palmTarget).sub(off);const l1=E.distanceTo(A),l2=Wr.distanceTo(E);let d=T.distanceTo(A);const dmax=(l1+l2)*.999,dmin=Math.abs(l1-l2)+.5;
+  const n=S.n.copy(T).sub(A);if(d>dmax){n.setLength(dmax);T.copy(A).add(n);d=dmax;}if(d<dmin){n.setLength(dmin);T.copy(A).add(n);d=dmin;}n.normalize();
+  const pole=side==='Right'&&R3B.armPole?S.pole.copy(R3B.armPole):S.pole.copy(E).sub(A);pole.sub(S.t.copy(n).multiplyScalar(pole.dot(n)));if(pole.lengthSq()<1e-6)pole.set(0,-1,0);pole.normalize();
+  const x=(l1*l1-l2*l2+d*d)/(2*d),hh=Math.sqrt(Math.max(l1*l1-x*x,0)),E2=S.E2.copy(A).add(S.t.copy(n).multiplyScalar(x)).add(pole.multiplyScalar(hh));
+  r3bAim(up,E,E2);r3bAim(lo,r3bWP(hd,S.W2),T);
+  const lq=lo.getWorldQuaternion(S.lq);hd.quaternion.copy(lq.invert().multiply(hq));hd.updateMatrixWorld(true);}
 // body clearance against the character's own skinned torso: arm points must stay outside the torso surface,
 // measured radially from the spine axis (the Boss is far rounder than the mocap actor)
 function r3bTorsoInit(){const g=R3B.mesh.geometry,pt=g.attributes.part.array,si=g.attributes.skinIndex.array,sw=g.attributes.skinWeight.array,I=R3B.idx;
@@ -4836,8 +4845,8 @@ function r3bTorsoInit(){const g=R3B.mesh.geometry,pt=g.attributes.part.array,si=
   for(let k=0;k<n;k++){const i=R3B.tor[k];v.fromBufferAttribute(g.attributes.position,i).applyMatrix4(M.bindMatrix);R3B.torB[k*3]=v.x;R3B.torB[k*3+1]=v.y;R3B.torB[k*3+2]=v.z;
     wi.fromBufferAttribute(g.attributes.skinIndex,i);ww.fromBufferAttribute(g.attributes.skinWeight,i);for(let e=0;e<4;e++){R3B.torI[k*4+e]=wi.getComponent(e);R3B.torW[k*4+e]=ww.getComponent(e);}}}
 function r3bClear(reuse){const I=R3B.idx,B=R3B.bones,M=R3B.mesh;if(!R3B.tor)r3bTorsoInit();
-  const C=R3B_CL,a0=r3bWP(B[I.Hips]),a1=r3bWP(B[I.Spine2]),ax=a1.sub(a0).normalize();
-  const fw=r3bDir(I.Spine1,[0,0,1]);fw.sub(C.t.copy(ax).multiplyScalar(fw.dot(ax))).normalize();const sd=C.sd.copy(ax).cross(fw);
+  const C=R3B_CL,a0=r3bWP(B[I.Hips],C.a0),a1=r3bWP(B[I.Spine2],C.a1),ax=a1.sub(a0).normalize();
+  const fw=r3bDir(I.Spine1,R3B_FWD,C.fw);fw.sub(C.t.copy(ax).multiplyScalar(fw.dot(ax))).normalize();const sd=C.sd.copy(ax).cross(fw);
   const v=C.v,polar=(p,o)=>{const d=C.d.copy(p).sub(a0),h=d.dot(ax);d.sub(C.t.copy(ax).multiplyScalar(h));o[0]=h;o[1]=Math.atan2(d.dot(sd),d.dot(fw));o[2]=d.length();return d;};
   const TH=R3B.torH,o=C.o;if(!reuse){   // skin the torso points to this pose (bind matrix is identity; the mesh's own mirror for a left-hander is left out, as three.js cancels it when it draws) (the same sums three.js does per vertex, with each bone's matrix worked out once)
     const sk=M.skeleton,TB=R3B.torB,TI=R3B.torI,TW=R3B.torW,done=C.done,mats=C.mats,b=C.b,u=C.u;done.length=0;
@@ -4845,19 +4854,21 @@ function r3bClear(reuse){const I=R3B.idx,B=R3B.bones,M=R3B.mesh;if(!R3B.tor)r3bT
       for(let e=0;e<4;e++){const w=TW[k*4+e];if(w!==0){const bi=TI[k*4+e];if(!done[bi]){done[bi]=true;(mats[bi]||(mats[bi]=new THREE.Matrix4())).multiplyMatrices(sk.bones[bi].matrixWorld,sk.boneInverses[bi]);}v.addScaledVector(u.copy(b).applyMatrix4(mats[bi]),w);}}
       polar(v,o);TH[k*3]=o[0];TH[k*3+1]=o[1];TH[k*3+2]=o[2];}}
   let best=0,dir=null;const P=C.P,p=C.p,q=C.q;
-  for(const side of R3B_SIDES){B[I[side+'Arm']].getWorldPosition(P[0]);B[I[side+'ForeArm']].getWorldPosition(P[1]);B[I[side+'Hand']].getWorldPosition(P[2]);
-    for(const[i0,i1,t,r]of R3B_CLPTS){p.copy(P[i0]).lerp(P[i1],t);const rd=polar(p,q);let R=-1;
+  for(let si=0;si<R3B_SIDES.length;si++){const side=R3B_SIDES[si];B[I[side+'Arm']].getWorldPosition(P[0]);B[I[side+'ForeArm']].getWorldPosition(P[1]);B[I[side+'Hand']].getWorldPosition(P[2]);
+    for(let ci=0;ci<R3B_CLPTS.length;ci++){const cp=R3B_CLPTS[ci],i0=cp[0],i1=cp[1],t=cp[2],r=cp[3];p.copy(P[i0]).lerp(P[i1],t);const rd=polar(p,q);let R=-1;
       for(let k=0;k<R3B.tor.length;k++){if(Math.abs(TH[k*3]-q[0])>6)continue;let da=Math.abs(TH[k*3+1]-q[1]);if(da>Math.PI)da=2*Math.PI-da;if(da>.28)continue;if(TH[k*3+2]>R)R=TH[k*3+2];}
       if(R>0){const need=R+r-q[2];if(need>best){best=need;dir=C.dir.copy(rd).normalize();}}}}
-  return{need:best,fw:dir||fw};}
+  const res=C.res;res.need=best;res.fw=dir||fw;return res;}
 // scratch for r3bClear (it runs up to three times a frame)
-const R3B_SIDES=['Left','Right'],R3B_CLPTS=[[0,1,.8,6],[1,1,0,6],[1,2,.5,5.5],[1,2,1,5]];
+const R3B_FWD=[0,0,1],R3B_SIDES=['Left','Right'],R3B_CLPTS=[[0,1,.8,6],[1,1,0,6],[1,2,.5,5.5],[1,2,1,5]];
 const R3B_CL={t:new THREE.Vector3(),sd:new THREE.Vector3(),v:new THREE.Vector3(),d:new THREE.Vector3(),b:new THREE.Vector3(),u:new THREE.Vector3(),p:new THREE.Vector3(),dir:new THREE.Vector3(),
-  P:[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()],o:[0,0,0],q:[0,0,0],done:[],mats:[]};
+  P:[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()],o:[0,0,0],q:[0,0,0],done:[],mats:[],
+  a0:new THREE.Vector3(),a1:new THREE.Vector3(),fw:new THREE.Vector3(),res:{need:0,fw:null}};
 // palms onto the grip line from Hpalm along cd (rig space), pushed clear of the torso; returns the corrected grip point
-function r3bArms(H,cd,free){const Hg=new THREE.Vector3(...H),cdv=new THREE.Vector3(...cd),push=new THREE.Vector3();
-  let Rp=null;if(free){const I=R3B.idx,B=R3B.bones;Rp=r3bWP(B[I.RightHand]).add(r3bWP(B[I.RightHandMiddle1])).multiplyScalar(.5);if(R3B.rpOv)Rp=R3B.rpOv(Rp);}
-  const set=()=>{const g2=Hg.clone().add(push);r3bIK('Left',g2);r3bIK('Right',free?Rp.clone().add(push):g2.clone().add(cdv.clone().multiplyScalar(R3B_GRIP)));return g2;};
+const R3B_ARS={Hg:new THREE.Vector3(),cdv:new THREE.Vector3(),push:new THREE.Vector3(),g2:new THREE.Vector3(),t:new THREE.Vector3(),u:new THREE.Vector3(),Rp:new THREE.Vector3(),Rm:new THREE.Vector3()};
+function r3bArms(H,cd,free){const S=R3B_ARS,Hg=S.Hg.set(H[0],H[1],H[2]),cdv=S.cdv.set(cd[0],cd[1],cd[2]),push=S.push.set(0,0,0);
+  let Rp=null;if(free){const I=R3B.idx,B=R3B.bones;Rp=r3bWP(B[I.RightHand],S.Rp).add(r3bWP(B[I.RightHandMiddle1],S.Rm)).multiplyScalar(.5);if(R3B.rpOv)Rp=R3B.rpOv(Rp);}
+  const set=()=>{const g2=S.g2.copy(Hg).add(push);r3bIK('Left',g2);r3bIK('Right',free?S.t.copy(Rp).add(push):S.t.copy(g2).add(S.u.copy(cdv).multiplyScalar(R3B_GRIP)));return g2;};
   for(let it=0;it<(window.__noIK?0:3);it++){const c2=r3bClear(it>0);if(c2.need<.3)break;push.add(c2.fw.multiplyScalar(Math.min(c2.need,R3B.pushCap??14)));set();}
   const g=set();R3B.lastPush=push.length();return[g.x,g.y,g.z];}
 const r3bT=(R,v)=>[R[0][0]*v[0]+R[0][1]*v[1]+R[0][2]*v[2],R[1][0]*v[0]+R[1][1]*v[1]+R[1][2]*v[2],R[2][0]*v[0]+R[2][1]*v[1]+R[2][2]*v[2]];      // R^T v (rows of R^T are the columns)
