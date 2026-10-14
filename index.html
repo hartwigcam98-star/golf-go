@@ -326,7 +326,8 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
 .specbar #specFF{padding:0 14px;min-width:78px}.specbar #specFF.on{background:#2f7d4f}
 #game.spec #bottom,#game.spec #ffBtn,#game.spec #lookBtn,#game.spec #camBtn,#game.spec #replayBtn,#game.spec #mFlag{display:none!important}
 .lb .empty{justify-content:center;color:#51606b;font-weight:600;background:none!important}
-#dNameIn{width:100%;box-sizing:border-box;font:inherit;font-size:20px;font-weight:700;padding:12px 14px;border-radius:14px;border:2px solid #12283b;background:#fff;color:#12283b;margin:4px 0 12px}
+button.lnk{font:inherit;color:inherit;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+#dNameIn,.din{width:100%;box-sizing:border-box;font:inherit;font-size:20px;font-weight:700;padding:12px 14px;border-radius:14px;border:2px solid #12283b;background:#fff;color:#12283b;margin:4px 0 12px}
 .careerbtn span{font-family:"Barlow Semi Condensed",system-ui,sans-serif;font-size:15px;font-weight:700;opacity:.85}
 #careerM .card{max-height:calc(100dvh - 32px);overflow:auto}
 .ctabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:#e3dccb;border-radius:12px;padding:3px;margin:8px 0 10px}
@@ -668,6 +669,14 @@ td.won{background:rgba(255,201,60,.38)}
         <input id="dNameIn" maxlength="16" autocomplete="nickname" autocapitalize="words" spellcheck="false" placeholder="Your name">
         <button class="primary disp" id="dNameGo">Tee off</button>
       </div>
+      <div id="dAuth" hidden>
+        <p id="dAuthMsg">Sign in so your round counts. One official round a day per player, whether you play in Safari, the home-screen app or another phone. We’ll email you a 6-digit code.</p>
+        <input id="dAuthEmail" class="din" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com">
+        <input id="dAuthCode" class="din" inputmode="numeric" autocomplete="one-time-code" maxlength="6" spellcheck="false" placeholder="6-digit code" hidden>
+        <div class="msub warn" id="dAuthErr" hidden></div>
+        <button class="primary disp" id="dAuthGo">Email me a code</button>
+        <button class="ghost disp" id="dAuthBack">Back</button>
+      </div>
       <div id="dBoard" hidden>
         <div class="dtabs" role="group" aria-label="Leaderboard view"><button id="dTabCal">Calendar</button><button id="dTabDay" class="on">By day</button><button id="dTabAll">All-time</button></div>
         <div id="dCal" hidden>
@@ -681,6 +690,7 @@ td.won{background:rgba(255,201,60,.38)}
         <ol class="lb" id="dList"></ol>
         <button class="primary disp" id="dPlay" hidden>Play today’s round</button>
         <button class="ghost disp" id="dShare" hidden>Share my score</button>
+        <div class="msub" id="dWho" hidden><span id="dWhoTxt"></span> · <button class="lnk" id="dSignOut">Sign out</button></div>
       </div>
       <div id="dCardV" hidden>
         <div class="msub" id="dcSub"></div>
@@ -3258,6 +3268,28 @@ function dailyStore(d){try{const t=JSON.stringify(d);localStorage.setItem(DAILY.
 function dailyToday(){const day=dailyDay(),d=dailyLoad();return d&&d.day===day?d:null;}
 function dailyPid(){let id=null;try{id=localStorage.getItem('golf-pid');}catch(e){}if(!id){id='p'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);try{localStorage.setItem('golf-pid',id);}catch(e){}}return id;}
 function dailyName(){try{return localStorage.getItem('golf-name')||'';}catch(e){return'';}}
+/* sign-in for the daily (Oct 2026): a 6-digit code emailed by Supabase (not a link: a link opens in Safari, and Safari and the
+   home-screen app keep separate storage), so one player is one account in either, or on another phone. The server allows one
+   daily score per account per day; before teeing off the game asks whether this account has already played today. */
+const AUTH_KEY='golf-auth';
+/* required sign-in is switched on for everyone with AUTH_REQUIRED once the code emails work; until then ?signin=1 turns it on for
+   this phone/browser (and ?signin=0 off again), for testing on the live site */
+const AUTH_REQUIRED=false;
+const authOn=(()=>{try{const m=location.search.match(/[?&]signin=([01])/);if(m)localStorage.setItem('golf-signin',m[1]);return AUTH_REQUIRED||localStorage.getItem('golf-signin')==='1';}catch(e){return AUTH_REQUIRED;}})();
+function authLoad(){try{const a=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');return a&&a.refresh_token&&a.user&&a.user.id?a:null;}catch(e){return null;}}
+function authStore(a){try{if(a)localStorage.setItem(AUTH_KEY,JSON.stringify(a));else localStorage.removeItem(AUTH_KEY);}catch(e){}}
+function authKeep(s){if(!s||!s.access_token||!s.user)return null;const a={access_token:s.access_token,refresh_token:s.refresh_token,expires_at:s.expires_at||Math.floor(Date.now()/1000)+(s.expires_in||3600),user:{id:s.user.id,email:s.user.email||''}};authStore(a);return a;}
+const authUser=()=>{const a=authLoad();return a?a.user:null;};
+async function authPost(path,body,tok){const r=await fetch(DAILY.url+'/auth/v1/'+path,{method:'POST',headers:{apikey:DAILY.key,'Content-Type':'application/json',...(tok?{Authorization:'Bearer '+tok}:{})},body:JSON.stringify(body)});
+  let j=null;try{j=await r.json();}catch(e){}return{ok:r.ok,status:r.status,j};}
+// a current access token, refreshed a minute before it runs out; null when signed out (or the account's session has ended)
+async function authToken(){const a=authLoad();if(!a)return null;if(a.expires_at-60>Date.now()/1000)return a.access_token;
+  try{const r=await authPost('token?grant_type=refresh_token',{refresh_token:a.refresh_token});if(r.ok&&r.j&&r.j.access_token){const k=authKeep(r.j);return k&&k.access_token;}
+    if(r.status>=400&&r.status<500)authStore(null);}catch(e){}return null;}
+function authSignOut(){const a=authLoad();authStore(null);if(a)authPost('logout',{},a.access_token).catch(()=>{});}
+// has this account already got an official round for the day? (the score row, or null; undefined if the server can't be reached)
+async function dailyMine(day){const u=authUser();if(!u||!DAILY.url)return null;
+  try{const r=await fetch(DAILY.url+'/rest/v1/daily_scores?select=course,strokes,to_par,holes&day=eq.'+day+'&user_id=eq.'+u.id+'&limit=1',{headers:dailyHdr()});if(!r.ok)return undefined;const j=await r.json();return j[0]||null;}catch(e){return undefined;}}
 function dailySave(o={}){const d=dailyLoad()||{};if(d.day!==G.dailyDay)return;
   Object.assign(d,{ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,pend:o.pend||null,ts:Date.now()});dailyStore(d);}
 function dailyWeather(day){if(typeof R3==='undefined'||!R3.on||typeof r3ApplyWx!=='function')return;r3ApplyWx(Math.floor(rng(dailyNum(day)*31+7)()*4)%4,true);}
@@ -3267,6 +3299,13 @@ function dailyLeave(){if(G.mode!=='daily'&&G.mode!=='spectate'&&G.mode!=='career
 function dailyPlay(){const day=dailyDay(),cid=dailyCourse(day);let d=dailyToday();
   if(d&&d.done){openDailyBoard(false);return;}
   if(!dailyName()){openDailyName();return;}
+  const fresh=!d||(!d.hi&&!d.strokes&&!(d.scores||[]).some(x=>x));   // a round already under way (from before sign-in) carries on
+  if(fresh&&authOn&&!authUser()){openDailyAuth(dailyPlay);return;}
+  if(fresh&&dailyPlay.checked!==day){$('dPlay').disabled=true;$('dNameGo').disabled=true;
+    dailyMine(day).then(row=>{$('dPlay').disabled=false;$('dNameGo').disabled=false;
+      if(row){dailyStore({v:1,day,cid:row.course||cid,hi:17,scores:Array.isArray(row.holes)?row.holes:[],strokes:0,mid:false,ps:0,done:true,posted:true,total:row.strokes,toPar:row.to_par,elsewhere:true,ts:Date.now()});
+        toast('ALREADY PLAYED','You posted today’s round on another phone or browser','#fff6dc');openDailyBoard(false);return;}
+      dailyPlay.checked=day;dailyPlay();});return;}
   endMatchMode();$('dailyM').hidden=true;
   if(d&&!d.done&&d.cid!==cid)d=null;   // today's course was changed after this round started: start over on the new one
   if(!d){d={v:1,day,cid,hi:0,scores:[],strokes:0,mid:false,ps:3,done:false,posted:false,ts:Date.now()};dailyStore(d);}
@@ -3275,14 +3314,19 @@ function dailyPlay(){const day=dailyDay(),cid=dailyCourse(day);let d=dailyToday(
   if(((d.mid&&d.strokes>0)||d.pend)&&d.ball){$('introM').hidden=true;G.strokes=d.strokes;G.ball={x:d.ball.x,y:d.ball.y};G.prev=d.prev?{x:d.prev.x,y:d.prev.y}:{...G.ball};if(d.wind)G.wind=d.wind;
     prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];if(!pendResume(d.pend))toast('WELCOME BACK','Daily round \u00b7 hole '+(d.hi+1),'#8ee6a8');}}
 function dailyFinish(){const d=dailyLoad();if(!d||d.day!==G.dailyDay)return;d.scores=G.scores.slice();d.done=true;d.mid=false;d.total=G.scores.reduce((a,b)=>a+(b||0),0);d.toPar=roundDiff();dailyStore(d);dailyPost();}
-async function dailySend(d){
+async function dailySend(d){const tok=await authToken(),u=authUser();
   const body={day:d.day,course:d.cid,player_id:dailyPid(),name:dailyName()||'Golfer',strokes:d.total,to_par:d.toPar,holes:d.scores};
+  if(u&&tok)body.user_id=u.id;
   if(d.shots&&d.shots.length)body.shots={v:1,ch:CHAR_ID,s:d.shots};
-  const send=()=>fetch(DAILY.url+'/rest/v1/daily_scores',{method:'POST',headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(body)});
+  const hd=dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'});if(tok)hd.Authorization='Bearer '+tok;
+  const send=()=>fetch(DAILY.url+'/rest/v1/daily_scores',{method:'POST',headers:hd,body:JSON.stringify(body)});
   let r=await send();if(!r.ok&&r.status!==409&&body.shots){delete body.shots;r=await send();}return r;}
 async function dailyPost(){const d=dailyLoad();if(!d||!d.done||d.posted||!DAILY.url)return false;
+  const note=t=>{const n=$('cNote');if(n&&!$('cardM').hidden&&G.mode==='daily')n.textContent=t;};
   try{const r=await dailySend(d);
-    if(r.ok||r.status===409){const c=dailyLoad();if(c&&c.day===d.day){c.posted=true;dailyStore(c);}const n=$('cNote');if(n&&!$('cardM').hidden&&G.mode==='daily')n.textContent='Posted to today’s leaderboard.';return true;}}catch(e){}
+    if(r.ok||r.status===409){const c=dailyLoad();if(c&&c.day===d.day){c.posted=true;dailyStore(c);}
+      note(r.ok?'Posted to today’s leaderboard.':'You already have an official round today (from another phone or browser), so this one wasn’t posted.');return true;}
+    if((r.status===401||r.status===403)&&!authUser()){note('Sign in to post this round: open the daily leaderboard.');return false;}}catch(e){}
   const n=$('cNote');if(n&&!$('cardM').hidden&&G.mode==='daily')n.textContent='Couldn’t reach the leaderboard. It will post next time you open the game.';return false;}
 /* a finished daily round that couldn't be posted (no signal) is set aside when the date changes, so the next day's round
    doesn't overwrite it, and is posted the next time the game opens online. Dropped if the leaderboard turns it down. */
@@ -3302,14 +3346,33 @@ const pKey=r=>{const n=String(r.name||'').trim().toLowerCase();return PLAYER_MER
 const pMine=(r,pid)=>r.player_id===pid||(PLAYER_MERGE.includes(String(dailyName()||'').trim().toLowerCase())&&pKey(r)==='n:'+String(dailyName()).trim().toLowerCase());
 const pBest=rows=>{const seen=new Set();return rows.filter(r=>{const k=pKey(r);if(seen.has(k))return false;seen.add(k);return true;});};   // rows come best first
 async function dailyFetch(day){if(!DAILY.url)return null;try{const r=await fetch(DAILY.url+'/rest/v1/daily_scores?select=name,strokes,to_par,player_id,holes,course&day=eq.'+day+'&order=strokes.asc,created_at.asc&limit=300',{headers:dailyHdr()});if(!r.ok)return null;return pBest(await r.json());}catch(e){return null;}}
-function openDailyName(){G.paused=true;$('dCardV').hidden=true;$('menuM').hidden=true;$('introM').hidden=true;$('dailyM').hidden=false;$('dName').hidden=false;$('dBoard').hidden=true;
+function openDailyName(){G.paused=true;$('dCardV').hidden=true;$('menuM').hidden=true;$('introM').hidden=true;$('dailyM').hidden=false;$('dAuth').hidden=true;$('dName').hidden=false;$('dBoard').hidden=true;
   const day=dailyDay();$('dEyebrow').textContent='Daily round \u00b7 '+dailyNice(day);$('dTitle').textContent=COURSES[dailyCourse(day)].name;
   $('dNameIn').value=dailyName();setTimeout(()=>$('dNameIn').focus(),60);}
+function openDailyAuth(next){G.paused=true;$('dCardV').hidden=true;$('menuM').hidden=true;$('introM').hidden=true;$('cardM').hidden=true;$('dailyM').hidden=false;$('dName').hidden=true;$('dBoard').hidden=true;$('dAuth').hidden=false;
+  const day=dailyDay();$('dEyebrow').textContent='Daily round \u00b7 '+dailyNice(day);$('dTitle').textContent='Sign in';
+  DAILY.authNext=next||null;DAILY.authStep='email';$('dAuthCode').hidden=true;$('dAuthCode').value='';$('dAuthErr').hidden=true;$('dAuthEmail').disabled=false;
+  $('dAuthGo').textContent='Email me a code';$('dAuthGo').disabled=false;try{$('dAuthEmail').value=$('dAuthEmail').value||localStorage.getItem('golf-auth-email')||'';}catch(e){}
+  setTimeout(()=>$('dAuthEmail').focus(),60);}
+async function dailyAuthGo(){const err=t=>{$('dAuthErr').textContent=t;$('dAuthErr').hidden=!t;},btn=$('dAuthGo');A();
+  const email=$('dAuthEmail').value.trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err('Enter your email address.');$('dAuthEmail').focus();return;}
+  btn.disabled=true;err('');
+  try{if(DAILY.authStep==='email'){const r=await authSendCode(email);
+      if(!r.ok){err(r.status===429?'Too many codes asked for just now. Wait a minute and try again.':'Couldn’t send the code. Check the address and try again.');btn.disabled=false;return;}
+      try{localStorage.setItem('golf-auth-email',email);}catch(e){}
+      DAILY.authStep='code';$('dAuthEmail').disabled=true;$('dAuthCode').hidden=false;btn.textContent='Sign in';$('dAuthMsg').textContent='We sent a 6-digit code to '+email+'. It can take a minute; check spam too.';setTimeout(()=>$('dAuthCode').focus(),60);btn.disabled=false;return;}
+    const code=$('dAuthCode').value.replace(/\D/g,'');if(code.length!==6){err('Enter the 6-digit code from the email.');btn.disabled=false;return;}
+    const r=await authVerify(email,code);if(!r.ok||!authUser()){err('That code didn’t work. Check it, or go back and send a new one.');btn.disabled=false;return;}
+    $('dAuth').hidden=true;$('dAuthMsg').textContent='Sign in so your round counts. One official round a day per player, whether you play in Safari, the home-screen app or another phone. We’ll email you a 6-digit code.';
+    toast('SIGNED IN',email,'#8ee6a8');const nx=DAILY.authNext;DAILY.authNext=null;if(nx)nx();else openDailyBoard(false);}
+  catch(e){err('Couldn’t reach the server. Check your connection.');btn.disabled=false;}}
+async function authSendCode(email){return authPost('otp',{email,create_user:true});}
+async function authVerify(email,token){const r=await authPost('verify',{type:'email',email,token});if(r.ok&&r.j&&r.j.access_token)authKeep(r.j);return r;}
 function dailyNameGo(){const v=$('dNameIn').value.replace(/\s+/g,' ').trim().slice(0,16);if(!v){$('dNameIn').focus();return;}try{localStorage.setItem('golf-name',v);}catch(e){}A();dailyPlay();}
 const escH=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const DAILY_START='2026-10-01';
 function dayShift(day,k){const[y,m,d]=day.split('-').map(Number);return new Date(Date.UTC(y,m-1,d)+k*864e5).toISOString().slice(0,10);}
-async function openDailyBoard(fromRound,day,tab){G.paused=true;$('dCardV').hidden=true;$('menuM').hidden=true;$('introM').hidden=true;$('cardM').hidden=true;$('dailyM').hidden=false;$('dName').hidden=true;$('dBoard').hidden=false;
+async function openDailyBoard(fromRound,day,tab){G.paused=true;$('dCardV').hidden=true;$('menuM').hidden=true;$('introM').hidden=true;$('cardM').hidden=true;$('dailyM').hidden=false;$('dName').hidden=true;$('dAuth').hidden=true;$('dBoard').hidden=false;
   const today=dailyDay();day=day||today;tab=tab||'day';DAILY.view={day,tab};const me=dailyToday(),isToday=day===today;
   $('dTabDay').classList.toggle('on',tab==='day');$('dTabAll').classList.toggle('on',tab==='all');$('dTabCal').classList.toggle('on',tab==='cal');$('dNav').hidden=tab!=='day';
   const cal=tab==='cal';$('dCal').hidden=!cal;$('dList').hidden=cal;$('dStatus').hidden=cal;
@@ -3317,6 +3380,7 @@ async function openDailyBoard(fromRound,day,tab){G.paused=true;$('dCardV').hidde
   $('dPrev').disabled=day<=DAILY_START;$('dNext').disabled=day>=today;$('dDate').textContent=isToday?'Today \u00b7 '+dailyNice(day):new Date(day+'T12:00:00Z').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});
   $('dEyebrow').textContent=tab==='all'?'Daily round \u00b7 all-time':'Daily round \u00b7 '+dailyNice(day);$('dTitle').textContent=tab==='all'?'Standings':COURSES[dailyCourse(day)].name;
   $('dPlay').hidden=!(tab==='day'&&isToday&&!(me&&me.done));$('dPlay').textContent=me&&!me.done?'Continue today’s round':'Play today’s round';$('dShare').hidden=!(tab==='day'&&isToday&&me&&me.done);
+  {const u=authUser();$('dWho').hidden=!u;if(u)$('dWhoTxt').textContent='Signed in as '+u.email;}
   const list=$('dList');list.innerHTML='<li class="empty">Loading…</li>';$('dStatus').textContent='';
   if(me&&me.done&&!me.posted)await dailyPost();
   if(tab==='all'){await dailyAllTime();return;}
@@ -6925,7 +6989,10 @@ $('mCareer').addEventListener('click',()=>{A();if(careerBusy(1,'mCareerSub'))ret
       try{dailyMenuLine();}catch(e){}const sb=$('mDailySub');if(sb)sb.textContent='Today’s daily round has been reset.';},2500);});
   ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,stop));}
 $('mDaily').addEventListener('click',e=>{if($('mDaily').dataset.rst){delete $('mDaily').dataset.rst;return;}A();sfx.tick();const me=dailyToday();DAILY.calSel=dailyDay();if(me||dailyName())openDailyBoard(false,dailyDay(),'cal');else openDailyName();});
-$('dNameGo').addEventListener('click',dailyNameGo);$('dNameIn').addEventListener('keydown',e=>{if(e.key==='Enter')dailyNameGo();});
+$('dNameGo').addEventListener('click',dailyNameGo);
+$('dAuthGo').addEventListener('click',dailyAuthGo);for(const id of['dAuthEmail','dAuthCode'])$(id).addEventListener('keydown',e=>{if(e.key==='Enter')dailyAuthGo();});
+$('dAuthBack').addEventListener('click',()=>{A();if(DAILY.authStep==='code'){DAILY.authStep='email';$('dAuthCode').hidden=true;$('dAuthEmail').disabled=false;$('dAuthGo').textContent='Email me a code';$('dAuthErr').hidden=true;return;}$('dAuth').hidden=true;openDailyBoard(false);});
+$('dSignOut').addEventListener('click',()=>{A();authSignOut();dailyPlay.checked=null;openDailyBoard(false);});$('dNameIn').addEventListener('keydown',e=>{if(e.key==='Enter')dailyNameGo();});
 $('dPlay').addEventListener('click',()=>{A();dailyPlay();});
 $('dList').addEventListener('click',e=>{const li=e.target.closest('li[data-i]');if(li){A();openDailyCard(+li.dataset.i);}});
 $('dList').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const li=e.target.closest('li[data-i]');if(li){A();openDailyCard(+li.dataset.i);}});
