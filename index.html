@@ -463,6 +463,10 @@ td.won{background:rgba(255,201,60,.38)}
 .pausecard h2{margin:0;font-size:34px;color:#12283b}
 .pausecard .psub{font-size:14px;color:#51606b;margin:2px 0 14px;font-variant-numeric:tabular-nums}
 .pausecard .ghost{margin-bottom:9px}
+.pcard td.yd{font-size:9.5px;color:#51606b;font-variant-numeric:tabular-nums}
+.pcard th.cur{background:#ffc93c;color:#12283b}
+.pcard td.cur{background:rgba(255,201,60,.18)}
+#pCardView .primary{margin-top:10px}
 .pset{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 10px;font-weight:700;color:#12283b;font-size:15px}
 .pseg{display:grid;gap:4px;background:#e3dccb;border-radius:10px;padding:3px}.hudseg button{font-size:12.5px!important}.pseg button{padding:7px 0;border-radius:8px;font-weight:700;font-size:14px;color:#12283b}.pseg button.on{background:#12283b;color:var(--sun)}
 .pset .pseg{width:150px;grid-template-columns:repeat(2,1fr)}
@@ -799,6 +803,7 @@ td.won{background:rgba(255,201,60,.38)}
         <h2 class="disp" id="pTitle">Paused</h2>
         <div class="psub" id="pSub"></div>
         <button class="primary disp" id="pResume">Resume</button>
+        <button class="ghost disp" id="pCard">Scorecard</button>
         <div class="pset"><span>Sound</span><div class="pseg" id="pSound"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
         <div class="pset"><span>Vibration</span><div class="pseg" id="pHap"><button data-h="1">On</button><button data-h="0">Off</button></div></div>
         <div class="pset"><span>HUD</span><div class="pseg hudseg" id="pHud"><button data-u="">Classic</button><button data-u="a">Arcade</button><button data-u="b">TV</button><button data-u="c">Minimal</button></div></div>
@@ -808,6 +813,13 @@ td.won{background:rgba(255,201,60,.38)}
         <button class="ghost disp" id="pFb">Send feedback</button>
         <button class="ghost disp" id="pQuit">Quit to home</button>
         <div class="msub" id="pQuitSub">Your round is saved. Continue it any time from the menu.</div>
+      </div>
+      <div id="pCardView" hidden>
+        <h2 class="disp">Scorecard</h2>
+        <div class="psub" id="pCardSub"></div>
+        <div class="scwrap pcard"><table id="pc1"></table></div><div class="scwrap pcard"><table id="pc2"></table></div>
+        <button class="primary disp" id="pCardResume">Resume</button>
+        <button class="textbtn" id="pCardBack">Back</button>
       </div>
       <div id="pFbView" hidden>
         <h2 class="disp">Feedback</h2>
@@ -3510,7 +3522,19 @@ function pauseSync(){document.querySelectorAll('#pSound button').forEach(b=>b.cl
 function openPause(){PAUSE.shot=pauseShot();G.paused=true;const c=pauseCtx();
   $('pSub').textContent=(CUR?CUR.name:'')+' \u00b7 hole '+c.hole+(c.thru?' \u00b7 '+fmtDiff(c.toPar)+' thru '+c.thru:'');
   $('pQuitSub').textContent=G.mode==='daily'?'Today\u2019s round is saved. Pick it up from the Daily round button.':G.mode==='career'?'Your match is saved. Continue it from the menu.':G.mode==='practice'?'Practice holes aren\u2019t saved.':'Your round is saved. Continue it any time from the menu.';
-  $('pMain').hidden=false;$('pFbView').hidden=true;pauseSync();$('pauseM').hidden=false;}
+  $('pMain').hidden=false;$('pFbView').hidden=true;$('pCardView').hidden=true;pauseSync();$('pauseM').hidden=false;}
+/* the pause-menu scorecard: yardage and par for every hole, with the round's scores so far (a match shows both players) */
+function pauseCardTable(from,label,withTot){const idx=[...Array(9)].map((_,k)=>from+k),cur=G.hi,cl=i=>i===cur?' class="cur"':'';
+  const yd=idx.map(i=>holeLen(i)),ydAll=TB.map((_,i)=>holeLen(i)).reduce((a,b)=>a+b,0),sum=a=>a.reduce((x,y)=>x+(y||0),0);
+  const cell=(i,v)=>'<td'+cl(i)+'>'+(v?'<span class="sc '+scClass(v,TB[i].par)+'">'+v+'</span>':'')+'</td>';
+  const row=(nm,sc)=>'<tr><td>'+escH(nm)+'</td>'+idx.map(i=>cell(i,sc[i])).join('')+'<td class="tot">'+(sum(idx.map(i=>sc[i]))||'')+'</td>'+(withTot?'<td class="tot">'+(sum(sc)||'')+'</td>':'')+'</tr>';
+  const rows=MATCH.on&&MATCH.sy?[row('You',MATCH.sy),row((MATCH.r?rn(MATCH.r):'Rival').split(' ')[0].slice(0,9),MATCH.so||[])]:[row(G.mode==='daily'?((dailyName()||'You').split(' ')[0].slice(0,9)):'You',G.scores)];
+  return '<thead><tr><th>Hole</th>'+idx.map(i=>'<th'+cl(i)+'>'+(i+1)+'</th>').join('')+'<th class="tot">'+label+'</th>'+(withTot?'<th class="tot">Tot</th>':'')+'</tr></thead><tbody>'
+    +'<tr><td>Yds</td>'+idx.map((i,k)=>'<td class="yd'+(i===cur?' cur':'')+'">'+yd[k]+'</td>').join('')+'<td class="tot yd">'+yd.reduce((a,b)=>a+b,0)+'</td>'+(withTot?'<td class="tot yd">'+ydAll+'</td>':'')+'</tr>'
+    +'<tr><td>Par</td>'+idx.map(i=>'<td'+cl(i)+'>'+TB[i].par+'</td>').join('')+'<td class="tot">'+sum(idx.map(i=>TB[i].par))+'</td>'+(withTot?'<td class="tot">'+TOTAL_PAR+'</td>':'')+'</tr>'
+    +rows.join('')+'</tbody>';}
+function openPauseCard(){const c=pauseCtx();$('pCardSub').textContent=(CUR?CUR.name+' \u00b7 ':'')+(CUR&&CUR.tees?CUR.tees+' \u00b7 ':'')+'hole '+c.hole+(c.thru?' \u00b7 '+fmtDiff(c.toPar)+' thru '+c.thru:'');
+  $('pc1').innerHTML=pauseCardTable(0,'Out',false);$('pc2').innerHTML=pauseCardTable(9,'In',true);$('pMain').hidden=true;$('pCardView').hidden=false;}
 function closePause(){$('pauseM').hidden=true;G.paused=false;}
 function openFeedback(){$('pMain').hidden=true;$('pFbView').hidden=false;$('fbStatus').textContent='';$('fbStatus').className='';$('fbSend').disabled=false;
   const ok=!!PAUSE.shot;$('fbShotRow').hidden=!ok;if(ok)$('fbShotImg').src=PAUSE.shot;$('fbShotOn').checked=ok;}
@@ -3565,6 +3589,9 @@ async function faqAsk(){const q=$('faqQ').value.trim();if(q.length<3){$('faqQ').
   h.wait=false;faqShow();$('faqGo').disabled=false;}
 $('mFaq').addEventListener('click',()=>{A();openFaq();});
 $('pFaq').addEventListener('click',()=>{A();openFaq();});
+$('pCard').addEventListener('click',()=>{A();openPauseCard();});
+$('pCardBack').addEventListener('click',()=>{A();$('pCardView').hidden=true;$('pMain').hidden=false;});
+$('pCardResume').addEventListener('click',()=>{A();$('pResume').click();});
 $('faqClose').addEventListener('click',()=>{A();$('faqM').hidden=true;sfx.tick();});
 $('faqGo').addEventListener('click',()=>{A();faqAsk();});
 $('faqQ').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();faqAsk();}});
@@ -6951,6 +6978,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-14-pcard",date:"Oct 14, 2026",title:"Scorecard in the pause menu",items:[
+    "Tap the menu during a round and choose Scorecard to see every hole's yardage and par, plus your scores so far. The hole you're on is highlighted, and in a match your rival's scores show too."]},
   {id:"2026-10-14-daily",date:"Oct 14, 2026",title:"Today's daily: Dove Valley Ranch",items:[
     "Today's daily round moved from Hazeltine to Dove Valley Ranch in Cave Creek, Arizona, a course nobody had played yet. A Hazeltine daily you'd already started starts over on Dove Valley."]},
   {id:"2026-10-14-pinchip",date:"Oct 14, 2026",title:"Full height readout",items:[
