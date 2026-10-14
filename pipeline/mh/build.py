@@ -60,10 +60,6 @@ for g in G:
         root = ExportService.create_character_copy(bm, name_suffix='_x')
         xb = ObjectService.find_object_of_type_amongst_nearest_relatives(root, 'Basemesh')
         print('modifiers', [(m.name, m.type) for m in xb.modifiers], flush=True)
-        if g.get('keep_scalp'):   # the hair's delete-group mask would cut the scalp (and the sides of the head) away under it
-            hs = [os.path.splitext(n)[0].lower() for sub, n in g['assets'] if sub == 'hair']
-            for m in list(xb.modifiers):
-                if m.type == 'MASK' and any(h in m.name.lower() for h in hs): print('drop mask', m.name, flush=True); xb.modifiers.remove(m)
         ExportService.bake_modifiers_remove_helpers(xb, bake_masks=True, bake_subdiv=True, remove_helpers=True, also_proxy=True)
         bpy.ops.object.select_all(action='DESELECT'); root.select_set(True)
         for c in ObjectService.get_list_of_children(root): c.select_set(True)

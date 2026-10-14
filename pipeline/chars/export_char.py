@@ -207,7 +207,7 @@ def export(path, cid, skip=(), atlas=2048, keep_alpha=(), alpha_from=None, blend
     if blender and body:   # skin under the clothes: drop body triangles lying just inside a garment (stops the skin poking through)
         from scipy.spatial import cKDTree
         MIDa = np.array(MID); isb = MIDa == body
-        cl = np.array([not isb[i] and not any(w in MIDa[i].lower() for w in ('eye', 'brow', 'lash', 'teeth', 'tongue', 'hair', 'short0', 'long0', 'low-poly', 'high-poly')) for i in range(len(P))])
+        cl = np.array([not isb[i] and not any(w in MIDa[i].lower() for w in ('eye', 'brow', 'lash', 'teeth', 'tongue', 'hair', 'afro', 'bob0', 'short0', 'long0', 'low-poly', 'high-poly')) for i in range(len(P))])
         if cl.any():
             T = cKDTree(P[cl]); dd, ii = T.query(P[isb]); ii = np.where(cl)[0][ii]; cov = np.zeros(len(P), bool); cov[np.where(isb)[0]] = r3_outward(P, Nn, isb, cl, dd, ii, cover_cm)
             I3 = np.array(IDX, np.int64).reshape(-1, 3); keep = ~(cov[I3[:, 0]] & cov[I3[:, 1]] & cov[I3[:, 2]])
