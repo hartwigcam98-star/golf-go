@@ -6988,7 +6988,7 @@ $('mCareer').addEventListener('click',()=>{A();if(careerBusy(1,'mCareerSub'))ret
     tm=setTimeout(()=>{tm=null;btn.dataset.rst='1';try{localStorage.removeItem(DAILY.save);}catch(e){}sfx.tick();
       try{dailyMenuLine();}catch(e){}const sb=$('mDailySub');if(sb)sb.textContent='Today’s daily round has been reset.';},2500);});
   ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,stop));}
-$('mDaily').addEventListener('click',e=>{if($('mDaily').dataset.rst){delete $('mDaily').dataset.rst;return;}A();sfx.tick();const me=dailyToday();DAILY.calSel=dailyDay();if(me||dailyName())openDailyBoard(false,dailyDay(),'cal');else openDailyName();});
+$('mDaily').addEventListener('click',e=>{if($('mDaily').dataset.rst){delete $('mDaily').dataset.rst;return;}A();sfx.tick();DAILY.calSel=dailyDay();openDailyBoard(false,dailyDay(),'cal');});   // anyone can look at the leaderboards; the name is asked for at Play
 $('dNameGo').addEventListener('click',dailyNameGo);
 $('dAuthGo').addEventListener('click',dailyAuthGo);for(const id of['dAuthEmail','dAuthCode'])$(id).addEventListener('keydown',e=>{if(e.key==='Enter')dailyAuthGo();});
 $('dAuthBack').addEventListener('click',()=>{A();if(DAILY.authStep==='code'){DAILY.authStep='email';$('dAuthCode').hidden=true;$('dAuthEmail').disabled=false;$('dAuthGo').textContent='Email me a code';$('dAuthErr').hidden=true;return;}$('dAuth').hidden=true;openDailyBoard(false);});
@@ -7086,6 +7086,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-14-lbview",date:"Oct 14, 2026",title:"Leaderboards for everyone",items:[
+    "The Daily button now opens the leaderboards straight away, so you can see today's scores, the calendar and the all-time standings without entering a name. You pick your name when you tap Play."]},
   {id:"2026-10-14-meter",date:"Oct 14, 2026",title:"Fairer swing meter",items:[
     "Your tap now counts exactly when you make it, not at the last picture the screen drew. A well-timed swing stays well timed even when your phone drops a frame, and the meter keeps an even speed instead of briefly hurrying to catch up."]},
   {id:"2026-10-14-fixes",date:"Oct 14, 2026",title:"Fixes",items:[
