@@ -52,7 +52,14 @@ def gsi_sample(svc, site):
     base, typ = svc; s, w, n, e = site['bbox']; res = {'service': base}
     try: res['info'] = {k: v for k, v in S.get(base, params={'f': 'json'}, timeout=60).json().items() if k in ('name', 'description', 'pixelSizeX', 'pixelSizeY', 'extent', 'copyrightText', 'serviceDescription', 'units')}
     except Exception as ex: res['info_err'] = str(ex)
-    if typ != 'ImageServer': return res
+    if typ != 'ImageServer':   # coverage layers: which survey footprints touch the course box
+        try:
+            env=json.dumps({'xmin':w,'ymin':s,'xmax':e,'ymax':n,'spatialReference':{'wkid':4326}})
+            j=S.get(base+'/0/query',params={'geometry':env,'geometryType':'esriGeometryEnvelope','inSR':4326,'spatialRel':'esriSpatialRelIntersects','outFields':'*','returnGeometry':'false','f':'json'},timeout=60).json()
+            res['footprints']=[f.get('attributes') for f in j.get('features',[])][:20];res['covered']=len(j.get('features',[]))
+            if 'error' in j:res['q_err']=j['error']
+        except Exception as ex: res['q_err']=str(ex)
+        return res
     vals = []
     for la in np.linspace(s, n, 6):
         for lo in np.linspace(w, e, 6):
@@ -61,6 +68,12 @@ def gsi_sample(svc, site):
                 j = S.get(base + '/identify', params={'geometry': g, 'geometryType': 'esriGeometryPoint', 'returnGeometry': 'false', 'returnCatalogItems': 'false', 'f': 'json'}, timeout=60).json()
                 vals.append(j.get('value'))
             except Exception as ex: vals.append('ERR ' + str(ex)[:60])
+    ctl=[(53.3438,-6.2546),(51.8985,-8.4756),(53.5,-7.35),(52.67,-8.63),(53.27,-9.05)]
+    cv=[]
+    for la,lo in ctl:
+        try:cv.append(S.get(base+'/identify',params={'geometry':json.dumps({'x':lo,'y':la,'spatialReference':{'wkid':4326}}),'geometryType':'esriGeometryPoint','returnGeometry':'false','returnCatalogItems':'false','f':'json'},timeout=60).json().get('value'))
+        except Exception as ex:cv.append('ERR')
+    res['control']=cv
     res['values'] = vals; res['covered'] = sum(1 for v in vals if v not in (None, 'NoData', '') and not str(v).startswith('ERR'))
     if res['covered']:
         try:
@@ -98,7 +111,7 @@ if __name__ == '__main__':
             if site.get('country') == 'IE':
                 if svcs is None: svcs = gsi_services(); log('  GSI elevation services', svcs)
                 for sv in svcs:
-                    r = gsi_sample(sv, site); L.append(r); log('  GSI', sv[0], 'covered', r.get('covered'), 'values', r.get('values'), 'info', json.dumps(r.get('info', {}))[:600])
+                    r = gsi_sample(sv, site); L.append(r); log('  GSI', sv[0].split('/Lidar/')[-1], 'covered', r.get('covered'), 'control(Dublin,Cork,Midlands,Limerick,Galway)', r.get('control'), 'footprints', json.dumps(r.get('footprints'))[:800] if r.get('footprints') else '', r.get('q_err',''), 'px', (r.get('info') or {}).get('pixelSizeX'))
             tifs = sorted(os.path.join(OUT, f) for f in os.listdir(OUT) if f.startswith(site['id']) and f.endswith('.tif'))
             picture(site, O, tifs)
             json.dump({'osm': {k: v for k, v in (O or {}).items() if k != 'els'}, 'lidar': L}, open(f"{OUT}/{site['id']}.json", 'w'), indent=1)
