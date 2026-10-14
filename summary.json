@@ -1,0 +1,812 @@
+{
+ "started": "2026-10-14 22:53:32",
+ "courses": {
+  "desertcanyon": {
+   "osm": [
+    "relation/3536840"
+   ],
+   "names": [
+    "Desert Canyon Golf Course"
+   ],
+   "bbox": [
+    -111.7226022,
+    33.5768403,
+    -111.7069553,
+    33.5877042
+   ],
+   "via": "course outline",
+   "greens": [
+    {
+     "id": "traced/0",
+     "bbox": [
+      -111.71788657483731,
+      33.58308690706676,
+      -111.7171294251627,
+      33.58373309293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/1",
+     "bbox": [
+      -111.71993357453583,
+      33.58297290706676,
+      -111.71901042546416,
+      33.58365409293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/2",
+     "bbox": [
+      -111.71834258254158,
+      33.58554290706676,
+      -111.71750141745842,
+      33.58620909293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/3",
+     "bbox": [
+      -111.71330257849561,
+      33.58426790706676,
+      -111.71249042150438,
+      33.58489409293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/4",
+     "bbox": [
+      -111.71032657920169,
+      33.58446690706676,
+      -111.70953242079831,
+      33.58514709293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/5",
+     "bbox": [
+      -111.70803058696119,
+      33.58692290706676,
+      -111.70726741303882,
+      33.58765809293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/6",
+     "bbox": [
+      -111.7086345786659,
+      33.58430790706676,
+      -111.70784042133411,
+      33.584963092933236
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/7",
+     "bbox": [
+      -111.7114205772319,
+      33.58386090706676,
+      -111.7106154227681,
+      33.58449209293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/8",
+     "bbox": [
+      -111.7144795707231,
+      33.58173790706676,
+      -111.7136204292769,
+      33.58244809293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/9",
+     "bbox": [
+      -111.7135975629422,
+      33.57919190706676,
+      -111.7126384370578,
+      33.58001209293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/10",
+     "bbox": [
+      -111.71020756919559,
+      33.58126090706676,
+      -111.7092604308044,
+      33.58194709293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/11",
+     "bbox": [
+      -111.71063955663475,
+      33.577182907066764,
+      -111.70969244336526,
+      33.57798209293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/12",
+     "bbox": [
+      -111.71240255595235,
+      33.57699390706676,
+      -111.71142644404765,
+      33.57773409293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/13",
+     "bbox": [
+      -111.71708256125244,
+      33.57873090706676,
+      -111.71629443874757,
+      33.57939109293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/14",
+     "bbox": [
+      -111.72080356735262,
+      33.58059190706676,
+      -111.71985643264738,
+      33.58143609293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/15",
+     "bbox": [
+      -111.72241857158373,
+      33.58203090706676,
+      -111.72157142841627,
+      33.582706092933236
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/16",
+     "bbox": [
+      -111.71954357097927,
+      33.58186690706676,
+      -111.71873242902073,
+      33.58248309293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    },
+    {
+     "id": "traced/17",
+     "bbox": [
+      -111.71592257259118,
+      33.582377907066764,
+      -111.71514142740882,
+      33.58300409293324
+     ],
+     "cand": [
+      "AZ_MaricopaPinal_1_2020"
+     ],
+     "wesm": [
+      {
+       "workunit": "AZ_MaricopaPinal_1_2020",
+       "project": "AZ_MaricopaPinal_2020_B20",
+       "collect_start": 1601596800000,
+       "collect_end": 1639785600000,
+       "ql": "QL 1"
+      }
+     ]
+    }
+   ],
+   "points": {
+    "1": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 157336,
+      "sec": 1.9,
+      "classes": {
+       "1": 96306,
+       "2": 58303,
+       "7": 2727
+      },
+      "gps": [
+       290411776.0,
+       290571456.0
+      ],
+      "ground": 58303,
+      "gdens": 8.92
+     }
+    },
+    "3": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 87590,
+      "sec": 2.0,
+      "classes": {
+       "1": 29398,
+       "2": 57535,
+       "7": 657
+      },
+      "gps": [
+       290569600.0,
+       290571488.0
+      ],
+      "ground": 57535,
+      "gdens": 10.88
+     }
+    },
+    "4": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 109590,
+      "sec": 1.9,
+      "classes": {
+       "1": 48083,
+       "2": 60910,
+       "7": 597
+      },
+      "gps": [
+       290569600.0,
+       290571488.0
+      ],
+      "ground": 60910,
+      "gdens": 10.85
+     }
+    },
+    "2": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 126061,
+      "sec": 1.8,
+      "classes": {
+       "1": 69596,
+       "2": 52565,
+       "7": 3900
+      },
+      "gps": [
+       290569600.0,
+       290571456.0
+      ],
+      "ground": 52565,
+      "gdens": 9.0
+     }
+    },
+    "0": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 85778,
+      "sec": 2.0,
+      "classes": {
+       "1": 44532,
+       "2": 38589,
+       "7": 2657
+      },
+      "gps": [
+       290569632.0,
+       290571456.0
+      ],
+      "ground": 38589,
+      "gdens": 7.63
+     }
+    },
+    "5": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 97862,
+      "sec": 1.6,
+      "classes": {
+       "1": 35501,
+       "2": 61684,
+       "7": 677
+      },
+      "gps": [
+       290569600.0,
+       290571488.0
+      ],
+      "ground": 61684,
+      "gdens": 10.57
+     }
+    },
+    "7": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 104832,
+      "sec": 1.6,
+      "classes": {
+       "1": 44728,
+       "2": 58890,
+       "7": 1214
+      },
+      "gps": [
+       290569600.0,
+       290571488.0
+      ],
+      "ground": 58890,
+      "gdens": 11.16
+     }
+    },
+    "8": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 119587,
+      "sec": 1.9,
+      "classes": {
+       "1": 52774,
+       "2": 65306,
+       "7": 1507
+      },
+      "gps": [
+       290411776.0,
+       290571456.0
+      ],
+      "ground": 65306,
+      "gdens": 10.28
+     }
+    },
+    "10": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 161074,
+      "sec": 1.9,
+      "classes": {
+       "1": 92302,
+       "2": 67704,
+       "7": 1068
+      },
+      "gps": [
+       290411744.0,
+       290571488.0
+      ],
+      "ground": 67704,
+      "gdens": 10.01
+     }
+    },
+    "11": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 158711,
+      "sec": 1.9,
+      "classes": {
+       "1": 78630,
+       "2": 78151,
+       "7": 1930
+      },
+      "gps": [
+       290411744.0,
+       290571488.0
+      ],
+      "ground": 78151,
+      "gdens": 9.92
+     }
+    },
+    "6": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 128767,
+      "sec": 2.0,
+      "classes": {
+       "1": 71605,
+       "2": 56049,
+       "7": 1113
+      },
+      "gps": [
+       290569600.0,
+       290571488.0
+      ],
+      "ground": 56049,
+      "gdens": 10.34
+     }
+    },
+    "9": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 202280,
+      "sec": 2.2,
+      "classes": {
+       "1": 116190,
+       "2": 83739,
+       "7": 2351
+      },
+      "gps": [
+       290411776.0,
+       290571456.0
+      ],
+      "ground": 83739,
+      "gdens": 10.22
+     }
+    },
+    "13": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 109628,
+      "sec": 2.0,
+      "classes": {
+       "1": 54751,
+       "2": 53648,
+       "7": 1229
+      },
+      "gps": [
+       290411776.0,
+       290571456.0
+      ],
+      "ground": 53648,
+      "gdens": 9.9
+     }
+    },
+    "12": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 178730,
+      "sec": 2.3,
+      "classes": {
+       "1": 99007,
+       "2": 75934,
+       "7": 3789
+      },
+      "gps": [
+       290411744.0,
+       290571488.0
+      ],
+      "ground": 75934,
+      "gdens": 10.11
+     }
+    },
+    "17": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 74531,
+      "sec": 1.7,
+      "classes": {
+       "1": 11841,
+       "2": 61858,
+       "7": 832
+      },
+      "gps": [
+       290411776.0,
+       290571456.0
+      ],
+      "ground": 61858,
+      "gdens": 12.16
+     }
+    },
+    "15": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 114921,
+      "sec": 2.2,
+      "classes": {
+       "1": 44170,
+       "2": 69081,
+       "7": 1670
+      },
+      "gps": [
+       290411776.0,
+       290571456.0
+      ],
+      "ground": 69081,
+      "gdens": 11.6
+     }
+    },
+    "16": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 96022,
+      "sec": 2.2,
+      "classes": {
+       "1": 34643,
+       "2": 60206,
+       "7": 1173
+      },
+      "gps": [
+       290411776.0,
+       290571456.0
+      ],
+      "ground": 60206,
+      "gdens": 11.58
+     }
+    },
+    "14": {
+     "AZ_MaricopaPinal_1_2020": {
+      "n": 207002,
+      "sec": 2.3,
+      "classes": {
+       "1": 113784,
+       "2": 89041,
+       "7": 4177
+      },
+      "gps": [
+       290411776.0,
+       290571456.0
+      ],
+      "ground": 89041,
+      "gdens": 10.69
+     }
+    }
+   }
+  }
+ },
+ "errors": [],
+ "naip_src": null,
+ "osm_golf_courses": [
+  [
+   "We-Ko-Pa Golf Club",
+   "way/262825784",
+   [
+    -111.7033824,
+    33.5762015,
+    -111.6834378,
+    33.5997848
+   ]
+  ],
+  [
+   "Cholla Golf Course",
+   "way/1566339043",
+   [
+    -111.7033824,
+    33.5762015,
+    -111.6876454,
+    33.5906779
+   ]
+  ],
+  [
+   "Saguaro Golf Course",
+   "way/1566339044",
+   [
+    -111.6932776,
+    33.5862157,
+    -111.6834378,
+    33.5997848
+   ]
+  ],
+  [
+   "Desert Canyon Golf Course",
+   "relation/3536840",
+   [
+    -111.7226022,
+    33.5768403,
+    -111.7069553,
+    33.5877042
+   ]
+  ],
+  [
+   "FireRock Country Club",
+   "relation/3542251",
+   [
+    -111.7509825,
+    33.5679037,
+    -111.7255353,
+    33.5815954
+   ]
+  ],
+  [
+   "SunRidge Canyon Golf Club",
+   "relation/3553916",
+   [
+    -111.7614353,
+    33.6038323,
+    -111.7374423,
+    33.6225488
+   ]
+  ],
+  [
+   "Eagle Mountain Golf Club",
+   "relation/20393107",
+   [
+    -111.7700988,
+    33.5678961,
+    -111.7514449,
+    33.5794307
+   ]
+  ]
+ ],
+ "osm_hole_names": [
+  ""
+ ],
+ "picked": {
+  "desertcanyon": {
+   "osm": [
+    "relation/3536840"
+   ],
+   "names": [
+    "Desert Canyon Golf Course"
+   ],
+   "bbox": [
+    -111.7226022,
+    33.5768403,
+    -111.7069553,
+    33.5877042
+   ],
+   "via": "course outline"
+  }
+ },
+ "osm_all": {
+  "bbox": [
+   -111.75710732423114,
+   33.54790040454537,
+   -111.67245017576886,
+   33.616644095454625
+  ],
+  "n": 7301
+ },
+ "finished": "2026-10-14 22:54:47"
+}

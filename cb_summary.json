@@ -1,0 +1,25 @@
+{
+ "started": "2026-10-14 03:50:22",
+ "courses": {
+  "farmlinks": {
+   "epsg": 26916,
+   "osm_bld": 6,
+   "osm_park": 0,
+   "cand": [
+    "AL_17Co_2_2020",
+    "USGS_LPC_AL_ADECA_B1_2016_LAS_2019",
+    "AL_TriCounty_2010"
+   ],
+   "tried": {
+    "AL_17Co_2_2020": 0.973
+   },
+   "used": "AL_17Co_2_2020",
+   "club": null,
+   "parking": 0,
+   "extra": 2,
+   "sec": 15
+  }
+ },
+ "errors": [],
+ "finished": "2026-10-14 03:50:46"
+}

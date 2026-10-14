@@ -1,0 +1,27 @@
+{
+ "started": "2026-10-14 23:11:24",
+ "courses": {
+  "desertcanyon": {
+   "cand": [
+    "AZ_MaricopaPinal_1_2020"
+   ],
+   "W": 2183,
+   "H": 2040,
+   "epsg": 26912,
+   "tried": {
+    "AZ_MaricopaPinal_1_2020": {
+     "points": 51042752,
+     "cover": 0.983,
+     "b6": 0
+    }
+   },
+   "used": "AZ_MaricopaPinal_1_2020",
+   "fp": 414,
+   "measured": 413,
+   "added": 5,
+   "sec": 72
+  }
+ },
+ "errors": [],
+ "finished": "2026-10-14 23:12:48"
+}

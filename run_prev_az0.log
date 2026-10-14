@@ -1,0 +1,26 @@
+22:38:37   http 504 https://overpass-api.de/api/interpreter <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:
+22:39:13   http 504 https://overpass-api.de/api/interpreter <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:
+22:39:29   overpass mirror failed https://overpass-api.de/api/interpreter failed https://overpass-api.de/api/interpreter
+22:43:28   http 504 https://overpass.kumi.systems/api/interpreter <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:
+22:44:54 golf courses: [('We-Ko-Pa Golf Club', 'way/262825784', [-111.7033824, 33.5762015, -111.6834378, 33.5997848]), ('Desert Canyon Golf Course', 'relation/3536840', [-111.7226022, 33.5768403, -111.7069553, 33.5877042]), ('FireRock Country Club', 'relation/3542251', [-111.7509825, 33.5679037, -111.7255353, 33.5815954]), ('SunRidge Canyon Golf Club', 'relation/3553916', [-111.7614353, 33.6038323, -111.7374423, 33.6225488]), ('', 'relation/13887032', [-111.7491809, 33.5768988, -111.7486377, 33.5775932]), ('', 'relation/13887033', [-111.7443211, 33.5749634, -111.7412394, 33.577251]), ('', 'relation/13887034', [-111.7502458, 33.5728732, -111.7491974, 33.5761727]), ('', 'relation/14174596', [-111.7452297, 33.5734008, -111.7445365, 33.5742527]), ('', 'relation/14174598', [-111.7474369, 33.5682842, -111.7463216, 33.5708026]), ('', 'relation/14174599', [-111.7500671, 33.569228, -111.7488786, 33.5717787]), ('Eagle Mountain Golf Club', 'relation/20393107', [-111.7700988, 33.5678961, -111.7514449, 33.5794307])]
+22:45:13 osm features 7301
+22:45:37 desertcanyon ned 30 x 40 wide 17
+22:45:48   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+22:45:57   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+22:46:13   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+22:46:37   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+22:47:09   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+22:47:49   naip source failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage
+22:48:05 desertcanyon naip [2618, 2202] 2544 KB from https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage
+22:48:10 desertcanyon dem lon/lat 1691 1441
+22:48:21 desertcanyon dem utm 1703 x 1458
+22:48:21 desertcanyon points saved 0 KB
