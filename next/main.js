@@ -67,9 +67,12 @@ async function start() {
   sky.sun.shadow.autoUpdate = false; sky.sun.shadow.needsUpdate = true;
   trees.updateLOD(camera.position, true);
   $('msg').hidden = true; $('hud').hidden = false;
+  // grass on/off (to compare frame times); off also stops the density tuning
+  if (grass) { const gb = $('grassBtn'); gb.hidden = false; gb.classList.add('on');
+    gb.onclick = () => { grass.setOn(!grass.on); gb.textContent = grass.on ? 'Grass on' : 'Grass off'; gb.classList.toggle('on', grass.on); }; }
   // grass density follows the phone: every second, thin it when frames run long, fill it back in when there is room
   let tune = { t: performance.now() + 2500, ok: 0 };   // let the first frames (shader compiles) pass first
-  const tuneGrass = now => { if (!grass || now < tune.t || ft.length < 30) return; tune.t = now + 1000;
+  const tuneGrass = now => { if (!grass || !grass.on || now < tune.t || ft.length < 30) return; tune.t = now + 1000;
     const s = ft.slice(-60).sort((a, b) => a - b), med = s[s.length >> 1];
     if (med > 18.5) { grass.setShare(grass.share * (med > 25 ? .7 : .85)); tune.ok = 0; }
     else if (med < 17.4 && ++tune.ok >= 3 && grass.share < 1) { grass.setShare(grass.share * 1.08); tune.ok = 0; } };

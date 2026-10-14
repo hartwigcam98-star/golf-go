@@ -6,7 +6,7 @@
    - Wind: a slow sway plus gusts rolling across the course; blades fade out with distance so the patch has no edge. */
 import * as THREE from 'three';
 import { Fn, uniform, instanceIndex, positionLocal, hash, texture, varying, vec2, vec3, float, sin, round, mix, smoothstep, cos, time,
-  dot, select, abs, transformNormalToView } from 'three/tsl';
+  dot, select, abs } from 'three/tsl';
 
 export function addGrass(scene, D, G, q) {
   if (!q.grass) return null;
@@ -30,6 +30,7 @@ export function addGrass(scene, D, G, q) {
   g.setIndex([0, 1, 2, 2, 1, 3, 2, 3, 4]);
 
   let N = 0; const meshes = [];
+  const LIGHT = vec3(.965, 1, 1.08);   // measured: the lit ground's brightness under this sun, with the sky's faint blue
   for (const [li, { n, tile: TILE }] of layers.entries()) { N += n;
   const id = instanceIndex.add(li * 1000003);   // each layer its own random spots
   const r1 = hash(id), r2 = hash(id.add(7919)), r3 = hash(id.add(15013)), r4 = hash(id.add(23011));
@@ -53,21 +54,24 @@ export function addGrass(scene, D, G, q) {
   const bend = vec2(uWind.x.mul(lean), uWind.y.mul(lean)).add(vec2(ca, sa).mul(y.mul(y).mul(r3.sub(.5)).mul(.4)));
   const pos = vec3(p.x.add(x.mul(ca)).add(bend.x.mul(bladeH)), ground.add(y.mul(bladeH).mul(float(1).sub(abs(lean).mul(.25)))).sub(.01), p.y.add(x.mul(sa)).add(bend.y.mul(bladeH)));
 
-  const mat = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide, roughness: .85, metalness: 0 });
+  // unlit: every blade faces up, so its sunlight and sky light are the same everywhere; working them out per pixel (with a shadow
+  // lookup and the sky's reflections) on several layers of overlapping blades was the grass's main cost on phones. LIGHT matches
+  // the lit ground under the same sun and sky. (Blades don't darken in tree shade yet.)
+  const mat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide });
   mat.positionNode = pos;
-  // lit like the ground it grows from (so the patch blends into the terrain), darker at the root, fescue tips golden
-  mat.normalNode = transformNormalToView(vec3(0, 1, 0));
   const vY = varying(y), vF = varying(fescue), vUV = varying(wuv), vR = varying(r3);
   const base = texture(G.surf, vUV).rgb, bl = dot(base, vec3(.299, .587, .114)), tint = mix(vec3(bl), base, .8).mul(.86);
-  mat.colorNode = mix(tint.mul(1.12), vec3(.78, .68, .4), vF.mul(vY).mul(vY).mul(.7)).mul(mix(.78, 1.18, vY)).mul(mix(.86, 1.12, vR));
+  mat.colorNode = mix(tint.mul(1.12), vec3(.78, .68, .4), vF.mul(vY).mul(vY).mul(.7)).mul(mix(.78, 1.18, vY)).mul(mix(.86, 1.12, vR)).mul(LIGHT);
   const mesh = new THREE.InstancedMesh(g, mat, n);
-  mesh.frustumCulled = false; mesh.receiveShadow = li === 0; mesh.castShadow = false; scene.add(mesh); meshes.push({ mesh, n });   // shadows on the near layer only
+  mesh.frustumCulled = false; mesh.receiveShadow = false; mesh.castShadow = false; scene.add(mesh); meshes.push({ mesh, n });
   }
   // density: a share of every layer's blades is drawn (the spots are random, so fewer blades thins the grass evenly)
   let share = 1;
+  let on = true;
   const setShare = v => { share = Math.max(.15, Math.min(1, v)); for (const m of meshes) m.mesh.count = Math.round(m.n * share); };
+  const setOn = v => { on = v; for (const m of meshes) m.mesh.visible = v; };
   return {
-    get blades() { return Math.round(N * share); }, setShare, get share() { return share; },
+    get blades() { return on ? Math.round(N * share) : 0; }, setShare, get share() { return share; }, setOn, get on() { return on; },
     // centre the patch a little ahead of the camera, along the ground
     update(camera) { const d = new THREE.Vector3(); camera.getWorldDirection(d); const k = Math.hypot(d.x, d.z) || 1;
       uCenter.value.set(camera.position.x + d.x / k * 8, camera.position.z + d.z / k * 8); },
