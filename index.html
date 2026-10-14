@@ -2799,14 +2799,14 @@ function prepareShot(){
   G.state='aim';
   saveGame({mid:G.strokes>0});
 }
-function tap(){
+function tap(at){
   A();
   if(G.pendRes)return;
   if(G.aiTurn){skipAI();return;}
   if(G.overview){G.overview=false;return;}
   if(R3.on&&r3RoutineSkip())return;
   if(G.fc&&G.state==='aim'){lookEnd();return;}
-  const m=G.meter;
+  const m=G.meter;if(G.state==='power'||G.state==='acc')meterAt(at);
   if(G.state==='aim'){G.state='power';m.pos=IMPACT;m.power=0;m.dir=1;G.tapMark=null;sfx.tick();haptic('tap');}
   else if(G.state==='power'){m.power=m2p((m.pos-IMPACT)/(1-IMPACT));G.state='acc';sfx.tick();haptic('tap');}
   else if(G.state==='acc'){const e=m.pos-IMPACT;G.tapMark=clamp(m.pos,0,1);executeShot(m.power,clamp(e,-.12,.4));}
@@ -6617,11 +6617,11 @@ function update(dt){
     if(!L)holdL=0;if(!R)holdR=0;
   }
   const m=G.meter,putt=curClub().putter;
-  const mdt=G.hudSkip?dt:Math.min(dt*2,MCLK.dt);
-  if(G.state==='power'){const p0=m.pos;m.pos+=(m.dir||1)*mdt*(putt?.7:isShort()?.85:1.0);
+  const mdt=dt;
+  if(G.state==='power'){const p0=m.pos;m.pos+=(m.dir||1)*mdt*meterSpeed();
     if(m.pos>=1){m.pos=1;m.dir=-1;}
     else if(m.dir<0&&m.pos<=IMPACT){m.pos=IMPACT;m.dir=1;G.state='aim';toast('NO POWER SET','Tap once more during the backswing','#fff6dc');sfx.miss();}}
-  else if(G.state==='acc'){m.pos-=mdt*(putt?.6:isShort()?.8:.95*(G.pshot?1.2:1));if(m.pos<=0){m.pos=0;executeShot(m.power,null);}}
+  else if(G.state==='acc'){m.pos-=mdt*meterSpeed();if(m.pos<=0){m.pos=0;executeShot(m.power,null);}}
   if(G.followT>0)G.followT+=dt;
   const launched=!(G.followT>0&&G.followT<(G.launchAt||0));
   if(G.divotQ&&launched){spawnDivot(G.divotQ);G.divotQ=null;}stepDivots(dt);
@@ -6638,9 +6638,14 @@ function update(dt){
   stepCam(dt);if(!G.hudSkip)updHud();
 }
 let last=performance.now();
-/* the swing meter runs on the average of the last 8 frame times, so one slow frame (or a phone alternating quick and slow frames)
-   doesn't make the cursor leap: it keeps an even step and the same speed overall */
-var MCLK={q:[],dt:1/60,w:0};
+/* the swing meter runs on the real clock (Oct 2026): t is the frame time the cursor was last placed at. A press is judged where the
+   cursor was at the moment of the press (the event's own timestamp, same clock as the frame), not at the last frame drawn, so a
+   late frame or the 30 fps lock can't move a well-timed press out of the sweet spot. (It used to run on an 8-frame average, which
+   after a late frame ran the cursor up to a third fast for a few frames while it caught up.) */
+var MCLK={t:0,w:0};
+function meterSpeed(){const putt=curClub().putter;return G.state==='power'?(putt?.7:isShort()?.85:1.0):(putt?.6:isShort()?.8:.95*(G.pshot?1.2:1));}
+function meterAt(at){const m=G.meter;if(!(at>0)||!(MCLK.t>0))return;const d=clamp((at-MCLK.t)/1000,-.034,.05);if(!d)return;   // at most two frames either side: anything else is a bad timestamp
+  if(G.state==='power')m.pos=clamp(m.pos+(m.dir||1)*d*meterSpeed(),IMPACT,1);else if(G.state==='acc')m.pos=clamp(m.pos-d*meterSpeed(),0,1);}
 /* smoothness stats: frame times per hole (all play, and while the swing meter runs), sent quietly to the perf_stats table
    when the hole changes or the app goes to the background. Nothing is shown in the game. */
 var PSTAT={all:[],met:[],hole:null};
@@ -6759,9 +6764,9 @@ function replayCamTV(){const L=G.lastShot,r=G.replay,rp=replayPoint(Math.max(0,r
 const COVERS=['menuM','dailyM','recM','careerM','hlM','charM'].map(id=>$(id));
 function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
   if(PERF.cap&&now-last<28&&!(REC&&REC.on))return;   /* steady 30: every other refresh (on a 120 Hz screen, every fourth) */
-  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);{const Q=MCLK.q;Q.push(Math.min(.05,Math.max(.004,raw)));if(Q.length>8)Q.shift();MCLK.dt=Q.reduce((a,b)=>a+b,0)/Q.length;}if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
+  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
   try{ambTick(dt);}catch(e){}
-  if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}}
+  if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}MCLK.t=now;   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}}
 
 /* ---------- input ---------- */
 let drag=null;const PTS=new Map();
@@ -6770,7 +6775,7 @@ cv.addEventListener('pointerdown',e=>{
   A();
   if(G.aiTurn){skipAI();return;}
   if(G.overview){G.overview=false;return;}
-  if(G.state==='power'||G.state==='acc'){tap();return;}
+  if(G.state==='power'||G.state==='acc'){tap(e.timeStamp);return;}
   if(G.state==='aim'){PTS.set(e.pointerId,{x:e.clientX,y:e.clientY});try{cv.setPointerCapture(e.pointerId);}catch(_){}
     if(PTS.size>=2&&!G.fc)lookStart();   // a second finger (pinch) opens the look camera
     if(G.fc)drag=null;else drag={x:e.clientX,id:e.pointerId};}
@@ -6801,9 +6806,9 @@ $('lookGreen').addEventListener('click',e=>{e.stopPropagation();lookGreen();});
 $('lookRead').addEventListener('click',e=>{e.stopPropagation();lookRead();});
 $('lookLand').addEventListener('click',e=>{e.stopPropagation();lookLanding();});
 $('lookDone').addEventListener('click',e=>{e.stopPropagation();lookEnd();});
-$('swing').addEventListener('pointerdown',e=>{e.preventDefault();tap();});
-$('swing').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tap();}});
-$('meter').addEventListener('pointerdown',e=>{e.preventDefault();if((G.state!=='aim'||G.aiTurn))tap();});
+$('swing').addEventListener('pointerdown',e=>{e.preventDefault();tap(e.timeStamp);});
+$('swing').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tap(e.timeStamp);}});
+$('meter').addEventListener('pointerdown',e=>{e.preventDefault();if((G.state!=='aim'||G.aiTurn))tap(e.timeStamp);});
 const btnHold={L:false,R:false};
 for(const[id,k]of[['aimL','L'],['aimR','R']]){const b=$(id);
   b.addEventListener('pointerdown',e=>{e.preventDefault();btnHold[k]=true;if(G.state==='aim'&&!G.aiTurn){const D=Math.max(previewDist(),3);G.aim+=(k==='R'?1:-1)*Math.max(.4,D*.006)/D;}});
@@ -6941,7 +6946,7 @@ window.addEventListener('keydown',e=>{
   if(!$('bagM').hidden&&e.key==='Escape'){$('bagM').hidden=true;return;}
   if(modalOpen())return;   // any window up (menu, saved shots, daily board, records, golfers, relief…): no swings behind it
   if(e.key==='b'||e.key==='B'){openBag();return;}
-  if(e.code==='Space'){e.preventDefault();if(!e.repeat)tap();}
+  if(e.code==='Space'){e.preventDefault();if(!e.repeat)tap(e.timeStamp);}
   else if(e.key==='ArrowLeft'||e.key==='ArrowRight'){keys[e.key]=true;e.preventDefault();}
   else if(e.key==='ArrowUp'){changeClub(-1);e.preventDefault();}
   else if(e.key==='ArrowDown'){changeClub(1);e.preventDefault();}
@@ -6985,6 +6990,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-14-meter",date:"Oct 14, 2026",title:"Fairer swing meter",items:[
+    "Your tap now counts exactly when you make it, not at the last picture the screen drew. A well-timed swing stays well timed even when your phone drops a frame, and the meter keeps an even speed instead of briefly hurrying to catch up."]},
   {id:"2026-10-14-fixes",date:"Oct 14, 2026",title:"Fixes",items:[
     "Your saved Quick play round no longer goes missing from the menu after a daily round, a match or a saved shot on another course, and New round warns you before replacing it.",
     "Splash, pick and blast shots from bunkers get their full meter back (a change yesterday trimmed it by about 5%).",
