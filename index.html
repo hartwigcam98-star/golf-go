@@ -1639,7 +1639,7 @@ const GLSL_GRADE=`vec3 grade(vec3 c){float l=dot(c,vec3(.2126,.7152,.0722));
   c*=mix(vec3(.97,.99,1.04),vec3(1.03,1.01,.965),smoothstep(.2,.85,l));
   return c;}`;
 const GLSL_LIGHT=`
-uniform sampler2D shadowMap,noiseT;uniform float shOn,texel,om,ctime,cloudOn,wxG;uniform vec3 sunDir,sunCol,skyCol,fogC;
+uniform sampler2D shadowMap,noiseT;uniform float shOn,texel,om,ctime,cloudOn,wxG,rlOn;uniform vec3 sunDir,sunCol,skyCol,fogC;
 float unpack(vec4 c){return dot(c,vec4(1.,1./255.,1./65025.,1./16581375.));}
 float shadowAt(vec4 lp,float bias){vec3 s=lp.xyz*.5+.5;if(shOn<.5||s.x<0.||s.x>1.||s.y<0.||s.y>1.||s.z>1.)return 1.;
   float edge=smoothstep(0.,.1,min(min(s.x,1.-s.x),min(s.y,1.-s.y)));float sum=0.;
@@ -1674,7 +1674,8 @@ vec3 skyFull(vec3 d,float disc){vec3 c=skyBase(d);float mu=dot(d,sunDir);
       float fade=smoothstep(.004,.22,d.y);
       c=mix(c,cc,den*fade*.97);}}
   return c;}
-float fogAmt(float dist){return 1.-exp(-max(dist-80.,0.)/3400.);}
+/* aerial perspective: summer air lightens and blues distant tree lines (about a fifth at 500 yd, two fifths at 1000) */
+float fogAmt(float dist){return rlOn>.5?1.-exp(-max(dist-60.,0.)/1900.):1.-exp(-max(dist-80.,0.)/3400.);}
 vec3 fogCol(vec3 v){return skyBase(normalize(vec3(v.x,.035,v.z)));}
 vec3 aces(vec3 c){return clamp((c*(2.51*c+.03))/(c*(2.43*c+.59)+.14),0.,1.);}
 /* the colour grade (display space) is shared with the post pass so both paths look alike */
@@ -5586,7 +5587,7 @@ float wNoise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);return mix(
   mat.customProgramCacheKey=()=>key;return mat;}
 
 /* ---- ground: the painted course, detail textures per surface, the slope grid on the green ---- */
-const R3_GROUND_HEAD=`float r3bump=0.;vec4 r3w=vec4(0.);vec3 r3nm=vec3(0.,0.,1.);float r3nk=0.;uniform sampler2D pG,pGN,pS,pSN;uniform float pOn;uniform vec4 tK;uniform sampler2D gTex,gSurf,dShort,dRough,dFes,dSand,gStex,slT,slHt;uniform vec4 gB,gSB,gSS,SLB;uniform float slMode;uniform vec3 slBall;uniform vec2 slRot;uniform float gMode,slOn,SLG,SLPX;`;
+const R3_GROUND_HEAD=`float r3bump=0.;vec4 r3w=vec4(0.);vec3 r3nm=vec3(0.,0.,1.);float r3nk=0.;uniform sampler2D pG,pGN,pS,pSN;uniform float pOn;uniform vec4 tK;uniform sampler2D gTex,gSurf,dShort,dRough,dFes,dSand,gStex,slT,slHt;uniform vec4 gB,gSB,gSS,SLB;uniform float slMode;uniform vec3 slBall;uniform vec2 slRot;uniform float gMode,slOn,SLG,SLPX;uniform vec4 rlS,rlG;`;
 const R3_GROUND_BODY=`
   vec3 c;vec2 q=r3wp.xz;float dist=length(r3wp-E);
   vec2 su=(q-gSS.xy)/max(gSS.zw,vec2(1.));
@@ -5612,7 +5613,7 @@ const R3_GROUND_BODY=`
     vec3 pg=vec3(1.),ps=vec3(1.);
     if(kg>.001)pg=mix(textureGrad(pG,ga,dqx/kga,dqy/kga).rgb,textureGrad(pG,gb2,rx/kgb,ry/kgb).rgb,nzm)*2.5;
     if(ks>.001)ps=mix(textureGrad(pS,sa,dqx/2.4,dqy/2.4).rgb,textureGrad(pS,sb,rx/5.3,ry/5.3).rgb,nzm)*2.5;
-    vec3 pgl=mix(vec3(dot(pg,vec3(.333))),pg,mix(.55,.35,gw));kg*=mix(1.,.6,gw);
+    vec3 pgl=mix(vec3(dot(pg,vec3(.333))),pg,mix(.55,.35,gw));kg*=mix(1.,.6,gw)*(rlOn>.5?mix(.78,.75,gw):1.);
     c*=mix(vec3(1.),pgl,kg*1.1)*mix(vec3(1.),ps,ks);
     det=(w.b*dF*1.6)*2.-(w.b*1.6)+(w.r*(dS*2.-1.)*.35+w.g*(dR*2.-1.)*.4);
     r3nk=(1.-smoothstep(10.,70.,dist))*min(1.,w.r*mix(.8,.45,gw)+w.g+ws*.9);
@@ -5621,6 +5622,12 @@ const R3_GROUND_BODY=`
       if(ws>.002)ns=mix(textureGrad(pSN,sa,dqx/2.4,dqy/2.4).rgb,textureGrad(pSN,sb,rx/5.3,ry/5.3).rgb,nzm)*2.-1.;
       float wn=w.r+w.g+ws+1e-4;r3nm=normalize((ng*(w.r+w.g)+ns*ws)/wn);}}
   c*=1.+det*1.45*(1.-smoothstep(30.,190.,dist));r3bump=det*(1.-smoothstep(12.,60.,dist));r3w=vec4(w.rgb,ws);
+  if(rlOn>.5&&gMode>.5){
+    if(dist<90.)c*=1.+(vnoise(q*.75)-.5)*.07*(w.r*(1.-w.a)+w.g)*(1.-smoothstep(25.,90.,dist));   // clumps a yard or so across, near you only
+    /* bunkers read as sand, not paper: a touch darker, with soft rake furrows close by that the sun picks out (two rake directions in drifts) */
+    if(ws>.002){c*=mix(1.,.9,ws);float fr=(1.-smoothstep(4.,13.,dist))*smoothstep(.6,.95,ws);
+      if(fr>.001){float p1=dot(q,vec2(.8,.6))/.14,p2=dot(q,vec2(-.45,.89))/.14,fq=max(fwidth(p1),fwidth(p2));fr*=1.-smoothstep(.25,.5,fq);
+        float j=vnoise(q*1.3)*2.5,rk=mix(sin(p1*6.2832+j),sin(p2*6.2832+j),smoothstep(.35,.65,vnoise(q*.03)))*fr*(.55+.45*vnoise(q*.4));r3bump+=rk*.13;c*=1.+rk*.008;}}}
   c*=mix(vec3(1.),vec3(1.05,1.03,.9),smoothstep(.55,.8,vnoise(q*.013))*.5*(w.r+w.g));
   if(gMode>.5&&slOn>.002){vec2 sv=(q-SLB.xy)/SLB.zw;if(sv.x>0.&&sv.y>0.&&sv.x<1.&&sv.y<1.){vec4 s=texture2D(slT,sv);float a=s.a*slOn;
     if(a>.003){float k=s.b;vec3 g0=vec3(.08,.95,.42),g1=vec3(1.,.9,.08),g2=vec3(1.,.48,.04),g3=vec3(1.,.08,.08);
@@ -5641,6 +5648,14 @@ const R3_GROUND_BODY=`
         float lw2=ax==0?ln2.x:ln2.y;float v=max(lw*mix(.62,.45,m),lw2*1.45*dash*m);if(ax==0)lx=v;else ly=v;}
       float L=max(lx,ly)*Lf;float hi=max(lx,ly)>.62?1.:0.;
       vec3 lc=mix(c*1.1,rc*.85,.75),lb=rc*1.55+.16;c=mix(c,mix(lc,lb,clamp((max(lx,ly)-.62)/.75,0.,1.)),clamp(L*a,0.,1.));}}}
+  if(rlOn>.5&&gMode>.5){
+    /* mown stripes are light on the blades, not paint: grass mown away from you shows its pale sides, grass mown toward you its darker
+       tips, so a stripe swaps shade as you walk round it and fades looking straight down. Same frame and width buildTerrain paints. */
+    vec3 vw=r3wp-E;float hz=length(vw.xz);vec2 vd=vw.xz/max(hz,1e-3);float grz=clamp(hz/max(length(vw),1e-3),0.,1.);
+    if(rlS.w>.5&&rlS.z>0.){float ph=(q.y*rlS.x-q.x*rlS.y)/rlS.z,fp=max(fwidth(ph),1e-4);float par=-clamp(sin(3.14159*ph)/(fp*4.7),-1.,1.);
+      c*=1.+.06*par*dot(vd,rlS.xy)*grz*w.r*(1.-w.a);}
+    if(dot(rlG.zw,rlG.zw)>.5){vec2 dg=q-rlG.xy;float ph=(dg.y*rlG.z-dg.x*rlG.w)/4.,fp=max(fwidth(ph),1e-4);float par=clamp(sin(3.14159*ph)/(fp*4.7),-1.,1.);
+      c*=1.+.035*par*dot(vd,rlG.zw)*grz*w.a*(1.-smoothstep(35.,55.,length(dg)));}}
   diffuseColor.rgb=c*c;
   diffuseColor.rgb*=1.;`;
 
@@ -5680,7 +5695,7 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   const nz=r3Noise();R3.noise=r3DataTex(nz.d,nz.S,nz.S,{mip:true,repeat:true});
   R3.U={E:{value:new T.Vector3()},R:{value:new T.Vector3()},U:{value:new T.Vector3()},Fw:{value:new T.Vector3()},K:{value:new T.Vector3()},
     ctime:{value:0},cloudOn:{value:CLOUDS_COV},noiseT:{value:R3.noise},sunDir:{value:new T.Vector3(...SUN)},sunCol:{value:new T.Vector3(...SUN_COL)},skyCol:{value:new T.Vector3(...SKY_COL)},fogC:{value:new T.Vector3(...FOG_C)},
-    shOn:{value:0},texel:{value:1},om:{value:2},shadowMap:{value:null},r3fade:{value:0},wxG:{value:0}};
+    shOn:{value:0},texel:{value:1},om:{value:2},shadowMap:{value:null},r3fade:{value:0},wxG:{value:0},rlOn:{value:1}};
   const scene=new T.Scene();R3.scene=scene;
   const cam=new T.PerspectiveCamera(50,1,.3,30000);cam.matrixAutoUpdate=false;cam.matrixWorldAutoUpdate=false;R3.cam=cam;
   // sky behind everything
@@ -5704,7 +5719,7 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   // materials
   R3.tK={value:new T.Vector4(1,1,1,1)};
   R3.GU={gTex:{value:null},gSurf:{value:null},dShort:{value:R3.det.short},dRough:{value:R3.det.rough},dFes:{value:R3.det.fescue},dSand:{value:R3.det.sand},gStex:{value:null},slT:{value:null},slHt:{value:null},slMode:{value:0},slBall:{value:new T.Vector3()},
-    gB:{value:new T.Vector4()},gSB:{value:new T.Vector4()},gSS:{value:new T.Vector4()},SLB:{value:new T.Vector4()},slRot:{value:new T.Vector2(1,0)},gMode:{value:1},pOn:R3.pOn,pG:{value:R3.ptex.g||null},pGN:{value:R3.ptex.gn||null},pS:{value:R3.ptex.s||null},pSN:{value:R3.ptex.sn||null},slOn:{value:0},SLG:{value:1},SLPX:{value:.002},tK:R3.tK};
+    gB:{value:new T.Vector4()},gSB:{value:new T.Vector4()},rlS:{value:new T.Vector4()},rlG:{value:new T.Vector4()},gSS:{value:new T.Vector4()},SLB:{value:new T.Vector4()},slRot:{value:new T.Vector2(1,0)},gMode:{value:1},pOn:R3.pOn,pG:{value:R3.ptex.g||null},pGN:{value:R3.ptex.gn||null},pS:{value:R3.ptex.s||null},pSN:{value:R3.ptex.sn||null},slOn:{value:0},SLG:{value:1},SLPX:{value:.002},tK:R3.tK};
   const GUfar={...R3.GU,gMode:{value:0}};
   R3.WU={rfT:{value:null},rfM:{value:new T.Matrix4()},rfOn:{value:0},wT:{value:0}};
   R3.mat={
@@ -5772,6 +5787,9 @@ function r3Add(geo,mat,{cast=false,recv=true,order=0,depth=null}={}){const m=new
 function r3SetHole(h,canvas){const T=THREE,GU=R3.GU;
   if(GU.gTex.value)GU.gTex.value.dispose();GU.gTex.value=r3CanvasTex(canvas);
   const b=h.bounds;GU.gB.value.set(b[0],b[1],b[2]-b[0],b[3]-b[1]);
+  // the mowing frame buildTerrain paints its stripes in (canvas rotated by h.axis, a compass angle, so fairway stripes run across the hole; the green's 4-yd stripes 0.6 rad round from that)
+  {const a=h.axis||0,st=(typeof turfOf==='function'?turfOf().st:null)||[11,1,0,1],g=h.green;GU.rlS.value.set(Math.cos(a),Math.sin(a),st[0]||11,st[1]>0?1:0);
+   if(g&&Number.isFinite(g.x)&&st[3]>0)GU.rlG.value.set(g.x,g.y,Math.cos(a+.6),Math.sin(a+.6));else GU.rlG.value.set(0,0,0,0);}
   if(typeof turfOf==='function'){const k=turfOf().k;R3.tK.value.set(k[0],k[1],k[2],k[3]);}
   // surface weights
   { const L=h.lg,d=new Uint8Array(L.nx*L.ny*4);   // r short grass, g rough, b fescue, none = sand; alpha marks the putting surface
