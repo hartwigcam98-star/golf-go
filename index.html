@@ -3211,10 +3211,7 @@ function showCard(){
   const tot=G.scores.reduce((a,b)=>a+(b||0),0);
   const s=G.scores[G.hi],d=roundDiff(),note=$('cNote');
   if(last&&G.mode==='daily'){$('cEyebrow').textContent='Daily round complete \u00b7 '+CUR.name;$('cTitle').textContent=tot+' ('+fmtDiff(d)+')';
-    note.hidden=false;note.textContent=DAILY.url?'Posting your score to today’s leaderboard…':'Score saved. The online leaderboard switches on soon.';$('nextBtn').textContent='Leaderboard';
-    if(DAILY.url&&!dailyName()){note.textContent='Add the name the leaderboard shows to post your round.';   // played without a name: ask for it here
-      $('cardPostV').hidden=false;$('cardName').hidden=false;$('cardName').value='';$('cardName').placeholder='Your name for the leaderboard';
-      const b=$('cardPost');b.disabled=false;b.textContent='Post to today’s leaderboard';}}
+    note.hidden=false;note.textContent=DAILY.url?'Posting your score to today’s leaderboard…':'Score saved. The online leaderboard switches on soon.';$('nextBtn').textContent='Leaderboard';}
   else if(last){
     let best=null;try{best=parseInt(localStorage.getItem('troyburne-best-18')||'',10);}catch(e){}
     const isBest=!best||tot<best;
@@ -3309,6 +3306,7 @@ function dailyLeave(){if(G.mode!=='daily'&&G.mode!=='spectate'&&G.mode!=='career
 // start or resume today's official round
 function dailyPlay(){const day=dailyDay(),cid=dailyCourse(day);let d=dailyToday();
   if(d&&d.done){openDailyBoard(false);return;}
+  if(!dailyName()){openDailyName();return;}
   const fresh=!d||(!d.hi&&!d.strokes&&!(d.scores||[]).some(x=>x));   // a round already under way (from before sign-in) carries on
   if(fresh&&authOn&&!authUser()){openDailyAuth(dailyPlay);return;}
   if(fresh&&dailyPlay.checked!==day){$('dPlay').disabled=true;$('dNameGo').disabled=true;
@@ -3331,7 +3329,7 @@ async function dailySend(d){const tok=await authToken(),u=authUser();
   const hd=dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'});if(tok)hd.Authorization='Bearer '+tok;
   const send=()=>fetch(DAILY.url+'/rest/v1/daily_scores',{method:'POST',headers:hd,body:JSON.stringify(body)});
   let r=await send();if(!r.ok&&r.status!==409&&body.shots){delete body.shots;r=await send();}return r;}
-async function dailyPost(){const d=dailyLoad();if(!d||!d.done||d.posted||!DAILY.url||!dailyName())return false;
+async function dailyPost(){const d=dailyLoad();if(!d||!d.done||d.posted||!DAILY.url)return false;
   const note=t=>{const n=$('cNote');if(n&&!$('cardM').hidden&&G.mode==='daily')n.textContent=t;};
   try{const r=await dailySend(d);
     if(r.ok||r.status===409){const c=dailyLoad();if(c&&c.day===d.day){c.posted=true;dailyStore(c);}
@@ -3343,7 +3341,7 @@ async function dailyPost(){const d=dailyLoad();if(!d||!d.done||d.posted||!DAILY.
 async function dailyOwed(){const K=DAILY.save+'-owed';let o=null;
   try{const d=dailyLoad();if(DAILY.url&&d&&d.done&&!d.posted&&d.day!==dailyDay()){localStorage.setItem(K,JSON.stringify(d));d.posted=true;dailyStore(d);}
     o=JSON.parse(localStorage.getItem(K)||'null');}catch(e){}
-  if(!o||!DAILY.url||dailyOwed.busy||!dailyName())return;dailyOwed.busy=true;
+  if(!o||!DAILY.url||dailyOwed.busy)return;dailyOwed.busy=true;
   try{const r=await dailySend(o);if(r.ok||(r.status>=400&&r.status<500))localStorage.removeItem(K);}catch(e){}
   dailyOwed.busy=false;}
 /* one-off resets of a player's daily round (day, player id or name); each clears that day's saved round once on that phone */
@@ -3356,11 +3354,9 @@ const pKey=r=>{const n=String(r.name||'').trim().toLowerCase();return PLAYER_MER
 const pMine=(r,pid)=>r.player_id===pid||(PLAYER_MERGE.includes(String(dailyName()||'').trim().toLowerCase())&&pKey(r)==='n:'+String(dailyName()).trim().toLowerCase());
 const pBest=rows=>{const seen=new Set();return rows.filter(r=>{const k=pKey(r);if(seen.has(k))return false;seen.add(k);return true;});};   // rows come best first
 async function dailyFetch(day){if(!DAILY.url)return null;try{const r=await fetch(DAILY.url+'/rest/v1/daily_scores?select=name,strokes,to_par,player_id,holes,course&day=eq.'+day+'&order=strokes.asc,created_at.asc&limit=300',{headers:dailyHdr()});if(!r.ok)return null;return pBest(await r.json());}catch(e){return null;}}
-function openDailyName(post){G.paused=true;$('dCardV').hidden=true;$('menuM').hidden=true;$('introM').hidden=true;$('dailyM').hidden=false;$('dAuth').hidden=true;$('dName').hidden=false;$('dBoard').hidden=true;
+function openDailyName(){G.paused=true;$('dCardV').hidden=true;$('menuM').hidden=true;$('introM').hidden=true;$('dailyM').hidden=false;$('dAuth').hidden=true;$('dName').hidden=false;$('dBoard').hidden=true;
   const day=dailyDay();$('dEyebrow').textContent='Daily round \u00b7 '+dailyNice(day);$('dTitle').textContent=COURSES[dailyCourse(day)].name;
-  $('dNameIn').value=dailyName();setTimeout(()=>$('dNameIn').focus(),60);
-  $('dName').querySelector('p').textContent=post?'Your round is in. Pick the name the leaderboard shows to post it.':'Same course, pins, wind and weather for everyone today. One official round. Pick the name the leaderboard shows.';
-  $('dNameGo').textContent=post?'Post my round':'Tee off';}
+  $('dNameIn').value=dailyName();setTimeout(()=>$('dNameIn').focus(),60);}
 function openDailyAuth(next){G.paused=true;$('dCardV').hidden=true;$('menuM').hidden=true;$('introM').hidden=true;$('cardM').hidden=true;$('dailyM').hidden=false;$('dName').hidden=true;$('dBoard').hidden=true;$('dAuth').hidden=false;
   const day=dailyDay();$('dEyebrow').textContent='Daily round \u00b7 '+dailyNice(day);$('dTitle').textContent='Sign in';
   DAILY.authNext=next||null;DAILY.authStep='email';$('dAuthCode').hidden=true;$('dAuthCode').value='';$('dAuthErr').hidden=true;$('dAuthEmail').disabled=false;
@@ -3386,7 +3382,6 @@ const DAILY_START='2026-10-01';
 function dayShift(day,k){const[y,m,d]=day.split('-').map(Number);return new Date(Date.UTC(y,m-1,d)+k*864e5).toISOString().slice(0,10);}
 async function openDailyBoard(fromRound,day,tab){G.paused=true;$('dCardV').hidden=true;$('menuM').hidden=true;$('introM').hidden=true;$('cardM').hidden=true;$('dailyM').hidden=false;$('dName').hidden=true;$('dAuth').hidden=true;$('dBoard').hidden=false;
   const today=dailyDay();day=day||today;tab=tab||'day';DAILY.view={day,tab};const me=dailyToday(),isToday=day===today;
-  if(me&&me.done&&!me.posted&&!dailyName()&&DAILY.url){openDailyName(true);return;}
   $('dTabDay').classList.toggle('on',tab==='day');$('dTabAll').classList.toggle('on',tab==='all');$('dTabCal').classList.toggle('on',tab==='cal');$('dNav').hidden=tab!=='day';
   const cal=tab==='cal';$('dCal').hidden=!cal;$('dList').hidden=cal;$('dStatus').hidden=cal;
   if(cal){$('dEyebrow').textContent='Daily round';$('dTitle').textContent='Calendar';if(me&&me.done&&!me.posted)dailyPost();calOpen(DAILY.calSel||today);return;}
@@ -3411,12 +3406,8 @@ const RECS={cid:null,rows:null,pend:null,tok:0,ctok:0,card:null};
 function recOrder(){return Object.keys(COURSES).sort((a,b)=>stateOf(a).localeCompare(stateOf(b))||COURSES[a].name.localeCompare(COURSES[b].name));}
 function recCanPost(){return G.mode==='round'&&TB.length===18&&G.scores.length>=18&&G.scores.slice(0,18).every(v=>v>0);}
 function recOffer(tot,d){RECS.pend={cid:CUR.id,strokes:tot,to_par:d,holes:G.scores.slice(0,18),done:false,shots:(G.rShots&&G.rShots.length)?{v:1,ch:CHAR_ID,pin:G.pinSeed||0,wx:(typeof R3!=='undefined'&&R3.wx!=null)?R3.wx:null,s:G.rShots}:null};
-  $('cardPostV').hidden=false;const nm=dailyName();$('cardName').hidden=!!nm;$('cardName').placeholder='Your name for the records';if(!nm)$('cardName').value='';
+  $('cardPostV').hidden=false;const nm=dailyName();$('cardName').hidden=!!nm;if(!nm)$('cardName').value='';
   const b=$('cardPost');b.disabled=false;b.textContent='Post to '+CUR.name+' records';}
-// the final daily card's name box: save the name, then post
-async function dailyCardPost(){const nm=$('cardName').value.replace(/\s+/g,' ').trim().slice(0,16);if(!nm){$('cardName').focus();return;}
-  try{localStorage.setItem('golf-name',nm);}catch(e){}const b=$('cardPost');b.disabled=true;b.textContent='Posting…';
-  if(await dailyPost()){$('cardPostV').hidden=true;}else{b.disabled=false;b.textContent='Try again';}}
 async function recPost(){const P=RECS.pend;if(!P)return;if(P.done){openRecords(P.cid);return;}
   let nm=dailyName();if(!nm){nm=$('cardName').value.replace(/\s+/g,' ').trim().slice(0,16);if(!nm){$('cardName').focus();return;}try{localStorage.setItem('golf-name',nm);}catch(e){}}
   const b=$('cardPost'),note=$('cNote');b.disabled=true;b.textContent='Posting…';
@@ -7039,8 +7030,8 @@ $('rcList').addEventListener('click',()=>{A();openRecords(RECS.cid);});
 $('rPrev').addEventListener('click',()=>recStep(-1));$('rNext').addEventListener('click',()=>recStep(1));
 $('rList').addEventListener('click',e=>{const li=e.target.closest('li[data-i]');if(li){A();recCard(+li.dataset.i);}});
 $('rList').addEventListener('keydown',e=>{const li=e.target.closest('li[data-i]');if(li&&(e.key==='Enter'||e.key===' ')){e.preventDefault();recCard(+li.dataset.i);}});
-$('cardPost').addEventListener('click',e=>{e.stopPropagation();A();if(G.mode==='daily')dailyCardPost();else recPost();});
-$('cardName').addEventListener('keydown',e=>{if(e.key==='Enter'){if(G.mode==='daily')dailyCardPost();else recPost();}});
+$('cardPost').addEventListener('click',e=>{e.stopPropagation();A();recPost();});
+$('cardName').addEventListener('keydown',e=>{if(e.key==='Enter')recPost();});
 $('careerBack').addEventListener('click',()=>{A();closeCareer();});
 document.querySelectorAll('#careerTabs button').forEach(b=>b.addEventListener('click',()=>{careerTab=b.dataset.tab;careerSel=null;sfx.tick();renderCareer();}));
 $('nextBtn').addEventListener('click',nextFromCard);
@@ -7110,9 +7101,8 @@ const UPDATES=[
     "The real map only had the hole lines, so the greens, tees, fairways, bunkers and the pond on the 1st were traced from the aerial photo. The ground and greens come from 2020 lidar.",
     "Don't miss the 16th, the signature hole: a short par 3 that drops nearly 60 feet to the green. The 14th climbs about 60 feet the other way.",
     "Find it on the Arizona map. It joins the daily round rotation."]},
-  {id:"2026-10-14-lbview",date:"Oct 14, 2026",title:"No name needed to look or play",items:[
-    "The Daily button now opens the leaderboards straight away, so you can see today's scores, the calendar and the all-time standings without entering a name.",
-    "You can tee off on the daily without a name too. When you finish, the scorecard asks for the name the leaderboard shows and posts your round."]},
+  {id:"2026-10-14-lbview",date:"Oct 14, 2026",title:"Leaderboards for everyone",items:[
+    "The Daily button now opens the leaderboards straight away, so you can see today's scores, the calendar and the all-time standings without entering a name. You pick your name when you tap Play."]},
   {id:"2026-10-14-meter",date:"Oct 14, 2026",title:"Fairer swing meter",items:[
     "Your tap now counts exactly when you make it, not at the last picture the screen drew. A well-timed swing stays well timed even when your phone drops a frame, and the meter keeps an even speed instead of briefly hurrying to catch up."]},
   {id:"2026-10-14-fixes",date:"Oct 14, 2026",title:"Fixes",items:[
