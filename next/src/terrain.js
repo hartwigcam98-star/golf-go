@@ -74,16 +74,22 @@ export async function addGround(scene, D, H, q) {
     const ny = base.length / nx, x0 = P[0], y0 = P[2];
     Sg = (x, y) => { const fx = Math.max(0, Math.min(nx - 1.001, (x - x0) / st)), fy = Math.max(0, Math.min(ny - 1.001, (y - y0) / st)), i = fx | 0, j = fy | 0, tx = fx - i, ty = fy - j;
       return (base[j * nx + i] * (1 - tx) + base[j * nx + i + 1] * tx) * (1 - ty) + (base[(j + 1) * nx + i] * (1 - tx) + base[(j + 1) * nx + i + 1] * tx) * ty; }; }
-  // the hole: one vertex a yard; its outer 16 yd ease onto the surroundings so the two meet without a step (the lidar hole and the
+  // the hole: a vertex every 2 yd (the height grid's own spacing), with a 0.5-yd patch over the green's fine grid so the putting
+  // surface keeps its contours; the outer 16 yd ease onto the surroundings so the two meet without a step (the lidar hole and the
   // coarser surrounding ground can differ by a couple of yards at the edge)
-  { const nx = L.nx, ny = L.ny, pos = new Float32Array(nx * ny * 3), uvs = new Float32Array(nx * ny * 2);
-    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const k = j * nx + i, x = L.x0 + i, y = L.y0 + j;
-      const e = Math.min(i, j, nx - 1 - i, ny - 1 - j), t = Sg && e < 16 ? 1 - e / 16 : 0, hh = H(x, y);
-      pos[k * 3] = x; pos[k * 3 + 1] = t > 0 ? hh + (Sg(x, y) + .25 - hh) * t * t * (3 - 2 * t) : hh; pos[k * 3 + 2] = y; uvs[k * 2] = (i + .5) / nx; uvs[k * 2 + 1] = (j + .5) / ny; }
-    const idx = new Uint32Array((nx - 1) * (ny - 1) * 6); let o = 0;
-    for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i, b = a + 1, c = a + nx, e = c + 1; idx.set([a, c, b, b, c, e], o); o += 6; }
-    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    geo.setIndex(new THREE.BufferAttribute(idx, 1)); geo.computeVertexNormals();
+  { const X1 = L.x0 + L.nx - 1, Y1 = L.y0 + L.ny - 1, G = M.gg, gx1 = G.x0 + (G.nx - 1) * G.st, gy1 = G.y0 + (G.ny - 1) * G.st;
+    const hAt = (x, y) => { const e = Math.min(x - L.x0, y - L.y0, X1 - x, Y1 - y), t = Sg && e < 16 ? 1 - Math.max(0, e) / 16 : 0, hh = H(x, y);
+      return t > 0 ? hh + (Sg(x, y) + .25 - hh) * t * t * (3 - 2 * t) : hh; };
+    const grid = (x0, y0, st, nx, ny, skip, lift) => { const pos = new Float32Array(nx * ny * 3), uvs = new Float32Array(nx * ny * 2);
+      for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const k = j * nx + i, x = Math.min(x0 + i * st, X1), y = Math.min(y0 + j * st, Y1);
+        pos[k * 3] = x; pos[k * 3 + 1] = hAt(x, y) + lift; pos[k * 3 + 2] = y; uvs[k * 2] = (x - L.x0 + .5) / L.nx; uvs[k * 2 + 1] = (y - L.y0 + .5) / L.ny; }
+      const idx = []; for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) { if (skip && skip(x0 + i * st, y0 + j * st, st)) continue;
+        const a = j * nx + i, b = a + 1, c = a + nx, e = c + 1; idx.push(a, c, b, b, c, e); }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      geo.setIndex(new THREE.BufferAttribute(new Uint32Array(idx), 1)); geo.computeVertexNormals(); return geo; };
+    const inGreen = (x, y, st) => x >= G.x0 + 1 && y >= G.y0 + 1 && x + st <= gx1 - 1 && y + st <= gy1 - 1;   // cells the fine patch covers
+    const geo = grid(L.x0, L.y0, 2, Math.ceil((L.nx - 1) / 2) + 1, Math.ceil((L.ny - 1) / 2) + 1, inGreen, 0);
+    const geoG = grid(G.x0, G.y0, G.st, G.nx, G.ny, null, .006);   // a hair above, where the two overlap at the patch's rim
     const surf = new THREE.CanvasTexture(surfaceCanvas(D)); surf.colorSpace = THREE.SRGBColorSpace; surf.flipY = false; surf.anisotropy = 8;
     const wt = weightTexture(D), w = texture(wt, uv());
     const mat = new THREE.MeshStandardNodeMaterial({ roughness: .95, metalness: 0 });
@@ -95,7 +101,8 @@ export async function addGround(scene, D, H, q) {
       const n = mix(texture(turfN, xz.div(1.7)).rgb, texture(sandN, xz.div(2.4)).rgb, w.w);
       mat.normalNode = normalMap(n, vec2(near.mul(mix(float(.9), float(.6), w.x)))); }
     mat.roughnessNode = mix(float(.97), float(.86), w.x);   // mown grass a touch glossier
-    const m = new THREE.Mesh(geo, mat); m.receiveShadow = true; m.name = 'hole'; scene.add(m); }
+    const m = new THREE.Mesh(geo, mat); m.receiveShadow = true; m.name = 'hole'; scene.add(m);
+    const mg = new THREE.Mesh(geoG, mat); mg.receiveShadow = true; mg.name = 'hole'; scene.add(mg); }
 
   // the surroundings past the hole, as the game builds them, painted with its surroundings map
   if (M.surr) { const S = M.surr, geo = new THREE.BufferGeometry();

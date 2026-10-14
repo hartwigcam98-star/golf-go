@@ -26,19 +26,29 @@ export async function addTrees(renderer, scene, D, q, inside) {
       { emissiveNode: texture(leafAtlas, uv()).rgb.mul(vertexColor()).mul(back.mul(.45)) }),
   };
 
-  // near trees: one instanced draw per prototype part, every tree a copy with the game's matrix and tint
-  const detail = q.treeDetail === 'lite' ? 'lite' : 'full';
-  let tris = 0;
+  // near trees: one instanced draw per prototype part, every tree a copy with the game's matrix and tint. Each prototype has a full
+  // and a light version (as the game's LOD): full detail within LOD_NEAR yards of the camera, the light one beyond; re-sorted when
+  // the camera has moved a fair way. Low quality uses the light version throughout.
+  const LOD_NEAR = 160, lods = [];
   for (const g of groups) {
-    const mtx = D.chunk(g.M), col = D.chunk(g.C);
-    for (const part of g[detail]) {
-      const geo = geometryOf(D.chunk(part.data), part.stride), im = new THREE.InstancedMesh(geo, mats[part.kind], g.n);
-      im.instanceMatrix.array.set(mtx); im.instanceMatrix.needsUpdate = true;
-      im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(col), 3);
-      im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; scene.add(im);
-      tris += geo.attributes.position.count / 3 * g.n;
-    }
+    const mtx = D.chunk(g.M), col = D.chunk(g.C), n = g.n;
+    const make = list => list.map(part => { const geo = geometryOf(D.chunk(part.data), part.stride), im = new THREE.InstancedMesh(geo, mats[part.kind], n);
+      im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; im.count = 0; im.visible = false;
+      im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3); scene.add(im); return im; });
+    lods.push({ n, mtx, col, full: q.treeDetail === 'lite' ? [] : make(g.full), lite: make(g.lite), pos: Array.from({ length: n }, (_, i) => [mtx[i * 16 + 12], mtx[i * 16 + 14]]) });
   }
+  let ref = null;
+  const updateLOD = (cam, force) => {
+    if (!force && ref && Math.hypot(cam.x - ref[0], cam.z - ref[1]) < 25) return false; ref = [cam.x, cam.z];
+    for (const L of lods) { const near = [], far = [];
+      L.pos.forEach((p, i) => (L.full.length && Math.hypot(p[0] - cam.x, p[1] - cam.z) < LOD_NEAR ? near : far).push(i));
+      for (const [ims, ids] of [[L.full, near], [L.lite, far]]) for (const im of ims) {
+        ids.forEach((i, k) => { im.instanceMatrix.array.set(L.mtx.subarray(i * 16, i * 16 + 16), k * 16); im.instanceColor.array.set(L.col.subarray(i * 3, i * 3 + 3), k * 3); });
+        im.count = ids.length; im.visible = ids.length > 0;   // an instanced draw of zero copies is drawn once, untransformed, by the WebGL2 path
+        im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; } }
+    return true;
+  };
+  const tris = () => lods.reduce((a, L) => a + [...L.full, ...L.lite].reduce((b, im) => b + im.geometry.attributes.position.count / 3 * im.count, 0), 0);
 
   // far trees: impostors from each species' first light prototype
   const far = (M.far || []).filter(t => !inside || !inside(t)), bySp = {};
@@ -66,7 +76,7 @@ export async function addTrees(renderer, scene, D, q, inside) {
     const im = new THREE.InstancedMesh(cards, new THREE.MeshBasicMaterial({ map: rt.texture, alphaTest: .5, side: THREE.DoubleSide }), list.length);
     const m4 = new THREE.Matrix4(), qq = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
     list.forEach((t, i) => { const sc = (t.r || 9) / 10; qq.setFromAxisAngle(up, (i * 2.3999) % (Math.PI * 2)); s.set(sc, sc * 1.15, sc); p.set(t.x, t.gh - .15, t.y); m4.compose(p, qq, s); im.setMatrixAt(i, m4); });
-    im.frustumCulled = false; scene.add(im); tris += 4 * list.length;
+    im.frustumCulled = false; scene.add(im);
   }
-  return { near: groups.reduce((a, g) => a + g.n, 0), far: far.length, tris };
+  return { near: groups.reduce((a, g) => a + g.n, 0), far: far.length, updateLOD, tris };
 }

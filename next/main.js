@@ -38,7 +38,7 @@ async function start() {
   $('title').textContent = `${M.name} · hole ${M.hole} · par ${M.par}`;
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, .2, 40000);
   const cx = L.x0 + L.nx / 2, cy = L.y0 + L.ny / 2;
-  addSky(renderer, scene, { center: { x: cx, y: cy }, span: Math.max(L.nx, L.ny) * .6, shadowSize: q.shadow });
+  const sky = addSky(renderer, scene, { center: { x: cx, y: cy }, span: Math.max(L.nx, L.ny) * .6, shadowSize: q.shadow });
   $('msg').textContent = 'Painting the ground…'; await addGround(scene, D, H, q);
   $('msg').textContent = 'Growing the trees…'; const trees = await addTrees(renderer, scene, D, q);
 
@@ -59,10 +59,13 @@ async function start() {
   // frame readout: fps and slowest frames (what you feel), plus frame cost (how hard the phone works, which a 60 fps cap hides)
   const ft = [], cpu = []; let last = performance.now(), shown = 0, gpuMs = null;
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+  // shadows: nothing in the scene moves, so the shadow map is drawn once (and again only when the trees change detail)
+  sky.sun.shadow.autoUpdate = false; sky.sun.shadow.needsUpdate = true;
+  trees.updateLOD(camera.position, true);
   $('msg').hidden = true; $('hud').hidden = false;
   renderer.setAnimationLoop(now => {
     const dt = now - last; last = now; ft.push(dt); if (ft.length > 240) ft.shift();
-    const t0 = performance.now(); controls.update(); renderer.render(scene, camera); cpu.push(performance.now() - t0); if (cpu.length > 240) cpu.shift();
+    const t0 = performance.now(); controls.update(); if (trees.updateLOD(camera.position)) sky.sun.shadow.needsUpdate = true; renderer.render(scene, camera); cpu.push(performance.now() - t0); if (cpu.length > 240) cpu.shift();
     if (gpuTimer && renderer.resolveTimestampsAsync) renderer.resolveTimestampsAsync().then(() => { const v = renderer.info.render.timestamp; if (v > 0) gpuMs = v; }).catch(() => {});
     if (now - shown > 500) { shown = now; const s = ft.slice().sort((a, b) => a - b), p95 = s[Math.floor(s.length * .95)] || 0, mean = ft.reduce((a, b) => a + b, 0) / ft.length;
       const c = cpu.slice().sort((a, b) => a - b), cMed = c[c.length >> 1] || 0;
