@@ -928,7 +928,7 @@ const shotOK=(t,ci)=>SHOTS[t].clubs.includes(ci);
 // green speed from the stimpmeter: the ramp releases the ball at 6 ft/s and it rolls STIMP feet on a flat green, so the rolling deceleration is v^2/(2d)
 const STIMP=11,STIMP_V=2,MU_GREEN=STIMP_V*STIMP_V/(2*STIMP/3);
 const CAPV=Math.sqrt(2*MU_GREEN*2.1);   // a ball that would have run on about 2 yards past still drops
-const MU={green:MU_GREEN,fairway:3.2,tee:3.2,cut:5.5,rough:11,sand:28,fescue:17};   // fairway/tee eased from 4.5: balls feed down slopes and roll out a touch more
+const MU={green:MU_GREEN,fairway:1.2,tee:1.2,cut:2.4,rough:11,sand:28,fescue:17};   // Oct 13 2026: fairway/tee/cut friction cut from 3.2/3.2/5.5 so slopes kick the ball (a full shot's roll-out on flat ground is planned from this, so it is unchanged)
 // a slow ball on a green: the grass holds it less as it dies, so it trickles on down a slope instead of parking on it.
 // Below 0.4 yd/s the green's rolling resistance eases to 45% (fully by 0.15 yd/s): a ball comes to rest only on slopes under
 // about 3% (the cup-slope rule); on anything steeper it keeps trickling downhill at a walking-pace crawl. Faster rolls are unchanged.
@@ -2335,14 +2335,14 @@ function later(t,fn){G.waitT=t;G.waitFn=fn;}
 function curClub(){return CLUBS[G.clubIdx];}
 // v95: a computer with a mouse and keyboard: the hints name the keys
 const DESK=(()=>{try{return matchMedia('(hover:hover) and (pointer:fine)').matches;}catch(e){return false;}})();
-function lieMul(c,lie){const k=c.kind;if(c.id==='1W'&&lie!=='tee'&&!onTeeBox())return lie==='fairway'?.96:lie==='cut'?.92:.75;if(lie==='sand'&&BUNKER_T[G.stype])return 1;
+function lieMul(c,lie){const k=c.kind;if(c.id==='1W'&&lie!=='tee'&&lie!=='sand'&&lie!=='fescue'&&!onTeeBox())return lie==='fairway'?.96:lie==='cut'?.92:.75;   // (sand and fescue use their own tables: the driver is the worst club there)if(lie==='sand'&&BUNKER_T[G.stype])return 1;
   if(lie==='sand')return SAND_C[tidOf(c)]??.6;
   if(lie==='fescue')return FES_C[tidOf(c)]??.6;
   if(lie==='rough')return LIE_T.rough[clubGroup(c)]*(tidOf(c)==='5W'?1.04:1);if(lie==='cut')return LIE_T.cut[clubGroup(c)];return 1;}
 /* full shots from fairway bunkers and fescue, per club (shot lab): the old club groups made a PW go further than a 9-iron out
    of sand and the 7-iron the longest iron out of fescue. Each club now goes a little shorter than the next-longer one, the
    hybrid advances it furthest, and the woods are a poor bet */
-const SAND_C={'1W':.4,'3W':.45,'5W':.45,'4H':.62,'5I':.6,'6I':.63,'7I':.66,'8I':.69,'9I':.72,'PW':.75,'GW':.8,'SW':.88,'LW':.86};
+const SAND_C={'1W':.6,'3W':.72,'5W':.78,'4H':.88,'5I':.88,'6I':.9,'7I':.92,'8I':.93,'9I':.94,'PW':.95,'GW':.95,'SW':.96,'LW':.95};   // Oct 13 2026: a clean pick from a fairway bunker loses only a little; the danger is the tighter timing window and catching it heavy (SAND_FAT)
 const FES_C={'1W':.4,'3W':.42,'5W':.45,'4H':.65,'5I':.63,'6I':.655,'7I':.68,'8I':.7,'9I':.735,'PW':.76,'GW':.79,'SW':.83,'LW':.855};   // v100: a touch more from the hybrid and irons   // the 5-wood's extra loft gets it up out of grass a little better
 /* tough lies by club (golf instruction + launch-monitor tests): grass grabs long, low-lofted clubs and shuts the face, so fairway woods
    and long irons come out short and wild; hybrids cut through medium rough best of the long clubs; from deep rough and fescue the
@@ -2481,7 +2481,8 @@ function shotMods(){const c=curClub();if(c.putter)return{carry:1,apex:1,roll:1,c
     win:(ps?.72:1)*(tj?.9:1)*clamp(1-(Math.abs(S.along)+Math.abs(S.side))*2.2,.6,1),back:iy<-.5&&SPIN_K[G.stype]===undefined?(-iy-.5)*2:0};}
 function perfectWin(){if(!curClub().putter)return perfectWinBase()*shotMods().win*cmod().win(curClub());return perfectWinBase()*cmod().win(curClub());}
 // the player's window is 20% tighter than the rivals' (their timing spread was tuned against the original width)
-function perfectWinBase(){const k=G.aiTurn?1:.8;if(curClub().putter)return .026*k;return((G.lie==='rough'||G.lie==='sand'||G.lie==='fescue')?.018:G.lie==='cut'?.022:.024)*SHOTS[G.stype].win*k;}
+function perfectWinBase(){const k=G.aiTurn?1:.8;if(curClub().putter)return .026*k;return((G.lie==='sand'&&!BUNKER_T[G.stype]&&!isShort())?SAND_WIN:(G.lie==='rough'||G.lie==='sand'||G.lie==='fescue')?.018:G.lie==='cut'?.022:.024)*SHOTS[G.stype].win*k;}
+const SAND_WIN=.0145,SAND_FAT=[.12,7,.5];   // heavy from the sand: carry lost = .12 + 7 x how far early (s), at most half   // full shots from a fairway bunker: the tightest window in the game (fairway .024, rough .018)
 // touch screens show the cursor a frame or two late; judge the tap against what the player saw
 // what you see is what you get: the tap is judged exactly where the cursor is drawn
 try{localStorage.removeItem('troyburne-tap-lag');}catch(e){}
@@ -2833,7 +2834,10 @@ function strikeShot(power,e){
   if(sgl){sgv=1+(Math.random()*2-1)*sgl.v*sgk*(G.stype==='flop'?.7:1)*(cmod().sgVar??1);
     if(sgl.chunk&&!mis&&Math.random()<sgl.chunk*sgk){sgChunk=true;sgv*=.62+Math.random()*.16;if(!G.aiTurn)setTimeout(()=>toast('GRABBED!','The fescue caught the club','#ffb46a'),300);}}
   const flyer=!isShort()&&G.stype!=='punch'&&FLYER[lie]?FLYER[lie][clubGroup(club)]:1;
-  const carry=sgv*(mis?mis.c:1)*Math.max(isShort()&&G.swMax?.5:2,(isShort()&&G.swMax?G.swMax:clubCarry(club)*lm*ST.c)*power*M.carry*(perfTee?(cmod().perf??1.03):1)*(1-(HARSH?Math.min(.32,G.missBy*3.6*(cmod().misFull??1)):Math.min(.16,G.missBy*1.6))));
+  // full shots from a fairway bunker: tapped early catches the sand first and comes up well short
+  const fat=!isShort()&&lie==='sand'&&!BUNKER_T[G.stype]&&!miss&&G.missBy>0&&e>0?clamp(SAND_FAT[0]+G.missBy*SAND_FAT[1],0,SAND_FAT[2]):0;
+  if(fat&&!G.aiTurn)setTimeout(()=>toast('HEAVY!','Caught the sand first','#ffb46a'),300);
+  const carry=sgv*(mis?mis.c:1)*Math.max(isShort()&&G.swMax?.5:2,(isShort()&&G.swMax?G.swMax:clubCarry(club)*lm*ST.c)*power*M.carry*(perfTee?(cmod().perf??1.03):1)*(1-(HARSH?Math.min(.32,G.missBy*3.6*(cmod().misFull??1)):Math.min(.16,G.missBy*1.6)))*(1-fat));
   const[dx,dy]=dirOf(G.aim),px=-dy,py=dx;
   const lat=-e*1.8*em*carry*cmod().err(club)*lefty()+M.curve*cmod().curve*carry;   // a left-hander's hook goes right, his slice left (Oct 13 2026)
   const w=dirOf(G.wind.a),wk=G.wind.mph*.85*(carry/200)*club.loft*ST.w*M.wind*cmod().wind;
@@ -6926,6 +6930,10 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-13-physics1",date:"Oct 13, 2026",title:"Slopes and fairway bunkers",items:[
+    "Fairway slopes now matter: a drive that lands on a downslope kicks on (about 25 more yards off a steep one), and an upslope stops it sooner. Roll-out on flat ground is unchanged.",
+    "Fairway bunkers cost far less distance on a clean strike (a 7 iron keeps about 92% of its carry), but the timing window there is now the tightest in the game, and tapping early catches the sand first and comes up well short (\"HEAVY!\").",
+    "Long clubs still struggle from sand: the hybrid is the best long club out, and the driver is now the worst club from bunkers and fescue (it used to fly almost twice as far as a 3 wood)."]},
   {id:"2026-10-13-legends3",date:"Oct 13, 2026",title:"Lifelike tour legends",items:[
     "All ten legends have new, realistic bodies, each built at the real player's height, from Barry Player at 5'7\" to Phil Pickelson and Scotty Shuffler at 6'4\".",
     "Each has his own face shape, skin tone and hairstyle, and you now see hair under the caps and flat caps.",
