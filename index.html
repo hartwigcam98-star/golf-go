@@ -2355,7 +2355,8 @@ function later(t,fn){G.waitT=t;G.waitFn=fn;}
 function curClub(){return CLUBS[G.clubIdx];}
 // v95: a computer with a mouse and keyboard: the hints name the keys
 const DESK=(()=>{try{return matchMedia('(hover:hover) and (pointer:fine)').matches;}catch(e){return false;}})();
-function lieMul(c,lie){const k=c.kind;if(c.id==='1W'&&lie!=='tee'&&lie!=='sand'&&lie!=='fescue'&&!onTeeBox())return lie==='fairway'?.96:lie==='cut'?.92:.75;   // (sand and fescue use their own tables: the driver is the worst club there)if(lie==='sand'&&BUNKER_T[G.stype])return 1;
+function lieMul(c,lie){const k=c.kind;if(c.id==='1W'&&lie!=='tee'&&lie!=='sand'&&lie!=='fescue'&&!onTeeBox())return lie==='fairway'?.96:lie==='cut'?.92:.75;   // (sand and fescue use their own tables: the driver is the worst club there)
+  if(lie==='sand'&&BUNKER_T[G.stype])return 1;
   if(lie==='sand')return SAND_C[tidOf(c)]??.6;
   if(lie==='fescue')return FES_C[tidOf(c)]??.6;
   if(lie==='rough')return LIE_T.rough[clubGroup(c)]*(tidOf(c)==='5W'?1.04:1);if(lie==='cut')return LIE_T.cut[clubGroup(c)];return 1;}
@@ -2731,7 +2732,10 @@ let SAVE_KEY=CUR.saveKey;
 function saveGame(o={}){if(G.mode==='daily'){dailySave(o);return;}if(G.mode!=='round')return;
   const d={v:1,pin:G.pinSeed||0,shots:G.rShots||[],ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,pend:o.pend||null,ts:Date.now()};
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(d));}catch(e){}}
-function loadSave(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(d&&d.v===1&&Number.isInteger(d.hi)&&d.hi>=0&&d.hi<TB.length)return d;}catch(e){}return null;}
+function loadSave(key=SAVE_KEY,n=TB.length){try{const d=JSON.parse(localStorage.getItem(key)||'null');if(d&&d.v===1&&Number.isInteger(d.hi)&&d.hi>=0&&d.hi<n)return d;}catch(e){}return null;}
+// your Quick play course (the Daily, matches and saved shots visit other courses without changing it) and its saved round
+function homeCourse(){let c=null;try{c=localStorage.getItem('golf-course');}catch(e){}return c&&COURSES[c]?c:CUR.id;}
+const homeSave=()=>{const C=COURSES[homeCourse()];return loadSave(C.saveKey,C.tb.length);};
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
 /* wind for the round (v2026-10-09): one prevailing wind per round (direction and strength), the same for every hole, with only a
    little hole-to-hole variation (about +-10 degrees, +-2 mph) and the small per-stroke drift. Holes are mapped north-up, so the
@@ -3256,7 +3260,7 @@ function dailyName(){try{return localStorage.getItem('golf-name')||'';}catch(e){
 function dailySave(o={}){const d=dailyLoad()||{};if(d.day!==G.dailyDay)return;
   Object.assign(d,{ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,pend:o.pend||null,ts:Date.now()});dailyStore(d);}
 function dailyWeather(day){if(typeof R3==='undefined'||!R3.on||typeof r3ApplyWx!=='function')return;r3ApplyWx(Math.floor(rng(dailyNum(day)*31+7)()*4)%4,true);}
-function dailyLeave(){if(G.mode!=='daily'&&G.mode!=='spectate')return;G.mode='round';let c=null;try{c=localStorage.getItem('golf-course');}catch(e){}if(c&&COURSES[c]&&c!==CUR.id)setCourse(c,false);
+function dailyLeave(){if(G.mode!=='daily'&&G.mode!=='spectate'&&G.mode!=='career'&&G.mode!=='highlight')return;G.mode='round';const c=homeCourse();if(c!==CUR.id)setCourse(c,false);
   if(typeof R3!=='undefined'&&R3.on&&typeof r3RoundWx==='function')r3RoundWx();}
 // start or resume today's official round
 function dailyPlay(){const day=dailyDay(),cid=dailyCourse(day);let d=dailyToday();
@@ -3496,9 +3500,9 @@ function dailyMenuLine(){const day=dailyDay(),cid=dailyCourse(day),me=dailyToday
 /* ---------- menu ---------- */
 function holeLen(i){const L=COURSE.holes[i].line;let d=0;for(let k=1;k<L.length;k++)d+=hyp(L[k][0]-L[k-1][0],L[k][1]-L[k-1][1]);return Math.round(d);}
 function openMenu(fromGame){G.paused=true;$('menuM').hidden=false;try{menuHero();if(MSTATE)showState(MSTATE);else showMap();menuPlay();}catch(e){console.error(e);}$('dailyM').hidden=true;$('charM').hidden=true;try{dailyMenuLine();}catch(e){}$('mHoles').hidden=true;$('mMain').hidden=false;$('mNewWarn').hidden=true;newArmed=false;
-  const sv=loadSave();$('mContinue').hidden=!sv;$('mContinueSub').hidden=!sv;
+  const sv=homeSave(),hTB=COURSES[homeCourse()].tb;$('mContinue').hidden=!sv;$('mContinueSub').hidden=!sv;
   {const n=hlList().length;$('mHl').hidden=!n;$('mHlN').textContent=n?'('+n+')':'';}
-  if(sv){let d=0,n=0;(sv.scores||[]).forEach((x,i)=>{if(x){d+=x-TB[i].par;n++;}});
+  if(sv){let d=0,n=0;(sv.scores||[]).forEach((x,i)=>{if(x&&hTB[i]){d+=x-hTB[i].par;n++;}});
     $('mContinueSub').textContent='Hole '+(sv.hi+1)+(sv.mid?' \u00b7 stroke '+(sv.strokes+1):'')+' \u00b7 '+(n?fmtDiff(d)+' through '+n:'no holes finished yet')+' \u00b7 saved '+new Date(sv.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'});}
   $('mNew').className=sv?'ghost disp':'primary disp';
   $('mClose').hidden=!(fromGame&&G.hole)||G.mode==='spectate';
@@ -6860,13 +6864,15 @@ function showState(st){MSTATE=st;const ids=Object.keys(COURSES).filter(id=>state
   $('coursePick').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>pickCourse(b.dataset.c)));
   $('mapView').hidden=true;$('stateView').hidden=false;}
 function showMap(){MSTATE=null;$('stateView').hidden=true;$('mapView').hidden=false;const st=stateOf(CUR.id);$('usMap').querySelectorAll('path.has').forEach(p=>p.classList.toggle('cur',p.dataset.st===st));}
-function menuHero(){const img=courseImg(CUR.id),el=$('mHeroImg');if(img)el.src=img;else el.removeAttribute('src');}
+// the menu headline is your Quick play course (Continue and New round play there), even straight after a Daily, match or saved shot elsewhere
+function menuHero(){const C=COURSES[homeCourse()],img=courseImg(C.id),el=$('mHeroImg');if(img)el.src=img;else el.removeAttribute('src');
+  $('mEyebrow').textContent=C.name+' \u00b7 '+C.tees+' \u00b7 Par '+C.tb.reduce((a,h)=>a+h.par,0);$('mTitle').textContent=C.name;}
 function setTab(t){const c=t!=='play';$('tabC').hidden=!c;$('tabP').hidden=c;$('tabBtnC').classList.toggle('on',c);$('tabBtnP').classList.toggle('on',!c);$('tabBtnC').setAttribute('aria-selected',String(c));$('tabBtnP').setAttribute('aria-selected',String(!c));
   try{localStorage.setItem('golf-tab',c?'courses':'play');}catch(e){}}
 $('tabBtnC').addEventListener('click',()=>{A();sfx.tick();setTab('courses');});$('tabBtnP').addEventListener('click',()=>{A();sfx.tick();setTab('play');});
 $('stBack').addEventListener('click',()=>{A();sfx.tick();showMap();});
 buildMap();try{setTab(localStorage.getItem('golf-tab')==='play'?'play':'courses');}catch(e){setTab('courses');}
-$('mNew').addEventListener('click',()=>{A();if(loadSave()&&!newArmed){newArmed=true;$('mNewWarn').hidden=false;return;}newRound();});
+$('mNew').addEventListener('click',()=>{A();if(homeSave()&&!newArmed){newArmed=true;$('mNewWarn').hidden=false;return;}newRound();});
 $('mPractice').addEventListener('click',()=>{$('mMain').hidden=true;$('mHoles').hidden=false;});
 $('mGolfer').addEventListener('click',()=>{A();sfx.tick();openChars();});$('chGo').addEventListener('click',()=>{A();pickChar();});$('chBack').addEventListener('click',()=>{A();sfx.tick();$('charM').hidden=true;$('menuM').hidden=false;});golferRow();
 $('mHolesBack').addEventListener('click',()=>{$('mHoles').hidden=true;$('mMain').hidden=false;});
@@ -6926,13 +6932,14 @@ $('vidSave').addEventListener('click',()=>{A();recSave();});$('vidClose').addEve
 $('replayBtn').addEventListener('click',()=>{A();if(G.state==='aim'&&G.canReplay)startReplay(()=>{G.state='aim';});});
 $('cardReplay').addEventListener('click',()=>{A();startReplay(()=>{G.state='card';$('cardM').hidden=false;});});
 $('soundBtn').addEventListener('click',()=>{S.on=!S.on;$('soundWaves').style.opacity=S.on?1:.15;if(S.on){unlockAudio();setTimeout(()=>sfx.strike(1,1,'wood','tee'),60);}else if(S.tag)S.tag.pause();});
+const modalOpen=()=>!!document.querySelector('.modal:not([hidden])');
 window.addEventListener('keydown',e=>{
   if(!$('faqM').hidden){if(e.key==='Escape'){e.preventDefault();$('faqM').hidden=true;}return;}
   if(!$('pauseM').hidden){if(e.key==='Escape'){e.preventDefault();if(!$('pFbView').hidden){$('pFbView').hidden=true;$('pMain').hidden=false;}else closePause();}return;}
-  if(e.key==='Escape'&&!G.replay&&$('bagM').hidden&&inRound()&&$('introM').hidden&&$('cardM').hidden){e.preventDefault();openPause();return;}
+  if(e.key==='Escape'&&!G.replay&&inRound()&&!modalOpen()){e.preventDefault();openPause();return;}
   if(G.replay&&(e.code==='Space'||e.key==='Escape')){e.preventDefault();endReplay();return;}
   if(!$('bagM').hidden&&e.key==='Escape'){$('bagM').hidden=true;return;}
-  if(!$('introM').hidden||!$('cardM').hidden||!$('menuM').hidden||!$('bagM').hidden||!$('careerM').hidden)return;
+  if(modalOpen())return;   // any window up (menu, saved shots, daily board, records, golfers, relief…): no swings behind it
   if(e.key==='b'||e.key==='B'){openBag();return;}
   if(e.code==='Space'){e.preventDefault();if(!e.repeat)tap();}
   else if(e.key==='ArrowLeft'||e.key==='ArrowRight'){keys[e.key]=true;e.preventDefault();}
@@ -6978,6 +6985,10 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-14-fixes",date:"Oct 14, 2026",title:"Fixes",items:[
+    "Your saved Quick play round no longer goes missing from the menu after a daily round, a match or a saved shot on another course, and New round warns you before replacing it.",
+    "Splash, pick and blast shots from bunkers get their full meter back (a change yesterday trimmed it by about 5%).",
+    "On a computer, the space bar and arrow keys no longer play or aim a shot behind an open window like Saved shots or the daily leaderboard."]},
   {id:"2026-10-14-pcard",date:"Oct 14, 2026",title:"Scorecard in the pause menu",items:[
     "Tap the menu during a round and choose Scorecard to see every hole's yardage and par, plus your scores so far. The hole you're on is highlighted, and in a match your rival's scores show too."]},
   {id:"2026-10-14-daily",date:"Oct 14, 2026",title:"Today's daily: Dove Valley Ranch",items:[
