@@ -3211,6 +3211,8 @@ const DAILY_ORDER3=['troy','crsc','quarry','mammoth','stoneridge','lido','wilder
 // To add a course: append [id, first day it may be picked (a future date)] so today's and past days' courses never change.
 const DAILY_N4=Math.round(Date.UTC(2026,9,5)/864e5),DAILY_POOL=[['farmlinks',20740],['royal',20738],['prestwick',20737],['mystic',20737],['legends',20737],['chaska',20737],['slmh',20736],['slbm',20736],['interlachen',20735],['windsong',20735],['hazeltine',20735],['gnlinks',20734],['gnlake',20734],['lookout',20734],['wigwam',20734],['dove',20734],['ridge',20734],['valley',20734],['orangeburg',20734],['santee',20734],['wyboo',20734],['crsc',0],['deacon',0],['quarry',0],['mammoth',0],['pines',0],['stoneridge',0],['lido',0],['maddens',0],['wilderness',0],['caledonia',0],['sedge',0],['preserve',0],['trueblue',0],['crls',0],['heritage',0],['lehman',0],['legend',0],['rossbridge',0],['legislator',0],['pawplant',0],['judge',0],['senator',0],['sandvalley',0],['troy',0]];
 // one-off swaps of a day's course (Oct 4 2026 was Troy again, two days after Troy; it became Cambrian Ridge Sherling)
+// courses taken out of the daily rotation from a given day (past days keep them, so they never change)
+const DAILY_OFF={hazeltine:Math.round(Date.UTC(2026,9,14)/864e5),windsong:Math.round(Date.UTC(2026,9,14)/864e5)};
 const DAILY_FIX={[Math.round(Date.UTC(2026,9,4)/864e5)]:'crsc',[Math.round(Date.UTC(2026,9,14)/864e5)]:'dove'};   // Oct 14 2026: the user swapped Hazeltine for a course nobody had played
 function dailyCourseOld(n){if(DAILY_FIX[n])return DAILY_FIX[n];if(n>=DAILY_N3)return DAILY_ORDER3[(n-DAILY_N3)%DAILY_ORDER3.length];if(n>=DAILY_N2)return DAILY_ORDER2[(n-DAILY_N2)%DAILY_ORDER2.length];return DAILY.order[((n%DAILY.order.length)+DAILY.order.length)%DAILY.order.length];}
 const DAILY_LRU={last:null,list:[]};
@@ -3221,7 +3223,7 @@ const DAILY_N5=Math.round(Date.UTC(2026,9,8)/864e5),DAILY_SH={list:[],used:null,
 function dailyRng(n){let s=(Math.imul(n,2654435761)^0x5bd1e995)>>>0;return()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296;};}
 function dailyCourseShuf(n){const M=DAILY_SH;
   if(!M.used){M.used=new Set();M.recent=[];for(let k=DAILY_N5-6;k<DAILY_N5;k++)M.recent.push(dailyCourse(new Date(k*864e5).toISOString().slice(0,10)));}
-  while(DAILY_N5+M.list.length<=n){const k=DAILY_N5+M.list.length,pool=DAILY_POOL.filter(([id,from])=>from<=k&&COURSES[id]).map(([id])=>id);
+  while(DAILY_N5+M.list.length<=n){const k=DAILY_N5+M.list.length,pool=DAILY_POOL.filter(([id,from])=>from<=k&&COURSES[id]&&!(DAILY_OFF[id]&&k>=DAILY_OFF[id])).map(([id])=>id);
     let rem=pool.filter(id=>!M.used.has(id));if(!rem.length){M.used=new Set();rem=pool;}
     const last=M.recent.slice(-6);let cand=rem.filter(id=>!last.includes(id));if(!cand.length)cand=rem;
     const r=dailyRng(k);r();const pick=DAILY_FIX[k]&&COURSES[DAILY_FIX[k]]?DAILY_FIX[k]:cand[Math.floor(r()*cand.length)];M.used.add(pick);M.recent.push(pick);M.list.push(pick);}
@@ -6950,7 +6952,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 (()=>{
 const UPDATES=[
   {id:"2026-10-14-daily",date:"Oct 14, 2026",title:"Today's daily: Dove Valley Ranch",items:[
-    "Today's daily round moved from Hazeltine to Dove Valley Ranch in Cave Creek, Arizona, a course nobody had played yet. A Hazeltine daily you'd already started starts over on Dove Valley."]},
+    "Today's daily round moved from Hazeltine to Dove Valley Ranch in Cave Creek, Arizona, a course nobody had played yet. A Hazeltine daily you'd already started starts over on Dove Valley.",
+    "Hazeltine and Windsong Farm are taking a break from the daily rotation for now; you can still play them any time from the course map."]},
   {id:"2026-10-14-pinchip",date:"Oct 14, 2026",title:"Full height readout",items:[
     "On big elevation changes the pin readout no longer gets cut off on phones: a drop of 110 feet used to show as \u201c\u25bc11\u201d. Long readouts now drop the \u201cyds\u201d and shrink a little to fit."]},
   {id:"2026-10-13-fc47",date:"Oct 13, 2026",title:"New course: FarmLinks at Pursell Farms",items:[
