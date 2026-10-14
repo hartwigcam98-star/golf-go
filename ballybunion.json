@@ -1,0 +1,1073 @@
+{
+ "osm": {
+  "counts": {
+   "pin": 34,
+   "clubhouse": 1,
+   "green": 36,
+   "tee": 105,
+   "hole": 34,
+   "fairway": 42,
+   "cartpath": 26,
+   "bunker": 65,
+   "building": 2369
+  },
+  "holes": [
+   {
+    "ref": "16",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "17",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "2",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "13",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "4",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "9",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "10",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "7",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "6",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "5",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "12",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "11",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "3",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "15",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "1",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "18",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": null,
+    "par": null,
+    "name": null,
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "8",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   },
+   {
+    "ref": "14",
+    "par": null,
+    "name": "Old Course",
+    "handicap": null,
+    "dist": null
+   }
+  ],
+  "courses": [
+   "Ballybunion Golf Club"
+  ]
+ },
+ "lidar": [
+  {
+   "service": "https://gsi.geodata.gov.ie/imagehost/rest/services/Lidar/IE_GSI_LiDAR_DSM_HS_NYU_1m_Dublin_ITM_MH_TIFF/ImageServer",
+   "info": {
+    "serviceDescription": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return. Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected on 25th March 2015.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN><SPAN><SPAN> </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data shows the hillshade of the DSM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data was collected by New York University. All data formats are provided as GeoTIFF rasters. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. NYU data has a grid cell size of 1meter by 1meter. This means that each cell (pixel) represents an area of 1meter squared.</SPAN></P></DIV></DIV></DIV>",
+    "name": "Lidar/IE_GSI_LiDAR_DSM_HS_NYU_1m_Dublin_ITM_MH_TIFF",
+    "description": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return. Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected on 25th March 2015.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN><SPAN><SPAN> </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data shows the hillshade of the DSM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data was collected by New York University. All data formats are provided as GeoTIFF rasters. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. NYU data has a grid cell size of 1meter by 1meter. This means that each cell (pixel) represents an area of 1meter squared.</SPAN></P></DIV></DIV></DIV>",
+    "extent": {
+     "xmin": 714233.407840374,
+     "ymin": 732656.4700999571,
+     "xmax": 717633.675190108,
+     "ymax": 735910.7689013049,
+     "spatialReference": {
+      "wkid": 2157,
+      "latestWkid": 2157
+     }
+    },
+    "pixelSizeX": 0.9997845779870541,
+    "pixelSizeY": 0.9997845779870496,
+    "copyrightText": "Geological Survey Ireland & New York University"
+   },
+   "control": [
+    "135",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "values": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "covered": 0
+  },
+  {
+   "service": "https://gsi.geodata.gov.ie/imagehost/rest/services/Lidar/IE_GSI_LiDAR_DSM_HS_OPW_NASC_IE26_2m_ITM_MH_TIFF/ImageServer",
+   "info": {
+    "serviceDescription": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected in 2011.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data shows the hillshade of the DSM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data was collected by the Office of Public Works. All data formats are provided as GeoTIFF rasters. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. OPW data has a grid cell size of 2 meter by 2 meter. This means that each cell (pixel) represents an area of 2 meter squared.</SPAN></P></DIV></DIV></DIV>",
+    "name": "Lidar/IE_GSI_LiDAR_DSM_HS_OPW_NASC_IE26_2m_ITM_MH_TIFF",
+    "description": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected in 2011.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data shows the hillshade of the DSM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data was collected by the Office of Public Works. All data formats are provided as GeoTIFF rasters. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. OPW data has a grid cell size of 2 meter by 2 meter. This means that each cell (pixel) represents an area of 2 meter squared.</SPAN></P></DIV></DIV></DIV>",
+    "extent": {
+     "xmin": 433986.29259923403,
+     "ymin": 563065.656650217,
+     "xmax": 734922.292599234,
+     "ymax": 952979.656650217,
+     "spatialReference": {
+      "wkid": 2157,
+      "latestWkid": 2157
+     }
+    },
+    "pixelSizeX": 2,
+    "pixelSizeY": 2,
+    "copyrightText": "Geological Survey Ireland & the Office of Public Works"
+   },
+   "control": [
+    "243",
+    "NoData",
+    "242",
+    "116",
+    "179"
+   ],
+   "values": [
+    "NoData",
+    "210",
+    "185",
+    "182",
+    "NoData",
+    "NoData",
+    "NoData",
+    "206",
+    "185",
+    "205",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "covered": 6,
+   "tif_bytes": 2098866
+  },
+  {
+   "service": "https://gsi.geodata.gov.ie/imagehost/rest/services/Lidar/IE_GSI_LiDAR_DTM_HS_GSI_DCHG_DP_MS_IE26_ITM_MH_TIFF/ImageServer",
+   "info": {
+    "serviceDescription": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected between Jan. 2007 and Oct. 2017. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>This data shows the hillshade of several DTM's mosaiced together.</SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data was collected by the Geological Survey Ireland, the Department of Culture, Heritage and the Gaeltacht, the Discovery Programme and the Heritage Council.  All data formats are provided as GeoTIFF rasters but are at different resolutions. Data resolution varies depending on survey requirements from 0.125m to 1m.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Both a DTM and DSM are raster data. Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. The grid cell size varies depending on the organisation that collected it. GSI data has a grid cell size of 1 meter by 1 meter. This means that each cell (pixel) represents an area of 1 meter squared</SPAN></SPAN></P></DIV></DIV></DIV>",
+    "name": "Lidar/IE_GSI_LiDAR_DTM_HS_GSI_DCHG_DP_MS_IE26_ITM_MH_TIFF",
+    "description": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected between Jan. 2007 and Oct. 2017. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>This data shows the hillshade of several DTM's mosaiced together.</SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data was collected by the Geological Survey Ireland, the Department of Culture, Heritage and the Gaeltacht, the Discovery Programme and the Heritage Council.  All data formats are provided as GeoTIFF rasters but are at different resolutions. Data resolution varies depending on survey requirements from 0.125m to 1m.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Both a DTM and DSM are raster data. Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. The grid cell size varies depending on the organisation that collected it. GSI data has a grid cell size of 1 meter by 1 meter. This means that each cell (pixel) represents an area of 1 meter squared</SPAN></SPAN></P></DIV></DIV></DIV>",
+    "extent": {
+     "xmin": 424358.4239329591,
+     "ymin": 560332.4086843571,
+     "xmax": 709925.623932959,
+     "ymax": 830829.2086843571,
+     "spatialReference": {
+      "wkid": 2157,
+      "latestWkid": 2157
+     }
+    },
+    "pixelSizeX": 0.09999999999999998,
+    "pixelSizeY": 0.10000000000000002,
+    "copyrightText": "Geological Survey Ireland, Department of Culture, Heritage and the Gaeltacht, Discovery Programme and the Heritage Council"
+   },
+   "control": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "values": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "covered": 0
+  },
+  {
+   "service": "https://gsi.geodata.gov.ie/imagehost/rest/services/Lidar/IE_GSI_LiDAR_DTM_HS_GSI_Phase2_1m_IE26_ITM_MH_TIFF/ImageServer",
+   "info": {
+    "serviceDescription": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return. Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected between June and October 2018.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>This data shows the hillshade of the DTM.</SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>This data was collected by BlueSky and GeoAeroSpace and provided to the Geological Survey Ireland. All data formats are provided as GeoTIFF rasters but are at different resolutions. Data resolution is 1m.</SPAN></P><P><SPAN>Both a DTM and DSM are raster data. Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. This data has a grid cell size of 1 meter by 1 meter. This means that each cell (pixel) represents an area of 1 meter squared.</SPAN></P></DIV></DIV></DIV>",
+    "name": "Lidar/IE_GSI_LiDAR_DTM_HS_GSI_Phase2_1m_IE26_ITM_MH_TIFF",
+    "description": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return. Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected between June and October 2018.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>This data shows the hillshade of the DTM.</SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>This data was collected by BlueSky and GeoAeroSpace and provided to the Geological Survey Ireland. All data formats are provided as GeoTIFF rasters but are at different resolutions. Data resolution is 1m.</SPAN></P><P><SPAN>Both a DTM and DSM are raster data. Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. This data has a grid cell size of 1 meter by 1 meter. This means that each cell (pixel) represents an area of 1 meter squared.</SPAN></P></DIV></DIV></DIV>",
+    "extent": {
+     "xmin": 512000,
+     "ymin": 694000,
+     "xmax": 604000,
+     "ymax": 768000,
+     "spatialReference": {
+      "wkid": 2157,
+      "latestWkid": 2157
+     }
+    },
+    "pixelSizeX": 1,
+    "pixelSizeY": 1,
+    "copyrightText": "Geological Survey Ireland"
+   },
+   "control": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "values": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "covered": 0
+  },
+  {
+   "service": "https://gsi.geodata.gov.ie/imagehost/rest/services/Lidar/IE_GSI_LiDAR_DTM_HS_OPW_125mm_Cork_ITM_MH_TIFF/ImageServer",
+   "info": {
+    "serviceDescription": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected in 2007.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data shows the hillshade of the DTM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data was collected by the Office of Public Works. All data formats are provided as GeoTIFF rasters. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. OPW data has a grid cell size of of 0.125 meter by 0.125 meter. This means that each cell (pixel) represents an area of 12.5 centimetres squared.</SPAN></SPAN></P></DIV></DIV></DIV>",
+    "name": "Lidar/IE_GSI_LiDAR_DTM_HS_OPW_125mm_Cork_ITM_MH_TIFF",
+    "description": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected in 2007.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data shows the hillshade of the DTM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data was collected by the Office of Public Works. All data formats are provided as GeoTIFF rasters. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. OPW data has a grid cell size of of 0.125 meter by 0.125 meter. This means that each cell (pixel) represents an area of 12.5 centimetres squared.</SPAN></SPAN></P></DIV></DIV></DIV>",
+    "extent": {
+     "xmin": 563157.8983323909,
+     "ymin": 560464.464435913,
+     "xmax": 589552.338220415,
+     "ymax": 573661.746866466,
+     "spatialReference": {
+      "wkid": 2157,
+      "latestWkid": 2157
+     }
+    },
+    "pixelSizeX": 0.12497308198362754,
+    "pixelSizeY": 0.12497308198362699,
+    "copyrightText": "Geological Survey Ireland & the Office of Public Works"
+   },
+   "control": [
+    "NoData",
+    "206",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "values": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "covered": 0
+  },
+  {
+   "service": "https://gsi.geodata.gov.ie/imagehost/rest/services/Lidar/IE_GSI_LiDAR_DTM_HS_OPW_2m_IE26_ITM_MH_TIFF/ImageServer",
+   "info": {
+    "serviceDescription": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, airplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected between Oct. 2006 and Jan. 2007. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data shows the hillshade of the DTM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data was collected by the Office of Public Works. All data formats are provided as GeoTIFF rasters. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. OPW data has a grid cell size of 2 meter by 2 meter. This means that each cell (pixel) represents an area of 2 meter squared.</SPAN></SPAN></P></DIV></DIV></DIV>",
+    "name": "Lidar/IE_GSI_LiDAR_DTM_HS_OPW_2m_IE26_ITM_MH_TIFF",
+    "description": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, airplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected between Oct. 2006 and Jan. 2007. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data shows the hillshade of the DTM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data was collected by the Office of Public Works. All data formats are provided as GeoTIFF rasters. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. OPW data has a grid cell size of 2 meter by 2 meter. This means that each cell (pixel) represents an area of 2 meter squared.</SPAN></SPAN></P></DIV></DIV></DIV>",
+    "extent": {
+     "xmin": 440984.03098892904,
+     "ymin": 527070.430703469,
+     "xmax": 731309.474734116,
+     "ymax": 844004.1411993221,
+     "spatialReference": {
+      "wkid": 2157,
+      "latestWkid": 2157
+     }
+    },
+    "pixelSizeX": 1.9995691539952543,
+    "pixelSizeY": 1.9995691541116656,
+    "copyrightText": "Geological Survey Ireland & the Office of Public Works"
+   },
+   "control": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "148",
+    "NoData"
+   ],
+   "values": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "covered": 0
+  },
+  {
+   "service": "https://gsi.geodata.gov.ie/imagehost/rest/services/Lidar/IE_GSI_LiDAR_DTM_HS_TII_2m_IE26_ITM_MH_TIFF/ImageServer",
+   "info": {
+    "serviceDescription": "<DIV STYLE=\"text-align:Left;\"><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return.</SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected between May 2010 and May 2011. </SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth\u2019s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>This data shows the hillshade of the DTM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>This data was collected by Transport Infrastructure Ireland. All data formats are provided as GeoTIFF rasters. </SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. TII data has a grid cell size of 2 meter by 2 meter. This means that each cell (pixel) represents an area of 2 meter squared.</SPAN></SPAN></P></DIV>",
+    "name": "Lidar/IE_GSI_LiDAR_DTM_HS_TII_2m_IE26_ITM_MH_TIFF",
+    "description": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return.</SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected between May 2010 and May 2011. </SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth\u2019s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>This data shows the hillshade of the DTM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>This data was collected by Transport Infrastructure Ireland. All data formats are provided as GeoTIFF rasters. </SPAN></SPAN></P><P STYLE=\"margin:0 0 11 0;\"><SPAN><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. TII data has a grid cell size of 2 meter by 2 meter. This means that each cell (pixel) represents an area of 2 meter squared.</SPAN></SPAN></P></DIV></DIV></DIV>",
+    "extent": {
+     "xmin": 475977.156085633,
+     "ymin": 540503.2101163829,
+     "xmax": 728734.692299355,
+     "ymax": 922398.919822505,
+     "spatialReference": {
+      "wkid": 2157,
+      "latestWkid": 2157
+     }
+    },
+    "pixelSizeX": 1.9995691360672918,
+    "pixelSizeY": 1.9995691359508772,
+    "copyrightText": "Geological Survey Ireland & Transport Infrastructure Ireland"
+   },
+   "control": [
+    "NoData",
+    "150",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "values": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "covered": 0
+  },
+  {
+   "service": "https://gsi.geodata.gov.ie/imagehost/rest/services/Lidar/IE_GSI_LiDAR_DTM_HS_WMCoCo_25cm_Westmeath_ITM_MH_TIFF/ImageServer",
+   "info": {
+    "serviceDescription": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected in November2020.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data shows the hillshade of the DTM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data was collected by the Westmeath County Council. All data formats are provided as GeoTIFF rasters. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. The data has a grid cell size of of 0.25 meter by 0.25 meter. This means that each cell (pixel) represents an area of 25 centimetres squared.</SPAN></SPAN></P></DIV></DIV></DIV>",
+    "name": "Lidar/IE_GSI_LiDAR_DTM_HS_WMCoCo_25cm_Westmeath_ITM_MH_TIFF",
+    "description": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR (Light Detection and Ranging) is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From satellite, aeroplane or helicopter, a LiDAR system sends a light pulse to the ground. This pulse hits the ground and returns back to a sensor on the system. The time is recorded to measure how long it takes for this light to return. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Knowing this time measurement scientists are able to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>LiDAR data are collected as points (X,Y,Z (x &amp; y coordinates) and z (height)). The data is then converted into gridded (GeoTIFF) data to create a Digital Terrain Model and Digital Surface Model of the earth. This LiDAR data was collected in November2020.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data shows the hillshade of the DTM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data was collected by the Westmeath County Council. All data formats are provided as GeoTIFF rasters. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. The data has a grid cell size of of 0.25 meter by 0.25 meter. This means that each cell (pixel) represents an area of 25 centimetres squared.</SPAN></SPAN></P></DIV></DIV></DIV>",
+    "extent": {
+     "xmin": 626000,
+     "ymin": 748000,
+     "xmax": 632000,
+     "ymax": 752000,
+     "spatialReference": {
+      "wkid": 2157,
+      "latestWkid": 2157
+     }
+    },
+    "pixelSizeX": 0.25,
+    "pixelSizeY": 0.25,
+    "copyrightText": "Geological Survey Ireland & Westmeath County Council"
+   },
+   "control": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "values": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "covered": 0
+  },
+  {
+   "service": "https://gsi.geodata.gov.ie/imagehost/rest/services/Lidar/IE_GSI_Photogrammetry_DSM_HS_GSI_25cm_IE26_ITM_MH_TIFF/ImageServer",
+   "info": {
+    "serviceDescription": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Photogrammetry is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From drone, aeroplane or helicopter, photographs are taken. Multiple overlapping photographs of the ground are taken. Precise measurements from the photographs can be taken to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>This data was collected using a drone carrying a digital camera in 2020</SPAN><SPAN> and 2021.</SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>A software package was used extract points (X,Y,Z  (x &amp; y coordinates) and z (height)) from the photographs. The data is then converted into gridded (GeoTIFF) data to create a Digital Surface Model of the earth.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data shows the hillshade of the DSM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>Th</SPAN><SPAN>e </SPAN><SPAN>Kilmichael Point</SPAN><SPAN> and Dalkey Island data was collected by the Geological Survey Ireland. </SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>Th</SPAN><SPAN>e </SPAN><SPAN>Bremore Head,</SPAN><SPAN> </SPAN><SPAN>Bunmahon</SPAN><SPAN>,</SPAN><SPAN> Dunbeg, Ferriters and </SPAN><SPAN>Illauntannig </SPAN><SPAN>data was collected by the CHERISH Project. The CHERISH project looks at coastal sites that are important to human history. These sites have important structures (for example buildings or burial sites) that may be impacted by changes to our coast. </SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>All data formats are provided as GeoTIFF rasters. </SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. This data has a grid cell size of 0.25 meter by 0.25 meter. This means that each cell (pixel) represents an area of 0.25meters squared.</SPAN></P></DIV></DIV></DIV>",
+    "name": "Lidar/IE_GSI_Photogrammetry_DSM_HS_GSI_25cm_IE26_ITM_MH_TIFF",
+    "description": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Photogrammetry is a remote sensing technology, i.e. the technology is not in direct contact with what is being measured. From drone, aeroplane or helicopter, photographs are taken. Multiple overlapping photographs of the ground are taken. Precise measurements from the photographs can be taken to create topography maps.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>This data was collected using a drone carrying a digital camera in 2020</SPAN><SPAN> and 2021.</SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>A software package was used extract points (X,Y,Z  (x &amp; y coordinates) and z (height)) from the photographs. The data is then converted into gridded (GeoTIFF) data to create a Digital Surface Model of the earth.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>An ordnance datum (OD) is a vertical datum used as the basis for deriving heights on maps.</SPAN></SPAN><SPAN><SPAN> This data is referenced to the Malin Head Vertical Datum which is the mean sea level of the tide gauge at Malin Head, County Donegal. It was adopted as the national datum in 1970 from readings taken between 1960 and 1969 and all heights on national grid maps are measured above this datum. </SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Terrain Models (DTM) are bare earth models (no trees or buildings) of the Earth</SPAN></SPAN><SPAN><SPAN>\u2019</SPAN></SPAN><SPAN><SPAN>s surface.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Digital Surface Models (DSM) are earth models in its current state. For example, a DSM includes elevations from buildings, tree canopy, electrical power lines and other features.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>Hillshading is a method which gives a 3D appearance to the terrain. It shows the shape of hills and mountains using shading (levels of grey) on a map, by the use of graded shadows that would be cast by high ground if light was shining from a chosen direction.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN><SPAN>This data shows the hillshade of the DSM.</SPAN></SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>Th</SPAN><SPAN>e </SPAN><SPAN>Kilmichael Point</SPAN><SPAN> and Dalkey Island data was collected by the Geological Survey Ireland. </SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>Th</SPAN><SPAN>e </SPAN><SPAN>Bremore Head,</SPAN><SPAN> </SPAN><SPAN>Bunmahon</SPAN><SPAN>,</SPAN><SPAN> Dunbeg, Ferriters and </SPAN><SPAN>Illauntannig </SPAN><SPAN>data was collected by the CHERISH Project. The CHERISH project looks at coastal sites that are important to human history. These sites have important structures (for example buildings or burial sites) that may be impacted by changes to our coast. </SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>All data formats are provided as GeoTIFF rasters. </SPAN></P><P STYLE=\"margin:0 0 14 0;\"><SPAN>Raster data is another name for gridded data. Raster data stores information in pixels (grid cells). Each raster grid makes up a matrix of cells (or pixels) organised into rows and columns. This data has a grid cell size of 0.25 meter by 0.25 meter. This means that each cell (pixel) represents an area of 0.25meters squared.</SPAN></P></DIV></DIV></DIV>",
+    "extent": {
+     "xmin": 430961.41942312,
+     "ymin": 596862.46298885,
+     "xmax": 727982.16942312,
+     "ymax": 766354.96298885,
+     "spatialReference": {
+      "wkid": 2157,
+      "latestWkid": 2157
+     }
+    },
+    "pixelSizeX": 0.25,
+    "pixelSizeY": 0.25,
+    "copyrightText": "Geological Survey Ireland"
+   },
+   "control": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "values": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "covered": 0
+  },
+  {
+   "service": "https://gsi.geodata.gov.ie/imagehost/rest/services/Marine/IE_GSI_MI_Bathymetry_100m_Offshore_IE_WGS84_LAT_GRID/ImageServer",
+   "info": {
+    "serviceDescription": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"text-align:Justify;\"><SPAN>This data shows the depth of the seabed around Ireland between 200 and 5000 metre depths. The data was collected in 1996 and between 2000 and 2002.    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Bathymetry is the measurement of how deep is the sea. Bathymetry is the study of the shape and features of the seabed. The name comes from Greek words meaning \"deep\" and \u201cmeasure\".      </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Bathymetry is collected on board boats working at sea and airplanes over land and coastline. The boats use special equipment called a multibeam echosounder. A multibeam echosounder is a type of sonar that is used to map the seabed. Sound waves are emitted in a fan shape beneath the boat. The amount of time it takes for the sound waves to bounce off the bottom of the sea and return to a receiver is used to determine water depth.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>The data are collected as points in XYZ format.  X and Y coordinates and Z (depth). The boat travels up and down the water in a series of lines (trackline). An XYZ file is created for each line and contains thousands of points. The line files are merged together and converted into gridded data to create a Digital Terrain Model of the seabed.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Colours are also used to show depth ranges. Reds and browns show heights above sea-level. Yellows and greens are shallow waters up to 45m deep. Blues (up to 110m deep) and purple show deeper waters up to 200m deep.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>This is a raster dataset. Raster data stores information in a cell-based manner and consists of a matrix of cells (or pixels) organised into rows and columns. The format of the raster is a grid. The grid cell size is </SPAN><SPAN>10</SPAN><SPAN>0m by </SPAN><SPAN>100</SPAN><SPAN>m. This means that each cell (pixel) represents an area on the seabed of </SPAN><SPAN>100</SPAN><SPAN> metres squared. Each cell has a depth value which is the average depth of all the points located within that cell.    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>This data shows areas that have been surveyed. There are plans to fill in the missing areas between 2020 and 2026. The deeper offshore waters were mapped as part of the Irish National Seabed Survey (INSS) between 1999 and 2005. INtegrated Mapping FOr the Sustainable Development of Ireland's MArine Resource (INFOMAR) is mapping the inshore areas.  (2006 - 2026).</SPAN></P></DIV></DIV></DIV>",
+    "name": "Marine/IE_GSI_MI_Bathymetry_100m_Offshore_IE_WGS84_LAT_GRID",
+    "description": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"text-align:Justify;\"><SPAN>This data shows the depth of the seabed around Ireland between 200 and 5000 metre depths. The data was collected in 1996 and between 2000 and 2002.    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Bathymetry is the measurement of how deep is the sea. Bathymetry is the study of the shape and features of the seabed. The name comes from Greek words meaning \"deep\" and \u201cmeasure\".      </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Bathymetry is collected on board boats working at sea and airplanes over land and coastline. The boats use special equipment called a multibeam echosounder. A multibeam echosounder is a type of sonar that is used to map the seabed. Sound waves are emitted in a fan shape beneath the boat. The amount of time it takes for the sound waves to bounce off the bottom of the sea and return to a receiver is used to determine water depth.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>The data are collected as points in XYZ format.  X and Y coordinates and Z (depth). The boat travels up and down the water in a series of lines (trackline). An XYZ file is created for each line and contains thousands of points. The line files are merged together and converted into gridded data to create a Digital Terrain Model of the seabed.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Colours are also used to show depth ranges. Reds and browns show heights above sea-level. Yellows and greens are shallow waters up to 45m deep. Blues (up to 110m deep) and purple show deeper waters up to 200m deep.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>This is a raster dataset. Raster data stores information in a cell-based manner and consists of a matrix of cells (or pixels) organised into rows and columns. The format of the raster is a grid. The grid cell size is </SPAN><SPAN>10</SPAN><SPAN>0m by </SPAN><SPAN>100</SPAN><SPAN>m. This means that each cell (pixel) represents an area on the seabed of </SPAN><SPAN>100</SPAN><SPAN> metres squared. Each cell has a depth value which is the average depth of all the points located within that cell.    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>This data shows areas that have been surveyed. There are plans to fill in the missing areas between 2020 and 2026. The deeper offshore waters were mapped as part of the Irish National Seabed Survey (INSS) between 1999 and 2005. INtegrated Mapping FOr the Sustainable Development of Ireland's MArine Resource (INFOMAR) is mapping the inshore areas.  (2006 - 2026).</SPAN></P></DIV></DIV></DIV>",
+    "extent": {
+     "xmin": -25.896181999999996,
+     "ymin": 46.74627309020788,
+     "xmax": -9.08688467362262,
+     "ymax": 57.44053899999997,
+     "spatialReference": {
+      "wkid": 4326,
+      "latestWkid": 4326,
+      "vcsWkid": 5861,
+      "latestVcsWkid": 5861
+     }
+    },
+    "pixelSizeX": 0.00127983076948206,
+    "pixelSizeY": 0.0012798307694820601,
+    "copyrightText": "Geological Survey Ireland & Marine Institute"
+   },
+   "control": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "values": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "covered": 0
+  },
+  {
+   "service": "https://gsi.geodata.gov.ie/imagehost/rest/services/Marine/IE_GSI_MI_Bathymetry_10m_Inshore_IE_WGS84_LAT_GRID/ImageServer",
+   "info": {
+    "serviceDescription": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"text-align:Justify;\"><SPAN>This data shows the depth of the seabed around Ireland between 0 and 400 metre depths. The data was collected between 2002 and 202</SPAN><SPAN>2</SPAN><SPAN>.    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Bathymetry is the measurement of how deep is the sea. Bathymetry is the study of the shape and features of the seabed. The name comes from Greek words meaning \"deep\" and \u201cmeasure\".      </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Bathymetry is collected on board boats working at sea and airplanes over land and coastline. The boats use special equipment called a multibeam echosounder. A multibeam echosounder is a type of sonar that is used to map the seabed. Sound waves are emitted in a fan shape beneath the boat. The amount of time it takes for the sound waves to bounce off the bottom of the sea and return to a receiver is used to determine water depth.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>LiDAR (Light Detection and Ranging) is another way to map the seabed, using airplanes. Two laser light beams are emitted from a sensor on-board an airplane. The red beam reaches the water surface and bounces back; while the green beam penetrates the water hits the seabed and bounces back. The difference in time between the two beams returning allows the water depth to be calculated. LiDAR is only suitable for shallow waters (up to 30m depth).    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>The data are collected as points in XYZ format.  X and Y coordinates and Z (depth). The boat travels up and down the water in a series of lines (trackline). An XYZ file is created for each line and contains thousands of points. The line files are merged together and converted into gridded data to create a Digital Terrain Model of the seabed.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Colours are also used to show depth ranges. Reds and browns show heights above sea-level. Yellows and greens are shallow waters up to 45m deep. Blues (up to 110m deep) and purple show deeper waters up to 200m deep.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>This is a raster dataset. Raster data stores information in a cell-based manner and consists of a matrix of cells (or pixels) organised into rows and columns. The format of the raster is a grid. The grid cell size is </SPAN><SPAN>10</SPAN><SPAN>m by </SPAN><SPAN>10</SPAN><SPAN>m. This means that each cell (pixel) represents an area on the seabed of </SPAN><SPAN>10</SPAN><SPAN> metres squared. Each cell has a depth value which is the average depth of all the points located within that cell.    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>This data shows areas that have been surveyed. There are plans to fill in the missing areas between 2020 and 2026. The deeper offshore waters were mapped as part of the Irish National Seabed Survey (INSS) between 1999 and 2005. INtegrated Mapping FOr the Sustainable Development of Ireland's MArine Resource (INFOMAR) is mapping the inshore areas.  (2006 - 2026).</SPAN></P></DIV></DIV></DIV>",
+    "name": "Marine/IE_GSI_MI_Bathymetry_10m_Inshore_IE_WGS84_LAT_GRID",
+    "description": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"text-align:Justify;\"><SPAN>This data shows the depth of the seabed around Ireland between 0 and 200 metre depths. The data was collected between 200</SPAN><SPAN>2</SPAN><SPAN> and 202</SPAN><SPAN>5</SPAN><SPAN>.    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Bathymetry is the measurement of how deep is the sea. Bathymetry is the study of the shape and features of the seabed. The name comes from Greek words meaning \"deep\" and \u201cmeasure\".      </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Bathymetry is collected on board boats working at sea and airplanes over land and coastline. The boats use special equipment called a multibeam echosounder. A multibeam echosounder is a type of sonar that is used to map the seabed. Sound waves are emitted in a fan shape beneath the boat. The amount of time it takes for the sound waves to bounce off the bottom of the sea and return to a receiver is used to determine water depth.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>LiDAR (Light Detection and Ranging) is another way to map the seabed, using airplanes. Two laser light beams are emitted from a sensor on-board an airplane. The red beam reaches the water surface and bounces back; while the green beam penetrates the water hits the seabed and bounces back. The difference in time between the two beams returning allows the water depth to be calculated. LiDAR is only suitable for shallow waters (up to 30m depth).    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>The data are collected as points in XYZ format.  X and Y coordinates and Z (depth). The boat travels up and down the water in a series of lines (trackline). An XYZ file is created for each line and contains thousands of points. The line files are merged together and converted into gridded data to create a Digital Terrain Model of the seabed.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Colours are also used to show depth ranges.</SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>This is a raster dataset. Raster data stores information in a cell-based manner and consists of a matrix of cells (or pixels) organised into rows and columns. The format of the raster is a grid. The grid cell size is </SPAN><SPAN>10</SPAN><SPAN>m by </SPAN><SPAN>10</SPAN><SPAN>m. This means that each cell (pixel) represents an area on the seabed of </SPAN><SPAN>10</SPAN><SPAN> metre squared. Each cell has a depth value which is the average depth of all the points located within that cell.    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>This data shows areas that have been surveyed. There are plans to fill in the missing areas between 2020 and 2026. The deeper offshore waters were mapped as part of the Irish National Seabed Survey (INSS) between 1999 and 2005. INtegrated Mapping FOr the Sustainable Development of Ireland's MArine Resource (INFOMAR) is mapping the inshore areas.  (2006 - 2026).</SPAN></P></DIV></DIV></DIV>",
+    "extent": {
+     "xmin": -11.972905642800312,
+     "ymin": 48.44404674661783,
+     "xmax": -4.652014096047702,
+     "ymax": 56.181751504504575,
+     "spatialReference": {
+      "wkid": 4326,
+      "latestWkid": 4326,
+      "vcsWkid": 5861,
+      "latestVcsWkid": 5861
+     }
+    },
+    "pixelSizeX": 0.000124164982730154,
+    "pixelSizeY": 0.0001303411902280257,
+    "copyrightText": "Contains Irish Public Sector Data (Geological Survey Ireland & Marine Institute) licensed under a Creative Commons Attribution 4.0 International (CC BY 4.0) licence"
+   },
+   "control": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "values": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "-9.00622",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "-13.1846",
+    "-6.62836",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "-14.2167",
+    "-9.98428",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "covered": 5,
+   "tif_bytes": 1050290
+  },
+  {
+   "service": "https://gsi.geodata.gov.ie/imagehost/rest/services/Marine/IE_GSI_MI_Bathymetry_25m_IE_Waters_WGS84_LAT_GRID/ImageServer",
+   "info": {
+    "serviceDescription": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"text-align:Justify;\"><SPAN>This data shows the depth of the seabed around Ireland between 0 and 5000 metre depths. The data was collected between 1996 and 202</SPAN><SPAN>2</SPAN><SPAN>.    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Bathymetry is the measurement of how deep is the sea. Bathymetry is the study of the shape and features of the seabed. The name comes from Greek words meaning \"deep\" and \u201cmeasure\".      </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Bathymetry is collected on board boats working at sea and airplanes over land and coastline. The boats use special equipment called a multibeam echosounder. A multibeam echosounder is a type of sonar that is used to map the seabed. Sound waves are emitted in a fan shape beneath the boat. The amount of time it takes for the sound waves to bounce off the bottom of the sea and return to a receiver is used to determine water depth.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>LiDAR (Light Detection and Ranging) is another way to map the seabed, using airplanes. Two laser light beams are emitted from a sensor on-board an airplane. The red beam reaches the water surface and bounces back; while the green beam penetrates the water hits the seabed and bounces back. The difference in time between the two beams returning allows the water depth to be calculated. LiDAR is only suitable for shallow waters (up to 30m depth).    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>The data are collected as points in XYZ format.  X and Y coordinates and Z (depth). The boat travels up and down the water in a series of lines (trackline). An XYZ file is created for each line and contains thousands of points. The line files are merged together and converted into gridded data to create a Digital Terrain Model of the seabed.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Colours are also used to show depth ranges. Reds and browns show heights above sea-level. Yellows and greens are shallow waters up to 45m deep. Blues (up to 110m deep) and purple show deeper waters up to 200m deep.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>This is a raster dataset. Raster data stores information in a cell-based manner and consists of a matrix of cells (or pixels) organised into rows and columns. The format of the raster is a grid. The grid cell size is 25m by 25m. This means that each cell (pixel) represents an area on the seabed of 25 metres squared. Each cell has a depth value which is the average depth of all the points located within that cell.    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>This data shows areas that have been surveyed. There are plans to fill in the missing areas between 2020 and 2026. The deeper offshore waters were mapped as part of the Irish National Seabed Survey (INSS) between 1999 and 2005. INtegrated Mapping FOr the Sustainable Development of Ireland's MArine Resource (INFOMAR) is mapping the inshore areas.  (2006 - 2026).</SPAN></P></DIV></DIV></DIV>",
+    "name": "Marine/IE_GSI_MI_Bathymetry_25m_IE_Waters_WGS84_LAT_GRID",
+    "description": "<DIV STYLE=\"text-align:Left;\"><DIV><DIV><P STYLE=\"text-align:Justify;\"><SPAN>This data shows the depth of the seabed around Ireland between 0 and 5000 metre depths. The data was collected between 1996 and 202</SPAN><SPAN>2</SPAN><SPAN>.    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Bathymetry is the measurement of how deep is the sea. Bathymetry is the study of the shape and features of the seabed. The name comes from Greek words meaning \"deep\" and \u201cmeasure\".      </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Bathymetry is collected on board boats working at sea and airplanes over land and coastline. The boats use special equipment called a multibeam echosounder. A multibeam echosounder is a type of sonar that is used to map the seabed. Sound waves are emitted in a fan shape beneath the boat. The amount of time it takes for the sound waves to bounce off the bottom of the sea and return to a receiver is used to determine water depth.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>LiDAR (Light Detection and Ranging) is another way to map the seabed, using airplanes. Two laser light beams are emitted from a sensor on-board an airplane. The red beam reaches the water surface and bounces back; while the green beam penetrates the water hits the seabed and bounces back. The difference in time between the two beams returning allows the water depth to be calculated. LiDAR is only suitable for shallow waters (up to 30m depth).    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>The data are collected as points in XYZ format.  X and Y coordinates and Z (depth). The boat travels up and down the water in a series of lines (trackline). An XYZ file is created for each line and contains thousands of points. The line files are merged together and converted into gridded data to create a Digital Terrain Model of the seabed.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>Colours are also used to show depth ranges. Reds and browns show heights above sea-level. Yellows and greens are shallow waters up to 45m deep. Blues (up to 110m deep) and purple show deeper waters up to 200m deep.     </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>This is a raster dataset. Raster data stores information in a cell-based manner and consists of a matrix of cells (or pixels) organised into rows and columns. The format of the raster is a grid. The grid cell size is 25m by 25m. This means that each cell (pixel) represents an area on the seabed of 25 metres squared. Each cell has a depth value which is the average depth of all the points located within that cell.    </SPAN></P><P STYLE=\"text-align:Justify;\"><SPAN>This data shows areas that have been surveyed. There are plans to fill in the missing areas between 2020 and 2026. The deeper offshore waters were mapped as part of the Irish National Seabed Survey (INSS) between 1999 and 2005. INtegrated Mapping FOr the Sustainable Development of Ireland's MArine Resource (INFOMAR) is mapping the inshore areas.  (2006 - 2026).</SPAN></P></DIV></DIV></DIV>",
+    "extent": {
+     "xmin": -25.611335315790107,
+     "ymin": 41.814697674499435,
+     "xmax": -4.748476303141878,
+     "ymax": 63.5674820059098,
+     "spatialReference": {
+      "wkid": 4326,
+      "latestWkid": 4326,
+      "vcsWkid": 5861,
+      "latestVcsWkid": 5861
+     }
+    },
+    "pixelSizeX": 0.0003404457990673819,
+    "pixelSizeY": 0.0003404457990673819,
+    "copyrightText": "Geological Survey Ireland & Marine Institute"
+   },
+   "control": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "values": [
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "-8.82453",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "-13.2718",
+    "-6.8318",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData",
+    "-14.4395",
+    "-10.1923",
+    "NoData",
+    "NoData",
+    "NoData",
+    "NoData"
+   ],
+   "covered": 5,
+   "tif_bytes": 1115826
+  }
+ ]
+}
