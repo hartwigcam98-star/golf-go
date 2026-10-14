@@ -1,0 +1,542 @@
+++ dirname pipeline/mh/job.sh
++ cd pipeline/mh/../..
+++ curl -s https://download.blender.org/release/Blender4.2/
+++ grep -o 'blender-4\.2\.[0-9]*-linux-x64\.tar\.xz'
+++ tail -1
+++ sort -V
++ BV=blender-4.2.23-linux-x64.tar.xz
++ curl -sL https://download.blender.org/release/Blender4.2/blender-4.2.23-linux-x64.tar.xz -o /tmp/b.tar.xz
++ mkdir -p /tmp/blender
++ tar xf /tmp/b.tar.xz -C /tmp/blender --strip-components=1
++ BL=/tmp/blender/blender
++ head -1
++ /tmp/blender/blender --version
+Blender 4.2.23 LTS
++ git clone -q --depth 1 https://github.com/makehumancommunity/mpfb2 /tmp/mpfb2
++ cd /tmp/mpfb2/src
++ zip -qr /tmp/mpfb.zip mpfb
++ /tmp/blender/blender -b --command extension install-file -r user_default -e /tmp/mpfb.zip
+STATUS Installed "mpfb"
+Log config does not exist. Creating empty template.
+Will rewrite log config /home/runner/.config/blender/4.2/mpfb/config/log_levels.json
+[WARN ] services.locationservice ...............: User home directory does not exist /home/runner/.config/blender/4.2/extensions/.user/user_default/mpfb
+[INFO ] services.locationservice ...............: Not adding link to MakeHuman user data, since neither explicit path nor auto-discovery is set in preferences.
+[INFO ] services.locationservice ...............: Creating relevant directory: /home/runner/.config/blender/4.2/extensions/.user/user_default/mpfb
+[INFO ] services.locationservice ...............: Creating relevant directory: /home/runner/.config/blender/4.2/extensions/.user/user_default/mpfb/data
+[INFO ] services.locationservice ...............: Creating relevant directory: /home/runner/.config/blender/4.2/extensions/.user/user_default/mpfb/config
+[INFO ] services.locationservice ...............: Creating relevant directory: /home/runner/.config/blender/4.2/extensions/.user/user_default/mpfb/cache
+[INFO ] services.locationservice ...............: Creating relevant directory: /home/runner/.config/blender/4.2/extensions/.user/user_default/mpfb/logs
+[INFO ] mpfb.init ..............................: Build info FROM_SOURCE
+[INFO ] mpfb.init ..............................: Online access preference is not enabled. Not checking if MakeHuman is online.
+[INFO ] mpfb.init ..............................: MPFB initialization has finished.
+Info: Preferences saved
+Blender 4.2.23 LTS (hash d0cbe84903e8 built 2026-07-21 01:31:03)
++ pip install -q requests
++ python pipeline/mh/fetch_packs.py
+pack pages 67
+got packs/animal01_cc0.zip 0 MB
+got packs/animal01_cc0.zip 0 MB
+got packs/arms01_cc0.zip 0 MB
+got packs/arms01_cc0.zip 0 MB
+got packs/bodyparts01_cc0.zip 0 MB
+got packs/bodyparts01_cc0.zip 0 MB
+got packs/bodyparts04_cc0.zip 4 MB
+got packs/bodyparts04_cc0.zip 4 MB
+got packs/bodyparts05_cc0.zip 6 MB
+got packs/bodyparts05_cc0.zip 6 MB
+got packs/cheek01_cc0.zip 0 MB
+got packs/cheek01_cc0.zip 0 MB
+got packs/dress01_cc0.zip 44 MB
+got packs/dress01_cc0.zip 44 MB
+got packs/ears01_cc0.zip 0 MB
+got packs/ears01_cc0.zip 0 MB
+got packs/equipment01_cc0.zip 17 MB
+got packs/equipment01_cc0.zip 17 MB
+got packs/eyebrows01_cc0.zip 10 MB
+got packs/eyebrows01_cc0.zip 10 MB
+got packs/eyelashes01_cc0.zip 3 MB
+got packs/eyelashes01_cc0.zip 3 MB
+got packs/glasses01_cc0.zip 5 MB
+got packs/glasses01_cc0.zip 5 MB
+got packs/gloves01_cc0.zip 3 MB
+got packs/gloves01_cc0.zip 3 MB
+got packs/hair01_cc0.zip 217 MB
+got packs/hair01_cc0.zip 217 MB
+got packs/hands01_cc0.zip 0 MB
+got packs/hands01_cc0.zip 0 MB
+got packs/hats01_cc0.zip 6 MB
+got packs/hats01_cc0.zip 6 MB
+got packs/hats02_cc0.zip 22 MB
+got packs/hats02_cc0.zip 22 MB
+got packs/makehuman_system_assets_cc0.zip 267 MB
+got packs/makehuman_system_assets_cc0.zip 267 MB
+got packs/masks01_cc0.zip 4 MB
+got packs/masks01_cc0.zip 4 MB
+got packs/nose01_cc0.zip 1 MB
+got packs/nose01_cc0.zip 1 MB
+got packs/pants01_cc0.zip 20 MB
+got packs/pants01_cc0.zip 20 MB
+got packs/poses01_cc0.zip 1 MB
+got packs/poses01_cc0.zip 1 MB
+got packs/poses02_cc0.zip 1 MB
+got packs/poses02_cc0.zip 1 MB
+got packs/shirts01_cc0.zip 23 MB
+got packs/shirts01_cc0.zip 23 MB
+got packs/shoes01_cc0.zip 79 MB
+got packs/shoes01_cc0.zip 79 MB
+got packs/skins01_cc0.zip 99 MB
+got packs/skins01_cc0.zip 99 MB
+got packs/skins02_cc0.zip 72 MB
+got packs/skins02_cc0.zip 72 MB
+got packs/skins03_cc0.zip 130 MB
+got packs/skins03_cc0.zip 130 MB
+got packs/skirts01_cc0.zip 28 MB
+got packs/skirts01_cc0.zip 28 MB
+got packs/suits01_cc0.zip 40 MB
+got packs/suits01_cc0.zip 40 MB
+got packs/suits02_cc0.zip 183 MB
+got packs/suits02_cc0.zip 183 MB
+got packs/system_clothes_materials01_cc0.zip 45 MB
+got packs/system_clothes_materials01_cc0.zip 45 MB
+got packs/system_hair_materials01_cc0.zip 82 MB
+got packs/system_hair_materials01_cc0.zip 82 MB
+got packs/underwear01_cc0.zip 57 MB
+got packs/underwear01_cc0.zip 57 MB
+got packs/underwear02_cc0.zip 100 MB
+got packs/underwear02_cc0.zip 100 MB
+size cap reached
+total MB 3170
++ mkdir -p out/mh
++ cp packs/packs.json out/mh/
++ /tmp/blender/blender -b --python-exit-code 1 --python pipeline/mh/build.py
++ grep -v '^Fra:'
++ tail -400
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+
+FBX export starting... '/home/runner/work/golf-go/golf-go/out/mh/mh_hoagan.fbx'
+(bpy.data.armatures['Human.rig.017'], 'POSE')
+(bpy.data.armatures['Human.rig.017'], 'POSE')
+(bpy.data.armatures['Human.rig.017'], 'POSE')
+(bpy.data.armatures['Human.rig.017'], 'POSE')
+(bpy.data.armatures['Human.rig.017'], 'POSE')
+(bpy.data.armatures['Human.rig.017'], 'POSE')
+(bpy.data.armatures['Human.rig.017'], 'POSE')
+(bpy.data.armatures['Human.rig.017'], 'POSE')
+(bpy.data.armatures['Human.rig.017'], 'POSE')
+(bpy.data.armatures['Human.rig.017'], 'POSE')
+export finished in 0.3176 sec.
+01:26:26 | INFO: Starting glTF 2.0 export
+01:26:27 | INFO: Extracting primitive: eyebrow002.003
+01:26:27 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:27 | INFO: Primitives created: 1
+01:26:27 | INFO: Extracting primitive: eyelashes01.017
+01:26:27 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:27 | INFO: Primitives created: 1
+01:26:27 | INFO: Extracting primitive: low-poly.017
+01:26:27 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:27 | INFO: Primitives created: 1
+01:26:27 | INFO: Extracting primitive: Polo_t-shirt.017
+01:26:27 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:27 | INFO: Primitives created: 1
+01:26:27 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+01:26:27 | INFO: Extracting primitive: shoes06.017
+01:26:27 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:27 | INFO: Primitives created: 1
+01:26:27 | INFO: Extracting primitive: short04.005
+01:26:27 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:27 | INFO: Primitives created: 1
+01:26:27 | INFO: Extracting primitive: teeth_base.017
+01:26:27 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:27 | INFO: Primitives created: 1
+01:26:27 | INFO: Extracting primitive: pants_wool.017
+01:26:27 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:27 | INFO: Primitives created: 1
+01:26:27 | INFO: Extracting primitive: tongue01.017
+01:26:27 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:27 | INFO: Primitives created: 1
+01:26:27 | INFO: Extracting primitive: base.194
+01:26:27 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:27 | INFO: Primitives created: 1
+01:26:27 | INFO: Finished glTF 2.0 export in 0.8556227684020996 s
+
+DONE mh_hoagan
+macro {'gender': 1, 'age': 0.58, 'muscle': 0.58, 'weight': 0.45, 'proportions': 0.65, 'height': 0.55, 'cupsize': 0.5, 'firmness': 0.5, 'race': {'african': 0, 'asian': 0, 'caucasian': 1}}
+[WARN ] services.humanservice ..................: Creating game engine skin material
+added eyes low-poly.mhclo
+added eyelashes eyelashes01.mhclo
+added teeth teeth_base.mhclo
+Blender 4.2.23 LTS (hash d0cbe84903e8 built 2026-07-21 01:31:03)
+OBJ import of 'base.obj' took 13.31 ms
+OBJ import of 'low-poly.obj' took 0.20 ms
+OBJ import of 'eyelashes01.obj' took 0.29 ms
+OBJ import of 'teeth_base.obj' took 2.25 ms
+OBJ import of 'tongue01.obj' took 0.35 ms
+OBJ import of 'eyebrow002.obj' took 0.21 ms
+OBJ import of 'Polo_t-shirt.obj' took 1.82 ms
+OBJ import of 'pants_wool.obj' took 1.16 ms
+OBJ import of 'shoes06.obj' took 1.09 ms
+OBJ import of 'afro01.obj' took 1.08 ms
+OBJ import of 'base.obj' took 14.27 ms
+OBJ import of 'low-poly.obj' took 0.23 ms
+OBJ import of 'eyelashes01.obj' took 0.34 ms
+OBJ import of 'teeth_base.obj' took 2.63 ms
+OBJ import of 'tongue01.obj' took 0.34 ms
+OBJ import of 'eyebrow001.obj' took 0.21 ms
+OBJ import of 'Polo_t-shirt.obj' took 1.75 ms
+OBJ import of 'pants_wool.obj' took 1.02 ms
+OBJ import of 'shoes06.obj' took 1.17 ms
+OBJ import of 'short03.obj' took 0.83 ms
+OBJ import of 'base.obj' took 12.11 ms
+OBJ import of 'low-poly.obj' took 0.21 ms
+OBJ import of 'eyelashes01.obj' took 0.27 ms
+OBJ import of 'teeth_base.obj' took 2.27 ms
+OBJ import of 'tongue01.obj' took 0.32 ms
+OBJ import of 'eyebrow003.obj' took 0.20 ms
+OBJ import of 'Polo_t-shirt.obj' took 1.47 ms
+OBJ import of 'pants_wool.obj' took 0.98 ms
+OBJ import of 'shoes06.obj' took 1.11 ms
+OBJ import of 'short04.obj' took 0.62 ms
+OBJ import of 'base.obj' took 12.24 ms
+OBJ import of 'low-poly.obj' took 0.23 ms
+OBJ import of 'eyelashes01.obj' took 0.33 ms
+OBJ import of 'teeth_base.obj' took 2.61 ms
+OBJ import of 'tongue01.obj' took 0.30 ms
+OBJ import of 'eyebrow004.obj' took 0.18 ms
+OBJ import of 'Polo_t-shirt.obj' took 1.63 ms
+OBJ import of 'pants_wool.obj' took 0.98 ms
+OBJ import of 'shoes06.obj' took 1.16 ms
+OBJ import of 'short01.obj' took 1.45 ms
+OBJ import of 'base.obj' took 11.91 ms
+OBJ import of 'low-poly.obj' took 0.26 ms
+OBJ import of 'eyelashes01.obj' took 0.39 ms
+OBJ import of 'teeth_base.obj' took 2.53 ms
+OBJ import of 'tongue01.obj' took 0.35 ms
+OBJ import of 'eyebrow005.obj' took 0.21 ms
+OBJ import of 'Polo_t-shirt.obj' took 1.55 ms
+OBJ import of 'pants_wool.obj' took 1.16 ms
+OBJ import of 'shoes06.obj' took 1.06 ms
+OBJ import of 'short_messy.obj' took 0.52 ms
+OBJ import of 'base.obj' took 11.96 ms
+OBJ import of 'low-poly.obj' took 0.23 ms
+OBJ import of 'eyelashes01.obj' took 0.30 ms
+OBJ import of 'teeth_base.obj' took 2.23 ms
+OBJ import of 'tongue01.obj' took 0.29 ms
+OBJ import of 'eyebrow001.obj' took 0.17 ms
+OBJ import of 'Polo_t-shirt.obj' took 1.76 ms
+OBJ import of 'pants_wool.obj' took 1.09 ms
+OBJ import of 'shoes06.obj' took 1.11 ms
+OBJ import of 'short02.obj' took 1.34 ms
+OBJ import of 'base.obj' took 12.77 ms
+OBJ import of 'low-poly.obj' took 0.24 ms
+OBJ import of 'eyelashes01.obj' took 0.30 ms
+OBJ import of 'teeth_base.obj' took 2.24 ms
+OBJ import of 'tongue01.obj' took 0.32 ms
+OBJ import of 'eyebrow006.obj' took 0.21 ms
+OBJ import of 'Polo_t-shirt.obj' took 1.66 ms
+OBJ import of 'pants_wool.obj' took 1.03 ms
+OBJ import of 'shoes06.obj' took 1.07 ms
+OBJ import of 'hair_05.obj' took 2.39 ms
+OBJ import of 'base.obj' took 13.61 ms
+OBJ import of 'low-poly.obj' took 0.27 ms
+OBJ import of 'eyelashes01.obj' took 0.31 ms
+OBJ import of 'teeth_base.obj' took 2.30 ms
+OBJ import of 'tongue01.obj' took 0.35 ms
+OBJ import of 'eyebrow003.obj' took 0.18 ms
+OBJ import of 'Polo_t-shirt.obj' took 1.62 ms
+OBJ import of 'pants_wool.obj' took 1.19 ms
+OBJ import of 'shoes06.obj' took 1.23 ms
+OBJ import of 'short04.obj' took 0.58 ms
+OBJ import of 'base.obj' took 13.88 ms
+OBJ import of 'low-poly.obj' took 0.25 ms
+OBJ import of 'eyelashes01.obj' took 0.30 ms
+OBJ import of 'teeth_base.obj' took 2.30 ms
+OBJ import of 'tongue01.obj' took 0.33 ms
+OBJ import of 'eyebrow002.obj' took 0.18 ms
+OBJ import of 'Polo_t-shirt.obj' took 1.53 ms
+OBJ import of 'pants_wool.obj' took 1.00 ms
+OBJ import of 'shoes06.obj' took 1.11 ms
+OBJ import of 'short04.obj' took 0.63 ms
+OBJ import of 'base.obj' took 13.12 ms
+OBJ import of 'low-poly.obj' took 0.25 ms
+OBJ import of 'eyelashes01.obj' took 0.31 ms
+OBJ import of 'teeth_base.obj' took 2.33 ms
+OBJ imadded tongue tongue01.mhclo
+[WARN ] material.mhmaterial ....................: Patching input material line to cater for non-normalized key ('bumpTexture', 'bumpmapTexture')
+added eyebrows eyebrow001.mhclo
+added clothes namuhekam_male_polo_shirt.mhclo
+added clothes toigo_wool_pants.mhclo
+added clothes shoes06.mhclo
+added hair culturalibre_hair_02.mhclo
+modifiers [('Armature', 'ARMATURE'), ('Hide helpers', 'MASK'), ('Delete.shoes06', 'MASK')]
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+
+FBX export starting... '/home/runner/work/golf-go/golf-go/out/mh/mh_payne.fbx'
+(bpy.data.armatures['Human.rig.019'], 'POSE')
+(bpy.data.armatures['Human.rig.019'], 'POSE')
+(bpy.data.armatures['Human.rig.019'], 'POSE')
+(bpy.data.armatures['Human.rig.019'], 'POSE')
+(bpy.data.armatures['Human.rig.019'], 'POSE')
+(bpy.data.armatures['Human.rig.019'], 'POSE')
+(bpy.data.armatures['Human.rig.019'], 'POSE')
+(bpy.data.armatures['Human.rig.019'], 'POSE')
+(bpy.data.armatures['Human.rig.019'], 'POSE')
+(bpy.data.armatures['Human.rig.019'], 'POSE')
+export finished in 0.3185 sec.
+01:26:29 | INFO: Starting glTF 2.0 export
+01:26:29 | INFO: Extracting primitive: mhair02.001
+01:26:29 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:29 | INFO: Primitives created: 1
+01:26:29 | INFO: Extracting primitive: eyebrow001.005
+01:26:29 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:29 | INFO: Primitives created: 1
+01:26:29 | INFO: Extracting primitive: eyelashes01.019
+01:26:29 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:29 | INFO: Primitives created: 1
+01:26:29 | INFO: Extracting primitive: low-poly.019
+01:26:29 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:29 | INFO: Primitives created: 1
+01:26:29 | INFO: Extracting primitive: Polo_t-shirt.019
+01:26:29 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:29 | INFO: Primitives created: 1
+01:26:29 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+01:26:29 | INFO: Extracting primitive: shoes06.019
+01:26:29 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:29 | INFO: Primitives created: 1
+01:26:29 | INFO: Extracting primitive: teeth_base.019
+01:26:29 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:29 | INFO: Primitives created: 1
+01:26:29 | INFO: Extracting primitive: pants_wool.019
+01:26:29 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:29 | INFO: Primitives created: 1
+01:26:29 | INFO: Extracting primitive: tongue01.019
+01:26:29 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:29 | INFO: Primitives created: 1
+01:26:29 | INFO: Extracting primitive: base.221
+01:26:29 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:29 | INFO: Primitives created: 1
+01:26:29 | INFO: Finished glTF 2.0 export in 0.8431437015533447 s
+
+DONE mh_payne
+macro {'gender': 1, 'age': 0.56, 'muscle': 0.82, 'weight': 0.5, 'proportions': 0.75, 'height': 0.62, 'cupsize': 0.5, 'firmness': 0.5, 'race': {'african': 0.5, 'asian': 0.15, 'caucasian': 0.35}}
+[WARN ] services.humanservice ..................: Creating game engine skin material
+[WARN ] material.mhmaterial ....................: Not a valid key:  specularTexture
+added eyes low-poly.mhclo
+added eyelashes eyelashes01.mhclo
+added teeth teeth_base.mhclo
+added tongue tongue01.mhclo
+[WARN ] material.mhmaterial ....................: Patching input material line to cater for non-normalized key ('bumpTexture', 'bumpmapTexture')
+added eyebrows eyebrow002.mhclo
+added clothes namuhekam_male_polo_shirt.mhclo
+added clothes toigo_wool_pants.mhclo
+added clothes shoes06.mhclo
+added hair afro01.mhclo
+modifiers [('Armature', 'ARMATURE'), ('Hide helpers', 'MASK'), ('Delete.shoes06', 'MASK')]
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+
+FBX export starting... '/home/runner/work/golf-go/golf-go/out/mh/mh_tyger2.fbx'
+(bpy.data.armatures['Human.rig.021'], 'POSE')
+(bpy.data.armatures['Human.rig.021'], 'POSE')
+(bpy.data.armatures['Human.rig.021'], 'POSE')
+(bpy.data.armatures['Human.rig.021'], 'POSE')
+(bpy.data.armatures['Human.rig.021'], 'POSE')
+(bpy.data.armatures['Human.rig.021'], 'POSE')
+(bpy.data.armatures['Human.rig.021'], 'POSE')
+(bpy.data.armatures['Human.rig.021'], 'POSE')
+(bpy.data.armatures['Human.rig.021'], 'POSE')
+(bpy.data.armatures['Human.rig.021'], 'POSE')
+export finished in 0.3524 sec.
+01:26:31 | INFO: Starting glTF 2.0 export
+01:26:31 | INFO: Extracting primitive: afro01.003
+01:26:31 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:31 | INFO: Primitives created: 1
+01:26:31 | INFO: Extracting primitive: eyebrow002.005
+01:26:31 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:31 | INFO: Primitives created: 1
+01:26:31 | INFO: Extracting primitive: eyelashes01.021
+01:26:31 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:31 | INFO: Primitives created: 1
+01:26:31 | INFO: Extracting primitive: low-poly.021
+01:26:31 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:31 | INFO: Primitives created: 1
+01:26:31 | INFO: Extracting primitive: Polo_t-shirt.021
+01:26:31 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:31 | INFO: Primitives created: 1
+01:26:31 | WARNING: There are more than 4 joint vertex influences.The 4 with highest weight will be used (and normalized).
+01:26:31 | INFO: Extracting primitive: shoes06.021
+01:26:31 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:31 | INFO: Primitives created: 1
+01:26:31 | INFO: Extracting primitive: teeth_base.021
+01:26:32 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:32 | INFO: Primitives created: 1
+01:26:32 | INFO: Extracting primitive: pants_wool.021
+01:26:32 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:32 | INFO: Primitives created: 1
+01:26:32 | INFO: Extracting primitive: tongue01.021
+01:26:32 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:32 | INFO: Primitives created: 1
+01:26:32 | INFO: Extracting primitive: base.241
+01:26:32 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:26:32 | INFO: Primitives created: 1
+01:26:32 | INFO: Finished glTF 2.0 export in 0.9994699954986572 s
+
+DONE mh_tyger2
+port of 'tongue01.obj' took 0.30 ms
+OBJ import of 'eyebrow001.obj' took 0.20 ms
+OBJ import of 'Polo_t-shirt.obj' took 1.63 ms
+OBJ import of 'pants_wool.obj' took 1.02 ms
+OBJ import of 'shoes06.obj' took 1.10 ms
+OBJ import of 'mhair02.obj' took 1.43 ms
+OBJ import of 'base.obj' took 12.53 ms
+OBJ import of 'low-poly.obj' took 0.26 ms
+OBJ import of 'eyelashes01.obj' took 0.32 ms
+OBJ import of 'teeth_base.obj' took 2.49 ms
+OBJ import of 'tongue01.obj' took 0.32 ms
+OBJ import of 'eyebrow002.obj' took 0.19 ms
+OBJ import of 'Polo_t-shirt.obj' took 1.53 ms
+OBJ import of 'pants_wool.obj' took 0.97 ms
+OBJ import of 'shoes06.obj' took 1.07 ms
+OBJ import of 'afro01.obj' took 1.04 ms
+
+Blender quit
++ grep -q '"hairs": true' pipeline/mh/run.json
++ ls -la out/mh
+total 387736
+drwxr-xr-x 2 runner runner     4096 Oct 14 01:26 .
+drwxr-xr-x 3 runner runner     4096 Oct 14 01:25 ..
+-rw-r--r-- 1 runner runner    41931 Oct 14 01:26 assets.json
+-rw-r--r-- 1 runner runner 16095420 Oct 14 01:26 mh_arnie.fbx
+-rw-r--r-- 1 runner runner 18199108 Oct 14 01:26 mh_arnie.glb
+-rw-r--r-- 1 runner runner 16430348 Oct 14 01:26 mh_barry.fbx
+-rw-r--r-- 1 runner runner 19447428 Oct 14 01:26 mh_barry.glb
+-rw-r--r-- 1 runner runner 16028300 Oct 14 01:26 mh_hoagan.fbx
+-rw-r--r-- 1 runner runner 18184796 Oct 14 01:26 mh_hoagan.glb
+-rw-r--r-- 1 runner runner 15704988 Oct 14 01:26 mh_jack.fbx
+-rw-r--r-- 1 runner runner 16884844 Oct 14 01:26 mh_jack.glb
+-rw-r--r-- 1 runner runner 17988876 Oct 14 01:26 mh_payne.fbx
+-rw-r--r-- 1 runner runner 19488932 Oct 14 01:26 mh_payne.glb
+-rw-r--r-- 1 runner runner 16509500 Oct 14 01:26 mh_phil.fbx
+-rw-r--r-- 1 runner runner 18876624 Oct 14 01:26 mh_phil.glb
+-rw-r--r-- 1 runner runner 14349756 Oct 14 01:26 mh_rory.fbx
+-rw-r--r-- 1 runner runner 16029568 Oct 14 01:26 mh_rory.glb
+-rw-r--r-- 1 runner runner 17319436 Oct 14 01:26 mh_scotty.fbx
+-rw-r--r-- 1 runner runner 18726836 Oct 14 01:26 mh_scotty.glb
+-rw-r--r-- 1 runner runner 14148124 Oct 14 01:26 mh_seve.fbx
+-rw-r--r-- 1 runner runner 15176100 Oct 14 01:26 mh_seve.glb
+-rw-r--r-- 1 runner runner 19591388 Oct 14 01:26 mh_tyger.fbx
+-rw-r--r-- 1 runner runner 22120528 Oct 14 01:26 mh_tyger.glb
+-rw-r--r-- 1 runner runner 23522268 Oct 14 01:26 mh_tyger2.fbx
+-rw-r--r-- 1 runner runner 26050488 Oct 14 01:26 mh_tyger2.glb
+-rw-r--r-- 1 runner runner    63436 Oct 14 01:25 packs.json
