@@ -39,13 +39,19 @@ GSI_ROOTS = ['https://gsi.geodata.gov.ie/imagehost/rest/services/Lidar', 'https:
              'https://gsi.geodata.gov.ie/imagehost/rest/services', 'https://gsi.geodata.gov.ie/server/rest/services']
 def gsi_services():
     found = []
-    for root in GSI_ROOTS:
+    roots=list(GSI_ROOTS)
+    for top in ('https://gsi.geodata.gov.ie/imagehost/rest/services','https://gsi.geodata.gov.ie/server/rest/services'):   # every folder, not just Lidar
+        try:
+            for f in S.get(top,params={'f':'json'},timeout=60).json().get('folders',[]):roots.append(top+'/'+f)
+        except Exception as e: log('  gsi folders',e)
+    roots=list(dict.fromkeys(roots))
+    for root in roots:
         try:
             r = S.get(root, params={'f': 'json'}, timeout=60); j = r.json()
             log('  gsi', root, 'folders', j.get('folders'), 'services', [(x['name'], x['type']) for x in j.get('services', [])])
             for x in j.get('services', []):
                 base = root.split('/rest/services')[0] + '/rest/services/' + x['name'] + '/' + x['type']
-                if x['type'] in ('ImageServer', 'MapServer') and ('idar' in x['name'] or 'DTM' in x['name'] or 'DEM' in x['name'] or 'Elev' in x['name']): found.append((base, x['type']))
+                if x['type'] in ('ImageServer',) and any(k in x['name'].upper() for k in ('LIDAR','DTM','DSM','DEM','ELEV','BATHY','HEIGHT','TOPO','SURFACE')): found.append((base, x['type']))
         except Exception as e: log('  gsi', root, 'ERR', e)
     return list(dict.fromkeys(found))
 def gsi_sample(svc, site):
