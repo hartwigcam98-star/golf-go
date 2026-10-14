@@ -18,6 +18,7 @@ async function staleWhileRevalidate(req){const a=await caches.open(ASSETS),hit=a
   const net=fetch(req).then(r=>{if(r&&(r.ok||r.type==='opaque'))a.put(req,r.clone());return r;}).catch(()=>hit);return hit||net;}
 self.addEventListener('fetch',e=>{const req=e.request;if(req.method!=='GET')return;const u=new URL(req.url);
   if(u.hostname.endsWith('supabase.co'))return;                                   // leaderboards: always live
+  if(u.origin===location.origin&&/\/next\//.test(u.pathname))return;              // the next/ prototype: straight from the network, never the cached game
   if(req.mode==='navigate'||(u.origin===location.origin&&/\/(index\.html)?$/.test(u.pathname))){e.respondWith(networkFirst(req));return;}
   if(u.origin===location.origin&&u.searchParams.has('v')){e.respondWith(cacheFirst(req));return;}
   if(u.origin===location.origin||/fonts\.(googleapis|gstatic)\.com$/.test(u.hostname)){e.respondWith(staleWhileRevalidate(req));return;}});
