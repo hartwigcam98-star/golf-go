@@ -5822,7 +5822,7 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   r3PostInit();
   GL.slOK=true;
   try{const v=localStorage.getItem('golf-gfx');if(v==='fast')R3.q='fast';}catch(e){}
-  try{const pv=JSON.parse(localStorage.getItem('golf-perf2')||'null');if(pv&&pv.l>0){R3.perf=Math.min(R3_LMAX-1,pv.l-(Date.now()-(pv.t||0)>2*864e5?1:0));}if(pv&&pv.c&&Date.now()-(pv.t||0)<2*864e5)PERF.cap=1;}catch(e){}   // start where this phone settled last time (eased one step after two days)
+  try{const pv=JSON.parse(localStorage.getItem('golf-perf2')||'null');if(pv&&pv.l>0){R3.perf=Math.min(R3_LMAX-1,pv.l-(Date.now()-(pv.t||0)>2*864e5?1:0));}}catch(e){}   // start where this phone settled last time (eased one step after two days); the steady-30 cap is not carried over: each session earns it again only if it's still slow (v120)
   /* phones and tablets start on Fast (High is a tap away in the pause menu and is remembered). Done once per device: a phone that
      was on High by default moves to Fast, and any automatic step-down it had settled on is eased by the same one level */
   try{if(!localStorage.getItem('golf-gfx-set')){localStorage.setItem('golf-gfx-set','auto');
@@ -7096,6 +7096,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-14-cap30",date:"Oct 14, 2026",title:"No more stuck at 30 fps",items:[
+    "If your phone struggled once, the game could lock itself to a steady 30 frames a second and keep that lock for two days, even after the phone was running fine again. Now every time you open the game it starts unlocked and only drops to a steady 30 if that session really can't keep up."]},
   {id:"2026-10-14-dcn",date:"Oct 14, 2026",title:"New course: Desert Canyon",items:[
     "Desert Canyon Golf Club (Fountain Hills, Arizona) is now in the game from the Canyon tees: 6,410 yards on the card, par 71. It's a 1971 John Allen layout that winds through desert arroyos and neighbourhoods, with raised tees and greens.",
     "The real map only had the hole lines, so the greens, tees, fairways, bunkers and the pond on the 1st were traced from the aerial photo. The ground and greens come from 2020 lidar.",
