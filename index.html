@@ -6792,7 +6792,14 @@ const PERF={n:0,sum:0,level:0};
    left a phone at 30 for every round after it. Now each new hole may try 60 again: after 1 hole, then 2, 4, up to 8 while it keeps
    falling back (a phone that really can't hold 60 is back at 30 within ~3 s); a hole that holds up clears the count. Coming back to
    the game after 2+ minutes away tries again at once. */
-function perfRetry(){if(!PERF.cap){if(PERF.trial){PERF.trial=0;PERF.capN=0;}return;}
+/* Earning detail back: the step-downs are remembered on the phone, so one hot or low-power spell used to leave it on the lightest
+   picture for good. Smooth play at full resolution (about 18 s of it at first) now buys back one level at the next hole, where the
+   change can't stutter a shot. If the richer picture can't hold 60 in its first ~12 s it goes straight back (rather than softening
+   the resolution), and the next try needs twice as much smooth play. */
+function perfUp(){if(PERF.cap||!(R3.perf>0)||(PERF.up||0)<(PERF.upNeed||12))return;
+  PERF.up=0;PERF.level=R3.perf-1;r3SetPerf(PERF.level);PERF.probe=8;PERF.slow=0;PERF.w=[];
+  try{localStorage.setItem('golf-perf2',JSON.stringify({l:PERF.level,t:Date.now()}));}catch(e){}}
+function perfRetry(){perfUp();if(!PERF.cap){if(PERF.trial){PERF.trial=0;PERF.capN=0;}return;}
   PERF.capH=(PERF.capH||0)+1;if(PERF.capH<Math.min(8,1<<Math.max(0,(PERF.capN||1)-1)))return;
   PERF.cap=0;PERF.slow=0;PERF.w=[];PERF.trial=1;}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){PERF.hidT=Date.now();return;}
@@ -6802,6 +6809,9 @@ function perfCheck(raw){PERF.level=R3.perf||0;if(PERF.cap||G.paused||G.state==='
   /* v121 dynamic resolution: aim for a steady 60. When more than 1 frame in 8 misses a refresh, draw ~10% fewer pixels a side (down to 62%);
      after about 5 s of clean frames sharpen back up a step. Only once the picture is at its softest do the levels below step in. */
   const dyn=R3.dyn||1;
+  if(PERF.probe>0){PERF.probe--;if(slip>.12){PERF.probe=0;PERF.up=0;PERF.upNeed=Math.min(200,(PERF.upNeed||12)*2);PERF.level=Math.min(R3_LMAX-1,PERF.level+1);r3SetPerf(PERF.level);
+    try{localStorage.setItem('golf-perf2',JSON.stringify({l:PERF.level,t:Date.now()}));}catch(e){}return;}}
+  if(slip>.12)PERF.up=0;else if(slip<.03&&dyn>=.999&&PERF.level>0)PERF.up=(PERF.up||0)+1;
   if(slip>.12&&dyn>.62){R3.dyn=Math.max(.62,dyn-.1);PERF.good=0;PERF.slow=0;r3Resize();return;}
   if(slip<.03){PERF.good=(PERF.good||0)+1;if(PERF.good>=3&&dyn<1){R3.dyn=Math.min(1,dyn+.06);PERF.good=0;r3Resize();}if(dyn<.999||PERF.level===0)return;}else PERF.good=0;
   if(PERF.stuck)return;
