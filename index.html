@@ -3261,6 +3261,17 @@ const DAILY_LRU={last:null,list:[]};
    has had its day a new cycle starts. A course added later joins the current cycle from its first day; past days never change. */
 const DAILY_N5=Math.round(Date.UTC(2026,9,8)/864e5),DAILY_SH={list:[],used:null,recent:null};
 function dailyRng(n){let s=(Math.imul(n,2654435761)^0x5bd1e995)>>>0;return()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296;};}
+/* v123 (from 2026-10-16): every course gets a daily before any course repeats. The "used" set starts with every course that has
+   already been a daily since DAILY_START, so the shuffle only draws from courses nobody has had yet; once all are used it starts a new cycle.
+   Days before DAILY_N6 are unchanged. */
+const DAILY_N6=Math.round(Date.UTC(2026,9,16)/864e5),DAILY_FR={list:[],used:null,recent:null};
+function dailyCourseFresh(n){const M=DAILY_FR;
+  if(!M.used){M.used=new Set();M.recent=[];for(let k=dailyNum(DAILY_START);k<DAILY_N6;k++){const c=dailyCourse(new Date(k*864e5).toISOString().slice(0,10));M.used.add(c);M.recent.push(c);}}
+  while(DAILY_N6+M.list.length<=n){const k=DAILY_N6+M.list.length,pool=DAILY_POOL.filter(([id,from])=>from<=k&&COURSES[id]&&!(DAILY_OFF[id]&&k>=DAILY_OFF[id])).map(([id])=>id);
+    let rem=pool.filter(id=>!M.used.has(id));if(!rem.length){M.used=new Set();rem=pool;}
+    const last=M.recent.slice(-6);let cand=rem.filter(id=>!last.includes(id));if(!cand.length)cand=rem;
+    const r=dailyRng(k*7+3);r();const pick=DAILY_FIX[k]&&COURSES[DAILY_FIX[k]]?DAILY_FIX[k]:cand[Math.floor(r()*cand.length)];M.used.add(pick);M.recent.push(pick);M.list.push(pick);}
+  return M.list[n-DAILY_N6];}
 function dailyCourseShuf(n){const M=DAILY_SH;
   if(!M.used){M.used=new Set();M.recent=[];for(let k=DAILY_N5-6;k<DAILY_N5;k++)M.recent.push(dailyCourse(new Date(k*864e5).toISOString().slice(0,10)));}
   while(DAILY_N5+M.list.length<=n){const k=DAILY_N5+M.list.length,pool=DAILY_POOL.filter(([id,from])=>from<=k&&COURSES[id]&&!(DAILY_OFF[id]&&k>=DAILY_OFF[id])).map(([id])=>id);
@@ -3268,7 +3279,7 @@ function dailyCourseShuf(n){const M=DAILY_SH;
     const last=M.recent.slice(-6);let cand=rem.filter(id=>!last.includes(id));if(!cand.length)cand=rem;
     const r=dailyRng(k);r();const pick=DAILY_FIX[k]&&COURSES[DAILY_FIX[k]]?DAILY_FIX[k]:cand[Math.floor(r()*cand.length)];M.used.add(pick);M.recent.push(pick);M.list.push(pick);}
   return M.list[n-DAILY_N5];}
-function dailyCourse(day){const n=dailyNum(day);if(n<DAILY_N4)return dailyCourseOld(n);if(n>=DAILY_N5)return dailyCourseShuf(n);const M=DAILY_LRU;
+function dailyCourse(day){const n=dailyNum(day);if(n<DAILY_N4)return dailyCourseOld(n);if(n>=DAILY_N6)return dailyCourseFresh(n);if(n>=DAILY_N5)return dailyCourseShuf(n);const M=DAILY_LRU;
   if(!M.last){M.last={};for(let k=DAILY_N4-90;k<DAILY_N4;k++)M.last[dailyCourseOld(k)]=k;}
   while(DAILY_N4+M.list.length<=n){const k=DAILY_N4+M.list.length;let best=null,bl=0;
     for(const[id,from]of DAILY_POOL){if(from>k||!COURSES[id])continue;const l=M.last[id]??-1e9;if(best===null||l<bl){best=id;bl=l;}}
