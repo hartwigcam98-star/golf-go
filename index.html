@@ -6857,8 +6857,11 @@ function perfCheck(raw){PERF.level=R3.perf||0;if(R3.warmQ||(PERF.quiet&&performa
   if(PERF.probe>0){PERF.probe--;if(slip>.12){PERF.probe=0;PERF.up=0;PERF.upNeed=Math.min(200,(PERF.upNeed||12)*2);PERF.level=Math.min(R3_LMAX-1,PERF.level+1);r3SetPerf(PERF.level);
     try{localStorage.setItem('golf-perf2',JSON.stringify({l:PERF.level,t:Date.now()}));}catch(e){}return;}}
   if(slip>.12)PERF.up=0;else if(slip<.03&&dyn>=.999&&PERF.level>0)PERF.up=(PERF.up||0)+1;
-  if(slip>.12&&dyn>.62){R3.dyn=Math.max(.62,dyn-.1);PERF.good=0;PERF.slow=0;r3Resize();return;}
-  if(slip<.03){PERF.good=(PERF.good||0)+1;if(PERF.good>=3&&dyn<1){R3.dyn=Math.min(1,dyn+.06);PERF.good=0;r3Resize();}if(dyn<.999||PERF.level===0)return;}else PERF.good=0;
+  /* v124: two slipping windows in a row before softening (one rough window, e.g. loading a hole, no longer counts), and sharpen back up
+     after three windows under 5% late frames; a middling window only takes one off the count instead of starting it over */
+  if(slip>.12&&dyn>.62){PERF.bad=(PERF.bad||0)+1;PERF.good=0;if(PERF.bad>=2){PERF.bad=0;R3.dyn=Math.max(.62,dyn-.1);PERF.slow=0;r3Resize();}return;}
+  PERF.bad=0;
+  if(slip<.05){PERF.good=(PERF.good||0)+1;if(PERF.good>=3&&dyn<1){R3.dyn=Math.min(1,dyn+.06);PERF.good=0;r3Resize();}if(dyn<.999||PERF.level===0)return;}else PERF.good=Math.max(0,(PERF.good||0)-1);
   if(PERF.stuck)return;
   /* v87: step down a level when the median frame is slower than ~45 fps or more than 1 in 8 frames stutters (>40 ms), two windows running; the level is remembered on this phone */
   /* far too slow (under ~28 fps, not a 30 fps cap): act on one window and drop two levels */
