@@ -2862,7 +2862,7 @@ function strikeShot(power,e){
   const pegK=G.strokes===0&&lie==='tee'?pegFor(club):0;G.settle=null;
   G.rec=[];G.recT=0;G.recOn=true;G.canReplay=false;G.recHoled=false;
   G.shotInfo=null;$('shotStats').hidden=true;
-  G.ff=1;G.strokes++;G.prev={...G.ball};G.fromLie=lie;G.trail=[];G.shotRot=G.aim;G.state='flight';G.followT=.001;G.bY=hAt(G.ball.x,G.ball.y)+.03;G.launchAt=club.putter?PUTT_IMPACT:IMPACT_T;G.swingBack=Math.max(.15,G.meter.power);G.swingType=club.putter?'putt':G.stype;G.swingClub=G.clubIdx;
+  G.ff=1;G.strokes++;G.prev={...G.ball};G.fromLie=lie;G.trail=[];G.shotRot=G.aim;G.state='flight';G.followT=.001;G.bY=hAt(G.ball.x,G.ball.y)+.03;G.launchAt=club.putter?PUTT_IMPACT:IMPACT_T;G.swingBack=Math.max(.15,G.meter.power);if(SWT)G.launchAt+=club.putter?.2+.3*G.swingBack:.25+.35*G.swingBack;G.swingType=club.putter?'putt':G.stype;G.swingClub=G.clubIdx;
   G.golferAt={x:G.ball.x,y:G.ball.y,aim:G.aim};G.twirl=false;
   const miss=e===null;let perfect=false,q=.05;G.missBy=0;
   // the player's timing is judged more strictly than the rivals' (their difficulty is tuned through their own timing spread)
@@ -3306,6 +3306,9 @@ const AUTH_KEY='golf-auth';
 /* required sign-in is switched on for everyone with AUTH_REQUIRED once the code emails work; until then ?signin=1 turns it on for
    this phone/browser (and ?signin=0 off again), for testing on the live site */
 const AUTH_REQUIRED=false;
+/* Oct 2026 test (not for players yet): the golfer holds his address while the meter runs and the whole swing plays after the
+   last tap; nothing in the 3D view moves during the meter, so it isn't redrawn then and the meter has the phone to itself */
+const SWT=(()=>{try{const m=location.search.match(/[?&]swingtest=([01])/);if(m)localStorage.setItem('golf-swt',m[1]);return localStorage.getItem('golf-swt')==='1';}catch(e){return false;}})();
 const authOn=(()=>{try{const m=location.search.match(/[?&]signin=([01])/);if(m)localStorage.setItem('golf-signin',m[1]);return AUTH_REQUIRED||localStorage.getItem('golf-signin')==='1';}catch(e){return AUTH_REQUIRED;}})();
 function authLoad(){try{const a=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');return a&&a.refresh_token&&a.user&&a.user.id?a:null;}catch(e){return null;}}
 function authStore(a){try{if(a)localStorage.setItem(AUTH_KEY,JSON.stringify(a));else localStorage.removeItem(AUTH_KEY);}catch(e){}}
@@ -4606,13 +4609,13 @@ function swingState(type,putt){
   const m=G.meter,maxB=SWING_BACK[type]||1;
   const backAt=b=>{const e=smooth(0,1,b);return{alpha:166*DEG*e*maxB,beta:110*DEG*smooth(.12,.62,b*maxB)*Math.min(1,maxB*1.4),ts:98*DEG*b*maxB,th:46*DEG*b*maxB,tilt:(35-4*b*maxB)*DEG,heel:0,shift:-.04*b*maxB,look:0,fin:0};};
   if(putt){let a=0;
-    if(aimingState()){const b=G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?p2m(m.power):0;a=(b>0?4+12*b:0)*DEG;}
-    else if(G.followT>0){const t=Math.min(1,G.followT/.6),b0=G.swingBack||.5,amp=(4+12*b0)*DEG;a=amp*(1-smooth(0,.3,t))-amp*1.15*smooth(.28,.85,t);}
+    if(aimingState()){const b=SWT?0:G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?p2m(m.power):0;a=(b>0?4+12*b:0)*DEG;}
+    else if(G.followT>0){const bk=Math.max(0,(G.launchAt||PUTT_IMPACT)-PUTT_IMPACT),b0=G.swingBack||.5,amp=(4+12*b0)*DEG;if(G.followT<bk){s.alpha=amp*smooth(0,1,G.followT/bk);s.ts=0;return s;}const t=Math.min(1,(G.followT-bk)/.6);a=amp*(1-smooth(0,.3,t))-amp*1.15*smooth(.28,.85,t);}
     s.alpha=a;s.ts=0;return s;}
-  if(aimingState()){const b=G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?p2m(m.power):0;return{...s,...backAt(clamp(b,0,1))};}
+  if(aimingState()){const b=SWT?0:G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?p2m(m.power):0;return{...s,...backAt(clamp(b,0,1))};}
   if(G.followT>0){
-    const top=backAt(G.swingBack||1),end=SWING_END[type]||1;
-    const t=Math.min(end,G.followT/SWING_DUR);
+    const top=backAt(G.swingBack||1),end=SWING_END[type]||1,bk=Math.max(0,(G.launchAt||IMPACT_T)-IMPACT_T);if(G.followT<bk)return{...s,...backAt(clamp((G.swingBack||1)*smooth(0,1,G.followT/bk),0,1))};
+    const t=Math.min(end,(G.followT-bk)/SWING_DUR);
     if(t<.27){const u=t/.27,e=u*u;const alpha=top.alpha*(1-e);
       return{alpha,beta:top.beta*clamp(alpha/(55*DEG),0,1),ts:top.ts+(-15*DEG-top.ts)*e,th:top.th+(-40*DEG-top.th)*smooth(0,.65,u),tilt:35*DEG,heel:.15*u,shift:top.shift+(.08-top.shift)*u,look:0,fin:0};}
     const u=(t-.27)/.73,e=1-(1-u)*(1-u);
@@ -5071,16 +5074,18 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
     R3B.footT=null;if(r.pump){const cw=r3bCrouchW(P.t);if(cw>.001){const I=R3B.idx,B=R3B.bones;   // feet stay put while he sinks into the crouch
       r3bApply(qa,ha);R3B.root.matrix.identity();R3B.root.matrixWorld.identity();B[0].updateMatrixWorld(true);R3B.footT=[r3bWP(B[I.LeftFoot]),r3bWP(B[I.RightFoot])];
       ha[1]-=R3B_PUMP_DROP*cw;r3bRotL(qa,I.Spine,[1,0,0],R3B_PUMP_FLEX*.35*cw);r3bRotL(qa,I.Spine1,[1,0,0],R3B_PUMP_FLEX*.35*cw);r3bRotL(qa,I.Spine2,[1,0,0],R3B_PUMP_FLEX*.3*cw);r3bRotL(qa,I.Neck,[1,0,0],-R3B_PUMP_FLEX*.4*cw);}}}   // (travel: root motion carries over from loop to loop)
-  else if(aimingState()){const b=G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?(typeof p2m==='function'?p2m(m.power):m.power):0;
+  else if(aimingState()){const b=SWT?0:G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?(typeof p2m==='function'?p2m(m.power):m.power):0;
     // the backswing chases the meter on a soft spring (a little lag, a small settle at the top) instead of being scrubbed by it
     if(G.state==='aim'){SP.x=0;SP.v=0;}else{const tg=clamp(b,0,1),K=150,D=2*Math.sqrt(K)*.6;for(let n=Math.ceil(dtR/.008),i=0;i<n;i++){const h=dtR/n;SP.v+=(K*(tg-SP.x)-D*SP.v)*h;SP.x+=SP.v*h;}}
     SP.T=T;SP.live=false;r3bPose(c,r3bBackT(c,bFrac(clamp(SP.x,0,1.04))),qa,ha);
     if(!putt){const xb=bFrac(clamp(SP.x,0,1));wU=1-smooth(R3B_SET[0],R3B_SET[1],xb);wW=smooth(.04,.3,xb)*(1-smooth(.72,1,xb));}hold=G.state==='aim'?1:G.state==='acc'?.5:0;}
-  else if(G.followT>0){const fT=G.followT,la=G.launchAt||(putt?PUTT_IMPACT:IMPACT_T),b0=clamp(G.swingBack||1,0,1);
+  else if(G.followT>0){const la0=G.launchAt||(putt?PUTT_IMPACT:IMPACT_T),bk=Math.max(0,la0-(putt?PUTT_IMPACT:IMPACT_T)),fT=G.followT-bk,la=la0-bk,b0=clamp(G.swingBack||1,0,1);
+    if(bk>.001&&!SP.live){SP.live=true;SP.xs=b0;}   // swing test: the backswing is played below, after the tap
     if(!SP.live){SP.live=true;SP.xs=T-SP.T<.3?clamp(SP.x,0,1):b0;}
     const x=bFrac(SP.xs),tb=r3bBackT(c,x);
     // downswing: partial swings drop into the real downswing part-way down (no rewind along the backswing path)
-    if(fT<la){const u=fT/la,tm=c.top+(c.imp-c.top)*clamp(1-x,0,1)*.85;r3bPose(c,tm+(c.imp-tm)*u,qa,ha);r3bPose(c,tb,qb,hb);r3bBlend(qa,ha,qb,hb,1-smooth(0,.4,u));wI=smooth(.2,1,u);
+    if(fT<0){const xb=bFrac(b0*smooth(0,1,1+fT/bk));r3bPose(c,r3bBackT(c,xb),qa,ha);if(!putt){wU=1-smooth(R3B_SET[0],R3B_SET[1],xb);wW=smooth(.04,.3,xb)*(1-smooth(.72,1,xb));}}
+    else if(fT<la){const u=fT/la,tm=c.top+(c.imp-c.top)*clamp(1-x,0,1)*.85;r3bPose(c,tm+(c.imp-tm)*u,qa,ha);r3bPose(c,tb,qb,hb);r3bBlend(qa,ha,qb,hb,1-smooth(0,.4,u));wI=smooth(.2,1,u);
       if(!putt){const k=1-smooth(0,.4,u);wU=(1-smooth(R3B_SET[0],R3B_SET[1],x))*k;wW=smooth(.04,.3,x)*(1-smooth(.72,1,x))*k;}}
     // follow-through: real-time out of impact, easing into the finish rather than stopping dead
     else{const tEnd=c.imp+(c.fin-c.imp)*(putt?.3+.7*b0:end),sp=Math.max(tEnd-c.imp,.05),z=(fT-la)/sp,zz=z<.7?z:.7+.3*(1-Math.exp(-(z-.7)/.3));
@@ -6390,6 +6395,10 @@ function r3ShcPlan(){const C=R3.shc,rd=R3.renderer;if(!C)return;if(window.__shcO
     {const ac=rd.autoClear,rt=rd.getRenderTarget();rd.autoClear=false;C.qm.uniforms.tMap.value=C.rt.texture;rd.setRenderTarget(sh.map);rd.render(C.qs,C.qc);rd.setRenderTarget(rt);rd.autoClear=ac;}
     rd.shadowMap.needsUpdate=true;C.mode='dyn';}
   else C.mode=same?'cap':null;}
+function r3Hold(){if(!SWT||!R3.on||G.aiTurn||G.replay||!(G.state==='power'||G.state==='acc')){R3.holdSig=null;return false;}
+  // the camera settles on the address view by easing: once it's within a few millimetres of the last drawn picture, hold that picture
+  const H0=R3.holdSig,cur=[...V.E,...V.F];if(H0&&Math.abs(cur[0]-H0[0])+Math.abs(cur[1]-H0[1])+Math.abs(cur[2]-H0[2])<.004&&Math.abs(cur[3]-H0[3])+Math.abs(cur[4]-H0[4])+Math.abs(cur[5]-H0[5])<2e-4)return true;
+  R3.holdSig=cur;return false;}
 function r3Render(){const rd=R3.renderer;if(!G.hole)return;R3.sun.intensity=SUN_COL[0]*Math.PI*R3.sunK;R3.scene.environmentIntensity=R3.envK;
   r3Camera();r3Shadow();r3PoolsBegin();r3Dynamic();r3PoolsEnd();
   // green slope grid: fade and orientation, exactly as before
@@ -6661,7 +6670,7 @@ function render(){
   if(G.replay){const r=G.replay,rp=replayPoint(Math.max(0,r.t));stash={ball:G.ball,bY:G.bY,state:G.state,inCup:G.inCup,trail:G.trail};
     G.ball={x:rp.x,y:rp.y};G.bY=rp.Y;G.state='bounce';G.inCup=G.lastShot.holed&&r.t>=r.dur;
     const tr=[];for(const q of G.lastShot.rec){if(q.t>r.t)break;tr.push(q);}G.trail=tr.slice(-70);}
-  r3Render();renderScene();
+  if(!r3Hold())r3Render();renderScene();
   if(stash){Object.assign(G,stash);G.state='replay';
     sctx.setTransform(dpr,0,0,dpr,0,0);sctx.font='700 13px "Barlow Semi Condensed",system-ui,sans-serif';const tx=SPEC.on?'\u25B6 '+SPEC.name+' \u00b7 hole '+(SPEC.hi+1)+' \u00b7 shot '+(SPEC.k+1)+' \u00b7 tap to skip':'\u25B6 REPLAY \u00b7 tap to skip',w=sctx.measureText(tx).width+26;
     if(!REC.on){sctx.fillStyle='rgba(180,34,58,.9)';sctx.beginPath();sctx.roundRect(W/2-w/2,topH+6,w,26,13);sctx.fill();sctx.fillStyle='#fff';sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText(tx,W/2,topH+19);}}
