@@ -1464,7 +1464,7 @@ function cpkPack(C){if(!C||C===CUR||C.__pk||C.__seen)return;   // a course opene
   C.__pk=P;for(const f in P)Object.defineProperty(C,f,{configurable:true,enumerable:true,
     get(){const e=P[f];if(!e.o){e.o=JSON.parse(e.s);e.s=null;}return e.o;},set(v){P[f]={s:null,o:v};}});}
 function cpkStep(){CPK.t=0;if(CPK.i>=CPK.ids.length)return;
-  const idle=document.hidden||!G.hole||G.state==='intro'||G.state==='card'||(typeof COVERS!=='undefined'&&COVERS.some(m=>!m.hidden));
+  const idle=document.hidden||!G.hole||(typeof COVERS!=='undefined'&&COVERS.some(m=>!m.hidden));   // menus only: one course can take longer than a frame
   if(idle){const t0=performance.now();while(CPK.i<CPK.ids.length&&performance.now()-t0<8){try{cpkPack(COURSES[CPK.ids[CPK.i]]);}catch(e){}CPK.i++;}}
   if(CPK.i<CPK.ids.length)CPK.t=setTimeout(cpkStep,idle?50:1000);}
 setTimeout(cpkStep,2500);
@@ -2683,10 +2683,12 @@ function cupBuf(hard,vr){const a=S.ctx,key='cup4'+hard+vr;S.ib=S.ib||{};if(S.ib[
   let pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));for(let i=0;i<n;i++)d[i]=Math.tanh(1.8*d[i]/(pk||1));   // broadcast punch: a little saturation
   pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));if(pk>0)for(let i=0;i<n;i++)d[i]*=.92/pk;
   return S.ib[key]=buf;}
-/* Oct 2026: the six ball-in-the-cup sounds are built ahead (one at a time while a menu, the hole intro or the scorecard is up) instead of the first time each plays; building one took a few hundred ms right as the ball dropped */
-function sfxWarm(){setTimeout(sfxWarm,700);if(!S.ctx)return;const st=typeof G==='object'?G.state:'';
-  if(!(st==='intro'||st==='card'||(typeof COVERS!=='undefined'&&COVERS.some(m=>!m.hidden))))return;
-  for(const h of[0,1])for(const v of[0,1,2])if(!(S.ib&&S.ib['cup4'+h+v])){try{cupBuf(h,v);}catch(e){}return;}}
+/* Oct 2026: the six ball-in-the-cup sounds (and the club strikes) are built ahead (one at a time while a menu is up) instead of the first time each plays; building one took a few hundred ms right as the ball dropped */
+function sfxWarm(){setTimeout(sfxWarm,500);if(!S.ctx)return;
+  if(!(document.hidden||typeof G!=='object'||!G.hole||(typeof COVERS!=='undefined'&&COVERS.some(m=>!m.hidden))))return;   // menus only
+  if(!(S.clips&&(S.clips.iron||S.clips.iron_l))){try{realStrike('wood');}catch(e){}return;}   // start decoding the recorded strikes
+  for(const h of[0,1])for(const v of[0,1,2])if(!(S.ib&&S.ib['cup4'+h+v])){try{cupBuf(h,v);}catch(e){}return;}
+  for(const k in IMPACT_MODES)for(let q=0;q<4;q++)if(!(S.ib&&S.ib[k+q])){try{impactBuffer(k,q);}catch(e){}return;}}   // the club strikes too (20, small)
 setTimeout(sfxWarm,3000);
 const sfx={
   tick:()=>tone(880,.05,'square',.04),
@@ -6871,6 +6873,9 @@ const PERF={n:0,sum:0,level:0};
    change can't stutter a shot. If the richer picture can't hold 60 in its first ~12 s it goes straight back (rather than softening
    the resolution), and the next try needs twice as much smooth play. */
 function perfUp(){if(PERF.cap||!(R3.perf>0)||(PERF.up||0)<(PERF.upNeed||12))return;
+  /* not into the heavy look (multisampling, ambient occlusion and reflections, soft shadows): switching it on mid-round rebuilt every
+     render target and compiled new shaders (130+ ms), and the phone usually couldn't hold it and fell back again */
+  {const cur=r3Q(),pv=R3.perf;R3.perf=pv-1;const nx=r3Q();R3.perf=pv;if(nx.msaa!==cur.msaa||nx.ao!==cur.ao||nx.soft!==cur.soft){PERF.up=0;return;}}
   PERF.up=0;PERF.level=R3.perf-1;r3SetPerf(PERF.level);PERF.probe=8;PERF.slow=0;PERF.w=[];
   try{localStorage.setItem('golf-perf2',JSON.stringify({l:PERF.level,t:Date.now()}));}catch(e){}}
 function perfRetry(){perfUp();if(!PERF.cap){if(PERF.trial){PERF.trial=0;PERF.capN=0;}return;}
@@ -7007,7 +7012,7 @@ r3Reflect=hxWrap('refl',r3Reflect);prepareShot=hxWrap('prep',prepareShot);execut
 pstatFlush=hxWrap('flush',pstatFlush);saveGame=hxWrap('save',saveGame);updHud=hxWrap('hud',updHud);renderScene=hxWrap('ovl',renderScene);r3Post=hxWrap('post',r3Post);
 r3Golfer=hxWrap('golfer',r3Golfer);r3Dynamic=hxWrap('dyn',r3Dynamic);stepCam=hxWrap('cam',stepCam);ambTick=hxWrap('amb',ambTick);aiStep=hxWrap('ai',aiStep);
 chooseShort=hxWrap('short',chooseShort);calcPuttMax=hxWrap('putt',calcPuttMax);autoClub=hxWrap('club',autoClub);r3WarmJob=hxWrap('warm',r3WarmJob);r3Shadow=hxWrap('sun',r3Shadow);
-r3GrassUpdate=hxWrap('grassU',r3GrassUpdate);r3Tracer=hxWrap('tracer',r3Tracer);r3Camera=hxWrap('r3cam',r3Camera);update=hxWrap('upd',update);r3Render=hxWrap('r3',r3Render);
+r3GrassUpdate=hxWrap('grassU',r3GrassUpdate);cpkPack=hxWrap('pack',cpkPack);cupBuf=hxWrap('cupSnd',cupBuf);impactBuffer=hxWrap('hitSnd',impactBuffer);strikeShot=hxWrap('strike',strikeShot);pendSave=hxWrap('psave',pendSave);toast=hxWrap('toast',toast);r3Tracer=hxWrap('tracer',r3Tracer);r3Camera=hxWrap('r3cam',r3Camera);update=hxWrap('upd',update);r3Render=hxWrap('r3',r3Render);
 function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
   if(PERF.cap&&now-last<28&&!(REC&&REC.on))return;   /* steady 30: every other refresh (on a 120 Hz screen, every fourth) */
   const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);hxFrame(raw);if(FPSM.on)fpsTick(now,raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
