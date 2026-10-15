@@ -120,6 +120,7 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .meter{position:relative;height:30px;border-radius:15px;background:#081723;border:2px solid rgba(255,255,255,.14);overflow:visible;cursor:pointer}
 .track{position:absolute;inset:4px;border-radius:11px;background:linear-gradient(90deg,#2a4d63 0 12%,#274d3a 12%,#3d8b4a 45%,#e0b53a 80%,#ff6a48 100%);opacity:.5;overflow:hidden}
 .fill{position:absolute;top:4px;bottom:4px;left:12%;width:0;border-radius:0 11px 11px 0;background:linear-gradient(90deg,#7fe0a8,#ffc93c 70%,#ff6a48);box-shadow:inset 0 2px 0 rgba(255,255,255,.35)}
+.frun{position:absolute;top:4px;bottom:4px;left:12%;overflow:hidden;border-radius:0 11px 11px 0;will-change:transform}.frun .fill{top:0;bottom:0;left:0;width:100%;border-radius:0;transform-origin:0 0;will-change:transform}
 .tick{position:absolute;top:6px;bottom:6px;width:2px;background:rgba(255,255,255,.28)}
 .impact{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;background:#fff;border-radius:2px;box-shadow:0 0 0 2px rgba(15,34,51,.6)}
 .sweet{position:absolute;top:0;bottom:0;background:rgba(255,201,60,.45)}
@@ -589,7 +590,7 @@ td.won{background:rgba(255,201,60,.38)}
       </div>
       <div class="meter" id="meter" aria-label="Swing meter">
         <div class="track"></div>
-        <div class="fill" id="mFill"></div>
+        <div class="fill" id="mFill"></div><div class="frun" id="mRun" hidden><div class="fill" id="mRunIn"></div></div>
         <div class="tick" style="left:34%"></div><div class="tick" style="left:56%"></div><div class="tick" style="left:78%"></div><div class="tick" style="left:calc(100% - 6px)"></div>
         <div class="sweet" id="mSweet"></div>
         <div class="impact" style="left:12%"></div>
@@ -2830,9 +2831,9 @@ function tap(at){
   if(G.overview){G.overview=false;return;}
   if(R3.on&&r3RoutineSkip())return;
   if(G.fc&&G.state==='aim'){lookEnd();return;}
-  const m=G.meter;if(G.state==='power'||G.state==='acc')meterAt(at);
-  if(G.state==='aim'){G.state='power';m.pos=IMPACT;m.power=0;m.dir=1;G.tapMark=null;sfx.tick();haptic('tap');}
-  else if(G.state==='power'){m.power=m2p((m.pos-IMPACT)/(1-IMPACT));G.state='acc';sfx.tick();haptic('tap');}
+  const m=G.meter;if(G.state==='power'||G.state==='acc'){if(MTR.on){mtrAt(at);if(mtrPos(at>0&&Math.abs(at-performance.now())<1000?at:performance.now()).end){const acc=G.state==='acc';mtrEnd();if(acc)return;}}else meterAt(at);}
+  if(G.state==='aim'){G.state='power';m.pos=IMPACT;m.power=0;m.dir=1;G.tapMark=null;mtrStart('power',at,IMPACT);sfx.tick();haptic('tap');}
+  else if(G.state==='power'){m.power=m2p((m.pos-IMPACT)/(1-IMPACT));G.state='acc';mtrStart('acc',at,m.pos);sfx.tick();haptic('tap');}
   else if(G.state==='acc'){const e=m.pos-IMPACT;G.tapMark=clamp(m.pos,0,1);executeShot(m.power,clamp(e,-.12,.4));}
 }
 /* no mulligans from closing the app: the swing is saved the moment it's struck (power, timing, aim, club and a dice seed),
@@ -6706,13 +6707,13 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   sw.classList.toggle('power',st==='power');sw.classList.toggle('acc',st==='acc');}
   setT('hint',G.aiTurn?rn(MATCH.r)+(G.aiSkip?' \u00b7 skipping ahead':' is playing \u00b7 tap Skip to jump ahead'):st==='aim'?(G.fc?(G.fc.follow?'Scouting your shot \u00b7 change club or aim \u00b7 drag to turn \u00b7 pinch to zoom':'Free look \u00b7 tap Landing to follow your shot again'):G.overview?(DESK?'Click or press M to return to your ball':'Tap anywhere to return to your ball'):c.putter?(GL.slOK?'Grid lines: red is steep, green is gentle \u00b7 the glow runs downhill':'Watch the dots on the green — they flow downhill'):(G.stype==='full'||G.stype==='spin'?(DESK?'Space to swing \u00b7 \u2190 \u2192 aim \u00b7 \u2191 \u2193 club \u00b7 B bag \u00b7 M map':'Drag to aim · Tap Swing to start'):SHOTS[G.stype].hint)):st==='power'?(DESK?'Space to set power':'Tap to set power'):st==='acc'?(DESK?'Space on the white line':'Tap on the white line'):' ');
   const m=G.meter,w=perfectWin();
-  {const mc=$('mCursor');if(!MCLK.w)MCLK.w=$('meter').clientWidth;const mw=MCLK.w;mc.style.transform='translate3d('+(m.pos*mw).toFixed(1)+'px,0,0)';}
+  {const mc=$('mCursor');if(!MCLK.w)MCLK.w=$('meter').clientWidth;const mw=MCLK.w;if(MTR.on&&(st!=='power'&&st!=='acc'||G.aiTurn))mtrStop();if(MTR.on&&MTR.w!==mw)mtrAnim();if(!MTR.anims.length)mc.style.transform='translate3d('+(m.pos*mw).toFixed(1)+'px,0,0)';}
   // meter scale in distance: carry yards for full and short shots, feet of roll for putts on the green (percent for putts off it)
   { const pg=c.putter&&G.lie==='green',pct=c.putter&&!pg,sh=isShort()&&!c.putter,mx=c.putter?G.puttMax*3:(sh?(G.swMax||natMax()):natMax())*shotMods().carry;
     const wf=c.putter?1:Math.max(.5,1+windAlong(G.aim));   // v93: the yardages along the meter are what the ball flies in this wind
     const lb=f=>pct?String(Math.round(f*100)):Math.max(1,Math.round(mx*wf*(sh?m2p(f):f)))+(pg?' ft':'y');setT('ml1',lb(.25));setT('ml2',lb(.5));setT('ml3',lb(.75));setT('ml4',pct?'Max':lb(1)); }
   const fillTo=st==='power'?m.pos:(st==='acc'?IMPACT+p2m(m.power)*(1-IMPACT):IMPACT);
-  $('mFill').style.width=Math.max(0,(fillTo-IMPACT)*100)+'%';
+  if(!(MTR.anims.length&&MTR.kind==='power'))$('mFill').style.width=Math.max(0,(fillTo-IMPACT)*100)+'%';
   const lk=$('mLock');lk.hidden=st!=='acc';lk.style.left=((IMPACT+p2m(m.power)*(1-IMPACT))*100)+'%';
   const sweet=$('mSweet');sweet.style.left=((IMPACT-w)*100)+'%';sweet.style.width=(w*200)+'%';
   const tm=$('mTap');tm.hidden=G.tapMark==null||st==='power'||st==='acc';if(!tm.hidden){tm.style.left=(G.tapMark*100)+'%';tm.classList.toggle('good',Math.abs(G.tapMark-IMPACT)<=perfectWin());}
@@ -6742,7 +6743,9 @@ function update(dt){
   }
   const m=G.meter,putt=curClub().putter;
   const mdt=dt;
-  if(G.state==='power'){const p0=m.pos;m.pos+=(m.dir||1)*mdt*meterSpeed();
+  if(MTR.on&&(G.state==='power'||G.state==='acc')&&!G.aiTurn){const p=mtrPos(MCLK.n||performance.now());m.pos=p.pos;if(p.dir)m.dir=p.dir;
+    if(p.end)mtrEnd();}
+  else if(G.state==='power'){const p0=m.pos;m.pos+=(m.dir||1)*mdt*meterSpeed();
     if(m.pos>=1){m.pos=1;m.dir=-1;}
     else if(m.dir<0&&m.pos<=IMPACT){m.pos=IMPACT;m.dir=1;G.state='aim';toast('NO POWER SET','Tap once more during the backswing','#fff6dc');sfx.miss();}}
   else if(G.state==='acc'){m.pos-=mdt*meterSpeed();if(m.pos<=0){m.pos=0;executeShot(m.power,null);}}
@@ -6767,6 +6770,45 @@ let last=performance.now();
    late frame or the 30 fps lock can't move a well-timed press out of the sweet spot. (It used to run on an 8-frame average, which
    after a late frame ran the cursor up to a third fast for a few frames while it caught up.) */
 var MCLK={t:0,w:0};
+/* Oct 2026: the swing meter runs on its own. Once a swing starts, the cursor (and the power fill behind it) is handed to the
+   browser as an animation, which the phone's compositor plays at the screen's own pace even when a 3D frame runs long. The
+   game no longer steps the cursor frame by frame: its position is worked out from the time since the press that started it,
+   so a tap is judged exactly where the cursor was drawn at that moment. Same speeds, same path, same look. The computer's
+   swings and browsers without Web Animations keep the frame-by-frame meter. */
+var MTR={on:false,kind:null,t0:0,from:0,s:1,anims:[],w:0,hold:0,last:0};
+function mtrPos(t){const e=Math.max(0,(t-MTR.t0)/1000)*MTR.s;
+  if(MTR.kind==='power'){const up=1-IMPACT;if(e<up)return{pos:IMPACT+e,dir:1};if(e<2*up)return{pos:1-(e-up),dir:-1};return{pos:IMPACT,dir:-1,end:true};}
+  return e<MTR.from?{pos:MTR.from-e}:{pos:0,end:true};}
+function mtrEnd(){const m=G.meter;if(G.state==='power'){m.pos=IMPACT;m.dir=1;G.state='aim';toast('NO POWER SET','Tap once more during the backswing','#fff6dc');sfx.miss();}else{m.pos=0;executeShot(m.power,null);}}
+function mtrAt(at){const t=at>0&&Math.abs(at-performance.now())<1000?at:performance.now();G.meter.pos=mtrPos(t).pos;}
+function mtrStop(){for(const a of MTR.anims)try{a.cancel();}catch(e){}MTR.anims=[];MTR.on=false;MTR.kind=null;
+  const f=$('mFill');f.style.visibility='';$('mRun').hidden=true;
+  // leave the cursor and fill where they are now (not where they were before the animation took over) until the next frame
+  const m=G.meter,st=G.state,fillTo=st==='power'?m.pos:(st==='acc'?IMPACT+p2m(m.power)*(1-IMPACT):IMPACT);f.style.width=Math.max(0,(fillTo-IMPACT)*100)+'%';
+  if(MCLK.w)$('mCursor').style.transform='translate3d('+(m.pos*MCLK.w).toFixed(1)+'px,0,0)';}
+function mtrStart(kind,at,from){mtrStop();if(G.aiTurn||!Element.prototype.animate||!document.timeline)return;
+  MTR.on=true;MTR.kind=kind;MTR.t0=at>0&&Math.abs(at-performance.now())<1000?at:performance.now();MTR.from=from;MTR.s=meterSpeed();MTR.hold=0;MTR.last=0;mtrAnim();}
+function mtrAnim(){for(const a of MTR.anims)try{a.cancel();}catch(e){}MTR.anims=[];
+  const mw=MCLK.w||(MCLK.w=$('meter').clientWidth);MTR.w=mw;if(!mw)return;
+  const mc=$('mCursor'),s=MTR.s,full=(1-IMPACT)*mw,cur=p=>'translate3d('+(p*mw).toFixed(2)+'px,0,0)';
+  // the path as straight runs between turning points: [position, seconds from the start]
+  let pts;if(MTR.kind==='power'){const up=1-IMPACT;pts=[[IMPACT,0],[1,up/s],[IMPACT,2*up/s]];}
+  else pts=[[MTR.from,0],[0,MTR.from/s]];
+  const dur=pts[pts.length-1][1]*1000;if(!(dur>0))return;
+  const opt={duration:dur,fill:'forwards',easing:'linear'};
+  const go=(el,kf)=>{const a=el.animate(kf,opt);a.startTime=MTR.t0;MTR.anims.push(a);};
+  go(mc,pts.map(([p,t])=>({transform:cur(p),offset:t*1000/dur})));
+  if(MTR.kind==='power'){   /* the fill: a full-length frame with the rounded end slides so its end sits at the cursor, and the gradient
+       inside is slid back and stretched to the same length, so it looks exactly like the bar sized to that width */
+    const run=$('mRun'),inn=$('mRunIn');run.style.width=full.toFixed(2)+'px';run.hidden=false;$('mFill').style.visibility='hidden';
+    const w=p=>Math.max(0,(p-IMPACT)*mw);
+    go(run,pts.map(([p,t])=>({transform:'translate3d('+(w(p)-full).toFixed(2)+'px,0,0)',offset:t*1000/dur})));
+    go(inn,pts.map(([p,t])=>({transform:'translate3d('+(full-w(p)).toFixed(2)+'px,0,0) scaleX('+(w(p)/full).toFixed(5)+')',offset:t*1000/dur})));}
+  if(MTR.hold)for(const a of MTR.anims)a.pause();}
+/* paused (menu, a card over the game) or away from the app: the meter waits, then carries on from the same spot */
+function mtrTick(now,hold){if(!MTR.on)return;const gap=MTR.last?now-MTR.last:0;MTR.last=now;
+  if(hold){if(!MTR.hold){MTR.hold=now;for(const a of MTR.anims)a.pause();}return;}
+  if(MTR.hold||gap>1000){MTR.t0+=MTR.hold?now-MTR.hold:gap-16.7;MTR.hold=0;for(const a of MTR.anims){a.startTime=MTR.t0;}}}
 function meterSpeed(){const putt=curClub().putter;return G.state==='power'?(putt?.7:isShort()?.85:1.0):(putt?.6:isShort()?.8:.95*(G.pshot?1.2:1));}
 function meterAt(at){const m=G.meter;if(!(at>0)||!(MCLK.t>0))return;const d=clamp((at-MCLK.t)/1000,-.034,.05);if(!d)return;   // at most two frames either side: anything else is a bad timestamp
   if(G.state==='power')m.pos=clamp(m.pos+(m.dir||1)*d*meterSpeed(),IMPACT,1);else if(G.state==='acc')m.pos=clamp(m.pos-d*meterSpeed(),0,1);}
@@ -6924,6 +6966,7 @@ function frame(now){requestAnimationFrame(frame);   /* asked for first, so one e
   const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);if(FPSM.on)fpsTick(now,raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
   try{ambTick(dt);}catch(e){}
   const j0=performance.now(),rr=R3.renderer;if(rr&&!rr.__dc){const ro=rr.render;rr.__dc=1;rr.render=function(a,b){ro.call(this,a,b);R3.dcN=(R3.dcN||0)+this.info.render.calls;};}R3.dcN=0;
+  MCLK.n=now;mtrTick(now,G.paused||COVERS.some(c=>!c.hidden));
   if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}MCLK.t=now;   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}
   if(PSTAT.hole&&PSTAT.js.length<30000){PSTAT.js.push(performance.now()-j0);if(rr&&PSTAT.dc.length<2000&&(PSTAT.js.length&15)===0)PSTAT.dc.push(R3.dcN);}}   /* the phone's own work per frame (JS and handing draws to the GPU), and draw calls: which of the two is the limit */
 
