@@ -2486,14 +2486,29 @@ function setShortMax(){if(!isShort()){G.swMax=0;G.shortP=null;return;}G.swMax=0;
   G.swMax=clamp(pinDist()*1.15/(shotMods().carry*Math.max(.6,1+Math.min(0,ka)))+1.5,Math.min(6,mx),mx);G.shortP=null;}
 // pick the short-game shot: chip when it can land on the green and run, pitch when it has to carry more, the club that finishes closest
 function chooseShort(){const d=pinDist(),L=G.lie;if(bunkerSide()){G.stype='splash';G.clubIdx=CI('SW');G.shortP=null;setShortMax();return true;}if(L==='sand'||L==='green'||d>70)return false;
-  const p=G.hole.pin,cands=[];if(d<=40)for(const id of['7I','8I','9I','PW','GW','SW','LW'])cands.push(['chip',id]);for(const id of['PW','GW','SW','LW'])cands.push(['pitch',id]);
-  let best=null;const keep=[G.stype,G.clubIdx];
-  for(const[st,id]of cands){G.stype=st;G.clubIdx=CI(id);G.swMax=0;G.shortP=null;const P=shortPlan();if(P.over||P.bad)continue;
+  const J=shortJobFor();while(J.k<J.cands.length)shortEval(J,J.k++);
+  if(!J.best)return false;
+  G.stype=J.best.st;G.clubIdx=CI(J.best.id);G.shortP=null;setShortMax();return true;}
+/* Oct 2026: the candidates (up to 11 chips and pitches, each a 16-step search over carries) took 50-110 ms on a phone in the frame
+   the next shot was set up. They are now worked out a few per frame during the pause after the ball stops, from the same inputs
+   prepareShot will give chooseShort (the lie and aim it will set, no spin). chooseShort uses that work only if its inputs match
+   exactly; otherwise (or for anything not finished) it does the rest itself, so the choice is always the same as before. */
+const SJ={job:null};
+function shortKey(lie,aim,imp,traj,ps){return [G.hole&&G.hole.id,G.hi,G.ball.x,G.ball.y,lie,aim,imp.x,imp.y,traj,!!ps,G.wind.a,G.wind.mph,!!G.aiTurn,CHAR_ID,G.mode].join('|');}
+function shortJobNew(lie,aim,imp,traj,ps){const p=G.hole.pin,d=pinDist(),cands=[];if(d<=40)for(const id of['7I','8I','9I','PW','GW','SW','LW'])cands.push(['chip',id]);for(const id of['PW','GW','SW','LW'])cands.push(['pitch',id]);
+  return{key:shortKey(lie,aim,imp,traj,ps),lie,aim,imp:{x:imp.x,y:imp.y},traj,ps,p,cands,k:0,best:null};}
+function shortJobFor(){const J=SJ.job;SJ.job=null;const key=shortKey(G.lie,G.aim,G.imp,G.traj,G.pshot);if(J&&J.key===key)return J;return shortJobNew(G.lie,G.aim,G.imp,G.traj,G.pshot);}
+function shortEval(J,k){const[st,id]=J.cands[k],sv=[G.lie,G.aim,G.imp,G.traj,G.pshot,G.stype,G.clubIdx,G.swMax,G.shortP];
+  try{G.lie=J.lie;G.aim=J.aim;G.imp=J.imp;G.traj=J.traj;G.pshot=J.ps;G.stype=st;G.clubIdx=CI(id);G.swMax=0;G.shortP=null;const P=shortPlan(),p=J.p;if(P.over||P.bad)return;
     const miss=hyp(P.fin[0]-p[0],P.fin[1]-p[1]),landPen=P.landL==='green'?0:(P.landL==='fairway'||P.landL==='tee')?1.2:P.landL==='cut'?1.8:P.landL==='rough'?4:8;
     const edge=P.landL==='green'?0:0;const sc=miss+landPen+(st==='pitch'?1.6:0)+(st==='chip'?Math.abs((CHIP_R[id]??1)-2)*.15:0)+edge;
-    if(!best||sc<best.sc)best={sc,st,id};}
-  if(!best){G.stype=keep[0];G.clubIdx=keep[1];return false;}
-  G.stype=best.st;G.clubIdx=CI(best.id);G.shortP=null;setShortMax();return true;}
+    if(!J.best||sc<J.best.sc)J.best={sc,st,id};}
+  finally{[G.lie,G.aim,G.imp,G.traj,G.pshot,G.stype,G.clubIdx,G.swMax,G.shortP]=sv;}}
+/* after the ball stops: the lie and aim prepareShot will set; start the job if chooseShort would search */
+function shortPrep(){SJ.job=null;try{if(MATCH.on||G.aiTurn||!G.hole)return;const lie=shotLie(),aim=(()=>{const t=aimTarget();return angTo(G.ball.x,G.ball.y,t[0],t[1]);})();
+  const sv=[G.lie,G.aim];G.lie=lie;G.aim=aim;let go=false;try{go=!bunkerSide()&&lie!=='sand'&&lie!=='green'&&pinDist()<=70;}finally{[G.lie,G.aim]=sv;}
+  if(go)SJ.job=shortJobNew(lie,aim,{x:0,y:0},0,false);}catch(e){SJ.job=null;}}
+function shortTick(){const J=SJ.job;if(!J||J.k>=J.cands.length)return;const t0=performance.now();do{shortEval(J,J.k++);}while(J.k<J.cands.length&&performance.now()-t0<5);}
 // a putt from off the green only when the whole line is mown grass
 function puttLineClean(){const b=G.ball,p=G.hole.pin,d=pinDist();for(let i=1;i<20;i++){const t=i/20,L=lieAt(b.x+(p[0]-b.x)*t,b.y+(p[1]-b.y)*t);if(L!=='green'&&L!=='fairway'&&L!=='tee'&&L!=='cut')return false;}return true;}
 const shotApex=(c,carry)=>c.apex*SHOTS[G.stype].a*Math.sqrt(clamp(carry/(c.carry*SHOTS[G.stype].c),.2,1))*(G.imp.y>0?1-.22*G.imp.y:1-.14*G.imp.y);
@@ -2668,6 +2683,11 @@ function cupBuf(hard,vr){const a=S.ctx,key='cup4'+hard+vr;S.ib=S.ib||{};if(S.ib[
   let pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));for(let i=0;i<n;i++)d[i]=Math.tanh(1.8*d[i]/(pk||1));   // broadcast punch: a little saturation
   pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));if(pk>0)for(let i=0;i<n;i++)d[i]*=.92/pk;
   return S.ib[key]=buf;}
+/* Oct 2026: the six ball-in-the-cup sounds are built ahead (one at a time while a menu, the hole intro or the scorecard is up) instead of the first time each plays; building one took a few hundred ms right as the ball dropped */
+function sfxWarm(){setTimeout(sfxWarm,700);if(!S.ctx)return;const st=typeof G==='object'?G.state:'';
+  if(!(st==='intro'||st==='card'||(typeof COVERS!=='undefined'&&COVERS.some(m=>!m.hidden))))return;
+  for(const h of[0,1])for(const v of[0,1,2])if(!(S.ib&&S.ib['cup4'+h+v])){try{cupBuf(h,v);}catch(e){}return;}}
+setTimeout(sfxWarm,3000);
 const sfx={
   tick:()=>tone(880,.05,'square',.04),
   hit:p=>{tone(170,.12,'sine',.35,60);noise(.4,.08+.2*p,'bandpass',500,3200);},
@@ -2807,11 +2827,12 @@ function startHole(i){
    played with first-time shader compiles (100-170 ms hitches on phones) landing in the middle of it */
 function r3WarmFinish(){if(!R3.warmQ)return;try{while(R3.warmQ.length)r3WarmJob(R3.warmQ.shift());}finally{r3WarmEnd();}}
 function teeOff(){A();$('introM').hidden=true;try{r3WarmFinish();}catch(e){}PERF.quiet=performance.now()+2500;if(MATCH.on){mNextTurn();return;}prepareShot();}
+function shotLie(){let L=lieAt(G.ball.x,G.ball.y);if(L!=='water'&&L!=='ob'&&G.hole&&hyp(G.ball.x-((G.hole.line&&G.hole.line[0])||[0,0])[0],G.ball.y-((G.hole.line&&G.hole.line[0])||[0,0])[1])<5)L='tee';return L;}   // the teeing area (some mapped tee boxes are too small)
 function prepareShot(){
   if(G.hole&&R3.on&&(!RL.grassAt||hyp(G.ball.x-RL.grassAt[0],G.ball.y-RL.grassAt[1])>6))buildGrassPatch(G.hole,G.ball.x,G.ball.y);
   G.flight=null;G.roll=null;G.inCup=false;G.followT=0;G.golferAt=null;
   if(G.strokes>=10){pickUp();return;}
-  G.lie=lieAt(G.ball.x,G.ball.y);if(G.lie!=='water'&&G.lie!=='ob'&&G.hole&&hyp(G.ball.x-((G.hole.line&&G.hole.line[0])||[0,0])[0],G.ball.y-((G.hole.line&&G.hole.line[0])||[0,0])[1])<5)G.lie='tee';   // the teeing area (some mapped tee boxes are too small)
+  G.lie=shotLie();
   const t=aimTarget();G.aim=angTo(G.ball.x,G.ball.y,t[0],t[1]);
   G.clubIdx=autoClub(hyp(t[0]-G.ball.x,t[1]-G.ball.y)+clamp(hAt(t[0],t[1])-hAt(G.ball.x,G.ball.y),-25,25)*.9);
   G.puttMax=calcPuttMax();
@@ -3131,7 +3152,7 @@ function stopBall(){
   if(L==='green'&&G.fromLie!=='green'){const reg=G.strokes<=G.hole.par-2;toast(reg?'NICE ON!':'ON THE GREEN',Math.round(pinDist()*3)+' ft to the cup','#8ee6a8');}
   else if(L==='sand'&&G.fromLie!=='sand')toast('BUNKER','','#f0e0ab');
   else if(L==='fescue'&&G.fromLie!=='fescue')toast(CUR.scen==='desert'?'IN THE DESERT':'IN THE FESCUE','Tough lie','#e3cf7e');
-    later(R3.on?r3PostCutTime(1.1):1.1,afterShot);
+    later(R3.on?r3PostCutTime(1.1):1.1,afterShot);shortPrep();
 }
 // the 3D golfer's reaction to a shot (nod, shake, slump, samba): returns how long it holds the screen, 0 when it doesn't play
 // water / OB: a full-swing shot can get the bad-shot clip (it starts from his finish)
@@ -6304,7 +6325,7 @@ function r3PostInit(){const T=THREE,P=R3.post={dirty:true,rt:{},m:{}};
      c+=(hsh(gl_FragCoord.xy)-.5)/255.;
      gl_FragColor=vec4(c,1.);}`,['scene','b1','b2','b3','ao','px','hdr','aoOn','bloomK','expo','asp','sunP','fxaaOn','dep','K','dof','dofP']);}
 function r3PostTargets(){const T=THREE,P=R3.post,q=r3Q(),sz=R3.szV||(R3.szV=new T.Vector2());R3.renderer.getDrawingBufferSize(sz);const w=sz.x,h=sz.y;
-  const dep=!!q.ao||R3.tv.dof>0;if(!P.dirty&&P.w===w&&P.h===h&&P.msaa===q.msaa&&P.dep===dep)return;if(typeof HTR==='object')HTR.m+='rt ';for(const k in P.rt)P.rt[k].dispose();P.rt={};P.w=w;P.h=h;P.msaa=q.msaa;P.dep=dep;P.dirty=false;
+  const dep=!!q.ao||R3.tv.dof>0;if(!P.dirty&&P.w===w&&P.h===h&&P.msaa===q.msaa&&P.dep===dep)return;if(typeof HTR==='object')HTR.m+='rt:'+(P.dirty?'d':'')+(P.w!==w||P.h!==h?'s':'')+(P.msaa!==q.msaa?'m':'')+(P.dep!==dep?'p':'')+' ';for(const k in P.rt)P.rt[k].dispose();P.rt={};P.w=w;P.h=h;P.msaa=q.msaa;P.dep=dep;P.dirty=false;
   const type=R3.hf?T.HalfFloatType:T.UnsignedByteType;P.hdr=!!R3.hf;
   const rt=(W2,H2,o={})=>new T.WebGLRenderTarget(Math.max(1,W2),Math.max(1,H2),{type:o.type||type,format:T.RGBAFormat,colorSpace:T.NoColorSpace,depthBuffer:!!o.depth,stencilBuffer:false,samples:o.samples||0,minFilter:T.LinearFilter,magFilter:T.LinearFilter,generateMipmaps:false});
   const s=P.rt.scene=rt(w,h,{depth:true,samples:q.msaa});if(dep)s.depthTexture=new T.DepthTexture(w,h,T.UnsignedIntType);
@@ -6979,8 +7000,8 @@ function fpsTick(now,raw){const el=$('fpsChip');if(!el)return;const show=FPSM.on
 var HTR={m:'',prev:null,pc:0};
 function hxWrap(n,f){return function(){const t=performance.now();try{return f.apply(this,arguments);}finally{const d=performance.now()-t;if(d>4)HTR.m+=n+':'+Math.round(d)+' ';}};}
 function hxFrame(raw){const p=HTR.prev,between=HTR.m;HTR.prev=null;HTR.m='';if(!p||!(raw>.05)||!PSTAT||!PSTAT.hole||document.hidden)return;   // 'between': taps and timers since the last frame
-  const L=PSTAT.hx||(PSTAT.hx=[]);L.push({ms:Math.round(raw*1000),st:p.st,js:Math.round(p.js),m:(p.m+(between?'| '+between:'')).trim().slice(0,120)});if(L.length>6){L.sort((a,b)=>b.ms-a.ms);L.length=6;}}
-function hxEnd(js){const rr=R3.renderer;if(rr){const pc=rr.info.programs.length;if(HTR.pc&&pc!==HTR.pc)HTR.m+='prog+'+(pc-HTR.pc)+' ';HTR.pc=pc;}HTR.prev={st:G.state+(G.paused?'/p':''),js,m:HTR.m};HTR.m='';}
+  const L=PSTAT.hx||(PSTAT.hx=[]);L.push({ms:Math.round(raw*1000),st:p.st,js:Math.round(p.js),m:(p.m+(between?'| '+between:'')).trim().slice(0,220)});if(L.length>6){L.sort((a,b)=>b.ms-a.ms);L.length=6;}}
+function hxEnd(js){const rr=R3.renderer;if(rr){const L=rr.info.programs,pc=L.length;if(HTR.pc&&pc>HTR.pc){HTR.m+='prog+'+(pc-HTR.pc)+'['+L.slice(HTR.pc).map(p=>(p.cacheKey||'').slice(0,14).replace(/[,|]/g,'.')).join(';')+'] ';}HTR.pc=pc;}HTR.prev={st:G.state+(G.paused?'/p':''),js,m:HTR.m};HTR.m='';}
 buildGrassPatch=hxWrap('grass',buildGrassPatch);buildTreeMesh=hxWrap('trees',buildTreeMesh);r3TreeLOD=hxWrap('lod',r3TreeLOD);r3ShcPlan=hxWrap('shc',r3ShcPlan);
 r3Reflect=hxWrap('refl',r3Reflect);prepareShot=hxWrap('prep',prepareShot);executeShot=hxWrap('shot',executeShot);startHole=hxWrap('hole',startHole);
 pstatFlush=hxWrap('flush',pstatFlush);saveGame=hxWrap('save',saveGame);updHud=hxWrap('hud',updHud);renderScene=hxWrap('ovl',renderScene);r3Post=hxWrap('post',r3Post);
@@ -6992,6 +7013,7 @@ function frame(now){requestAnimationFrame(frame);   /* asked for first, so one e
   const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);hxFrame(raw);if(FPSM.on)fpsTick(now,raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
   try{ambTick(dt);}catch(e){}
   const j0=performance.now(),rr=R3.renderer;if(rr&&!rr.__dc){const ro=rr.render;rr.__dc=1;rr.render=function(a,b){ro.call(this,a,b);R3.dcN=(R3.dcN||0)+this.info.render.calls;};}R3.dcN=0;
+  if(SJ.job&&G.state==='wait'&&!G.paused)try{shortTick();}catch(e){SJ.job=null;}   // chip/pitch choice for the next shot, a few candidates a frame
   if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}MCLK.t=now;   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}
   hxEnd(performance.now()-j0);
   if(PSTAT.hole&&PSTAT.js.length<30000){PSTAT.js.push(performance.now()-j0);if(rr&&PSTAT.dc.length<2000&&(PSTAT.js.length&15)===0)PSTAT.dc.push(R3.dcN);}}   /* the phone's own work per frame (JS and handing draws to the GPU), and draw calls: which of the two is the limit */
