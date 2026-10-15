@@ -2777,7 +2777,7 @@ function holeWind(i){
   const sd=roundWindSeed(),rb=rng(sd*31+977),a0=rb()*TAU,m0=1+rb()*11,wr=rng(sd*31+1000+i*17);
   return{a:a0+(wr()-.5)*.35,mph:clamp(Math.round(m0+(wr()-.5)*4),0,16)};}
 function startHole(i){
-  try{pstatFlush();}catch(e){}
+  try{pstatFlush();}catch(e){}try{perfRetry();}catch(e){}
   G.hi=i;G.hole=hole(i);
   if(!G.hole.hg)buildHeights(G.hole);
   if(!G.terrains[i])G.terrains[i]=buildTerrain(G.hole);
@@ -6788,6 +6788,15 @@ function pstatFlush(keep){if(typeof PSTAT==='undefined'||!PSTAT||!PSTAT.all.leng
   try{fetch(DAILY.url+'/rest/v1/perf_stats',{method:'POST',keepalive:!!keep,headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(body)}).catch(()=>{});}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pstatFlush(true);});addEventListener('resize',()=>{MCLK.w=0;});   // w: the meter's width, measured once (not every frame)
 const PERF={n:0,sum:0,level:0};
+/* Oct 2026: the steady 30 used to last until the page was reloaded, and Safari keeps a tab alive for days, so one hot or low-power spell
+   left a phone at 30 for every round after it. Now each new hole may try 60 again: after 1 hole, then 2, 4, up to 8 while it keeps
+   falling back (a phone that really can't hold 60 is back at 30 within ~3 s); a hole that holds up clears the count. Coming back to
+   the game after 2+ minutes away tries again at once. */
+function perfRetry(){if(!PERF.cap){if(PERF.trial){PERF.trial=0;PERF.capN=0;}return;}
+  PERF.capH=(PERF.capH||0)+1;if(PERF.capH<Math.min(8,1<<Math.max(0,(PERF.capN||1)-1)))return;
+  PERF.cap=0;PERF.slow=0;PERF.w=[];PERF.trial=1;}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){PERF.hidT=Date.now();return;}
+  if(PERF.cap&&PERF.hidT&&Date.now()-PERF.hidT>12e4){PERF.cap=0;PERF.capN=0;PERF.slow=0;PERF.w=[];PERF.trial=1;}});
 function perfCheck(raw){PERF.level=R3.perf||0;if(PERF.cap||G.paused||G.state==='intro'||G.state==='card'||G.state==='power'||G.state==='acc'||raw>.25)return;(PERF.w=PERF.w||[]).push(raw);if(PERF.w.length<90)return;
   const w=PERF.w.sort((a,b)=>a-b),med=w[w.length>>1],lng=w.filter(v=>v>.04).length/w.length,slip=w.filter(v=>v>.0205).length/w.length;PERF.w=[];
   /* v121 dynamic resolution: aim for a steady 60. When more than 1 frame in 8 misses a refresh, draw ~10% fewer pixels a side (down to 62%);
@@ -6798,8 +6807,8 @@ function perfCheck(raw){PERF.level=R3.perf||0;if(PERF.cap||G.paused||G.state==='
   if(PERF.stuck)return;
   /* v87: step down a level when the median frame is slower than ~45 fps or more than 1 in 8 frames stutters (>40 ms), two windows running; the level is remembered on this phone */
   /* far too slow (under ~28 fps, not a 30 fps cap): act on one window and drop two levels */
-  /* last resort, already at the lightest picture and softest resolution and still uneven: a steady 30 for the rest of this session */
-  if(PERF.level>=R3_LMAX-1){if(R3.dyn<=.63&&(med>1/45||lng>.12)){PERF.slow=(PERF.slow||0)+1;if(PERF.slow>=2){PERF.slow=0;PERF.cap=1;}}else PERF.slow=0;return;}
+  /* last resort, already at the lightest picture and softest resolution and still uneven: a steady 30 (tried again later, see perfRetry) */
+  if(PERF.level>=R3_LMAX-1){if(R3.dyn<=.63&&(med>1/45||lng>.12)){PERF.slow=(PERF.slow||0)+1;if(PERF.slow>=2){PERF.slow=0;PERF.cap=1;PERF.capN=(PERF.capN||0)+1;PERF.capH=0;}}else PERF.slow=0;return;}
   if(R3.dyn>.63)return;
   const vslow=med>1/28&&!PERF.steps2;if(vslow)PERF.slow=1;
   if(med>1/45||lng>.12){PERF.slow=(PERF.slow||0)+1;if(PERF.slow>=2){PERF.slow=0;
