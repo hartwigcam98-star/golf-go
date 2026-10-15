@@ -6803,7 +6803,8 @@ function mtrStop(){for(const a of MTR.anims)try{a.cancel();}catch(e){}MTR.anims=
   // leave the cursor and fill where they are now (not where they were before the animation took over) until the next frame
   const m=G.meter,st=G.state,fillTo=st==='power'?m.pos:(st==='acc'?IMPACT+p2m(m.power)*(1-IMPACT):IMPACT);f.style.width=Math.max(0,(fillTo-IMPACT)*100)+'%';
   if(MCLK.w)$('mCursor').style.transform='translate3d('+(m.pos*MCLK.w).toFixed(1)+'px,0,0)';}
-function mtrStart(kind,at,from){mtrStop();if(G.aiTurn||!Element.prototype.animate||!document.timeline)return;
+const MTR_OFF=true;   // Oct 2026: off while the compositor meter is checked on iPhone (taps didn't match the drawn cursor)
+function mtrStart(kind,at,from){mtrStop();if(MTR_OFF||G.aiTurn||!Element.prototype.animate||!document.timeline)return;
   MTR.on=true;MTR.kind=kind;MTR.t0=at>0&&Math.abs(at-performance.now())<1000?at:performance.now();MTR.from=from;MTR.s=meterSpeed();MTR.hold=0;MTR.last=0;mtrAnim();}
 function mtrAnim(){for(const a of MTR.anims)try{a.cancel();}catch(e){}MTR.anims=[];
   const mw=MCLK.w||(MCLK.w=$('meter').clientWidth);MTR.w=mw;if(!mw)return;
