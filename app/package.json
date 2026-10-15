@@ -1,0 +1,19 @@
+{
+  "name": "golf-go-app",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Golf Go as an iPhone app: the web game, bundled into a Capacitor shell (see app/README.md)",
+  "type": "module",
+  "scripts": {
+    "web": "node scripts/copy-web.mjs",
+    "sync": "node scripts/copy-web.mjs && cap sync ios",
+    "open": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.5.3",
+    "@capacitor/ios": "8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3"
+  }
+}

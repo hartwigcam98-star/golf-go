@@ -1,0 +1,9 @@
+{
+  "appId": "io.github.hartwigcam98.golfgo",
+  "appName": "Golf Go",
+  "webDir": "www",
+  "backgroundColor": "#0f2233",
+  "appendUserAgent": "GolfGoApp",
+  "server": { "url": "https://hartwigcam98-star.github.io/golf-go/" },
+  "ios": { "contentInset": "never", "scrollEnabled": false, "allowsLinkPreview": false }
+}
