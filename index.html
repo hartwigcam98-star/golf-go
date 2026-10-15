@@ -4317,14 +4317,18 @@ function stepCam(dt){
   const lk=G.fc&&G.state==='aim',flyK=lk&&!!G.fc.fly,kE=1-Math.exp(-dt*(flyK?40:lk?9:G.state==='flight'?2.6:aimingState()?5:3)),kL=1-Math.exp(-dt*(flyK?40:lk?9:G.state==='flight'?9:5));
   for(let i=0;i<3;i++){cam.E[i]+=(t.E[i]-cam.E[i])*kE;cam.L[i]+=(t.L[i]-cam.L[i])*kL;}
   cam.E[1]=Math.max(hAt(cam.E[0],cam.E[2])+.7,cam.E[1]);
-  let f=[cam.L[0]-cam.E[0],cam.L[1]-cam.E[1],cam.L[2]-cam.E[2]];const fl=hyp(f[0],f[1],f[2])||1;f=f.map(v=>v/fl);
-  let r=[-f[2],0,f[0]];const rl=hyp(r[0],r[2])||1;r=[r[0]/rl,0,r[2]/rl];
-  const u=[r[1]*f[2]-r[2]*f[1],r[2]*f[0]-r[0]*f[2],r[0]*f[1]-r[1]*f[0]];
-  V.E=cam.E.slice();V.F=f;V.R=r;V.U=u;
+  /* Oct 2026: the same maths written into V's own arrays (they were new arrays every frame); nothing keeps V.E/F/R/U across frames */
+  if(!V.E||V.E===cam.E)V.E=[0,0,0];if(!V.F)V.F=[0,0,1];if(!V.R)V.R=[1,0,0];if(!V.U)V.U=[0,1,0];
+  const f=V.F,r=V.R,u=V.U;let f0=cam.L[0]-cam.E[0],f1=cam.L[1]-cam.E[1],f2=cam.L[2]-cam.E[2];const fl=hyp(f0,f1,f2)||1;f[0]=f0/fl;f[1]=f1/fl;f[2]=f2/fl;
+  const r0=-f[2],r2=f[0],rl=hyp(r0,r2)||1;r[0]=r0/rl;r[1]=0;r[2]=r2/rl;
+  u[0]=r[1]*f[2]-r[2]*f[1];u[1]=r[2]*f[0]-r[0]*f[2];u[2]=r[0]*f[1]-r[1]*f[0];
+  V.E[0]=cam.E[0];V.E[1]=cam.E[1];V.E[2]=cam.E[2];
   V.cy=(topH+(H-botH))/2;
   V.f=Math.min((H/2)/Math.tan(31*DEG),(W/2)/Math.tan(24*DEG));cam.zm=(cam.zm||1)+((t.zoom||1)-(cam.zm||1))*(t.cut?1:1-Math.exp(-dt*3));V.f*=cam.zm;
   V.yaw=angTo(cam.E[0],cam.E[2],cam.L[0],cam.L[2]);
 }
+const PJ=[0,0,0,0];
+function projTo(x,y,z,o){const dx=x-V.E[0],dy=y-V.E[1],dz=z-V.E[2];const cz=dx*V.F[0]+dy*V.F[1]+dz*V.F[2];if(cz<.3)return null;const cx=dx*V.R[0]+dy*V.R[1]+dz*V.R[2],cy=dx*V.U[0]+dy*V.U[1]+dz*V.U[2];const k=V.f/cz;o[0]=W/2+cx*k;o[1]=V.cy-cy*k;o[2]=cz;o[3]=k;return o;}   // proj into a reused array (per-frame loops)
 function proj(x,y,z){const dx=x-V.E[0],dy=y-V.E[1],dz=z-V.E[2];const cz=dx*V.F[0]+dy*V.F[1]+dz*V.F[2];if(cz<.3)return null;const cx=dx*V.R[0]+dy*V.R[1]+dz*V.R[2],cy=dx*V.U[0]+dy*V.U[1]+dz*V.U[2];const k=V.f/cz;return[W/2+cx*k,V.cy-cy*k,cz,k];}
 /* free-look camera for scouting before a shot: orbit a point on the ground; the view tilts down as you zoom out */
 /* green slope colour scale, in percent grade */
@@ -6256,14 +6260,15 @@ function r3Camera(){const c=R3.cam,n=.3,f=30000,Kx=2*V.f/W,Ky=2*V.f/H,Kz=1-2*V.c
 function r3Shadow(){const s=R3.sun,q=r3Q();if(s.shadow.mapSize.x!==q.shadow){s.shadow.mapSize.set(q.shadow,q.shadow);if(s.shadow.map){s.shadow.map.dispose();s.shadow.map=null;}}
   R3.renderer.shadowMap.type=q.soft?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
   const wide=G.overview||G.state==='intro'||G.state==='card';let C,Rr,Dd;
-  if(G.fc&&G.state==='aim'&&!wide){const f=G.fc;Rr=clamp(f.dist*.9,72,300);Dd=Math.max(140,Rr*1.6);C=[cam.L[0],cam.L[1],cam.L[2]];}
+  let C0,C1,C2;   // (plain numbers: this ran every frame and made a dozen small arrays)
+  if(G.fc&&G.state==='aim'&&!wide){const f=G.fc;Rr=clamp(f.dist*.9,72,300);Dd=Math.max(140,Rr*1.6);C0=cam.L[0];C1=cam.L[1];C2=cam.L[2];}
   else{const fx=V.F[0],fz=V.F[2],fl=Math.hypot(fx,fz)||1;Rr=wide?Math.min(420,Math.max(160,G.hole.len*.62)):(q.shadow>=2048?100:72);const ahead=wide?G.hole.len*.35:Rr*.62;
-    const cx=(wide?0:V.E[0])+fx/fl*ahead,cz=(wide?0:V.E[2])+fz/fl*ahead;C=[cx,hAt(cx,cz),cz];Dd=wide?600:140;}
+    const cx=(wide?0:V.E[0])+fx/fl*ahead,cz=(wide?0:V.E[2])+fz/fl*ahead;C0=cx;C1=hAt(cx,cz);C2=cz;Dd=wide?600:140;}
   // snap to shadow texels so edges do not shimmer as the camera moves
-  const lz=[-SUN[0],-SUN[1],-SUN[2]];let lx=[lz[2],0,-lz[0]];const l=Math.hypot(...lx);lx=lx.map(v=>v/l);const ly=cross(lz,lx);
-  const tx=2*Rr/s.shadow.mapSize.x;const a=Math.round(dot3(C,lx)/tx)*tx,b=Math.round(dot3(C,ly)/tx)*tx,cz=Math.round(dot3(C,lz)/2)*2;   /* along the sun too (2 yd steps), so a still view keeps the same shadow camera */
-  const Cs=add(add(mul(lx,a),mul(ly,b)),mul(lz,cz));
-  s.target.position.set(Cs[0],Cs[1],Cs[2]);s.position.set(Cs[0]+SUN[0]*Dd,Cs[1]+SUN[1]*Dd,Cs[2]+SUN[2]*Dd);s.target.updateMatrixWorld();s.updateMatrixWorld();
+  const z0=-SUN[0],z1=-SUN[1],z2=-SUN[2],l=Math.hypot(z2,0,-z0),x0=z2/l,x1=0/l,x2=-z0/l,y0=z1*x2-z2*x1,y1=z2*x0-z0*x2,y2=z0*x1-z1*x0;
+  const tx=2*Rr/s.shadow.mapSize.x;const a=Math.round((C0*x0+C1*x1+C2*x2)/tx)*tx,b=Math.round((C0*y0+C1*y1+C2*y2)/tx)*tx,cz=Math.round((C0*z0+C1*z1+C2*z2)/2)*2;   /* along the sun too (2 yd steps), so a still view keeps the same shadow camera */
+  const Cs0=x0*a+y0*b+z0*cz,Cs1=x1*a+y1*b+z1*cz,Cs2=x2*a+y2*b+z2*cz;
+  s.target.position.set(Cs0,Cs1,Cs2);s.position.set(Cs0+SUN[0]*Dd,Cs1+SUN[1]*Dd,Cs2+SUN[2]*Dd);s.target.updateMatrixWorld();s.updateMatrixWorld();
   const oc=s.shadow.camera;oc.left=-Rr;oc.right=Rr;oc.top=Rr;oc.bottom=-Rr;oc.near=1;oc.far=Dd*2;oc.updateProjectionMatrix();}
 
 /* ---- post chain: bright pass + 3-level bloom, depth AO, final (FXAA, AO, bloom, ACES, sun glare, grade, vignette, dither) ---- */
@@ -6419,16 +6424,17 @@ function r3ShcInit(){const rd=R3.renderer,sm=rd.shadowMap;if(sm.__shc||window.__
     this.needsUpdate=true;cast(st,false);try{noClear(()=>orig.call(this,lights,scene,cam));}finally{cast(st,true);}};}
 // each frame, before anything is drawn: full / capture / put back the kept trees and redraw only what moves
 function r3ShcPlan(){const C=R3.shc,rd=R3.renderer;if(!C)return;if(window.__shcOff){C.mode=null;C.valid=false;return;}if(!rd.shadowMap.needsUpdate){C.mode=null;return;}
-  const s=R3.sun,sh=s.shadow,sc=sh.camera,ss=[s.position.x,s.position.y,s.position.z,s.target.position.x,s.target.position.z,sc.right,sc.far,sh.mapSize.x,rd.shadowMap.type].map(v=>v.toFixed(3)).join();
-  const same=ss===C.sig;if(!same)C.valid=false;C.sig=ss;
+  const s=R3.sun,sh=s.shadow,sc=sh.camera,K=C.sigK||(C.sigK=new Float64Array(9));   // the sun's view as numbers (was a string each update)
+  let same=C.sigOK===true;const vals=C.sigV||(C.sigV=[0,0,0,0,0,0,0,0,0]);vals[0]=s.position.x;vals[1]=s.position.y;vals[2]=s.position.z;vals[3]=s.target.position.x;vals[4]=s.target.position.z;vals[5]=sc.right;vals[6]=sc.far;vals[7]=sh.mapSize.x;vals[8]=rd.shadowMap.type;
+  for(let i=0;i<9;i++){const v=Math.round(vals[i]*1000);if(K[i]!==v){same=false;K[i]=v;}}C.sigOK=true;if(!same)C.valid=false;
   if(same&&C.valid&&C.rt&&sh.map===C.map&&sh.map.width===C.rt.width){
     {const ac=rd.autoClear,rt=rd.getRenderTarget();rd.autoClear=false;C.qm.uniforms.tMap.value=C.rt.texture;rd.setRenderTarget(sh.map);rd.render(C.qs,C.qc);rd.setRenderTarget(rt);rd.autoClear=ac;}
     rd.shadowMap.needsUpdate=true;C.mode='dyn';}
   else C.mode=same?'cap':null;}
 function r3Hold(){if(!swAfter()||!R3.on||G.aiTurn||G.replay||!(G.state==='power'||G.state==='acc')){R3.holdSig=null;return false;}
   // the camera settles on the address view by easing: once it's within a few millimetres of the last drawn picture, hold that picture
-  const H0=R3.holdSig,cur=[...V.E,...V.F];if(H0&&Math.abs(cur[0]-H0[0])+Math.abs(cur[1]-H0[1])+Math.abs(cur[2]-H0[2])<.004&&Math.abs(cur[3]-H0[3])+Math.abs(cur[4]-H0[4])+Math.abs(cur[5]-H0[5])<2e-4)return true;
-  R3.holdSig=cur;return false;}
+  const H0=R3.holdSig;if(H0&&Math.abs(V.E[0]-H0[0])+Math.abs(V.E[1]-H0[1])+Math.abs(V.E[2]-H0[2])<.004&&Math.abs(V.F[0]-H0[3])+Math.abs(V.F[1]-H0[4])+Math.abs(V.F[2]-H0[5])<2e-4)return true;
+  const K=R3.holdK||(R3.holdK=new Float64Array(6));K[0]=V.E[0];K[1]=V.E[1];K[2]=V.E[2];K[3]=V.F[0];K[4]=V.F[1];K[5]=V.F[2];R3.holdSig=K;return false;}
 function r3Render(){const rd=R3.renderer;if(!G.hole)return;R3.sun.intensity=SUN_COL[0]*Math.PI*R3.sunK;R3.scene.environmentIntensity=R3.envK;
   r3Camera();r3Shadow();r3PoolsBegin();r3Dynamic();r3PoolsEnd();
   // green slope grid: fade and orientation, exactly as before
@@ -6440,8 +6446,9 @@ function r3Render(){const rd=R3.renderer;if(!G.hole)return;R3.sun.intensity=SUN_
     if((sc||keep)&&R3.scS&&R3.scS.tex){GU.slT.value=R3.scS.tex;GU.SLB.value.set(...R3.scS.R);const[ax,az]=dirOf(G.aim);GU.slRot.value.set(ax,az);GU.slOn.value=GL.slFade;GU.SLG.value=2;R3.scOn=true;}
     else if(R3.scOn){R3.scOn=false;GU.slT.value=GL.slTex;GU.SLG.value=1;if(GL.slR)GU.SLB.value.set(...GL.slR);} }
   if(R3.waterN){R3.waterN.offset.set(T*.012,T*.007);}if(R3.WU)R3.WU.wT.value=T;
-  if(typeof r3TreeLOD==='function')r3TreeLOD(false);r3GrassUpdate();{const now2=performance.now(),dt2=Math.min(.1,(now2-(R3.tTr||now2))/1000);R3.tTr=now2;r3Tracer(dt2);}r3PostTargets();{const sg=[V.E[0],V.E[1],V.E[2],V.F[0],V.F[1],V.F[2]].map(v=>v.toFixed(3)).join(),still=sg===R3.shSig&&G.state==='aim'&&!(typeof R3R!=='undefined'&&R3R.on)&&!G.fc;
-    R3.shSig=sg;R3.camStill=sg===R3.shSigPrev;R3.shSigPrev=sg;R3.shN=(R3.shN||0)+1;const shEv=r3Q().shEv||2;rd.shadowMap.needsUpdate=G.state==='power'||G.state==='acc'||(!still&&(R3.shN%shEv===0||G.state==='intro'))||R3.shN%(shEv*3)===0;   /* during the meter every frame, so frames cost the same and the cursor moves evenly */
+  if(typeof r3TreeLOD==='function')r3TreeLOD(false);r3GrassUpdate();{const now2=performance.now(),dt2=Math.min(.1,(now2-(R3.tTr||now2))/1000);R3.tTr=now2;r3Tracer(dt2);}r3PostTargets();{const sk=R3.shK||(R3.shK=new Float64Array(6));let same=R3.shKok===true;for(let i=0;i<6;i++){const v=Math.round((i<3?V.E[i]:V.F[i-3])*1000);if(sk[i]!==v){same=false;sk[i]=v;}}R3.shKok=true;   /* the view to the mm, as numbers (it was a string built every frame) */
+    const still=same&&G.state==='aim'&&!(typeof R3R!=='undefined'&&R3R.on)&&!G.fc;
+    R3.camStill=same;R3.shN=(R3.shN||0)+1;const shEv=r3Q().shEv||2;rd.shadowMap.needsUpdate=G.state==='power'||G.state==='acc'||(!still&&(R3.shN%shEv===0||G.state==='intro'))||R3.shN%(shEv*3)===0;   /* during the meter every frame, so frames cost the same and the cursor moves evenly */
     r3ShcInit();r3ShcPlan();}r3Reflect();
   rd.setRenderTarget(R3.post.rt.scene);rd.setClearColor(0x000000,1);rd.clear(true,true,false);rd.render(R3.scene,R3.cam);r3DropDepth(R3.post.rt.scene);
   r3Post();}
@@ -6656,15 +6663,15 @@ function renderScene(){
     const Mv=club.putter?null:shotMods(),D=previewDist()*(Mv?Mv.carry:1),[dx,dz]=dirOf(G.aim),pxv=-dz,pzv=dx,cv=Mv?Mv.curve*D:0;let mx,mz,landD;
     if(club.putter){
       mx=G.ball.x+dx*D;mz=G.ball.y+dz*D;landD=D;
-      for(let i=1;i<=30;i++){const u=i/30,qx=G.ball.x+dx*D*u,qz=G.ball.y+dz*D*u;const p=proj(qx,hAt(qx,qz)+.05,qz);if(p){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
+      for(let i=1;i<=30;i++){const u=i/30,qx=G.ball.x+dx*D*u,qz=G.ball.y+dz*D*u;const p=projTo(qx,hAt(qx,qz)+.05,qz,PJ);if(p){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
     }else if(isShort()&&G.swMax){
       const P=shortPlan(),c2=P.carry,y0=gB+.03,ap=shotApex(club,c2)*Mv.apex;
-      for(let i=1;i<=60;i++){const u=i/36,qx=G.ball.x+dx*c2*u,qz=G.ball.y+dz*c2*u,Y=y0+ap*arcH(u);if(u>.5&&Y<=hAt(qx,qz))break;const p=proj(qx,Y,qz);if(p){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
+      for(let i=1;i<=60;i++){const u=i/36,qx=G.ball.x+dx*c2*u,qz=G.ball.y+dz*c2*u,Y=y0+ap*arcH(u);if(u>.5&&Y<=hAt(qx,qz))break;const p=projTo(qx,Y,qz,PJ);if(p){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
       mx=P.land[0];mz=P.land[1];landD=hyp(mx-G.ball.x,mz-G.ball.y);
     }else{
       const y0=gB+.03,wv=[dx,dz],wkD=D*windAlong(G.aim);let u=0;mx=G.ball.x;mz=G.ball.y;   // v93: the wind makes it fly longer or shorter (distance only; no sideways drift in the preview)
       for(let i=1;i<=90;i++){u=i/36;const qx=G.ball.x+dx*D*u+pxv*cv*u*u+wv[0]*wkD*u*u,qz=G.ball.y+dz*D*u+pzv*cv*u*u+wv[1]*wkD*u*u,Y=y0+shotApex(club,D)*Mv.apex*arcH(u),gnd=hAt(qx,qz);mx=qx;mz=qz;
-        if(u>.5&&Y<=gnd)break;const p=proj(qx,Y,qz);if(p&&i%1===0){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
+        if(u>.5&&Y<=gnd)break;const p=projTo(qx,Y,qz,PJ);if(p&&i%1===0){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
       landD=hyp(mx-G.ball.x,mz-G.ball.y);
     }
     G.landPt=[mx,mz];const e=groundEllipse(mx,mz,club.putter?.35:3,13);G.landE=e;
@@ -6738,7 +6745,7 @@ function updHud(){
     const ch=MATCH.on&&G.aiTurn?{name:rn(MATCH.r)}:curChar(),pl=$('bcPlate');setT('bcName',ch.name);
     setT('bcScore',MATCH.on?statusShort(matchUp()):G.mode==='practice'?'PRAC':fmtDiff(roundDiff()));setT('bcThru','thru '+Math.min(18,G.hi));pl.style.bottom=(botH+6)+'px';
     pl.style.visibility=(G.state==='aim'||G.state==='power'||G.state==='acc')&&!G.overview?'visible':'hidden';}
-  $('windArrow').style.transform='rotate('+((G.wind.a-V.yaw)*180/Math.PI)+'deg)';
+  {const d=Math.round((G.wind.a-V.yaw)*1800/Math.PI);if(MCLK.wa!==d){MCLK.wa=d;$('windArrow').style.transform='rotate('+(d/10)+'deg)';}}   // a new string only when it turns (0.1 deg)
   const c=curClub();setT('clubId',clubLabel(c));
   const lr0=c.putter?'':lieRange(c,G.lie);setT('clubInfo',c.putter?'Putter · '+Math.round(G.puttMax*3)+' ft':(lr0?'Lie '+lr0:c.id==='1W'?(onTeeBox()?'Off the tee':'Off the deck'):c.name)+' · '+Math.round(previewDist())+'y');   // rough/fescue: the lie's power range (rolled per shot) in place of the club's name
   const lie=(G.state==='flight'||G.state==='roll'||G.state==='bounce'||G.state==='replay')?G.fromLie:G.lie;
@@ -6770,7 +6777,7 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   sw.classList.toggle('power',st==='power');sw.classList.toggle('acc',st==='acc');}
   setT('hint',G.aiTurn?rn(MATCH.r)+(G.aiSkip?' \u00b7 skipping ahead':' is playing \u00b7 tap Skip to jump ahead'):st==='aim'?(G.fc?(G.fc.follow?'Scouting your shot \u00b7 change club or aim \u00b7 drag to turn \u00b7 pinch to zoom':'Free look \u00b7 tap Landing to follow your shot again'):G.overview?(DESK?'Click or press M to return to your ball':'Tap anywhere to return to your ball'):c.putter?(GL.slOK?'Grid lines: red is steep, green is gentle \u00b7 the glow runs downhill':'Watch the dots on the green — they flow downhill'):(G.stype==='full'||G.stype==='spin'?(DESK?'Space to swing \u00b7 \u2190 \u2192 aim \u00b7 \u2191 \u2193 club \u00b7 B bag \u00b7 M map':'Drag to aim · Tap Swing to start'):SHOTS[G.stype].hint)):st==='power'?(DESK?'Space to set power':'Tap to set power'):st==='acc'?(DESK?'Space on the white line':'Tap on the white line'):' ');
   const m=G.meter,w=perfectWin();
-  {const mc=$('mCursor');if(!MCLK.w)MCLK.w=$('meter').clientWidth;const mw=MCLK.w;mc.style.transform='translate3d('+(m.pos*mw).toFixed(1)+'px,0,0)';}
+  {const mc=$('mCursor');if(!MCLK.w)MCLK.w=$('meter').clientWidth;const mw=MCLK.w,px=Math.round(m.pos*mw*10);if(MCLK.cx!==px||MCLK.cw!==mw){MCLK.cx=px;MCLK.cw=mw;mc.style.transform='translate3d('+(px/10).toFixed(1)+'px,0,0)';}}
   // meter scale in distance: carry yards for full and short shots, feet of roll for putts on the green (percent for putts off it)
   { const pg=c.putter&&G.lie==='green',pct=c.putter&&!pg,sh=isShort()&&!c.putter,mx=c.putter?G.puttMax*3:(sh?(G.swMax||natMax()):natMax())*shotMods().carry;
     const wf=c.putter?1:Math.max(.5,1+windAlong(G.aim));   // v93: the yardages along the meter are what the ball flies in this wind
