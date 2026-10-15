@@ -6823,13 +6823,13 @@ function pstatAdd(raw){if(!PSTAT||document.hidden||G.paused||!G.hole||(typeof RE
 function pstatSum(a){if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y),n=s.length,sum=s.reduce((x,y)=>x+y,0);
   return{n,avg:1000/(sum/n),med:1000/s[n>>1],p95:s[Math.min(n-1,Math.floor(n*.95))],max:s[n-1],st:100*s.filter(v=>v>40).length/n};}
 function pstatFlush(keep){if(typeof PSTAT==='undefined'||!PSTAT||!PSTAT.all.length){if(PSTAT)PSTAT.hole=null;return;}
-  const A=pstatSum(PSTAT.all),M=pstatSum(PSTAT.met),h=PSTAT.hole,js=PSTAT.js.sort((x,y)=>x-y),dc=PSTAT.dc.sort((x,y)=>x-y);PSTAT.all=[];PSTAT.met=[];PSTAT.js=[];PSTAT.dc=[];PSTAT.hole=null;
+  const A=pstatSum(PSTAT.all),M=pstatSum(PSTAT.met),h=PSTAT.hole,js=PSTAT.js.sort((x,y)=>x-y),dc=PSTAT.dc.sort((x,y)=>x-y);const hxl=PSTAT.hx||[];PSTAT.all=[];PSTAT.met=[];PSTAT.js=[];PSTAT.dc=[];PSTAT.hx=[];PSTAT.hole=null;
   if(!A||A.n<60||!h||!DAILY.url)return;const r1=v=>v==null?null:Math.round(v*10)/10;
   const body={player_id:dailyPid(),name:(dailyName()||'').slice(0,16),ver:String(window.GOLF_VER||'').slice(0,40),course:String(h.course).slice(0,24),hole:h.hole,mode:String(h.mode).slice(0,16),
     gfx:String((typeof R3!=='undefined'&&R3.q)||'').slice(0,8),perf:(typeof R3!=='undefined'&&R3.perf)||0,
     device:{ua:navigator.userAgent.slice(0,200),scr:screen.width+'x'+screen.height,dpr:window.devicePixelRatio||1,vw:innerWidth+'x'+innerHeight,app:!!(navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches))},
     frames:A.n,fps_avg:r1(A.avg),fps_med:r1(A.med),ms_p95:r1(A.p95),ms_max:r1(A.max),stutter_pct:r1(A.st),
-    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st),extra:{cap30:!!PERF.cap,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0,shc:R3.shc?R3.shc.n:null,trees:R3T.kept||null,js_med:js.length?r1(js[js.length>>1]):null,js_p95:js.length?r1(js[Math.floor(js.length*.95)]):null,dc_med:dc.length?dc[dc.length>>1]:null}};if(R3.shc)R3.shc.n={dyn:0,cap:0,full:0};
+    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st),extra:{cap30:!!PERF.cap,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0,shc:R3.shc?R3.shc.n:null,trees:R3T.kept||null,js_med:js.length?r1(js[js.length>>1]):null,js_p95:js.length?r1(js[Math.floor(js.length*.95)]):null,dc_med:dc.length?dc[dc.length>>1]:null,hx:hxl.length?hxl.sort((a,b)=>b.ms-a.ms):undefined}};if(R3.shc)R3.shc.n={dyn:0,cap:0,full:0};
   try{fetch(DAILY.url+'/rest/v1/perf_stats',{method:'POST',keepalive:!!keep,headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(body)}).catch(()=>{});}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pstatFlush(true);});addEventListener('resize',()=>{MCLK.w=0;});   // w: the meter's width, measured once (not every frame)
 const PERF={n:0,sum:0,level:0};
@@ -6965,12 +6965,27 @@ function fpsTick(now,raw){const el=$('fpsChip');if(!el)return;const show=FPSM.on
   const f=Math.round(FPSM.n*1000/span),d=R3.dyn||1,l=R3.perf||0;$('fpsN').textContent=f;
   $('fpsQ').textContent=(d<.995?Math.round(d*100)+'%':'')+(l?(d<.995?' ':'')+'L'+l:'')+(PERF.cap?' 30 lock':'');
   el.className=f>=55?'ok':f>=40?'mid':'bad';FPSM.t0=now;FPSM.n=0;FPSM.slow=0;}
+/* Oct 2026 hitch recorder (sent with the smoothness stats, nothing shown): when a frame comes more than 50 ms after the last
+   one, keep what the frame before it did (the work that delayed it): the game state, its JS time, which game steps took over
+   4 ms, and whether a new GPU program was compiled. The six longest per hole go into perf_stats (extra.hx). */
+const HTR={m:'',prev:null,pc:0};
+function hxWrap(n,f){return function(){const t=performance.now();try{return f.apply(this,arguments);}finally{const d=performance.now()-t;if(d>4)HTR.m+=n+':'+Math.round(d)+' ';}};}
+function hxFrame(raw){const p=HTR.prev,between=HTR.m;HTR.prev=null;HTR.m='';if(!p||!(raw>.05)||!PSTAT||!PSTAT.hole||document.hidden)return;   // 'between': taps and timers since the last frame
+  const L=PSTAT.hx||(PSTAT.hx=[]);L.push({ms:Math.round(raw*1000),st:p.st,js:Math.round(p.js),m:(p.m+(between?'| '+between:'')).trim().slice(0,120)});if(L.length>6){L.sort((a,b)=>b.ms-a.ms);L.length=6;}}
+function hxEnd(js){const rr=R3.renderer;if(rr){const pc=rr.info.programs.length;if(HTR.pc&&pc!==HTR.pc)HTR.m+='prog+'+(pc-HTR.pc)+' ';HTR.pc=pc;}HTR.prev={st:G.state+(G.paused?'/p':''),js,m:HTR.m};HTR.m='';}
+buildGrassPatch=hxWrap('grass',buildGrassPatch);buildTreeMesh=hxWrap('trees',buildTreeMesh);r3TreeLOD=hxWrap('lod',r3TreeLOD);r3ShcPlan=hxWrap('shc',r3ShcPlan);
+r3Reflect=hxWrap('refl',r3Reflect);prepareShot=hxWrap('prep',prepareShot);executeShot=hxWrap('shot',executeShot);startHole=hxWrap('hole',startHole);
+pstatFlush=hxWrap('flush',pstatFlush);saveGame=hxWrap('save',saveGame);updHud=hxWrap('hud',updHud);renderScene=hxWrap('ovl',renderScene);r3Post=hxWrap('post',r3Post);
+r3Golfer=hxWrap('golfer',r3Golfer);r3Dynamic=hxWrap('dyn',r3Dynamic);stepCam=hxWrap('cam',stepCam);ambTick=hxWrap('amb',ambTick);aiStep=hxWrap('ai',aiStep);
+chooseShort=hxWrap('short',chooseShort);calcPuttMax=hxWrap('putt',calcPuttMax);autoClub=hxWrap('club',autoClub);r3WarmJob=hxWrap('warm',r3WarmJob);r3Shadow=hxWrap('sun',r3Shadow);
+r3GrassUpdate=hxWrap('grassU',r3GrassUpdate);r3Tracer=hxWrap('tracer',r3Tracer);r3Camera=hxWrap('r3cam',r3Camera);update=hxWrap('upd',update);r3Render=hxWrap('r3',r3Render);
 function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
   if(PERF.cap&&now-last<28&&!(REC&&REC.on))return;   /* steady 30: every other refresh (on a 120 Hz screen, every fourth) */
-  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);if(FPSM.on)fpsTick(now,raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
+  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);hxFrame(raw);if(FPSM.on)fpsTick(now,raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
   try{ambTick(dt);}catch(e){}
   const j0=performance.now(),rr=R3.renderer;if(rr&&!rr.__dc){const ro=rr.render;rr.__dc=1;rr.render=function(a,b){ro.call(this,a,b);R3.dcN=(R3.dcN||0)+this.info.render.calls;};}R3.dcN=0;
   if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}MCLK.t=now;   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}
+  hxEnd(performance.now()-j0);
   if(PSTAT.hole&&PSTAT.js.length<30000){PSTAT.js.push(performance.now()-j0);if(rr&&PSTAT.dc.length<2000&&(PSTAT.js.length&15)===0)PSTAT.dc.push(R3.dcN);}}   /* the phone's own work per frame (JS and handing draws to the GPU), and draw calls: which of the two is the limit */
 
 /* ---------- input ---------- */
