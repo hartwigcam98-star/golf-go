@@ -2926,6 +2926,7 @@ const DRAG=1.1,DRAG_N=1-Math.exp(-DRAG);
 function flightS(u){return u<=1?(1-Math.exp(-DRAG*u))/DRAG_N:1+(u-1)*DRAG*Math.exp(-DRAG)/DRAG_N;} // share of carry covered at time fraction u
 function arcH(s){return 2.802*s*(1-s)*(1+.8*s);}                                                     // height as a share of apex
 function flightPos(f,u){const s=flightS(u);return[f.sx+f.dx*f.carry*s+f.px*f.lat*s*s+f.wx*s*s,f.sy+f.dy*f.carry*s+f.py*f.lat*s*s+f.wy*s*s,f.y0+f.apex*arcH(s)];}
+function flightPosTo(f,u,o){const s=flightS(u);o[0]=f.sx+f.dx*f.carry*s+f.px*f.lat*s*s+f.wx*s*s;o[1]=f.sy+f.dy*f.carry*s+f.py*f.lat*s*s+f.wy*s*s;o[2]=f.y0+f.apex*arcH(s);return o;}   // same, into a reused array (per-frame callers)
 function flightTime(carry,apex){return Math.max(.6,.6*Math.sqrt(Math.max(apex,.1))+carry/85);} // driver ~6 s of hang time, 7-iron ~5.4, lob wedge ~4.7
 // the ball strikes the flagstick in flight: a clang, and it drops at the foot of the pin - now and then straight into the cup
 function pinHit(f,u,hp){const p=G.hole.pin,[tx,ty]=travelDir(f,u);f.pinHit=true;sfx.pin(1);
@@ -6564,8 +6565,9 @@ function r3Tracer(dt){const tr=R3.tracer,tv=R3.tv;if(!tr)return;tr.mesh.visible=
   // the ribbon only changes while the ball is still flying or the camera moves
   if(tr.kf===f&&tr.ku===u1&&tr.ke0===V.E[0]&&tr.ke1===V.E[1]&&tr.ke2===V.E[2]){tr.mesh.material.uniforms.op.value=tv.fade;tr.mesh.visible=true;return;}
   tr.kf=f;tr.ku=u1;tr.ke0=V.E[0];tr.ke1=V.E[1];tr.ke2=V.E[2];
-  for(let i=0;i<N;i++){const u=u1*i/(N-1),p=flightPos(f,u),q=[p[0],p[2],p[1]];
-    const pn=flightPos(f,Math.min(u1,u+.01)),pp=flightPos(f,Math.max(0,u-.01));let tx=pn[0]-pp[0],ty=pn[2]-pp[2],tz=pn[1]-pp[1];
+  const p=tr.sp||(tr.sp=[0,0,0]),pn=tr.sn||(tr.sn=[0,0,0]),pp=tr.sq||(tr.sq=[0,0,0]),q=tr.sr||(tr.sr=[0,0,0]);   // reused each frame (no garbage)
+  for(let i=0;i<N;i++){const u=u1*i/(N-1);flightPosTo(f,u,p);q[0]=p[0];q[1]=p[2];q[2]=p[1];
+    flightPosTo(f,Math.min(u1,u+.01),pn);flightPosTo(f,Math.max(0,u-.01),pp);let tx=pn[0]-pp[0],ty=pn[2]-pp[2],tz=pn[1]-pp[1];
     const cx=V.E[0]-q[0],cy=V.E[1]-q[1],cz=V.E[2]-q[2],cd=Math.hypot(cx,cy,cz)||1;let sx=ty*cz-tz*cy,sy=tz*cx-tx*cz,sz=tx*cy-ty*cx;const sl=Math.hypot(sx,sy,sz)||1;
     const w=Math.max(.05,cd*.0032);sx*=w/sl;sy*=w/sl;sz*=w/sl;
     const o=i*6,o2=i*4;P[o]=q[0]-sx;P[o+1]=q[1]-sy;P[o+2]=q[2]-sz;P[o+3]=q[0]+sx;P[o+4]=q[1]+sy;P[o+5]=q[2]+sz;UV[o2]=i/(N-1);UV[o2+1]=0;UV[o2+2]=i/(N-1);UV[o2+3]=1;}
@@ -6656,8 +6658,9 @@ function renderScene(){
   if(G.overview){sctx.fillStyle='rgba(9,24,36,.8)';const tx='Whole hole · tap to return';sctx.font='700 13px "Barlow Semi Condensed",system-ui,sans-serif';const w=sctx.measureText(tx).width+24;sctx.beginPath();sctx.roundRect(W/2-w/2,topH+6,w,26,13);sctx.fill();sctx.fillStyle='#fff6dc';sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText(tx,W/2,topH+19);}
 }
 const FLAME_COL={blue:['rgba(235,248,255,','rgba(90,175,255,','rgba(40,70,255,'],red:['rgba(255,247,205,','rgba(255,150,40,','rgba(225,40,20,']};
-function drawFlames(kind){const raw=G.trail,C=FLAME_COL[kind];if(!C)return;const tr=[];const m=Math.min(raw.length,24);
-  for(let i=raw.length-m;i<raw.length;i++){const a=raw[Math.max(0,i-1)],b=raw[i];for(let j=1;j<=3;j++){const t=j/3;tr.push({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,Y:a.Y+(b.Y-a.Y)*t});}}const n=tr.length;
+const FLAME_PTS=[],FLAME_TR=[];   // reused points for the flame trail (no garbage per frame)
+function drawFlames(kind){const raw=G.trail,C=FLAME_COL[kind];if(!C)return;const tr=FLAME_TR;tr.length=0;const m=Math.min(raw.length,24);
+  for(let i=raw.length-m;i<raw.length;i++){const a=raw[Math.max(0,i-1)],b=raw[i];for(let j=1;j<=3;j++){const t=j/3,o=FLAME_PTS[tr.length]||(FLAME_PTS[tr.length]={x:0,y:0,Y:0});o.x=a.x+(b.x-a.x)*t;o.y=a.y+(b.y-a.y)*t;o.Y=a.Y+(b.Y-a.Y)*t;tr.push(o);}}const n=tr.length;
   sctx.save();sctx.globalCompositeOperation='lighter';
   for(let i=n-1;i>=0;i--){const p=tr[tr.length-1-i],air=p.Y-hAt(p.x,p.y);if(air<.25)continue;
     const s=proj(p.x,p.Y+.05,p.y);if(!s)continue;const k=i/n,fade=Math.min(1,air/1.2);
