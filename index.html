@@ -823,7 +823,7 @@ td.won{background:rgba(255,201,60,.38)}
         <div class="pset"><span>Vibration</span><div class="pseg" id="pHap"><button data-h="1">On</button><button data-h="0">Off</button></div></div>
         <div class="pset"><span>HUD</span><div class="pseg hudseg" id="pHud"><button data-u="">Classic</button><button data-u="a">Arcade</button><button data-u="b">TV</button><button data-u="c">Minimal</button></div></div>
         <div class="pset"><span>Graphics</span><div class="pseg" id="pGfx"><button data-g="high">High</button><button data-g="fast">Fast</button></div></div>
-        <div class="pset"><span>Swing</span><div class="pseg" id="pSwing"><button data-s="1">After taps</button><button data-s="0">With meter</button></div></div>
+        <div class="pset"><span>Swing</span><div class="pseg" id="pSwing"><button data-s="0">With meter</button><button data-s="1">After taps</button></div></div>
         <div class="pset"><span>Show FPS</span><div class="pseg" id="pFps"><button data-f="1">On</button><button data-f="0">Off</button></div></div>
         <div class="pset" id="pMixRow" hidden><span>Other music</span><div class="pseg" id="pMix"><button data-mix="0">Pause it</button><button data-mix="1">Keep playing</button></div></div>
         <button class="ghost disp" id="pFaq">Help &amp; FAQ</button>
@@ -3307,10 +3307,10 @@ const AUTH_KEY='golf-auth';
 /* required sign-in is switched on for everyone with AUTH_REQUIRED once the code emails work; until then ?signin=1 turns it on for
    this phone/browser (and ?signin=0 off again), for testing on the live site */
 const AUTH_REQUIRED=false;
-/* Oct 2026, 'Swing: after taps' (the default; pause menu): the golfer holds his address while the meter runs and the whole swing
-   plays after the last tap. Nothing in the 3D view moves during the meter, so it isn't redrawn then and the meter has the phone
-   to itself. 'With meter' is the older backswing that follows the cursor. (?swingtest=0/1 still sets it.) */
-let SWT=(()=>{try{const m=location.search.match(/[?&]swingtest=([01])/);if(m)localStorage.setItem('golf-swt',m[1]);return localStorage.getItem('golf-swt')!=='0';}catch(e){return true;}})();
+/* Oct 2026, pause menu 'Swing': 'With meter' (the default) is the backswing that follows the cursor; 'After taps' holds the golfer
+   at address while the meter runs and plays the whole swing after the last tap. Then nothing in the 3D view moves during the meter,
+   so it isn't redrawn and the meter has the phone to itself. (?swingtest=0/1 still sets it.) */
+let SWT=(()=>{try{const m=location.search.match(/[?&]swingtest=([01])/);if(m)localStorage.setItem('golf-swt',m[1]);return localStorage.getItem('golf-swt')==='1';}catch(e){return false;}})();
 const authOn=(()=>{try{const m=location.search.match(/[?&]signin=([01])/);if(m)localStorage.setItem('golf-signin',m[1]);return AUTH_REQUIRED||localStorage.getItem('golf-signin')==='1';}catch(e){return AUTH_REQUIRED;}})();
 function authLoad(){try{const a=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');return a&&a.refresh_token&&a.user&&a.user.id?a:null;}catch(e){return null;}}
 function authStore(a){try{if(a)localStorage.setItem(AUTH_KEY,JSON.stringify(a));else localStorage.removeItem(AUTH_KEY);}catch(e){}}
@@ -7195,9 +7195,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
-  {id:"2026-10-15-swing",date:"Oct 15, 2026",title:"Smoother swing meter",items:[
-    "Your golfer now stays at address while you set power and accuracy, then plays the whole swing after your last tap. The meter has the phone to itself while it runs, so it moves more smoothly.",
-    "Prefer the old way, with the backswing following the meter? Pause the game and set Swing to With meter."]},
+  {id:"2026-10-15-swing",date:"Oct 15, 2026",title:"New swing option",items:[
+    "Pause the game and set Swing to After taps: your golfer stays at address while you set power and accuracy, then plays the whole swing after your last tap. The meter has the phone to itself while it runs, so it can move more smoothly.",
+    "With meter, where the backswing follows the meter, stays the default."]},
   {id:"2026-10-15-daily",date:"Oct 15, 2026",title:"Today's daily: FarmLinks",items:[
     "Today's daily round moved from Sand Valley, which we've already played, to FarmLinks at Pursell Farms in Alabama, a course nobody has played in the daily yet."]},
   {id:"2026-10-15-fps",date:"Oct 15, 2026",title:"Live frame rate",items:[
