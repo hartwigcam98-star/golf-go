@@ -2862,7 +2862,7 @@ function strikeShot(power,e){
   const pegK=G.strokes===0&&lie==='tee'?pegFor(club):0;G.settle=null;
   G.rec=[];G.recT=0;G.recOn=true;G.canReplay=false;G.recHoled=false;
   G.shotInfo=null;$('shotStats').hidden=true;
-  G.ff=1;G.strokes++;G.prev={...G.ball};G.fromLie=lie;G.trail=[];G.shotRot=G.aim;G.state='flight';G.followT=.001;G.bY=hAt(G.ball.x,G.ball.y)+.03;G.launchAt=club.putter?PUTT_IMPACT:IMPACT_T;G.swingBack=Math.max(.15,G.meter.power);if(SWT)G.launchAt+=club.putter?.2+.3*G.swingBack:.25+.35*G.swingBack;G.swingType=club.putter?'putt':G.stype;G.swingClub=G.clubIdx;
+  G.ff=1;G.strokes++;G.prev={...G.ball};G.fromLie=lie;G.trail=[];G.shotRot=G.aim;G.state='flight';G.followT=.001;G.bY=hAt(G.ball.x,G.ball.y)+.03;G.launchAt=club.putter?PUTT_IMPACT:IMPACT_T;G.swingBack=Math.max(.15,G.meter.power);if(SWT&&!club.putter)G.launchAt+=.25+.35*G.swingBack;G.swingType=club.putter?'putt':G.stype;G.swingClub=G.clubIdx;
   G.golferAt={x:G.ball.x,y:G.ball.y,aim:G.aim};G.twirl=false;
   const miss=e===null;let perfect=false,q=.05;G.missBy=0;
   // the player's timing is judged more strictly than the rivals' (their difficulty is tuned through their own timing spread)
@@ -3309,6 +3309,8 @@ const AUTH_REQUIRED=false;
 /* Oct 2026, pause menu 'Swing': 'With meter' (the default) is the backswing that follows the cursor; 'After taps' holds the golfer
    at address while the meter runs and plays the whole swing after the last tap. Then nothing in the 3D view moves during the meter,
    so it isn't redrawn and the meter has the phone to itself. (?swingtest=0/1 still sets it.) */
+// putts always follow the meter (the green's slope grid keeps moving while you set the stroke), whatever the setting
+const swAfter=()=>SWT&&!curClub().putter;
 let SWT=(()=>{try{const m=location.search.match(/[?&]swingtest=([01])/);if(m)localStorage.setItem('golf-swt',m[1]);return localStorage.getItem('golf-swt')==='1';}catch(e){return false;}})();
 const authOn=(()=>{try{const m=location.search.match(/[?&]signin=([01])/);if(m)localStorage.setItem('golf-signin',m[1]);return AUTH_REQUIRED||localStorage.getItem('golf-signin')==='1';}catch(e){return AUTH_REQUIRED;}})();
 function authLoad(){try{const a=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');return a&&a.refresh_token&&a.user&&a.user.id?a:null;}catch(e){return null;}}
@@ -4610,10 +4612,10 @@ function swingState(type,putt){
   const m=G.meter,maxB=SWING_BACK[type]||1;
   const backAt=b=>{const e=smooth(0,1,b);return{alpha:166*DEG*e*maxB,beta:110*DEG*smooth(.12,.62,b*maxB)*Math.min(1,maxB*1.4),ts:98*DEG*b*maxB,th:46*DEG*b*maxB,tilt:(35-4*b*maxB)*DEG,heel:0,shift:-.04*b*maxB,look:0,fin:0};};
   if(putt){let a=0;
-    if(aimingState()){const b=SWT?0:G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?p2m(m.power):0;a=(b>0?4+12*b:0)*DEG;}
+    if(aimingState()){const b=swAfter()?0:G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?p2m(m.power):0;a=(b>0?4+12*b:0)*DEG;}
     else if(G.followT>0){const bk=Math.max(0,(G.launchAt||PUTT_IMPACT)-PUTT_IMPACT),b0=G.swingBack||.5,amp=(4+12*b0)*DEG;if(G.followT<bk){s.alpha=amp*smooth(0,1,G.followT/bk);s.ts=0;return s;}const t=Math.min(1,(G.followT-bk)/.6);a=amp*(1-smooth(0,.3,t))-amp*1.15*smooth(.28,.85,t);}
     s.alpha=a;s.ts=0;return s;}
-  if(aimingState()){const b=SWT?0:G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?p2m(m.power):0;return{...s,...backAt(clamp(b,0,1))};}
+  if(aimingState()){const b=swAfter()?0:G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?p2m(m.power):0;return{...s,...backAt(clamp(b,0,1))};}
   if(G.followT>0){
     const top=backAt(G.swingBack||1),end=SWING_END[type]||1,bk=Math.max(0,(G.launchAt||IMPACT_T)-IMPACT_T);if(G.followT<bk)return{...s,...backAt(clamp((G.swingBack||1)*smooth(0,1,G.followT/bk),0,1))};
     const t=Math.min(end,(G.followT-bk)/SWING_DUR);
@@ -5075,7 +5077,7 @@ function r3Golfer(ga){R3B.ballAt=null;if(!R3B.mesh||(G.aiTurn&&!G.aiChar))return
     R3B.footT=null;if(r.pump){const cw=r3bCrouchW(P.t);if(cw>.001){const I=R3B.idx,B=R3B.bones;   // feet stay put while he sinks into the crouch
       r3bApply(qa,ha);R3B.root.matrix.identity();R3B.root.matrixWorld.identity();B[0].updateMatrixWorld(true);R3B.footT=[r3bWP(B[I.LeftFoot]),r3bWP(B[I.RightFoot])];
       ha[1]-=R3B_PUMP_DROP*cw;r3bRotL(qa,I.Spine,[1,0,0],R3B_PUMP_FLEX*.35*cw);r3bRotL(qa,I.Spine1,[1,0,0],R3B_PUMP_FLEX*.35*cw);r3bRotL(qa,I.Spine2,[1,0,0],R3B_PUMP_FLEX*.3*cw);r3bRotL(qa,I.Neck,[1,0,0],-R3B_PUMP_FLEX*.4*cw);}}}   // (travel: root motion carries over from loop to loop)
-  else if(aimingState()){const b=SWT?0:G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?(typeof p2m==='function'?p2m(m.power):m.power):0;
+  else if(aimingState()){const b=swAfter()?0:G.state==='power'?(m.pos-IMPACT)/(1-IMPACT):G.state==='acc'?(typeof p2m==='function'?p2m(m.power):m.power):0;
     // the backswing chases the meter on a soft spring (a little lag, a small settle at the top) instead of being scrubbed by it
     if(G.state==='aim'){SP.x=0;SP.v=0;}else{const tg=clamp(b,0,1),K=150,D=2*Math.sqrt(K)*.6;for(let n=Math.ceil(dtR/.008),i=0;i<n;i++){const h=dtR/n;SP.v+=(K*(tg-SP.x)-D*SP.v)*h;SP.x+=SP.v*h;}}
     SP.T=T;SP.live=false;r3bPose(c,r3bBackT(c,bFrac(clamp(SP.x,0,1.04))),qa,ha);
@@ -6400,7 +6402,7 @@ function r3ShcPlan(){const C=R3.shc,rd=R3.renderer;if(!C)return;if(window.__shcO
     {const ac=rd.autoClear,rt=rd.getRenderTarget();rd.autoClear=false;C.qm.uniforms.tMap.value=C.rt.texture;rd.setRenderTarget(sh.map);rd.render(C.qs,C.qc);rd.setRenderTarget(rt);rd.autoClear=ac;}
     rd.shadowMap.needsUpdate=true;C.mode='dyn';}
   else C.mode=same?'cap':null;}
-function r3Hold(){if(!SWT||!R3.on||G.aiTurn||G.replay||!(G.state==='power'||G.state==='acc')){R3.holdSig=null;return false;}
+function r3Hold(){if(!swAfter()||!R3.on||G.aiTurn||G.replay||!(G.state==='power'||G.state==='acc')){R3.holdSig=null;return false;}
   // the camera settles on the address view by easing: once it's within a few millimetres of the last drawn picture, hold that picture
   const H0=R3.holdSig,cur=[...V.E,...V.F];if(H0&&Math.abs(cur[0]-H0[0])+Math.abs(cur[1]-H0[1])+Math.abs(cur[2]-H0[2])<.004&&Math.abs(cur[3]-H0[3])+Math.abs(cur[4]-H0[4])+Math.abs(cur[5]-H0[5])<2e-4)return true;
   R3.holdSig=cur;return false;}
