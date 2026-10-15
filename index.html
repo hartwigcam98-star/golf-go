@@ -3365,7 +3365,7 @@ const DAILY_RESET=[['2026-10-09','p5sa6c8gmmuvyzitv','cam'],['2026-10-09','p5sa6
 (function(){try{const d=dailyLoad();if(!d)return;const pid=localStorage.getItem('golf-pid')||'',nm=String(localStorage.getItem('golf-name')||'').trim().toLowerCase();
   for(const[day,id,name,tag]of DAILY_RESET){const f='golf-daily-reset-'+day+(tag||'');if(d.day===day&&(pid===id||nm===name)&&!localStorage.getItem(f)){localStorage.removeItem(DAILY.save);localStorage.setItem(f,'1');return;}}}catch(e){}})();
 function dailyHdr(h={}){const k=DAILY.key;h.apikey=k;if(!/^sb_/.test(k))h.Authorization='Bearer '+k;return h;}
-const PLAYER_MERGE=['cam'];   // same golfer on more than one player id (re-saved to the home screen)
+const PLAYER_MERGE=['cam','pappa','ogtwig'];   // same golfer on more than one player id (re-saved to the home screen)
 const pKey=r=>{const n=String(r.name||'').trim().toLowerCase();return PLAYER_MERGE.includes(n)?'n:'+n:r.player_id;};
 const pMine=(r,pid)=>r.player_id===pid||(PLAYER_MERGE.includes(String(dailyName()||'').trim().toLowerCase())&&pKey(r)==='n:'+String(dailyName()).trim().toLowerCase());
 const pBest=rows=>{const seen=new Set();return rows.filter(r=>{const k=pKey(r);if(seen.has(k))return false;seen.add(k);return true;});};   // rows come best first
