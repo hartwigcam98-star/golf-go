@@ -2553,7 +2553,7 @@ function A(){if(!S.on)return null;if(!S.ctx){try{S.ctx=new(window.AudioContext||
     // everything goes through a master bus: a little extra gain and a limiter so phone speakers get a solid level
     try{const c=S.ctx.createDynamicsCompressor();c.threshold.value=-14;c.knee.value=8;c.ratio.value=6;c.attack.value=.002;c.release.value=.12;S.out=S.ctx.createGain();S.out.gain.value=2.2;S.out.connect(c).connect(S.ctx.destination);}catch(e){S.out=null;}}
   if(S.ctx.state!=='running')S.ctx.resume().catch(()=>{});return S.ctx;}
-const OUT=()=>S.out||S.ctx.destination;
+const OUT=()=>{if(typeof HTR==='object')HTR.m+='snd ';return S.out||S.ctx.destination;};
 // iPhone/iPad: audio only starts inside a touchend/click, and the ring/silent switch mutes web audio unless the page asks for "playback"
 /* v110: "Keep playing" lets music or a podcast from another app carry on under the game's sounds (iPhone audio session
    'ambient'; game sounds then follow the silent switch). "Pause it" is the old behaviour ('playback'). */
@@ -2687,7 +2687,7 @@ const sfx={
 const HAP={on:(()=>{try{return localStorage.getItem('golf-hap')!=='0';}catch(e){return true;}})(),el:null,ios:/iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)};
 function hapEl(){if(HAP.el)return HAP.el;const l=document.createElement('label');l.setAttribute('aria-hidden','true');l.style.cssText='position:fixed;left:-200px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
   const i=document.createElement('input');i.type='checkbox';i.setAttribute('switch','');i.tabIndex=-1;l.appendChild(i);l.addEventListener('click',e=>e.stopPropagation());document.body.appendChild(l);return HAP.el=l;}
-function hapClick(n){try{const l=hapEl();l.click();for(let j=1;j<n;j++)setTimeout(()=>l.click(),j*75);}catch(e){}}
+function hapClick(n){if(typeof HTR==='object')HTR.m+='hap ';try{const l=hapEl();l.click();for(let j=1;j<n;j++)setTimeout(()=>l.click(),j*75);}catch(e){}}
 /* iPhone only gives the switch haptic inside a real user activation (WebKit, Jan 2025), and a finger going DOWN doesn't count -
    lifting it does. Swing taps register on touch-down for timing, so the haptic is queued and fired as the finger lifts. */
 function hapFlush(){const n=HAP.q;HAP.q=0;if(n)hapClick(n);}
@@ -5473,7 +5473,11 @@ function r3TreeFlush(){for(const m of R3T.meshes){R3.scene.remove(m);m.geometry.
       let sh=sc;const H=R3T.h;if(H&&H.lg&&lieCodeAt(H,t.x,t.y)>=0){const room=dplayAt(H,t.x,t.y)+2.5;if(v.reach*sh>room)sh=Math.max(.35,room/v.reach);}
       const tall=R3T_SP[t.sp]&&R3T_SP[t.sp].kind==='broad'?1.22:1.08;s.set(sh,sc*tall*(.92+((t.shade*29)%1)*.16),sh);
       p.set(t.x,(t.gh!==undefined?t.gh:hAt(t.x,t.y))-.15,t.y);m4.compose(p,q,s);m4.toArray(M,i*16);const tn=.88+((t.shade*53)%1)*.24,hv=((t.shade*31)%1)-.5;C[i*3]=tn*(1+hv*.1);C[i*3+1]=tn;C[i*3+2]=tn*(.96+((t.shade*7)%1)*.08)*(1-hv*.12);});
-    const set=src=>[[src.bark,11,R3.mat.bark],[src.mass,9,R3.mat.tree],[src.leaf,11,R3.mat.sleaf]].filter(x=>x[0].length).map(([arr,stride,mat])=>{
+    /* Oct 2026: the instanced species meshes used to share the tree and bark materials with the merged R3.trees / R3.bark meshes;
+       three.js then re-resolved the program on every draw as it flipped between instanced and not (CPU and garbage every frame).
+       Same settings and patch, so the same shaders. */
+    const mI=R3.mat,treeI=mI.treeI||(mI.treeI=r3Patch(mI.tree.clone(),{fade:true,translucent:true})),barkI=mI.barkI||(mI.barkI=r3Patch(mI.bark.clone(),{fade:true}));
+    const set=src=>[[src.bark,11,barkI],[src.mass,9,treeI],[src.leaf,11,R3.mat.sleaf]].filter(x=>x[0].length).map(([arr,stride,mat])=>{
       const im=new T.InstancedMesh(r3Geo(new Float32Array(arr),stride),mat,n);im.count=0;im.visible=false;im.castShadow=true;im.receiveShadow=true;im.userData.shStatic=true;
       if(mat===R3.mat.sleaf)im.customDepthMaterial=R3.sleafDepth;im.setColorAt(0,new T.Color(1,1,1));R3.scene.add(im);R3T.meshes.push(im);return im;});
     R3T.groups.push({ts,M,C,full:set(v),lite:set(v.lite)});}
@@ -5819,7 +5823,7 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   R3.ptex={};R3.pOn={value:0};let pend=0;
   if(typeof R3TEX!=='undefined')for(const k in R3TEX){pend++;const im=new Image(),t=new T.Texture(im);t.wrapS=t.wrapT=T.RepeatWrapping;t.colorSpace=T.NoColorSpace;t.generateMipmaps=true;
     t.minFilter=T.LinearMipmapLinearFilter;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());R3.ptex[k]=t;
-    im.onload=()=>{t.needsUpdate=true;if(--pend===0){R3.pOn.value=1;if(R3.mat&&R3.mat.bark)R3.mat.bark.needsUpdate=true;}};im.src=R3TEX[k];}
+    im.onload=()=>{t.needsUpdate=true;if(--pend===0){R3.pOn.value=1;if(R3.mat&&R3.mat.bark)R3.mat.bark.needsUpdate=true;if(R3.mat&&R3.mat.barkI)R3.mat.barkI.needsUpdate=true;}};im.src=R3TEX[k];}
   // materials
   R3.tK={value:new T.Vector4(1,1,1,1)};
   R3.GU={gTex:{value:null},gSurf:{value:null},dShort:{value:R3.det.short},dRough:{value:R3.det.rough},dFes:{value:R3.det.fescue},dSand:{value:R3.det.sand},gStex:{value:null},slT:{value:null},slHt:{value:null},slMode:{value:0},slBall:{value:new T.Vector3()},
@@ -6495,14 +6499,16 @@ function r3GrassUpdate(){if(!R3G.lods)return;const L=R3G.lods;for(const l of L){
   { const g=R3G.sig||(R3G.sig=new Float64Array(24)),n=[k,c0[0],c0[1],r00,r01,c1[0],c1[1],r10,r11,ex,ez,V.E[1],V.F[0],V.F[1],V.F[2],V.R[0],V.R[2],W,V.f,D0,S];let same=R3G.sigH===h&&R3G.cnt&&R3G.cnt.length===L.length;
     for(let i=0;i<n.length;i++){if(g[i]!==n[i]){same=false;g[i]=n[i];}}
     if(same){for(let i=0;i<L.length;i++){L[i].geo.instanceCount=R3G.cnt[i];L[i].m.visible=R3G.cnt[i]>0;}return;}R3G.sigH=null; }
-  const dens=(d,r0,r1)=>r1<=0?0:1-smooth(r0,r1,d),seen=new Set();
-  const tryTile=(i,j)=>{const key=i*100003+j;if(seen.has(key))return;seen.add(key);
+  const dens=(d,r0,r1)=>r1<=0?0:1-smooth(r0,r1,d);
+  let I0=1e9,I1=-1e9,J0=1e9,J1=-1e9;for(const[c,r1]of[[c0,r01],[c1,r11]]){if(r1<=0)continue;I0=Math.min(I0,Math.floor((c[0]-r1)/S));I1=Math.max(I1,Math.floor((c[0]+r1)/S));J0=Math.min(J0,Math.floor((c[1]-r1)/S));J1=Math.max(J1,Math.floor((c[1]+r1)/S));}
+  const NI=Math.max(1,I1-I0+1),need=NI*Math.max(1,J1-J0+1);if(!R3G.stamp||R3G.stamp.length<need)R3G.stamp=new Int32Array(need*2);const stp=R3G.stamp,sv=R3G.sv=((R3G.sv|0)+1)&0x3fffffff||1;
+  const tryTile=(i,j)=>{const key=(i-I0)+(j-J0)*NI;if(stp[key]===sv)return;stp[key]=sv;
     const x=i*S,z=j*S,cx=x+S/2,cz=z+S/2,rr=S*.71;
-    const d0=Math.max(0,Math.hypot(cx-c0[0],cz-c0[1])-rr),d1=Math.max(0,Math.hypot(cx-c1[0],cz-c1[1])-rr);
+    const a0=cx-c0[0],b0=cz-c0[1],a1=cx-c1[0],b1=cz-c1[1],d0=Math.max(0,Math.sqrt(a0*a0+b0*b0)-rr),d1=Math.max(0,Math.sqrt(a1*a1+b1*b1)-rr);
     const want=Math.max(dens(d0,r00,r01),dens(d1,r10,r11))*D0;if(want<.4)return;
     // view test: keep tiles in front of the camera and inside the horizontal field of view (with margin)
     const dx=cx-ex,dz=cz-ez,dy=hAt(cx,cz)-V.E[1];const cz2=dx*V.F[0]+dy*V.F[1]+dz*V.F[2];
-    if(Math.hypot(dx,dz)>rr+2){if(cz2<-rr)return;const cxs=dx*V.R[0]+dz*V.R[2],sx=Math.abs(cxs)/Math.max(cz2,.5);if(sx>(W/2)/V.f*1.25+rr/Math.max(cz2,.5))return;}
+    if(Math.sqrt(dx*dx+dz*dz)>rr+2){if(cz2<-rr)return;const cxs=dx*V.R[0]+dz*V.R[2],sx=Math.abs(cxs)/Math.max(cz2,.5);if(sx>(W/2)/V.f*1.25+rr/Math.max(cz2,.5))return;}
     if(!r3GrassTileHas(h,i,j))return;
     let lv=L.length-1;while(lv>0&&L[lv].cap<want)lv--;const l=L[lv];if(l.geo.instanceCount>=1200)return;
     const a=l.geo.attributes.tileOff.array;a[l.geo.instanceCount*2]=x;a[l.geo.instanceCount*2+1]=z;l.geo.instanceCount++;};
