@@ -820,7 +820,6 @@ td.won{background:rgba(255,201,60,.38)}
         <button class="primary disp" id="pResume">Resume</button>
         <button class="ghost disp" id="pCard">Scorecard</button>
         <div class="pset"><span>Sound</span><div class="pseg" id="pSound"><button data-v="1">On</button><button data-v="0">Off</button></div></div>
-        <div class="pset"><span>Vibration</span><div class="pseg" id="pHap"><button data-h="1">On</button><button data-h="0">Off</button></div></div>
         <div class="pset"><span>HUD</span><div class="pseg hudseg" id="pHud"><button data-u="">Classic</button><button data-u="a">Arcade</button><button data-u="b">TV</button><button data-u="c">Minimal</button></div></div>
         <div class="pset"><span>Graphics</span><div class="pseg" id="pGfx"><button data-g="high">High</button><button data-g="fast">Fast</button></div></div>
         <div class="pset"><span>Swing</span><div class="pseg" id="pSwing"><button data-s="0">With meter</button><button data-s="1">After taps</button></div></div>
@@ -2682,24 +2681,7 @@ const sfx={
   miss:()=>{tone(165,.16,'triangle',.1);setTimeout(()=>tone(123,.22,'triangle',.08),110);},
   fanfare:()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.25,'triangle',.12),i*110)),
 };
-/* ---------- haptics (Oct 2026): a light tap for each swing tap, a double pulse for a perfect strike, a little pattern when the ball drops.
-   Android: navigator.vibrate. iPhone (iOS 18+): Safari has no vibrate, but toggling a hidden switch control gives the system tick. ---------- */
-const HAP={on:(()=>{try{return localStorage.getItem('golf-hap')!=='0';}catch(e){return true;}})(),el:null,ios:/iP(hone|od|ad)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)};
-function hapEl(){if(HAP.el)return HAP.el;const l=document.createElement('label');l.setAttribute('aria-hidden','true');l.style.cssText='position:fixed;left:-200px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
-  const i=document.createElement('input');i.type='checkbox';i.setAttribute('switch','');i.tabIndex=-1;l.appendChild(i);l.addEventListener('click',e=>e.stopPropagation());document.body.appendChild(l);return HAP.el=l;}
-function hapClick(n){if(typeof HTR==='object')HTR.m+='hap ';try{const l=hapEl();l.click();for(let j=1;j<n;j++)setTimeout(()=>l.click(),j*75);}catch(e){}}
-/* iPhone only gives the switch haptic inside a real user activation (WebKit, Jan 2025), and a finger going DOWN doesn't count -
-   lifting it does. Swing taps register on touch-down for timing, so the haptic is queued and fired as the finger lifts. */
-function hapFlush(){const n=HAP.q;HAP.q=0;if(n)hapClick(n);}
-['pointerup','touchend'].forEach(ev=>window.addEventListener(ev,hapFlush,{capture:true,passive:true}));
-function haptic(k){if(!HAP.on||G.aiTurn||G.replay||G.mode==='spectate')return;const pat={tap:9,perfect:[16,45,26],thud:24,cup:[12,60,12,60,30]}[k]||9;
-  try{if(navigator.vibrate&&!HAP.ios){navigator.vibrate(pat);return;}}catch(e){}
-  if(!HAP.ios)return;const n=Array.isArray(pat)?Math.ceil(pat.length/2):1;
-  let act=false;try{act=!!(navigator.userActivation&&navigator.userActivation.isActive);}catch(e){}
-  if(act&&!HAP.down){hapClick(n);return;}if(HAP.down)HAP.q=Math.max(HAP.q||0,n);}   // nothing to ride on (e.g. the ball dropping later): skip
-window.addEventListener('pointerdown',()=>{HAP.down=true;},{capture:true,passive:true});
-window.addEventListener('pointerup',()=>{HAP.down=false;},{capture:true,passive:true});
-window.addEventListener('pointercancel',()=>{HAP.down=false;HAP.q=0;},{capture:true,passive:true});
+/* Oct 2026: vibration removed. On iPhone it came from clicking a hidden switch, which could stall the page for a moment; it was hard to feel. */
 /* ---------- ambience (Oct 2026): a soft bed under the game. Wind that follows the hole's wind (with gusts), birds by region
    (Minnesota/Wisconsin: chickadees and robins, a loon now and then on holes with water; the South: mockingbirds and cicadas;
    the desert: quail and wrens, sparse), and once in a while a mower far off. Fades out on menus and pause, off with the sound. ---------- */
@@ -2839,8 +2821,8 @@ function tap(at){
   if(R3.on&&r3RoutineSkip())return;
   if(G.fc&&G.state==='aim'){lookEnd();return;}
   const m=G.meter;if(G.state==='power'||G.state==='acc')meterAt(at);
-  if(G.state==='aim'){G.state='power';m.pos=IMPACT;m.power=0;m.dir=1;G.tapMark=null;sfx.tick();haptic('tap');}
-  else if(G.state==='power'){m.power=m2p((m.pos-IMPACT)/(1-IMPACT));G.state='acc';sfx.tick();haptic('tap');}
+  if(G.state==='aim'){G.state='power';m.pos=IMPACT;m.power=0;m.dir=1;G.tapMark=null;sfx.tick();}
+  else if(G.state==='power'){m.power=m2p((m.pos-IMPACT)/(1-IMPACT));G.state='acc';sfx.tick();}
   else if(G.state==='acc'){const e=m.pos-IMPACT;G.tapMark=clamp(m.pos,0,1);executeShot(m.power,clamp(e,-.12,.4));}
 }
 /* no mulligans from closing the app: the swing is saved the moment it's struck (power, timing, aim, club and a dice seed),
@@ -2873,7 +2855,6 @@ function strikeShot(power,e){
     if(ae<=w){perfect=ae<=w*.5?2:1;e=HARSH&&perfect===1?Math.sign(e)*(ae-w*.5)*.45:0;}   // a "nice" strike still drifts a touch; only dead centre flies dead straight
     else{G.missBy=ae-w;e=HARSH?Math.sign(e)*(.018+(ae-w)*2.6)+(Math.random()-.5)*(ae-w)*1.4:Math.sign(e)*(.012+(ae-w)*1.6);}} // no jump in error just outside the window
   G.lastPerf=perfect;G.lastMiss=miss||(G.missBy||0)>.03;
-  if(!G.aiTurn&&!G.replay&&G.mode!=='spectate')haptic(perfect===2?'perfect':miss?'thud':'tap');   // for the golfer's reaction once the ball stops
   if(club.putter){
     const D=Math.max(lie==='green'?.3:.05,G.puttMax*power*(HARSH?1-Math.min(.3,G.missBy*2.4*(cmod().puttD??1)):1));const mu=MU[lie]||MU.fairway;
     const a=G.aim-e*(HARSH?1.45:1.1)*cmod().putt;const[dx,dy]=dirOf(a);const v=Math.sqrt(2*mu*D);
@@ -3186,7 +3167,7 @@ function holed(kind){const gim=kind==='Gimme';
   if(!sub&&G.fromLie!=='green'&&G.strokes>1)sub='Chip-in';
   if(!sub&&G.fromLie==='green'){const d=hyp(G.prev.x-p[0],G.prev.y-p[1])*3;if(d>20)sub=Math.round(d)+' ft putt';}
   const good=G.strokes<G.hole.par;
-  if(!gim)sfx.cup(!!G.cupHard);G.cupHard=false;if(!gim&&!G.aiTurn)haptic('cup');if(good&&!G.aiTurn)setTimeout(sfx.fanfare,250);
+  if(!gim)sfx.cup(!!G.cupHard);G.cupHard=false;if(good&&!G.aiTurn)setTimeout(sfx.fanfare,250);
   toast(name,sub,good?'#ffc93c':G.strokes===G.hole.par?'#8ee6a8':'#fff6dc');
   const highlight=!gim&&(G.strokes===1||G.fromLie!=='green'||(G.fromLie==='green'&&hyp(G.prev.x-p[0],G.prev.y-p[1])*3>25));
   const nx=MATCH.on?mHoled:showCard;
@@ -3622,7 +3603,7 @@ function pauseCtx(){const h=G.hole;let tp=0,n=0;(G.scores||[]).forEach((x,i)=>{i
     screen:innerWidth+'x'+innerHeight+'@'+(devicePixelRatio||1),ua:navigator.userAgent.slice(0,180),app:matchMedia('(display-mode: standalone)').matches||!!navigator.standalone};}
 function inRound(){return!!G.hole&&G.state!=='intro'&&G.mode!=='spectate'&&G.mode!=='highlight'&&$('menuM').hidden;}
 function pauseSync(){document.querySelectorAll('#pSwing button').forEach(b=>b.classList.toggle('on',(b.dataset.s==='1')===SWT));document.querySelectorAll('#pFps button').forEach(b=>b.classList.toggle('on',(b.dataset.f==='1')===!!FPSM.on));document.querySelectorAll('#pSound button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===!!S.on));
-  document.querySelectorAll('#pHap button').forEach(b=>b.classList.toggle('on',(b.dataset.h==='1')===!!HAP.on));
+
   document.querySelectorAll('#pGfx button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='high')===(R3.q==='high')));}
 function openPause(){PAUSE.shot=pauseShot();G.paused=true;const c=pauseCtx();
   $('pSub').textContent=(CUR?CUR.name:'')+' \u00b7 hole '+c.hole+(c.thru?' \u00b7 '+fmtDiff(c.toPar)+' thru '+c.thru:'');
@@ -3707,7 +3688,6 @@ document.querySelectorAll('#fbKind button').forEach(b=>b.addEventListener('click
 document.querySelectorAll('#pSound button').forEach(b=>b.addEventListener('click',()=>{if((b.dataset.v==='1')!==!!S.on)$('soundBtn').click();pauseSync();}));
 document.querySelectorAll('#pSwing button').forEach(b=>b.addEventListener('click',()=>{SWT=b.dataset.s==='1';try{localStorage.setItem('golf-swt',SWT?'1':'0');}catch(_){}pauseSync();}));
 document.querySelectorAll('#pFps button').forEach(b=>b.addEventListener('click',()=>{FPSM.on=b.dataset.f==='1';try{localStorage.setItem('golf-fps',FPSM.on?'1':'0');}catch(_){}FPSM.n=0;FPSM.t0=0;fpsTick(performance.now(),0);pauseSync();}));
-document.querySelectorAll('#pHap button').forEach(b=>b.addEventListener('click',()=>{HAP.on=b.dataset.h==='1';try{localStorage.setItem('golf-hap',HAP.on?'1':'0');}catch(_){}pauseSync();if(HAP.on){const a=G.aiTurn;G.aiTurn=false;haptic('tap');G.aiTurn=a;}}));
 document.querySelectorAll('#pGfx button').forEach(b=>b.addEventListener('click',()=>{try{r3SetQuality(b.dataset.g==='high'?'high':'fast');}catch(e){}pauseSync();}));
 $('pauseM').addEventListener('click',e=>{if(e.target===$('pauseM'))closePause();});
 
@@ -7219,6 +7199,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-15-vibe",date:"Oct 15, 2026",title:"Vibration removed",items:[
+    "The light vibration on swing taps and holed putts is gone. It was hard to feel, and on iPhone it could make the game stutter for a moment."]},
   {id:"2026-10-15-swing",date:"Oct 15, 2026",title:"New swing option",items:[
     "Pause the game and set Swing to After taps: your golfer stays at address while you set power and accuracy, then plays the whole swing after your last tap. The meter has the phone to itself while it runs, so it can move more smoothly.",
     "With meter, where the backswing follows the meter, stays the default."]},
