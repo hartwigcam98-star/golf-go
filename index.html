@@ -2800,7 +2800,10 @@ function startHole(i){
   $('cardM').hidden=true;$('reliefM').hidden=true;$('introM').hidden=false;
   setTimeout(()=>$('teeBtn').focus({preventScroll:true}),50);
 }
-function teeOff(){A();$('introM').hidden=true;if(MATCH.on){mNextTurn();return;}prepareShot();}
+/* Oct 2026: anything still left of the background shader warm-up is finished here, as the intro closes, so the first hole isn't
+   played with first-time shader compiles (100-170 ms hitches on phones) landing in the middle of it */
+function r3WarmFinish(){if(!R3.warmQ)return;try{while(R3.warmQ.length)r3WarmJob(R3.warmQ.shift());}finally{r3WarmEnd();}}
+function teeOff(){A();$('introM').hidden=true;try{r3WarmFinish();}catch(e){}PERF.quiet=performance.now()+2500;if(MATCH.on){mNextTurn();return;}prepareShot();}
 function prepareShot(){
   if(G.hole&&R3.on&&(!RL.grassAt||hyp(G.ball.x-RL.grassAt[0],G.ball.y-RL.grassAt[1])>6))buildGrassPatch(G.hole,G.ball.x,G.ball.y);
   G.flight=null;G.roll=null;G.inCup=false;G.followT=0;G.golferAt=null;
@@ -6080,19 +6083,33 @@ function r3WarmStart(){if(R3.warmQ||!R3.renderer||!R3.scene)return;const L=[];
   R3.scene.traverse(o=>{if(o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||o.isPoints||o.isLine)L.push(o);});
   const jobs=[];for(const clip of[false,true])for(let i=0;i<L.length;i+=3)jobs.push({clip,objs:L.slice(i,i+3)});
   if(R3.post&&R3.post.m)for(const k in R3.post.m)jobs.push({post:k});
-  R3.warmQ=jobs;R3.warmRT=new THREE.WebGLRenderTarget(16,16,{depthBuffer:true});R3.warmN=jobs.length;
-  const step=()=>{if(!R3.warmQ)return;const t0=performance.now();while(R3.warmQ.length&&performance.now()-t0<12){r3WarmJob(R3.warmQ.shift());}
-    if(R3.warmQ.length)requestAnimationFrame(step);else{R3.warmQ=null;R3.warmDone=1;R3.warmRT.dispose();}};
+  jobs.push({shadow:true,objs:L});   // the sun's shadow pass has its own depth programs (one per kind of caster): never drawn above
+  R3.warmQ=jobs;R3.warmN=jobs.length;
+  /* small targets in the same formats the game really draws into (half-float colour; the scene's multisampling; plain 8-bit for
+     the occlusion and final passes): phone GPUs build a pipeline per program *and* target format, so warming into one generic
+     target left part of the work for the first real frames */
+  {const T3=THREE,q=r3Q(),ty=R3.hf?T3.HalfFloatType:T3.UnsignedByteType,mk=(o)=>new T3.WebGLRenderTarget(16,16,Object.assign({type:ty,colorSpace:T3.NoColorSpace,depthBuffer:false,stencilBuffer:false},o));
+   R3.warmT={scene:mk({depthBuffer:true,samples:q.msaa||0}),clip:mk({depthBuffer:true}),half:mk({}),byte:mk({type:T3.UnsignedByteType})};R3.warmRT=R3.warmT.scene;}
+  const step=()=>{if(!R3.warmQ)return;const t0=performance.now(),idle=!G.hole||G.state==='intro'||G.state==='card'||COVERS.some(m=>!m.hidden);while(R3.warmQ.length&&performance.now()-t0<(idle?40:12)){r3WarmJob(R3.warmQ.shift());}
+    if(R3.warmQ.length)requestAnimationFrame(step);else r3WarmEnd();};
   requestAnimationFrame(step);}
+function r3WarmEnd(){R3.warmQ=null;R3.warmDone=1;if(R3.warmT)for(const k in R3.warmT)R3.warmT[k].dispose();R3.warmT=null;R3.warmRT=null;}
+/* post passes' uniforms are empty until a pass first runs: fill them with stand-ins so the warm-up draw can go through (it used to
+   throw on the first vector, after compiling but before the pass was ever drawn) */
+const R3_WARM_V3=new Set(['K','sunP','dofP']),R3_WARM_N=new Set(['hdr','aoOn','bloomK','expo','asp','fxaaOn']);
+function r3WarmUniforms(m){const T3=THREE;for(const k in m.uniforms){const u=m.uniforms[k];if(u.value!==null&&u.value!==undefined)continue;
+  u.value=k==='px'||k==='dir'?new T3.Vector2(1/16,0):R3_WARM_V3.has(k)?new T3.Vector3():R3_WARM_N.has(k)?0:(R3.warmTex||(R3.warmTex=r3DataTex(new Uint8Array(4),1,1)));}}
 function r3WarmJob(j){const rd=R3.renderer,prev=rd.getRenderTarget(),pc=rd.clippingPlanes;try{
-  if(j.post){const P=R3.post,m=P.m[j.post];P.quad.material=m;rd.setRenderTarget(R3.warmRT);rd.render(P.scene,P.cam);return;}
+  if(j.post){const P=R3.post,m=P.m[j.post];r3WarmUniforms(m);P.quad.material=m;rd.setRenderTarget(j.post==='ao'||j.post==='aob'||j.post==='final'?R3.warmT.byte:R3.warmT.half);rd.render(P.scene,P.cam);return;}
+  if(j.shadow&&R3.shc&&R3.shc.qs)rd.compile(R3.shc.qs,R3.shc.qc);
   const sv=[];R3.scene.traverse(o=>{if(o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||o.isPoints||o.isLine){sv.push([o,o.visible]);o.visible=false;}});
   const tw=[];for(const o of j.objs){o.visible=true;let q=o.parent;while(q){if(!q.visible){tw.push(q);q.visible=true;}q=q.parent;}
     tw.push(['fc',o,o.frustumCulled]);o.frustumCulled=false;
     if(o.isInstancedMesh&&o.count===0){tw.push(['cnt',o,0]);o.count=1;}
     if(o.geometry&&o.geometry.isInstancedBufferGeometry&&!o.geometry.instanceCount){tw.push(['ic',o.geometry,o.geometry.instanceCount]);o.geometry.instanceCount=1;}}
   rd.clippingPlanes=j.clip?[new THREE.Plane(new THREE.Vector3(0,1,0),0)]:[];
-  const sm=rd.shadowMap.autoUpdate;rd.shadowMap.autoUpdate=false;rd.setRenderTarget(R3.warmRT);rd.render(R3.scene,R3.cam);rd.shadowMap.autoUpdate=sm;
+  const sm=rd.shadowMap.autoUpdate;rd.shadowMap.autoUpdate=false;if(j.shadow){rd.shadowMap.needsUpdate=true;if(R3.shc){R3.shc.mode=null;R3.shc.valid=false;}}
+  rd.setRenderTarget(j.clip?R3.warmT.clip:R3.warmT.scene);rd.render(R3.scene,R3.cam);rd.shadowMap.autoUpdate=sm;if(j.shadow)rd.shadowMap.needsUpdate=true;   // the real shadows are redrawn next frame
   for(const t of tw){if(Array.isArray(t)){if(t[0]==='fc')t[1].frustumCulled=t[2];else if(t[0]==='cnt')t[1].count=t[2];else t[1].instanceCount=t[2];}else t.visible=false;}
   for(const[o,v]of sv)o.visible=v;
  }catch(e){console.warn('[warm]',e);}finally{rd.clippingPlanes=pc;rd.setRenderTarget(prev);}}
@@ -6848,7 +6865,7 @@ function perfRetry(){perfUp();if(!PERF.cap){if(PERF.trial){PERF.trial=0;PERF.cap
   PERF.cap=0;PERF.slow=0;PERF.w=[];PERF.trial=1;}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){PERF.hidT=Date.now();return;}
   if(PERF.cap&&PERF.hidT&&Date.now()-PERF.hidT>12e4){PERF.cap=0;PERF.capN=0;PERF.slow=0;PERF.w=[];PERF.trial=1;}});
-function perfCheck(raw){PERF.level=R3.perf||0;if(PERF.cap||G.paused||G.state==='intro'||G.state==='card'||G.state==='power'||G.state==='acc'||raw>.25)return;(PERF.w=PERF.w||[]).push(raw);if(PERF.w.length<90)return;
+function perfCheck(raw){PERF.level=R3.perf||0;if(R3.warmQ||(PERF.quiet&&performance.now()<PERF.quiet)){PERF.w=[];return;}if(PERF.cap||G.paused||G.state==='intro'||G.state==='card'||G.state==='power'||G.state==='acc'||raw>.25)return;(PERF.w=PERF.w||[]).push(raw);if(PERF.w.length<90)return;
   const w=PERF.w.sort((a,b)=>a-b),med=w[w.length>>1],lng=w.filter(v=>v>.04).length/w.length,slip=w.filter(v=>v>.0205).length/w.length;PERF.w=[];
   /* v121 dynamic resolution: aim for a steady 60. When more than 1 frame in 8 misses a refresh, draw ~10% fewer pixels a side (down to 62%);
      after about 5 s of clean frames sharpen back up a step. Only once the picture is at its softest do the levels below step in. */
