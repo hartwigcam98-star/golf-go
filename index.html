@@ -6588,20 +6588,22 @@ function renderScene(){
     for(let i=0;i<(f.type==='splash'?4:1);i++){sctx.beginPath();sctx.ellipse(e.x,e.y,e.rx*(1+i*.4),e.ry*(1+i*.4),0,0,TAU);sctx.stroke();}}
   // aim: predicted arc (terrain-aware) and landing ring
   if(aiming){
+    const AP=[];   // the preview path in screen space, drawn below in the chosen style
     const Mv=club.putter?null:shotMods(),D=previewDist()*(Mv?Mv.carry:1),[dx,dz]=dirOf(G.aim),pxv=-dz,pzv=dx,cv=Mv?Mv.curve*D:0;let mx,mz,landD;
     if(club.putter){
       mx=G.ball.x+dx*D;mz=G.ball.y+dz*D;landD=D;
-      for(let i=1;i<=30;i++){const u=i/30,qx=G.ball.x+dx*D*u,qz=G.ball.y+dz*D*u;const p=proj(qx,hAt(qx,qz)+.05,qz);if(p){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
+      for(let i=1;i<=30;i++){const u=i/30,qx=G.ball.x+dx*D*u,qz=G.ball.y+dz*D*u;const p=proj(qx,hAt(qx,qz)+.05,qz);if(p)AP.push(p);}
     }else if(isShort()&&G.swMax){
       const P=shortPlan(),c2=P.carry,y0=gB+.03,ap=shotApex(club,c2)*Mv.apex;
-      for(let i=1;i<=60;i++){const u=i/36,qx=G.ball.x+dx*c2*u,qz=G.ball.y+dz*c2*u,Y=y0+ap*arcH(u);if(u>.5&&Y<=hAt(qx,qz))break;const p=proj(qx,Y,qz);if(p){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
+      for(let i=1;i<=60;i++){const u=i/36,qx=G.ball.x+dx*c2*u,qz=G.ball.y+dz*c2*u,Y=y0+ap*arcH(u);if(u>.5&&Y<=hAt(qx,qz))break;const p=proj(qx,Y,qz);if(p)AP.push(p);}
       mx=P.land[0];mz=P.land[1];landD=hyp(mx-G.ball.x,mz-G.ball.y);
     }else{
       const y0=gB+.03,wv=[dx,dz],wkD=D*windAlong(G.aim);let u=0;mx=G.ball.x;mz=G.ball.y;   // v93: the wind makes it fly longer or shorter (distance only; no sideways drift in the preview)
       for(let i=1;i<=90;i++){u=i/36;const qx=G.ball.x+dx*D*u+pxv*cv*u*u+wv[0]*wkD*u*u,qz=G.ball.y+dz*D*u+pzv*cv*u*u+wv[1]*wkD*u*u,Y=y0+shotApex(club,D)*Mv.apex*arcH(u),gnd=hAt(qx,qz);mx=qx;mz=qz;
-        if(u>.5&&Y<=gnd)break;const p=proj(qx,Y,qz);if(p&&i%1===0){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
+        if(u>.5&&Y<=gnd)break;const p=proj(qx,Y,qz);if(p)AP.push(p);}
       landD=hyp(mx-G.ball.x,mz-G.ball.y);
     }
+    drawAimPath(AP);
     G.landPt=[mx,mz];const e=groundEllipse(mx,mz,club.putter?.35:3,13);G.landE=e;
     if(e){const pulse=1+Math.sin(T*4)*.08;sctx.lineWidth=3.5;sctx.strokeStyle='#0f2233';sctx.beginPath();sctx.ellipse(e.x,e.y,e.rx*pulse+1,e.ry*pulse+1,0,0,TAU);sctx.stroke();
       sctx.lineWidth=2.5;sctx.strokeStyle='#ffc93c';sctx.beginPath();sctx.ellipse(e.x,e.y,e.rx*pulse,e.ry*pulse,0,0,TAU);sctx.stroke();
@@ -6617,6 +6619,19 @@ function renderScene(){
       sctx.fillStyle=MATCH.turn===0?'rgba(120,30,40,.85)':'rgba(12,30,46,.85)';sctx.beginPath();sctx.roundRect(q[0]-w/2,q[1]-24,w,17,8.5);sctx.fill();sctx.fillStyle='#fff6dc';sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText(tx,q[0],q[1]-15.5);}}}
   if(G.overview){sctx.fillStyle='rgba(9,24,36,.8)';const tx='Whole hole · tap to return';sctx.font='700 13px "Barlow Semi Condensed",system-ui,sans-serif';const w=sctx.measureText(tx).width+24;sctx.beginPath();sctx.roundRect(W/2-w/2,topH+6,w,26,13);sctx.fill();sctx.fillStyle='#fff6dc';sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText(tx,W/2,topH+19);}
 }
+/* the pre-shot aiming line: dots (the original), solid, fade (solid, thinning and fading toward the landing) or glow. ?aimline=<style>
+   picks one on this phone (kept), for trying them before one becomes the default */
+const AIM_STYLES=['dots','solid','fade','glow'];
+const AIM_STYLE=(()=>{try{const m=location.search.match(/[?&]aimline=(\w+)/);if(m&&AIM_STYLES.includes(m[1]))localStorage.setItem('golf-aimline',m[1]);const v=localStorage.getItem('golf-aimline');return AIM_STYLES.includes(v)?v:'dots';}catch(e){return'dots';}})();
+function drawAimPath(P){const n=P.length;if(!n)return;const w=p=>clamp(.06*p[3],1.4,3);   // width follows distance, as the dots did
+  if(AIM_STYLE==='dots'||n<2){sctx.fillStyle='rgba(255,255,255,.9)';for(const p of P){sctx.beginPath();sctx.arc(p[0],p[1],w(p),0,TAU);sctx.fill();}return;}
+  sctx.save();sctx.lineCap='round';sctx.lineJoin='round';
+  const seg=(i,width,style)=>{sctx.strokeStyle=style;sctx.lineWidth=width;sctx.beginPath();sctx.moveTo(P[i-1][0],P[i-1][1]);sctx.lineTo(P[i][0],P[i][1]);sctx.stroke();};
+  if(AIM_STYLE==='solid'){for(let i=1;i<n;i++)seg(i,w(P[i])*1.5+2,'rgba(15,34,51,.55)');for(let i=1;i<n;i++)seg(i,w(P[i])*1.5,'#fff');}
+  else if(AIM_STYLE==='fade'){for(let i=1;i<n;i++){const k=i/(n-1);seg(i,w(P[i])*(1.6-.7*k)+1.6,'rgba(15,34,51,'+(.5-.3*k).toFixed(3)+')');}
+    for(let i=1;i<n;i++){const k=i/(n-1);seg(i,w(P[i])*(1.6-.7*k),'rgba(255,255,255,'+(.98-.5*k).toFixed(3)+')');}}
+  else{for(let i=1;i<n;i++)seg(i,w(P[i])*4.5,'rgba(255,236,170,.22)');for(let i=1;i<n;i++)seg(i,w(P[i])*2.4,'rgba(255,246,220,.45)');for(let i=1;i<n;i++)seg(i,w(P[i])*1.1,'#fff');}
+  sctx.restore();}
 const FLAME_COL={blue:['rgba(235,248,255,','rgba(90,175,255,','rgba(40,70,255,'],red:['rgba(255,247,205,','rgba(255,150,40,','rgba(225,40,20,']};
 function drawFlames(kind){const raw=G.trail,C=FLAME_COL[kind];if(!C)return;const tr=[];const m=Math.min(raw.length,24);
   for(let i=raw.length-m;i<raw.length;i++){const a=raw[Math.max(0,i-1)],b=raw[i];for(let j=1;j<=3;j++){const t=j/3;tr.push({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,Y:a.Y+(b.Y-a.Y)*t});}}const n=tr.length;
