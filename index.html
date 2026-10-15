@@ -5776,7 +5776,7 @@ function r3WaterNormals(){const S=256,h=new Float32Array(S*S),R=rng(515);
   return r3DataTex(d,S,S,{mip:true,repeat:true});}
 
 function r3Init(){const T=window.THREE;if(!T)return false;
-  const renderer=new T.WebGLRenderer({canvas:glc,antialias:false,alpha:false,depth:true,stencil:false,powerPreference:'high-performance',preserveDrawingBuffer:false});
+  const renderer=new T.WebGLRenderer({canvas:glc,antialias:false,alpha:false,depth:false,stencil:false,powerPreference:'high-performance',preserveDrawingBuffer:false});
   if(!renderer.capabilities.isWebGL2)return false;
   renderer.autoClear=false;renderer.outputColorSpace=T.LinearSRGBColorSpace;renderer.toneMapping=T.NoToneMapping;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;
@@ -6271,15 +6271,17 @@ function r3PostInit(){const T=THREE,P=R3.post={dirty:true,rt:{},m:{}};
      c+=(hsh(gl_FragCoord.xy)-.5)/255.;
      gl_FragColor=vec4(c,1.);}`,['scene','b1','b2','b3','ao','px','hdr','aoOn','bloomK','expo','asp','sunP','fxaaOn','dep','K','dof','dofP']);}
 function r3PostTargets(){const T=THREE,P=R3.post,q=r3Q(),sz=R3.szV||(R3.szV=new T.Vector2());R3.renderer.getDrawingBufferSize(sz);const w=sz.x,h=sz.y;
-  if(!P.dirty&&P.w===w&&P.h===h&&P.msaa===q.msaa)return;for(const k in P.rt)P.rt[k].dispose();P.rt={};P.w=w;P.h=h;P.msaa=q.msaa;P.dirty=false;
+  const dep=!!q.ao||R3.tv.dof>0;if(!P.dirty&&P.w===w&&P.h===h&&P.msaa===q.msaa&&P.dep===dep)return;for(const k in P.rt)P.rt[k].dispose();P.rt={};P.w=w;P.h=h;P.msaa=q.msaa;P.dep=dep;P.dirty=false;
   const type=R3.hf?T.HalfFloatType:T.UnsignedByteType;P.hdr=!!R3.hf;
   const rt=(W2,H2,o={})=>new T.WebGLRenderTarget(Math.max(1,W2),Math.max(1,H2),{type:o.type||type,format:T.RGBAFormat,colorSpace:T.NoColorSpace,depthBuffer:!!o.depth,stencilBuffer:false,samples:o.samples||0,minFilter:T.LinearFilter,magFilter:T.LinearFilter,generateMipmaps:false});
-  const s=P.rt.scene=rt(w,h,{depth:true,samples:q.msaa});s.depthTexture=new T.DepthTexture(w,h,T.UnsignedIntType);
+  const s=P.rt.scene=rt(w,h,{depth:true,samples:q.msaa});if(dep)s.depthTexture=new T.DepthTexture(w,h,T.UnsignedIntType);
   // only the buffers this quality level draws into are made (a change of level comes back through here)
   if(q.bloom){for(const[n,d]of[['b1',1],['b2',2],['b3',3]]){P.rt[n+'a']=rt(w>>d,h>>d);P.rt[n+'b']=rt(w>>d,h>>d);}}
   else P.rt.b1a=P.rt.b2a=P.rt.b3a=rt(1,1);   // stand-ins: the final pass still names them, at zero strength
   if(R3.tv.dof>0){P.rt.dfa=rt(w>>1,h>>1);P.rt.dfb=rt(w>>2,h>>2);P.rt.dfc=rt(w>>2,h>>2);}
   if(q.ao){P.rt.aoa=rt(w>>1,h>>1,{type:T.UnsignedByteType});P.rt.aob=rt(w>>1,h>>1,{type:T.UnsignedByteType});}}
+/* a depth buffer nothing reads afterwards: tell the GPU not to write it back to memory (phone GPUs keep it on chip otherwise) */
+function r3DropDepth(rt){if(!rt||rt.depthTexture||rt.samples>0)return;const gl=R3.renderer.getContext();if(gl.invalidateFramebuffer)gl.invalidateFramebuffer(gl.FRAMEBUFFER,[gl.DEPTH_ATTACHMENT]);}
 function r3Pass(name,target,set){const P=R3.post,m=P.m[name];set(m.uniforms);P.quad.material=m;R3.renderer.setRenderTarget(target||null);R3.renderer.render(P.scene,P.cam);}
 const R3_V2=[];function r3V2(k,x,y){return(R3_V2[k]||(R3_V2[k]=new THREE.Vector2())).set(x,y);}
 function r3Post(){const P=R3.post,q=r3Q(),t=P.rt,w=P.w,h=P.h,hd=P.hdr?1:0;
@@ -6302,7 +6304,7 @@ function r3Post(){const P=R3.post,q=r3Q(),t=P.rt,w=P.w,h=P.h,hd=P.hdr?1:0;
   if(s&&s[0]>-40&&s[0]<W+40&&s[1]>-40&&s[1]<H+40){const edge=clamp(Math.min(s[0]+40,W+40-s[0],s[1]+40,H+40-s[1])/120,0,1);sp.set(s[0]/W,1-s[1]/H,edge);}
   r3Pass('final',null,u=>{u.scene.value=t.scene.texture;u.b1.value=q.bloom?t.b1a.texture:blank;u.b2.value=t.b2a.texture;u.b3.value=t.b3a.texture;u.ao.value=q.ao?t.aoa.texture:blank;
     u.px.value=r3V2(13,1/w,1/h);u.hdr.value=1;u.aoOn.value=q.ao?1:0;u.bloomK.value=q.bloom?(P.hdr?.55:.35):0;u.expo.value=.97*R3.expoK;u.asp.value=W/H;u.sunP.value=sp;u.fxaaOn.value=q.msaa?0:1;
-    u.dep.value=t.scene.depthTexture;u.K.value=Kv;u.dof.value=tv.dof>0&&t.dfb?t.dfb.texture:blank;u.dofP.value=(R3.DPV||(R3.DPV=new THREE.Vector3())).set(fD,0,tv.dof*.45);});}
+    u.dep.value=t.scene.depthTexture||blank;u.K.value=Kv;u.dof.value=tv.dof>0&&t.dfb?t.dfb.texture:blank;u.dofP.value=(R3.DPV||(R3.DPV=new THREE.Vector3())).set(fD,0,tv.dof*.45);});}
 
 function r3Reflect(){const q=r3Q(),WU=R3.WU;WU.rfOn.value=0;if(!q.ao||!R3.water||!G.hole||G.overview){R3.rfHave=false;return;}
   // the pond nearest to the view, if it is on screen
@@ -6318,7 +6320,7 @@ function r3Reflect(){const q=r3Q(),WU=R3.WU;WU.rfOn.value=0;if(!q.ao||!R3.water|
   const U=R3.U;U.E.value.set(...E1);U.R.value.set(...R1);U.U.value.set(...U1);U.Fw.value.set(...F1);
   const wv=R3.water.visible,gv=R3.grass&&R3.grass.visible;R3.water.visible=false;if(R3.grass)R3.grass.visible=false;const glv=(R3G.lods||[]).map(l=>l.m.visible);for(const l of R3G.lods||[])l.m.visible=false;
   const fade=U.r3fade.value;U.r3fade.value=0;rd.clippingPlanes=[new T3.Plane(new T3.Vector3(0,1,0),-l+.05)];
-  rd.setRenderTarget(P.rf);rd.clear(true,true,false);rd.render(R3.scene,mc);rd.clippingPlanes=[];
+  rd.setRenderTarget(P.rf);rd.clear(true,true,false);rd.render(R3.scene,mc);r3DropDepth(P.rf);rd.clippingPlanes=[];
   R3.water.visible=wv;if(R3.grass)R3.grass.visible=gv;(R3G.lods||[]).forEach((l,i)=>l.m.visible=glv[i]);U.r3fade.value=fade;
   U.E.value.set(...V.E);U.R.value.set(...V.R);U.U.value.set(...V.U);U.Fw.value.set(...V.F);
   WU.rfM.value.multiplyMatrices(mc.projectionMatrix,mc.matrixWorldInverse);WU.rfT.value=P.rf.texture;WU.rfOn.value=1;}
@@ -6356,7 +6358,7 @@ function r3ShcInit(){const rd=R3.renderer,sm=rd.shadowMap;if(sm.__shc||window.__
     const m=sh.map;if(!C.rt||C.rt.width!==m.width||C.rt.height!==m.height){if(C.rt)C.rt.dispose();C.rt=new T3.WebGLRenderTarget(m.width,m.height,{minFilter:T3.NearestFilter,magFilter:T3.NearestFilter,depthBuffer:false});rd.initRenderTarget(C.rt);}
     const P=rd.properties,gl=rd.getContext(),fa=P.get(m).__webglFramebuffer,fb=P.get(C.rt).__webglFramebuffer;C.valid=false;
     if(fa&&fb){gl.disable(gl.SCISSOR_TEST);gl.bindFramebuffer(gl.READ_FRAMEBUFFER,fa);gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER,fb);   // raw binds (three's cache can't be trusted for the read binding), then a state reset
-      gl.blitFramebuffer(0,0,m.width,m.height,0,0,m.width,m.height,gl.COLOR_BUFFER_BIT,gl.NEAREST);C.valid=gl.getError()===0;const crt=rd.getRenderTarget(),cf=rd.getActiveCubeFace(),cm=rd.getActiveMipmapLevel();rd.resetState();rd.setRenderTarget(crt,cf,cm);}
+      gl.blitFramebuffer(0,0,m.width,m.height,0,0,m.width,m.height,gl.COLOR_BUFFER_BIT,gl.NEAREST);C.valid=C.blitOK!==undefined?C.blitOK:(C.blitOK=gl.getError()===0);const crt=rd.getRenderTarget(),cf=rd.getActiveCubeFace(),cm=rd.getActiveMipmapLevel();rd.resetState();rd.setRenderTarget(crt,cf,cm);}
     C.st=st;C.n.cap++;C.map=m;
     this.needsUpdate=true;cast(st,false);try{noClear(()=>orig.call(this,lights,scene,cam));}finally{cast(st,true);}};}
 // each frame, before anything is drawn: full / capture / put back the kept trees and redraw only what moves
@@ -6381,7 +6383,7 @@ function r3Render(){const rd=R3.renderer;if(!G.hole)return;R3.sun.intensity=SUN_
   if(typeof r3TreeLOD==='function')r3TreeLOD(false);r3GrassUpdate();{const now2=performance.now(),dt2=Math.min(.1,(now2-(R3.tTr||now2))/1000);R3.tTr=now2;r3Tracer(dt2);}r3PostTargets();{const sg=[V.E[0],V.E[1],V.E[2],V.F[0],V.F[1],V.F[2]].map(v=>v.toFixed(3)).join(),still=sg===R3.shSig&&G.state==='aim'&&!(typeof R3R!=='undefined'&&R3R.on)&&!G.fc;
     R3.shSig=sg;R3.camStill=sg===R3.shSigPrev;R3.shSigPrev=sg;R3.shN=(R3.shN||0)+1;const shEv=r3Q().shEv||2;rd.shadowMap.needsUpdate=G.state==='power'||G.state==='acc'||(!still&&(R3.shN%shEv===0||G.state==='intro'))||R3.shN%(shEv*3)===0;   /* during the meter every frame, so frames cost the same and the cursor moves evenly */
     r3ShcInit();r3ShcPlan();}r3Reflect();
-  rd.setRenderTarget(R3.post.rt.scene);rd.setClearColor(0x000000,1);rd.clear(true,true,false);rd.render(R3.scene,R3.cam);
+  rd.setRenderTarget(R3.post.rt.scene);rd.setClearColor(0x000000,1);rd.clear(true,true,false);rd.render(R3.scene,R3.cam);r3DropDepth(R3.post.rt.scene);
   r3Post();}
 
 /* ===================== GPU grass field =====================
@@ -6770,7 +6772,7 @@ function meterAt(at){const m=G.meter;if(!(at>0)||!(MCLK.t>0))return;const d=clam
   if(G.state==='power')m.pos=clamp(m.pos+(m.dir||1)*d*meterSpeed(),IMPACT,1);else if(G.state==='acc')m.pos=clamp(m.pos-d*meterSpeed(),0,1);}
 /* smoothness stats: frame times per hole (all play, and while the swing meter runs), sent quietly to the perf_stats table
    when the hole changes or the app goes to the background. Nothing is shown in the game. */
-var PSTAT={all:[],met:[],hole:null};
+var PSTAT={all:[],met:[],js:[],dc:[],hole:null};
 function pstatAdd(raw){if(!PSTAT||document.hidden||G.paused||!G.hole||(typeof REC!=='undefined'&&REC.on)||(typeof SPEC!=='undefined'&&SPEC.on))return;
   const st=G.state;if(st==='intro'||st==='card')return;const ms=raw*1000;if(!(ms>0&&ms<1000))return;
   if(PSTAT.all.length<30000)PSTAT.all.push(ms);if((st==='power'||st==='acc')&&!G.aiTurn&&PSTAT.met.length<10000)PSTAT.met.push(ms);
@@ -6778,13 +6780,13 @@ function pstatAdd(raw){if(!PSTAT||document.hidden||G.paused||!G.hole||(typeof RE
 function pstatSum(a){if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y),n=s.length,sum=s.reduce((x,y)=>x+y,0);
   return{n,avg:1000/(sum/n),med:1000/s[n>>1],p95:s[Math.min(n-1,Math.floor(n*.95))],max:s[n-1],st:100*s.filter(v=>v>40).length/n};}
 function pstatFlush(keep){if(typeof PSTAT==='undefined'||!PSTAT||!PSTAT.all.length){if(PSTAT)PSTAT.hole=null;return;}
-  const A=pstatSum(PSTAT.all),M=pstatSum(PSTAT.met),h=PSTAT.hole;PSTAT.all=[];PSTAT.met=[];PSTAT.hole=null;
+  const A=pstatSum(PSTAT.all),M=pstatSum(PSTAT.met),h=PSTAT.hole,js=PSTAT.js.sort((x,y)=>x-y),dc=PSTAT.dc.sort((x,y)=>x-y);PSTAT.all=[];PSTAT.met=[];PSTAT.js=[];PSTAT.dc=[];PSTAT.hole=null;
   if(!A||A.n<60||!h||!DAILY.url)return;const r1=v=>v==null?null:Math.round(v*10)/10;
   const body={player_id:dailyPid(),name:(dailyName()||'').slice(0,16),ver:String(window.GOLF_VER||'').slice(0,40),course:String(h.course).slice(0,24),hole:h.hole,mode:String(h.mode).slice(0,16),
     gfx:String((typeof R3!=='undefined'&&R3.q)||'').slice(0,8),perf:(typeof R3!=='undefined'&&R3.perf)||0,
     device:{ua:navigator.userAgent.slice(0,200),scr:screen.width+'x'+screen.height,dpr:window.devicePixelRatio||1,vw:innerWidth+'x'+innerHeight,app:!!(navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches))},
     frames:A.n,fps_avg:r1(A.avg),fps_med:r1(A.med),ms_p95:r1(A.p95),ms_max:r1(A.max),stutter_pct:r1(A.st),
-    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st),extra:{cap30:!!PERF.cap,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0,shc:R3.shc?R3.shc.n:null,trees:R3T.kept||null}};if(R3.shc)R3.shc.n={dyn:0,cap:0,full:0};
+    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st),extra:{cap30:!!PERF.cap,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0,shc:R3.shc?R3.shc.n:null,trees:R3T.kept||null,js_med:js.length?r1(js[js.length>>1]):null,js_p95:js.length?r1(js[Math.floor(js.length*.95)]):null,dc_med:dc.length?dc[dc.length>>1]:null}};if(R3.shc)R3.shc.n={dyn:0,cap:0,full:0};
   try{fetch(DAILY.url+'/rest/v1/perf_stats',{method:'POST',keepalive:!!keep,headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(body)}).catch(()=>{});}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pstatFlush(true);});addEventListener('resize',()=>{MCLK.w=0;});   // w: the meter's width, measured once (not every frame)
 const PERF={n:0,sum:0,level:0};
@@ -6921,7 +6923,9 @@ function frame(now){requestAnimationFrame(frame);   /* asked for first, so one e
   if(PERF.cap&&now-last<28&&!(REC&&REC.on))return;   /* steady 30: every other refresh (on a 120 Hz screen, every fourth) */
   const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);if(FPSM.on)fpsTick(now,raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
   try{ambTick(dt);}catch(e){}
-  if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}MCLK.t=now;   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}}
+  const j0=performance.now(),rr=R3.renderer;if(rr&&!rr.__dc){const ro=rr.render;rr.__dc=1;rr.render=function(a,b){ro.call(this,a,b);R3.dcN=(R3.dcN||0)+this.info.render.calls;};}R3.dcN=0;
+  if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}MCLK.t=now;   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}
+  if(PSTAT.hole&&PSTAT.js.length<30000){PSTAT.js.push(performance.now()-j0);if(rr&&PSTAT.dc.length<2000&&(PSTAT.js.length&15)===0)PSTAT.dc.push(R3.dcN);}}   /* the phone's own work per frame (JS and handing draws to the GPU), and draw calls: which of the two is the limit */
 
 /* ---------- input ---------- */
 let drag=null;const PTS=new Map();
