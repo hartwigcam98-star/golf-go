@@ -161,7 +161,10 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .ffbtn{background:rgba(15,34,51,.9)!important;border:2px solid var(--sun);color:var(--sun)!important}
 .ffbtn.on{background:var(--sun)!important;color:var(--ink)!important}
 .replaybtn{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 84px);background:rgba(180,34,58,.92);color:#fff;border-radius:999px;padding:6px 16px;font-size:16px;box-shadow:0 3px 0 rgba(0,0,0,.25)}
-.gfxrow{display:flex;align-items:center;gap:10px;margin:12px 0 16px}.gfxrow>span{font-weight:700;font-size:13px;color:#12283b}.gfxseg{grid-template-columns:1fr 1fr!important;flex:1}
+.gfxrow{display:flex;align-items:center;gap:10px;margin:12px 0 16px}
+#fpsChip{position:fixed;left:calc(env(safe-area-inset-left) + 12px);top:calc(env(safe-area-inset-top) + 84px);z-index:30;pointer-events:none;display:flex;align-items:baseline;gap:4px;padding:3px 8px;border-radius:9px;background:rgba(10,24,36,.62);color:#fff;font:700 12px/1.1 ui-monospace,Menlo,monospace;letter-spacing:.02em}
+#fpsChip[hidden]{display:none}#fpsChip b{font-size:14px;min-width:2ch;text-align:right}#fpsChip span{font-size:9px;opacity:.75}#fpsChip i{font-style:normal;font-size:9px;opacity:.7;margin-left:3px}
+#fpsChip.ok b{color:#7be38a}#fpsChip.mid b{color:#ffd34d}#fpsChip.bad b{color:#ff7a6b}.gfxrow>span{font-weight:700;font-size:13px;color:#12283b}.gfxseg{grid-template-columns:1fr 1fr!important;flex:1}
 .mtabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;margin:0 0 12px;border-radius:14px;background:rgba(18,40,59,.1)}
 .mtabs button{border-radius:11px;padding:9px 4px;font-family:"Lilita One",system-ui,sans-serif;font-size:17px;color:#12283b;background:transparent}
 .mtabs button.on{background:#12283b;color:var(--sun);box-shadow:0 2px 0 rgba(0,0,0,.25)}
@@ -807,6 +810,7 @@ td.won{background:rgba(255,201,60,.38)}
       <p class="fine">Your round saves on this device after every shot. Unofficial re-creation (course and surroundings © OpenStreetMap contributors; elevation: USGS 3DEP; driver sound: Mixkit); not affiliated with any of the clubs.</p>
     </div>
   </div>
+  <div id="fpsChip" hidden aria-hidden="true"><b id="fpsN">--</b><span>FPS</span><i id="fpsQ"></i></div>
   <div class="modal" id="pauseM" hidden>
     <div class="card pausecard" role="dialog" aria-labelledby="pTitle">
       <div id="pMain">
@@ -818,6 +822,7 @@ td.won{background:rgba(255,201,60,.38)}
         <div class="pset"><span>Vibration</span><div class="pseg" id="pHap"><button data-h="1">On</button><button data-h="0">Off</button></div></div>
         <div class="pset"><span>HUD</span><div class="pseg hudseg" id="pHud"><button data-u="">Classic</button><button data-u="a">Arcade</button><button data-u="b">TV</button><button data-u="c">Minimal</button></div></div>
         <div class="pset"><span>Graphics</span><div class="pseg" id="pGfx"><button data-g="high">High</button><button data-g="fast">Fast</button></div></div>
+        <div class="pset"><span>Show FPS</span><div class="pseg" id="pFps"><button data-f="1">On</button><button data-f="0">Off</button></div></div>
         <div class="pset" id="pMixRow" hidden><span>Other music</span><div class="pseg" id="pMix"><button data-mix="0">Pause it</button><button data-mix="1">Keep playing</button></div></div>
         <button class="ghost disp" id="pFaq">Help &amp; FAQ</button>
         <button class="ghost disp" id="pFb">Send feedback</button>
@@ -3248,7 +3253,7 @@ const DAILY_N4=Math.round(Date.UTC(2026,9,5)/864e5),DAILY_POOL=[['desertcanyon',
 // one-off swaps of a day's course (Oct 4 2026 was Troy again, two days after Troy; it became Cambrian Ridge Sherling)
 // courses taken out of the daily rotation from a given day (past days keep them, so they never change)
 const DAILY_OFF={hazeltine:Math.round(Date.UTC(2026,9,14)/864e5),windsong:Math.round(Date.UTC(2026,9,14)/864e5)};
-const DAILY_FIX={[Math.round(Date.UTC(2026,9,4)/864e5)]:'crsc',[Math.round(Date.UTC(2026,9,14)/864e5)]:'dove'};   // Oct 14 2026: the user swapped Hazeltine for a course nobody had played
+const DAILY_FIX={[Math.round(Date.UTC(2026,9,4)/864e5)]:'crsc',[Math.round(Date.UTC(2026,9,14)/864e5)]:'dove',[Math.round(Date.UTC(2026,9,15)/864e5)]:'farmlinks'};   // Oct 14 2026: the user swapped Hazeltine for a course nobody had played
 function dailyCourseOld(n){if(DAILY_FIX[n])return DAILY_FIX[n];if(n>=DAILY_N3)return DAILY_ORDER3[(n-DAILY_N3)%DAILY_ORDER3.length];if(n>=DAILY_N2)return DAILY_ORDER2[(n-DAILY_N2)%DAILY_ORDER2.length];return DAILY.order[((n%DAILY.order.length)+DAILY.order.length)%DAILY.order.length];}
 const DAILY_LRU={last:null,list:[]};
 /* v99 shuffled daily rotation (from 2026-10-08): each day draws at random (seeded by the date, so everyone gets the same
@@ -3593,7 +3598,7 @@ function pauseCtx(){const h=G.hole;let tp=0,n=0;(G.scores||[]).forEach((x,i)=>{i
   return{course:CUR&&CUR.id,hole:(G.hi??-1)+1,mode:G.mode,stroke:(G.strokes||0)+1,lie:G.lie,state:G.state,toPar:n?tp:null,thru:n,ver:window.GOLF_VER||'',gfx:R3&&R3.q,
     screen:innerWidth+'x'+innerHeight+'@'+(devicePixelRatio||1),ua:navigator.userAgent.slice(0,180),app:matchMedia('(display-mode: standalone)').matches||!!navigator.standalone};}
 function inRound(){return!!G.hole&&G.state!=='intro'&&G.mode!=='spectate'&&G.mode!=='highlight'&&$('menuM').hidden;}
-function pauseSync(){document.querySelectorAll('#pSound button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===!!S.on));
+function pauseSync(){document.querySelectorAll('#pFps button').forEach(b=>b.classList.toggle('on',(b.dataset.f==='1')===!!FPSM.on));document.querySelectorAll('#pSound button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===!!S.on));
   document.querySelectorAll('#pHap button').forEach(b=>b.classList.toggle('on',(b.dataset.h==='1')===!!HAP.on));
   document.querySelectorAll('#pGfx button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='high')===(R3.q==='high')));}
 function openPause(){PAUSE.shot=pauseShot();G.paused=true;const c=pauseCtx();
@@ -3677,6 +3682,7 @@ $('fbBack').addEventListener('click',()=>{A();$('pFbView').hidden=true;$('pMain'
 $('fbSend').addEventListener('click',()=>{A();sendFeedback();});
 document.querySelectorAll('#fbKind button').forEach(b=>b.addEventListener('click',()=>{A();PAUSE.kind=b.dataset.k;document.querySelectorAll('#fbKind button').forEach(x=>x.classList.toggle('on',x===b));}));
 document.querySelectorAll('#pSound button').forEach(b=>b.addEventListener('click',()=>{if((b.dataset.v==='1')!==!!S.on)$('soundBtn').click();pauseSync();}));
+document.querySelectorAll('#pFps button').forEach(b=>b.addEventListener('click',()=>{FPSM.on=b.dataset.f==='1';try{localStorage.setItem('golf-fps',FPSM.on?'1':'0');}catch(_){}FPSM.n=0;FPSM.t0=0;fpsTick(performance.now(),0);pauseSync();}));
 document.querySelectorAll('#pHap button').forEach(b=>b.addEventListener('click',()=>{HAP.on=b.dataset.h==='1';try{localStorage.setItem('golf-hap',HAP.on?'1':'0');}catch(_){}pauseSync();if(HAP.on){const a=G.aiTurn;G.aiTurn=false;haptic('tap');G.aiTurn=a;}}));
 document.querySelectorAll('#pGfx button').forEach(b=>b.addEventListener('click',()=>{try{r3SetQuality(b.dataset.g==='high'?'high':'fast');}catch(e){}pauseSync();}));
 $('pauseM').addEventListener('click',e=>{if(e.target===$('pauseM'))closePause();});
@@ -6873,9 +6879,17 @@ function replayCamTV(){const L=G.lastShot,r=G.replay,rp=replayPoint(Math.max(0,r
   const sx=-dz,sz=dx,ex=s1.x+sx*16-dx*7,ez=s1.y+sz*16-dz*7;return{E:[ex,hAt(ex,ez)+5,ez],L:[rp.x,rp.Y,rp.y]};}
 /* menu screens with a solid backdrop hide the course completely: nothing is drawn behind them (saves battery and heat) */
 const COVERS=['menuM','dailyM','recM','careerM','hlM','charM'].map(id=>$(id));
+/* v122: optional live frame-rate chip (pause menu > Show FPS): frames per second over the last half second, coloured,
+   plus the drawing resolution when the game has lowered it and the graphics level when it has stepped down */
+const FPSM={on:(()=>{try{return localStorage.getItem('golf-fps')==='1';}catch(e){return false;}})(),n:0,t0:0,slow:0};
+function fpsTick(now,raw){const el=$('fpsChip');if(!el)return;const show=FPSM.on&&!!G.hole&&!G.paused;if(el.hidden===show)el.hidden=!show;if(!show)return;
+  if(!FPSM.t0){FPSM.t0=now;FPSM.n=0;FPSM.slow=0;return;}FPSM.n++;if(raw>.0205)FPSM.slow++;const span=now-FPSM.t0;if(span<500)return;
+  const f=Math.round(FPSM.n*1000/span),d=R3.dyn||1,l=R3.perf||0;$('fpsN').textContent=f;
+  $('fpsQ').textContent=(d<.995?Math.round(d*100)+'%':'')+(l?(d<.995?' ':'')+'L'+l:'')+(PERF.cap?' 30 lock':'');
+  el.className=f>=55?'ok':f>=40?'mid':'bad';FPSM.t0=now;FPSM.n=0;FPSM.slow=0;}
 function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
   if(PERF.cap&&now-last<28&&!(REC&&REC.on))return;   /* steady 30: every other refresh (on a 120 Hz screen, every fourth) */
-  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
+  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);if(FPSM.on)fpsTick(now,raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
   try{ambTick(dt);}catch(e){}
   if(G.hole){if(!G.paused){const n=SPEC.on?(SPEC.ff||1):G.ff>1&&ffActive()?G.ff:1;for(let i=0;i<n;i++){G.hudSkip=i<n-1;update(dt);}MCLK.t=now;   /* fast-forward takes several steps a frame: the readouts are worked out once, on the last */}if(!COVERS.some(m=>!m.hidden))render();}}
 
@@ -7104,6 +7118,10 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-15-daily",date:"Oct 15, 2026",title:"Today's daily: FarmLinks",items:[
+    "Today's daily round moved from Sand Valley, which we've already played, to FarmLinks at Pursell Farms in Alabama, a course nobody has played in the daily yet."]},
+  {id:"2026-10-15-fps",date:"Oct 15, 2026",title:"Live frame rate",items:[
+    "Turn on Show FPS in the pause menu to see your frame rate while you play, in the top left. Green is smooth (55+), yellow is OK, red is choppy. When the game has lowered the sharpness or the graphics level to keep up, that shows next to it too."]},
   {id:"2026-10-14-dcn",date:"Oct 14, 2026",title:"New course: Desert Canyon",items:[
     "Desert Canyon Golf Club (Fountain Hills, Arizona) is now in the game from the Canyon tees: 6,410 yards on the card, par 71. It's a 1971 John Allen layout that winds through desert arroyos and neighbourhoods, with raised tees and greens.",
     "The real map only had the hole lines, so the greens, tees, fairways, bunkers and the pond on the 1st were traced from the aerial photo. The ground and greens come from 2020 lidar.",
