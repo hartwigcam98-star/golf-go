@@ -474,7 +474,7 @@ td.won{background:rgba(255,201,60,.38)}
 #pCardView .primary{margin-top:10px}
 .pset{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 10px;font-weight:700;color:#12283b;font-size:15px}
 .pseg{display:grid;gap:4px;background:#e3dccb;border-radius:10px;padding:3px}.hudseg button{font-size:12.5px!important}.pseg button{padding:7px 0;border-radius:8px;font-weight:700;font-size:14px;color:#12283b}.pseg button.on{background:#12283b;color:var(--sun)}
-.pset .pseg{width:150px;grid-template-columns:repeat(2,1fr)}
+.pset .pseg{width:150px;grid-template-columns:repeat(2,1fr)}#pTrz{width:204px;grid-template-columns:repeat(3,1fr)}#pTrz button{font-size:13px}
 .fbkind{grid-template-columns:repeat(4,1fr)!important;margin-bottom:10px}
 #fbText{box-sizing:border-box;width:100%;min-height:110px;border-radius:12px;border:2px solid #12283b;padding:10px;font:inherit;font-size:16px;color:#12283b;background:#fffdf5;resize:vertical}
 .fbshot{display:flex;align-items:center;gap:10px;margin:10px 0;text-align:left;font-size:14px;color:#24384a}
@@ -824,6 +824,7 @@ td.won{background:rgba(255,201,60,.38)}
         <div class="pset"><span>HUD</span><div class="pseg hudseg" id="pHud"><button data-u="">Classic</button><button data-u="a">Arcade</button><button data-u="b">TV</button><button data-u="c">Minimal</button></div></div>
         <div class="pset"><span>Graphics</span><div class="pseg" id="pGfx"><button data-g="high">High</button><button data-g="fast">Fast</button></div></div>
         <div class="pset"><span>Swing</span><div class="pseg" id="pSwing"><button data-s="0">With meter</button><button data-s="1">After taps</button></div></div>
+        <div class="pset"><span>Flight zoom</span><div class="pseg" id="pTrz"><button data-z="1">Standard</button><button data-z="1.3">Closer</button><button data-z="1.5">Closest</button></div></div>
         <div class="pset"><span>Grid lines</span><div class="pseg" id="pGrid"><button data-g="0">Standard</button><button data-g="1">Darker</button></div></div>
         <div class="pset"><span>Show FPS</span><div class="pseg" id="pFps"><button data-f="1">On</button><button data-f="0">Off</button></div></div>
         <div class="pset" id="pMixRow" hidden><span>Other music</span><div class="pseg" id="pMix"><button data-mix="0">Pause it</button><button data-mix="1">Keep playing</button></div></div>
@@ -3350,6 +3351,7 @@ const AUTH_REQUIRED=false;
    so it isn't redrawn and the meter has the phone to itself. (?swingtest=0/1 still sets it.) */
 // putts always follow the meter (the green's slope grid keeps moving while you set the stroke), whatever the setting
 const swAfter=()=>SWT&&!curClub().putter;
+var TRZ=(()=>{try{const v=+localStorage.getItem('golf-trz');return v===1.3||v===1.5?v:1;}catch(e){return 1;}})();   // Flight zoom (pause menu): how close the camera frames the ball in flight
 var GRDK=(()=>{try{return localStorage.getItem('golf-grid')==='1';}catch(e){return false;}})();   // Darker grid lines on the green (pause menu), off by default
 let SWT=(()=>{try{const m=location.search.match(/[?&]swingtest=([01])/);if(m)localStorage.setItem('golf-swt',m[1]);return localStorage.getItem('golf-swt')==='1';}catch(e){return false;}})();
 const authOn=(()=>{try{const m=location.search.match(/[?&]signin=([01])/);if(m)localStorage.setItem('golf-signin',m[1]);return AUTH_REQUIRED||localStorage.getItem('golf-signin')==='1';}catch(e){return AUTH_REQUIRED;}})();
@@ -3662,7 +3664,7 @@ function pauseCtx(){const h=G.hole;let tp=0,n=0;(G.scores||[]).forEach((x,i)=>{i
   return{course:CUR&&CUR.id,hole:(G.hi??-1)+1,mode:G.mode,stroke:(G.strokes||0)+1,lie:G.lie,state:G.state,toPar:n?tp:null,thru:n,ver:window.GOLF_VER||'',gfx:R3&&R3.q,
     screen:innerWidth+'x'+innerHeight+'@'+(devicePixelRatio||1),ua:navigator.userAgent.slice(0,180),app:matchMedia('(display-mode: standalone)').matches||!!navigator.standalone};}
 function inRound(){return!!G.hole&&G.state!=='intro'&&G.mode!=='spectate'&&G.mode!=='highlight'&&$('menuM').hidden;}
-function pauseSync(){document.querySelectorAll('#pGrid button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='1')===GRDK));document.querySelectorAll('#pSwing button').forEach(b=>b.classList.toggle('on',(b.dataset.s==='1')===SWT));document.querySelectorAll('#pFps button').forEach(b=>b.classList.toggle('on',(b.dataset.f==='1')===!!FPSM.on));document.querySelectorAll('#pSound button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===!!S.on));
+function pauseSync(){document.querySelectorAll('#pTrz button').forEach(b=>b.classList.toggle('on',+b.dataset.z===TRZ));document.querySelectorAll('#pGrid button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='1')===GRDK));document.querySelectorAll('#pSwing button').forEach(b=>b.classList.toggle('on',(b.dataset.s==='1')===SWT));document.querySelectorAll('#pFps button').forEach(b=>b.classList.toggle('on',(b.dataset.f==='1')===!!FPSM.on));document.querySelectorAll('#pSound button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===!!S.on));
 
   document.querySelectorAll('#pGfx button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='high')===(R3.q==='high')));}
 function openPause(){PAUSE.shot=pauseShot();G.paused=true;const c=pauseCtx();
@@ -3753,6 +3755,7 @@ $('mFb').addEventListener('click',()=>{A();openSettings(true);});
 $('fbSend').addEventListener('click',()=>{A();sendFeedback();});
 document.querySelectorAll('#fbKind button').forEach(b=>b.addEventListener('click',()=>{A();PAUSE.kind=b.dataset.k;document.querySelectorAll('#fbKind button').forEach(x=>x.classList.toggle('on',x===b));}));
 document.querySelectorAll('#pSound button').forEach(b=>b.addEventListener('click',()=>{if((b.dataset.v==='1')!==!!S.on)$('soundBtn').click();pauseSync();}));
+document.querySelectorAll('#pTrz button').forEach(b=>b.addEventListener('click',()=>{TRZ=+b.dataset.z;try{localStorage.setItem('golf-trz',String(TRZ));}catch(_){}pauseSync();}));
 document.querySelectorAll('#pGrid button').forEach(b=>b.addEventListener('click',()=>{GRDK=b.dataset.g==='1';try{localStorage.setItem('golf-grid',GRDK?'1':'0');}catch(_){}if(R3.GU&&R3.GU.slDk)R3.GU.slDk.value=GRDK?1:0;pauseSync();}));
 document.querySelectorAll('#pSwing button').forEach(b=>b.addEventListener('click',()=>{SWT=b.dataset.s==='1';try{localStorage.setItem('golf-swt',SWT?'1':'0');}catch(_){}pauseSync();}));
 document.querySelectorAll('#pFps button').forEach(b=>b.addEventListener('click',()=>{FPSM.on=b.dataset.f==='1';try{localStorage.setItem('golf-fps',FPSM.on?'1':'0');}catch(_){}FPSM.n=0;FPSM.t0=0;fpsTick(performance.now(),0);pauseSync();}));
@@ -4333,9 +4336,9 @@ function camTarget(){
   if((G.state==='flight'||G.state==='roll')&&G.golferAt&&G.followT>0&&G.followT<(G.launchAt||0)+.4){const ga=G.golferAt,[ax,az]=dirOf(ga.aim),g0=hAt(ga.x,ga.y);if(G.fromLie!=='green'){const ca=camAddress(ga.x,ga.y,ga.aim);if(ca)return ca;}return{E:[ga.x-ax*13,g0+5.4,ga.y-az*13],L:[ga.x+ax*40,g0,ga.y+az*40]};}
   const[dx,dz]=dirOf(G.shotRot);
   if(G.state==='holed'){const p=h.pin,gp=hAt(p[0],p[1]);return{E:[p[0]-dx*4.5,gp+2.2,p[1]-dz*4.5],L:[p[0],gp,p[1]]};}
-  if(G.state==='flight')return{E:[b.x-dx*31,G.bY*.55+gb*.45+9,b.y-dz*31],L:[b.x+dx*8,G.bY*.85+gb*.15,b.y+dz*8]};   // trailing the ball, a little wider
+  if(G.state==='flight')return{E:[b.x-dx*31,G.bY*.55+gb*.45+9,b.y-dz*31],L:[b.x+dx*8,G.bY*.85+gb*.15,b.y+dz*8],zoom:TRZ};   // trailing the ball, a little wider (Flight zoom setting)
   const putt=G.fromLie==='green';const back=putt?6:20,ht=putt?2.8:7;
-  return{E:[b.x-dx*back,gb+ht,b.y-dz*back],L:[b.x,gb,b.y]};
+  return{E:[b.x-dx*back,gb+ht,b.y-dz*back],L:[b.x,gb,b.y],zoom:putt?1:TRZ};
 }
 function stepCam(dt){
   const t=camTarget();if(t.cut){cam.E=t.E.slice();cam.L=t.L.slice();}
@@ -7290,6 +7293,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-16-zoom",date:"Oct 16, 2026",title:"Flight zoom",items:[
+    "New setting: Flight zoom. Choose Closer or Closest to have the camera frame the ball tighter while it flies and rolls out. Standard is the view you\u2019re used to."]},
   {id:"2026-10-16-spin",date:"Oct 16, 2026",title:"Backspin from the rough",items:[
     "Grass between the club and the ball now kills backspin on full shots, as in real golf. From the fairway or tee, full backspin works as before. From the first cut it\u2019s a little weaker. From the rough the ball checks but then releases forward, and from fescue there\u2019s no backspin at all. Plan for the run-out when you\u2019re in the long stuff."]},
   {id:"2026-10-16-home",date:"Oct 16, 2026",title:"Settings on the home screen",items:[
