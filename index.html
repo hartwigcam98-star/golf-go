@@ -2388,7 +2388,11 @@ const HFIX={"crsc":{"11":{"line":[[-663,-344],[-532,-227]]},"17":{"line":[[-131,
 function hfixApply(C,id){const F=HFIX[id];if(!F||C._hfix)return;C._hfix=1;for(const k in F){const f=F[k],H=C.holes[k-1];if(!H)continue;
   if(f.line){H.line=f.line.map(p=>[...p]);H.pin=[...f.line[f.line.length-1]];}
   for(const t of['green','tee','fairway'])if(f[t])for(const P of f[t])(C.polys[t]=C.polys[t]||[]).push(P);}}
-function setCourse(id,persist=true){const C=COURSES[id]||COURSES.troy;if(C===CUR&&TB===C.tb)return;if(CUR)CUR.__seen=1;C.__seen=1;CUR=C;TB=C.tb;COURSE=C.course;hfixApply(COURSE,C.id);
+/* Oct 2026: load timings (ms) ride along with the next hole's stats as extra.ld: b = app start (once), h = this hole's set-up
+   (sh: building it, ff: until it is on screen, tee: shader warm-up finished at Tee off, sc: switching course just before) */
+var LDT={boot:null,hole:null,sc:null,p:null};
+function setCourse(id,persist=true){const C=COURSES[id]||COURSES.troy;if(C===CUR&&TB===C.tb)return;const sc0=performance.now();try{setCourseRun(C,persist);}finally{LDT.sc={c:C.id,ms:Math.round(performance.now()-sc0)};}}
+function setCourseRun(C,persist){if(CUR)CUR.__seen=1;C.__seen=1;CUR=C;TB=C.tb;COURSE=C.course;hfixApply(COURSE,C.id);
   if(HFIX[C.id])for(const k in HFIX[C.id])if(HFIX[C.id][k].tip&&TB[k-1])TB[k-1].tip=HFIX[C.id][k].tip;DEM=C.dem;WIDE=C.wide;SAVE_KEY=C.saveKey;SURR.ready=null;
   HOLES.length=0;for(let i=0;i<TB.length;i++)HOLES[i]=null;G.terrains=[];G.hole=null;TOTAL_PAR=TB.reduce((s,h)=>s+h.par,0);
   if(persist)try{localStorage.setItem('golf-course',C.id);}catch(e){}
@@ -2803,7 +2807,7 @@ function holeWind(i){
   const sd=roundWindSeed(),rb=rng(sd*31+977),a0=rb()*TAU,m0=1+rb()*11,wr=rng(sd*31+1000+i*17);
   return{a:a0+(wr()-.5)*.35,mph:clamp(Math.round(m0+(wr()-.5)*4),0,16)};}
 function startHole(i){
-  try{pstatFlush();}catch(e){}try{perfRetry();}catch(e){}
+  try{pstatFlush();}catch(e){}try{perfRetry();}catch(e){}const h0=performance.now();
   G.hi=i;G.hole=hole(i);
   if(!G.hole.hg)buildHeights(G.hole);
   if(!G.terrains[i])G.terrains[i]=buildTerrain(G.hole);
@@ -2824,11 +2828,12 @@ function startHole(i){
   $('iEyebrow').textContent=G.mode==='practice'?CUR.name+' \u00b7 practice hole':G.mode==='daily'?'Daily round \u00b7 '+dailyNice(G.dailyDay)+' \u00b7 '+CUR.name:courseLine();
   $('cardM').hidden=true;$('reliefM').hidden=true;$('introM').hidden=false;
   setTimeout(()=>$('teeBtn').focus({preventScroll:true}),50);
+  LDT.hole={h:i+1,sh:Math.round(performance.now()-h0)};if(LDT.sc){LDT.hole.sc=LDT.sc;LDT.sc=null;}LDT.p={k:'hole',t0:h0,n:0};
 }
 /* Oct 2026: anything still left of the background shader warm-up is finished here, as the intro closes, so the first hole isn't
    played with first-time shader compiles (100-170 ms hitches on phones) landing in the middle of it */
 function r3WarmFinish(){if(!R3.warmQ)return;try{while(R3.warmQ.length)r3WarmJob(R3.warmQ.shift());}finally{r3WarmEnd();}}
-function teeOff(){A();$('introM').hidden=true;try{r3WarmFinish();}catch(e){}PERF.quiet=performance.now()+2500;if(MATCH.on){mNextTurn();return;}prepareShot();}
+function teeOff(){A();$('introM').hidden=true;const w0=performance.now();try{r3WarmFinish();}catch(e){}if(LDT.hole&&LDT.hole.tee==null)LDT.hole.tee=Math.round(performance.now()-w0);PERF.quiet=performance.now()+2500;if(MATCH.on){mNextTurn();return;}prepareShot();}
 function shotLie(){let L=lieAt(G.ball.x,G.ball.y);if(L!=='water'&&L!=='ob'&&G.hole&&hyp(G.ball.x-((G.hole.line&&G.hole.line[0])||[0,0])[0],G.ball.y-((G.hole.line&&G.hole.line[0])||[0,0])[1])<5)L='tee';return L;}   // the teeing area (some mapped tee boxes are too small)
 function prepareShot(){
   if(G.hole&&R3.on&&(!RL.grassAt||hyp(G.ball.x-RL.grassAt[0],G.ball.y-RL.grassAt[1])>6))buildGrassPatch(G.hole,G.ball.x,G.ball.y);
@@ -6854,10 +6859,13 @@ function meterAt(at){const m=G.meter;if(!(at>0)||!(MCLK.t>0))return;const d=clam
 /* smoothness stats: frame times per hole (all play, and while the swing meter runs), sent quietly to the perf_stats table
    when the hole changes or the app goes to the background. Nothing is shown in the game. */
 var PSTAT={all:[],met:[],js:[],dc:[],hole:null};
+function ldFrame(){const p=LDT.p;if(!p||++p.n<2)return;LDT.p=null;if(document.hidden)return;const t=performance.now();
+  if(p.k==='boot'&&LDT.boot){LDT.boot.ff=Math.round(t);if(LDT.hole&&LDT.hole.ff==null)LDT.hole.ff=Math.round(t-p.t0);}else if(p.k==='hole'&&LDT.hole)LDT.hole.ff=Math.round(t-p.t0);}
 function pstatAdd(raw){if(!PSTAT||document.hidden||G.paused||!G.hole||(typeof REC!=='undefined'&&REC.on)||(typeof SPEC!=='undefined'&&SPEC.on))return;
   const st=G.state;if(st==='intro'||st==='card')return;const ms=raw*1000;if(!(ms>0&&ms<1000))return;
   if(PSTAT.all.length<30000)PSTAT.all.push(ms);if((st==='power'||st==='acc')&&!G.aiTurn&&PSTAT.met.length<10000)PSTAT.met.push(ms);
   if(!PSTAT.hole)PSTAT.hole={course:CUR.id,hole:G.hi+1,mode:G.mode};}
+function ldTake(){const o={};if(LDT.boot&&LDT.boot.ff!=null){o.b=LDT.boot;LDT.boot=null;}if(LDT.hole&&LDT.hole.ff!=null&&!LDT.p){o.h=LDT.hole;LDT.hole=null;}return o.b||o.h?o:undefined;}
 function pstatSum(a){if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y),n=s.length,sum=s.reduce((x,y)=>x+y,0);
   return{n,avg:1000/(sum/n),med:1000/s[n>>1],p95:s[Math.min(n-1,Math.floor(n*.95))],max:s[n-1],st:100*s.filter(v=>v>40).length/n};}
 function pstatFlush(keep){if(typeof PSTAT==='undefined'||!PSTAT||!PSTAT.all.length){if(PSTAT)PSTAT.hole=null;return;}
@@ -6867,7 +6875,7 @@ function pstatFlush(keep){if(typeof PSTAT==='undefined'||!PSTAT||!PSTAT.all.leng
     gfx:String((typeof R3!=='undefined'&&R3.q)||'').slice(0,8),perf:(typeof R3!=='undefined'&&R3.perf)||0,
     device:{ua:navigator.userAgent.slice(0,200),scr:screen.width+'x'+screen.height,dpr:window.devicePixelRatio||1,vw:innerWidth+'x'+innerHeight,app:!!(navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches))},
     frames:A.n,fps_avg:r1(A.avg),fps_med:r1(A.med),ms_p95:r1(A.p95),ms_max:r1(A.max),stutter_pct:r1(A.st),
-    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st),extra:{cap30:!!PERF.cap,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0,shc:R3.shc?R3.shc.n:null,trees:R3T.kept||null,js_med:js.length?r1(js[js.length>>1]):null,js_p95:js.length?r1(js[Math.floor(js.length*.95)]):null,dc_med:dc.length?dc[dc.length>>1]:null,hx:hxl.length?hxl.sort((a,b)=>b.ms-a.ms):undefined}};if(R3.shc)R3.shc.n={dyn:0,cap:0,full:0};
+    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st),extra:{cap30:!!PERF.cap,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0,shc:R3.shc?R3.shc.n:null,trees:R3T.kept||null,js_med:js.length?r1(js[js.length>>1]):null,js_p95:js.length?r1(js[Math.floor(js.length*.95)]):null,dc_med:dc.length?dc[dc.length>>1]:null,hx:hxl.length?hxl.sort((a,b)=>b.ms-a.ms):undefined,ld:ldTake()}};if(R3.shc)R3.shc.n={dyn:0,cap:0,full:0};
   try{fetch(DAILY.url+'/rest/v1/perf_stats',{method:'POST',keepalive:!!keep,headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(body)}).catch(()=>{});}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pstatFlush(true);});addEventListener('resize',()=>{MCLK.w=0;});   // w: the meter's width, measured once (not every frame)
 const PERF={n:0,sum:0,level:0};
@@ -7021,6 +7029,7 @@ r3Golfer=hxWrap('golfer',r3Golfer);r3Dynamic=hxWrap('dyn',r3Dynamic);stepCam=hxW
 chooseShort=hxWrap('short',chooseShort);calcPuttMax=hxWrap('putt',calcPuttMax);autoClub=hxWrap('club',autoClub);r3WarmJob=hxWrap('warm',r3WarmJob);r3Shadow=hxWrap('sun',r3Shadow);
 r3GrassUpdate=hxWrap('grassU',r3GrassUpdate);cpkPack=hxWrap('pack',cpkPack);cupBuf=hxWrap('cupSnd',cupBuf);impactBuffer=hxWrap('hitSnd',impactBuffer);strikeShot=hxWrap('strike',strikeShot);pendSave=hxWrap('psave',pendSave);toast=hxWrap('toast',toast);r3Tracer=hxWrap('tracer',r3Tracer);r3Camera=hxWrap('r3cam',r3Camera);update=hxWrap('upd',update);r3Render=hxWrap('r3',r3Render);
 function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
+  if(LDT.p)try{ldFrame();}catch(e){}
   if(PERF.cap&&now-last<28&&!(REC&&REC.on))return;   /* steady 30: every other refresh (on a 120 Hz screen, every fourth) */
   const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);hxFrame(raw);if(FPSM.on)fpsTick(now,raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
   try{ambTick(dt);}catch(e){}
@@ -7237,6 +7246,7 @@ if(window.ResizeObserver)new ResizeObserver(resize).observe(document.querySelect
 
 /* ---------- boot ---------- */
 function boot(data){
+  const b0=performance.now();
   {const lm=$('loadM');if(lm)lm.remove();}
   resize();
   let ok=false;try{ok=r3Init();if(ok){document.querySelectorAll('#gfxSeg button').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();r3SetQuality(b.dataset.g==='high'?'high':'fast');}));r3SetQuality(R3.q,true);}}catch(e){console.error(e);ok=false;}
@@ -7244,6 +7254,9 @@ function boot(data){
   data=data||{};let lc=null;try{lc=localStorage.getItem('golf-course');}catch(e){}if(data.course)lc=data.course;setCourse(lc&&COURSES[lc]?lc:'troy');buildHoleGrid();
   if(Number.isInteger(data.hi)){G.mode=data.mode==='practice'?'practice':'round';if(Array.isArray(data.scores))G.scores=data.scores;startHole(clamp(data.hi,0,TB.length-1));}
   else{const sv=loadSave();G.mode='round';G.pinSeed=sv&&sv.pin||0;G.scores=sv&&Array.isArray(sv.scores)?sv.scores:[];startHole(sv?sv.hi:0);$('introM').hidden=true;openMenu(false);G.paused=false;}
+  try{const nv=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];   // bs: scripts read and boot begun; sync: boot's own work; ff (on the 2nd frame): on screen, all from page open
+    LDT.boot={bs:Math.round(b0),sync:Math.round(performance.now()-b0),html:nv?Math.round(nv.responseEnd):null,kb:nv?Math.round((nv.transferSize||0)/1024):null,sw:!!(navigator.serviceWorker&&navigator.serviceWorker.controller)};
+    LDT.p={k:'boot',t0:b0,n:0};}catch(e){}
   requestAnimationFrame(frame);
 }
 
