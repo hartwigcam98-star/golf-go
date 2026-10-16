@@ -2680,7 +2680,11 @@ function cupBuf(hard,vr){const a=S.ctx,key='cup4'+hard+vr;S.ib=S.ib||{};if(S.ib[
   {let t=t0+j(.13),f=7+R()*3;const T=t0+.62+R()*.12;while(t<T){const u=(t-t0-.13)/(T-t0-.13);hits.push([t,.28*Math.pow(1-u,1.2)*(.7+R()*.6),.9+R()*.3,0,0]);f+=4+u*9;t+=1/f;}}
   for(const[h0,amp,br,low,boom]of hits){const i0=Math.floor(h0*sr),M=MODES.map(([f,g,tau],k)=>({w:TAU*j(f),g:g*amp*Math.pow(br,k-1.2),k:1/(tau*(low?1:.7)),ph:R()*TAU}));
     let l=0;const cl=.00045*sr,lp=1-Math.exp(-TAU*(5200*br)/sr);
-    for(let i=i0;i<n;i++){const t=(i-i0)/sr;if(t>.16)break;let x=0;for(const m of M)x+=m.g*Math.sin(m.w*t+m.ph)*Math.exp(-m.k*t);
+    /* each ring is stepped sample to sample (a turn and a shrink per sample) instead of a sin and an exp per sample: the same
+       sound, about ten times quicker to build (Oct 2026: building it was still a 100+ ms hitch when a ball dropped) */
+    const nm=M.length,re=new Float64Array(nm),im=new Float64Array(nm),cr=new Float64Array(nm),ci=new Float64Array(nm);
+    for(let q=0;q<nm;q++){const m=M[q],e=Math.exp(-m.k/sr);re[q]=m.g*Math.cos(m.ph);im[q]=m.g*Math.sin(m.ph);cr[q]=e*Math.cos(m.w/sr);ci[q]=e*Math.sin(m.w/sr);}
+    for(let i=i0;i<n;i++){const t=(i-i0)/sr;if(t>.16)break;let x=0;for(let q=0;q<nm;q++){const r0=re[q],i1=im[q];x+=i1;re[q]=r0*cr[q]-i1*ci[q];im[q]=r0*ci[q]+i1*cr[q];}
       if(low)x+=amp*(1.2*boom+.3)*Math.sin(TAU*(120+40*Math.exp(-t/.01))*t)*Math.exp(-t/.045);   // cavity boom (the mic is right inside it)
       if(i-i0<cl*6){l+=lp*((R()*2-1)*Math.exp(-(i-i0)/cl)-l);x+=amp*2.8*l;}
       d[i]+=x*Math.min(1,(i-i0)/(sr*.00025));}}
