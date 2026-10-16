@@ -806,7 +806,8 @@ td.won{background:rgba(255,201,60,.38)}
       </div>
       <button class="textbtn" id="mNews">What’s new</button>
       <button class="textbtn" id="mFaq">Help &amp; FAQ</button>
-      <div class="gfxrow"><span>Graphics</span><div class="trajseg gfxseg" id="gfxSeg" role="group" aria-label="Graphics quality"><button data-g="high">High</button><button data-g="fast">Fast</button></div></div>
+      <button class="textbtn" id="mSet">Settings</button>
+      <button class="textbtn" id="mFb">Send feedback</button>
       <button class="textbtn" id="mClose" hidden>Back to the game</button>
       <p class="fine">Your round saves on this device after every shot. Unofficial re-creation (course and surroundings © OpenStreetMap contributors; elevation: USGS 3DEP; driver sound: Mixkit); not affiliated with any of the clubs.</p>
     </div>
@@ -830,6 +831,7 @@ td.won{background:rgba(255,201,60,.38)}
         <button class="ghost disp" id="pFb">Send feedback</button>
         <button class="ghost disp" id="pQuit">Quit to home</button>
         <div class="msub" id="pQuitSub">Your round is saved. Continue it any time from the menu.</div>
+        <button class="primary disp" id="pHome" hidden>Done</button>
       </div>
       <div id="pCardView" hidden>
         <h2 class="disp">Scorecard</h2>
@@ -3658,7 +3660,11 @@ function pauseSync(){document.querySelectorAll('#pGrid button').forEach(b=>b.cla
 function openPause(){PAUSE.shot=pauseShot();G.paused=true;const c=pauseCtx();
   $('pSub').textContent=(CUR?CUR.name:'')+' \u00b7 hole '+c.hole+(c.thru?' \u00b7 '+fmtDiff(c.toPar)+' thru '+c.thru:'');
   $('pQuitSub').textContent=G.mode==='daily'?'Today\u2019s round is saved. Pick it up from the Daily round button.':G.mode==='career'?'Your match is saved. Continue it from the menu.':G.mode==='practice'?'Practice holes aren\u2019t saved.':'Your round is saved. Continue it any time from the menu.';
-  $('pMain').hidden=false;$('pFbView').hidden=true;$('pCardView').hidden=true;pauseSync();$('pauseM').hidden=false;}
+  pauseMode(false);$('pMain').hidden=false;$('pFbView').hidden=true;$('pCardView').hidden=true;pauseSync();$('pauseM').hidden=false;}
+/* Oct 2026: the same settings and feedback, opened from the home screen (no round buttons; Done goes back to the menu) */
+function pauseMode(home){PAUSE.home=home;PAUSE.fbOnly=false;$('pTitle').textContent=home?'Settings':'Paused';for(const id of['pSub','pResume','pCard','pQuit','pQuitSub'])$(id).hidden=home;$('pHome').hidden=!home;}
+function openSettings(fb){PAUSE.shot=null;pauseMode(true);$('pMain').hidden=false;$('pFbView').hidden=true;$('pCardView').hidden=true;pauseSync();$('pauseM').hidden=false;if(fb){openFeedback();PAUSE.fbOnly=true;}}
+function closeSettings(){$('pauseM').hidden=true;pauseMode(false);}
 /* the pause-menu scorecard: yardage and par for every hole, with the round's scores so far (a match shows both players) */
 function pauseCardTable(from,label,withTot){const idx=[...Array(9)].map((_,k)=>from+k),cur=G.hi,cl=i=>i===cur?' class="cur"':'';
   const yd=idx.map(i=>holeLen(i)),ydAll=TB.map((_,i)=>holeLen(i)).reduce((a,b)=>a+b,0),sum=a=>a.reduce((x,y)=>x+(y||0),0);
@@ -3680,7 +3686,7 @@ async function sendFeedback(){const msg=$('fbText').value.trim(),st=$('fbStatus'
   const body={player_id:dailyPid(),name:dailyName()||'',kind:PAUSE.kind,message:msg.slice(0,2000),ctx:pauseCtx(),shot:$('fbShotOn').checked&&PAUSE.shot?PAUSE.shot:null};
   const post=b=>fetch(DAILY.url+'/rest/v1/feedback',{method:'POST',headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(b)});
   try{let r=await post(body);if(!r.ok&&r.status!==404&&body.shot){body.shot=null;r=await post(body);}
-    if(r.ok){st.textContent='Thanks! Your feedback was sent.';st.className='ok';$('fbText').value='';setTimeout(()=>{if(!$('pauseM').hidden){$('pFbView').hidden=true;$('pMain').hidden=false;}},1400);return;}
+    if(r.ok){st.textContent='Thanks! Your feedback was sent.';st.className='ok';$('fbText').value='';setTimeout(()=>{if(!$('pauseM').hidden){if(PAUSE.fbOnly){closeSettings();return;}$('pFbView').hidden=true;$('pMain').hidden=false;}},1400);return;}
     st.textContent=r.status===404?'Feedback isn\u2019t switched on yet.':'Couldn\u2019t send it (error '+r.status+'). Try again in a bit.';st.className='err';}
   catch(e){st.textContent='Couldn\u2019t send it. Check your connection and try again.';st.className='err';}
   $('fbSend').disabled=false;}
@@ -3732,7 +3738,10 @@ $('faqClose').addEventListener('click',()=>{A();$('faqM').hidden=true;sfx.tick()
 $('faqGo').addEventListener('click',()=>{A();faqAsk();});
 $('faqQ').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();faqAsk();}});
 $('pFb').addEventListener('click',()=>{A();openFeedback();});
-$('fbBack').addEventListener('click',()=>{A();$('pFbView').hidden=true;$('pMain').hidden=false;});
+$('fbBack').addEventListener('click',()=>{A();if(PAUSE.fbOnly){closeSettings();return;}$('pFbView').hidden=true;$('pMain').hidden=false;});
+$('pHome').addEventListener('click',()=>{A();closeSettings();});
+$('mSet').addEventListener('click',()=>{A();openSettings(false);});
+$('mFb').addEventListener('click',()=>{A();openSettings(true);});
 $('fbSend').addEventListener('click',()=>{A();sendFeedback();});
 document.querySelectorAll('#fbKind button').forEach(b=>b.addEventListener('click',()=>{A();PAUSE.kind=b.dataset.k;document.querySelectorAll('#fbKind button').forEach(x=>x.classList.toggle('on',x===b));}));
 document.querySelectorAll('#pSound button').forEach(b=>b.addEventListener('click',()=>{if((b.dataset.v==='1')!==!!S.on)$('soundBtn').click();pauseSync();}));
@@ -3740,7 +3749,7 @@ document.querySelectorAll('#pGrid button').forEach(b=>b.addEventListener('click'
 document.querySelectorAll('#pSwing button').forEach(b=>b.addEventListener('click',()=>{SWT=b.dataset.s==='1';try{localStorage.setItem('golf-swt',SWT?'1':'0');}catch(_){}pauseSync();}));
 document.querySelectorAll('#pFps button').forEach(b=>b.addEventListener('click',()=>{FPSM.on=b.dataset.f==='1';try{localStorage.setItem('golf-fps',FPSM.on?'1':'0');}catch(_){}FPSM.n=0;FPSM.t0=0;fpsTick(performance.now(),0);pauseSync();}));
 document.querySelectorAll('#pGfx button').forEach(b=>b.addEventListener('click',()=>{try{r3SetQuality(b.dataset.g==='high'?'high':'fast');}catch(e){}pauseSync();}));
-$('pauseM').addEventListener('click',e=>{if(e.target===$('pauseM'))closePause();});
+$('pauseM').addEventListener('click',e=>{if(e.target===$('pauseM')){if(PAUSE.home)closeSettings();else closePause();}});
 
 let newArmed=false;
 function newRound(){endMatchMode();if(R3.on)r3NewWx();dailyLeave();G.mode='round';G.pinSeed=0;G.rShots=[];G.scores=[];G.psLeft=3;clearSave();closeMenu();startHole(0);}
@@ -7219,7 +7228,7 @@ $('soundBtn').addEventListener('click',()=>{S.on=!S.on;$('soundWaves').style.opa
 const modalOpen=()=>!!document.querySelector('.modal:not([hidden])');
 window.addEventListener('keydown',e=>{
   if(!$('faqM').hidden){if(e.key==='Escape'){e.preventDefault();$('faqM').hidden=true;}return;}
-  if(!$('pauseM').hidden){if(e.key==='Escape'){e.preventDefault();if(!$('pFbView').hidden){$('pFbView').hidden=true;$('pMain').hidden=false;}else closePause();}return;}
+  if(!$('pauseM').hidden){if(e.key==='Escape'){e.preventDefault();if(!$('pFbView').hidden&&!PAUSE.fbOnly){$('pFbView').hidden=true;$('pMain').hidden=false;}else if(PAUSE.home)closeSettings();else closePause();}return;}
   if(e.key==='Escape'&&!G.replay&&inRound()&&!modalOpen()){e.preventDefault();openPause();return;}
   if(G.replay&&(e.code==='Space'||e.key==='Escape')){e.preventDefault();endReplay();return;}
   if(!$('bagM').hidden&&e.key==='Escape'){$('bagM').hidden=true;return;}
@@ -7273,6 +7282,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-16-home",date:"Oct 16, 2026",title:"Settings on the home screen",items:[
+    "Settings and Send feedback are now on the home screen too, so you can change sound, graphics, swing, grid lines and more without starting a round."]},
   {id:"2026-10-16-grid",date:"Oct 16, 2026",title:"Darker grid lines",items:[
     "New setting in the pause menu: Grid lines \u00b7 Darker. It gives the green's slope grid deeper colours and a soft dark edge, so the lines stay easy to read on the far side of the green, the yellow ones especially. Standard stays the default."]},
   {id:"2026-10-15-vibe",date:"Oct 15, 2026",title:"Vibration removed",items:[
