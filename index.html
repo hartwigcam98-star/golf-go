@@ -2819,7 +2819,7 @@ function holeWind(i){
   const sd=roundWindSeed(),rb=rng(sd*31+977),a0=rb()*TAU,m0=1+rb()*11,wr=rng(sd*31+1000+i*17);
   return{a:a0+(wr()-.5)*.35,mph:clamp(Math.round(m0+(wr()-.5)*4),0,16)};}
 function startHole(i){
-  try{pstatFlush();}catch(e){}try{perfRetry();}catch(e){}const h0=performance.now();
+  try{pstatFlush();}catch(e){}try{perfRetry();}catch(e){}try{if(PERF.pend!=null){const l=PERF.pend;PERF.pend=null;R3.dyn=.8;r3SetPerf(l);}}catch(e){}const h0=performance.now();
   G.hi=i;G.hole=hole(i);
   if(!G.hole.hg)buildHeights(G.hole);
   if(!G.terrains[i])G.terrains[i]=buildTerrain(G.hole);
@@ -2840,11 +2840,12 @@ function startHole(i){
   $('iEyebrow').textContent=G.mode==='practice'?CUR.name+' \u00b7 practice hole':G.mode==='daily'?'Daily round \u00b7 '+dailyNice(G.dailyDay)+' \u00b7 '+CUR.name:courseLine();
   $('cardM').hidden=true;$('reliefM').hidden=true;$('introM').hidden=false;
   setTimeout(()=>$('teeBtn').focus({preventScroll:true}),50);
+  try{if(R3.on)r3LvlWarm();}catch(e){}
   LDT.hole={h:i+1,sh:Math.round(performance.now()-h0)};if(LDT.sc){LDT.hole.sc=LDT.sc;LDT.sc=null;}LDT.p={k:'hole',t0:h0,n:0};
 }
 /* Oct 2026: anything still left of the background shader warm-up is finished here, as the intro closes, so the first hole isn't
    played with first-time shader compiles (100-170 ms hitches on phones) landing in the middle of it */
-function r3WarmFinish(){if(!R3.warmQ)return;try{while(R3.warmQ.length)r3WarmJob(R3.warmQ.shift());}finally{r3WarmEnd();}}
+function r3WarmFinish(){try{while(R3.lvlQ&&R3.lvlQ.length)r3WarmJob({lvl:R3.lvlQ.shift()});}catch(e){}R3.lvlQ=null;if(!R3.warmQ)return;try{while(R3.warmQ.length)r3WarmJob(R3.warmQ.shift());}finally{r3WarmEnd();}}
 function teeOff(){A();$('introM').hidden=true;const w0=performance.now();try{r3WarmFinish();}catch(e){}if(LDT.hole&&LDT.hole.tee==null)LDT.hole.tee=Math.round(performance.now()-w0);PERF.quiet=performance.now()+2500;if(MATCH.on){mNextTurn();return;}prepareShot();}
 function shotLie(){let L=lieAt(G.ball.x,G.ball.y);if(L!=='water'&&L!=='ob'&&G.hole&&hyp(G.ball.x-((G.hole.line&&G.hole.line[0])||[0,0])[0],G.ball.y-((G.hole.line&&G.hole.line[0])||[0,0])[1])<5)L='tee';return L;}   // the teeing area (some mapped tee boxes are too small)
 function prepareShot(){
@@ -6156,6 +6157,9 @@ function r3WarmStart(){if(R3.warmQ||!R3.renderer||!R3.scene)return;const L=[];
   const jobs=[];for(const clip of[false,true])for(let i=0;i<L.length;i+=3)jobs.push({clip,objs:L.slice(i,i+3)});
   if(R3.post&&R3.post.m)for(const k in R3.post.m)jobs.push({post:k});
   jobs.push({shadow:true,objs:L});   // the sun's shadow pass has its own depth programs (one per kind of caster): never drawn above
+  /* Oct 2026: the quality levels the game may step to mid-round use other shadow settings (soft or hard edges, which trees cast),
+     and each needed new shadow programs the moment it switched (a 150-270 ms hitch mid-round): build those here too */
+  // (done per hole by r3LvlWarm, once that hole's own trees and objects are in the scene)
   R3.warmQ=jobs;R3.warmN=jobs.length;
   /* small targets in the same formats the game really draws into (half-float colour; the scene's multisampling; plain 8-bit for
      the occlusion and final passes): phone GPUs build a pipeline per program *and* target format, so warming into one generic
@@ -6165,24 +6169,34 @@ function r3WarmStart(){if(R3.warmQ||!R3.renderer||!R3.scene)return;const L=[];
   const step=()=>{if(!R3.warmQ)return;const t0=performance.now(),idle=!G.hole||G.state==='intro'||G.state==='card'||COVERS.some(m=>!m.hidden);while(R3.warmQ.length&&performance.now()-t0<(idle?40:12)){r3WarmJob(R3.warmQ.shift());}
     if(R3.warmQ.length)requestAnimationFrame(step);else r3WarmEnd();};
   requestAnimationFrame(step);}
+/* each hole's set-up queues the neighbouring quality levels' shadow programs, built a level per frame while the hole's intro card
+   is up (whatever is left goes at Tee off); once built, a level costs only a quick shadow pass */
+function r3LvlWarm(){if(!R3.renderer||!R3.scene)return;const base=R3.q==='high'?0:1,cur=R3.perf||0,Q=[];
+  for(let l=Math.max(0,cur-1);l<=Math.min(R3_LMAX-base,cur+2);l++)if(l!==cur)Q.push(l);R3.lvlQ=Q;
+  const step=()=>{if(!R3.lvlQ||!R3.lvlQ.length)return;if(G.state!=='intro'&&!COVERS.some(m=>!m.hidden)){return;}r3WarmJob({lvl:R3.lvlQ.shift()});if(R3.lvlQ.length)requestAnimationFrame(step);};
+  requestAnimationFrame(()=>requestAnimationFrame(step));}   // after the hole's first frame is on screen
 function r3WarmEnd(){R3.warmQ=null;R3.warmDone=1;if(R3.warmT)for(const k in R3.warmT)R3.warmT[k].dispose();R3.warmT=null;R3.warmRT=null;}
 /* post passes' uniforms are empty until a pass first runs: fill them with stand-ins so the warm-up draw can go through (it used to
    throw on the first vector, after compiling but before the pass was ever drawn) */
 const R3_WARM_V3=new Set(['K','sunP','dofP']),R3_WARM_N=new Set(['hdr','aoOn','bloomK','expo','asp','fxaaOn']);
 function r3WarmUniforms(m){const T3=THREE;for(const k in m.uniforms){const u=m.uniforms[k];if(u.value!==null&&u.value!==undefined)continue;
   u.value=k==='px'||k==='dir'?new T3.Vector2(1/16,0):R3_WARM_V3.has(k)?new T3.Vector3():R3_WARM_N.has(k)?0:(R3.warmTex||(R3.warmTex=r3DataTex(new Uint8Array(4),1,1)));}}
-function r3WarmJob(j){const rd=R3.renderer,prev=rd.getRenderTarget(),pc=rd.clippingPlanes;try{
+function r3WarmJob(j){const rd=R3.renderer,prev=rd.getRenderTarget(),pc=rd.clippingPlanes;
+  if(j.lvl!==undefined){const P0=R3.perf,ty=rd.shadowMap.type;try{R3.perf=j.lvl;r3LiteShadows();if(R3T.groups)r3TreeLOD(true);rd.shadowMap.type=r3Q().soft?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
+      const L=[];R3.scene.traverse(o=>{if(o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||o.isPoints||o.isLine)L.push(o);});r3WarmJob({shadow:true,objs:L});rd.compile(R3.scene,R3.cam);}finally{R3.perf=P0;r3LiteShadows();if(R3T.groups)r3TreeLOD(true);rd.shadowMap.type=ty;rd.shadowMap.needsUpdate=true;}return;}
+  try{
   if(j.post){const P=R3.post,m=P.m[j.post];r3WarmUniforms(m);P.quad.material=m;rd.setRenderTarget(j.post==='ao'||j.post==='aob'||j.post==='final'?R3.warmT.byte:R3.warmT.half);rd.render(P.scene,P.cam);return;}
   if(j.shadow&&R3.shc&&R3.shc.qs)rd.compile(R3.shc.qs,R3.shc.qc);
   const sv=[];R3.scene.traverse(o=>{if(o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||o.isPoints||o.isLine){sv.push([o,o.visible]);o.visible=false;}});
   const tw=[];for(const o of j.objs){o.visible=true;let q=o.parent;while(q){if(!q.visible){tw.push(q);q.visible=true;}q=q.parent;}
+    if(j.shadow&&!o.castShadow&&(o.isMesh||o.isSkinnedMesh||o.isInstancedMesh)){tw.push(['cs',o,false]);o.castShadow=true;}   // things that only cast now and then (a club, the lite trees) need their shadow programs too
     tw.push(['fc',o,o.frustumCulled]);o.frustumCulled=false;
     if(o.isInstancedMesh&&o.count===0){tw.push(['cnt',o,0]);o.count=1;}
     if(o.geometry&&o.geometry.isInstancedBufferGeometry&&!o.geometry.instanceCount){tw.push(['ic',o.geometry,o.geometry.instanceCount]);o.geometry.instanceCount=1;}}
   rd.clippingPlanes=j.clip?[new THREE.Plane(new THREE.Vector3(0,1,0),0)]:[];
   const sm=rd.shadowMap.autoUpdate;rd.shadowMap.autoUpdate=false;if(j.shadow){rd.shadowMap.needsUpdate=true;if(R3.shc){R3.shc.mode=null;R3.shc.valid=false;}}
   rd.setRenderTarget(j.clip?R3.warmT.clip:R3.warmT.scene);rd.render(R3.scene,R3.cam);rd.shadowMap.autoUpdate=sm;if(j.shadow)rd.shadowMap.needsUpdate=true;   // the real shadows are redrawn next frame
-  for(const t of tw){if(Array.isArray(t)){if(t[0]==='fc')t[1].frustumCulled=t[2];else if(t[0]==='cnt')t[1].count=t[2];else t[1].instanceCount=t[2];}else t.visible=false;}
+  for(const t of tw){if(Array.isArray(t)){if(t[0]==='fc')t[1].frustumCulled=t[2];else if(t[0]==='cs')t[1].castShadow=t[2];else if(t[0]==='cnt')t[1].count=t[2];else t[1].instanceCount=t[2];}else t.visible=false;}
   for(const[o,v]of sv)o.visible=v;
  }catch(e){console.warn('[warm]',e);}finally{rd.clippingPlanes=pc;rd.setRenderTarget(prev);}}
 function r3Surround(h){const T=THREE;r3Dispose(R3.skirt);r3Dispose(R3.flat);
@@ -6923,12 +6937,18 @@ function perfRetry(){perfUp();if(!PERF.cap){if(PERF.trial){PERF.trial=0;PERF.cap
   PERF.cap=0;PERF.slow=0;PERF.w=[];PERF.trial=1;}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){PERF.hidT=Date.now();return;}
   if(PERF.cap&&PERF.hidT&&Date.now()-PERF.hidT>12e4){PERF.cap=0;PERF.capN=0;PERF.slow=0;PERF.w=[];PERF.trial=1;}});
+/* Oct 2026: a step that changes the look's ingredients (multisampling, ambient occlusion, soft shadows) means new GPU programs and
+   render targets: 85-270 ms frozen mid-hole. Those steps wait for the next hole (applied as it's built, behind its intro card);
+   resolution steps still happen at once. Returns true when the level was applied now. */
+function perfSet(level){const a=r3Q(),P0=R3.perf;R3.perf=level;const b=r3Q();R3.perf=P0;
+  if((a.msaa!==b.msaa||a.ao!==b.ao||a.soft!==b.soft)&&G.hole&&G.state!=='intro'&&G.state!=='card'){PERF.pend=level;return false;}
+  PERF.pend=null;r3SetPerf(level);return true;}
 function perfCheck(raw){PERF.level=R3.perf||0;if(R3.warmQ||(PERF.quiet&&performance.now()<PERF.quiet)){PERF.w=[];return;}if(PERF.cap||G.paused||G.state==='intro'||G.state==='card'||G.state==='power'||G.state==='acc'||raw>.25)return;(PERF.w=PERF.w||[]).push(raw);if(PERF.w.length<90)return;
   const w=PERF.w.sort((a,b)=>a-b),med=w[w.length>>1],lng=w.filter(v=>v>.04).length/w.length,slip=w.filter(v=>v>.0205).length/w.length;PERF.w=[];
   /* v121 dynamic resolution: aim for a steady 60. When more than 1 frame in 8 misses a refresh, draw ~10% fewer pixels a side (down to 62%);
      after about 5 s of clean frames sharpen back up a step. Only once the picture is at its softest do the levels below step in. */
   const dyn=R3.dyn||1;
-  if(PERF.probe>0){PERF.probe--;if(slip>.12){PERF.probe=0;PERF.up=0;PERF.upNeed=Math.min(200,(PERF.upNeed||12)*2);PERF.level=Math.min(R3_LMAX-1,PERF.level+1);r3SetPerf(PERF.level);
+  if(PERF.probe>0){PERF.probe--;if(slip>.12){PERF.probe=0;PERF.up=0;PERF.upNeed=Math.min(200,(PERF.upNeed||12)*2);PERF.level=Math.min(R3_LMAX-1,PERF.level+1);perfSet(PERF.level);
     try{localStorage.setItem('golf-perf2',JSON.stringify({l:PERF.level,t:Date.now()}));}catch(e){}return;}}
   if(slip>.12)PERF.up=0;else if(slip<.03&&dyn>=.999&&PERF.level>0)PERF.up=(PERF.up||0)+1;
   /* v124: two slipping windows in a row before softening (one rough window, e.g. loading a hole, no longer counts), and sharpen back up
@@ -6936,7 +6956,7 @@ function perfCheck(raw){PERF.level=R3.perf||0;if(R3.warmQ||(PERF.quiet&&performa
   if(slip>.12&&dyn>.62){PERF.bad=(PERF.bad||0)+1;PERF.good=0;if(PERF.bad>=2){PERF.bad=0;R3.dyn=Math.max(.62,dyn-.1);PERF.slow=0;r3Resize();}return;}
   PERF.bad=0;
   if(slip<.05){PERF.good=(PERF.good||0)+1;if(PERF.good>=3&&dyn<1){R3.dyn=Math.min(1,dyn+.06);PERF.good=0;r3Resize();}if(dyn<.999||PERF.level===0)return;}else PERF.good=Math.max(0,(PERF.good||0)-1);
-  if(PERF.stuck)return;
+  if(PERF.stuck||PERF.pend!=null)return;
   /* v87: step down a level when the median frame is slower than ~45 fps or more than 1 in 8 frames stutters (>40 ms), two windows running; the level is remembered on this phone */
   /* far too slow (under ~28 fps, not a 30 fps cap): act on one window and drop two levels */
   /* last resort, already at the lightest picture and softest resolution and still uneven: a steady 30 (tried again later, see perfRetry) */
@@ -6947,7 +6967,7 @@ function perfCheck(raw){PERF.level=R3.perf||0;if(R3.warmQ||(PERF.quiet&&performa
     /* two steps that didn't help (a hot phone slows down whatever it draws): stay on the lighter picture and stop stepping (it used to jump back to full detail) */
     if(PERF.steps>=2&&PERF.med0>1/45&&med>.9*PERF.med0){PERF.stuck=1;}
     else{if(!PERF.steps){PERF.med0=med;PERF.l0=PERF.level;}PERF.steps=(PERF.steps||0)+1;PERF.level=Math.min(R3_LMAX-1,PERF.level+(vslow?2:1));if(vslow&&PERF.level>=4)PERF.steps2=1;
-      R3.dyn=.8;r3SetPerf(PERF.level);try{localStorage.setItem('golf-perf2',JSON.stringify({l:PERF.level,t:Date.now()}));}catch(e){}}}}else PERF.slow=0;}
+      if(perfSet(PERF.level))R3.dyn=.8;try{localStorage.setItem('golf-perf2',JSON.stringify({l:PERF.level,t:Date.now()}));}catch(e){}}}}else PERF.slow=0;}
 function replayPoint(t){const r=G.lastShot.rec;if(t<=0)return r[0];for(let i=1;i<r.length;i++){if(r[i].t>=t){const a=r[i-1],b=r[i],k=(t-a.t)/((b.t-a.t)||1);return{t,x:a.x+(b.x-a.x)*k,y:a.y+(b.y-a.y)*k,Y:a.Y+(b.Y-a.Y)*k};}}return r[r.length-1];}
 function startReplay(done){const L=G.lastShot;if(!L||!L.rec||L.rec.length<6)return done&&done();G.ff=1;
   $('cardM').hidden=true;G.replay={t:-.55,dur:L.rec[L.rec.length-1].t,done,prev:G.state,prevFollow:G.followT,prevGolfer:G.golferAt};G.state='replay';G.overview=false;G.golferAt=L.golferAt;const c=replayCam();cam.E=[...c.E];cam.L=[...c.L];}
