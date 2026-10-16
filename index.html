@@ -823,6 +823,7 @@ td.won{background:rgba(255,201,60,.38)}
         <div class="pset"><span>HUD</span><div class="pseg hudseg" id="pHud"><button data-u="">Classic</button><button data-u="a">Arcade</button><button data-u="b">TV</button><button data-u="c">Minimal</button></div></div>
         <div class="pset"><span>Graphics</span><div class="pseg" id="pGfx"><button data-g="high">High</button><button data-g="fast">Fast</button></div></div>
         <div class="pset"><span>Swing</span><div class="pseg" id="pSwing"><button data-s="0">With meter</button><button data-s="1">After taps</button></div></div>
+        <div class="pset"><span>Grid lines</span><div class="pseg" id="pGrid"><button data-g="0">Standard</button><button data-g="1">Darker</button></div></div>
         <div class="pset"><span>Show FPS</span><div class="pseg" id="pFps"><button data-f="1">On</button><button data-f="0">Off</button></div></div>
         <div class="pset" id="pMixRow" hidden><span>Other music</span><div class="pseg" id="pMix"><button data-mix="0">Pause it</button><button data-mix="1">Keep playing</button></div></div>
         <button class="ghost disp" id="pFaq">Help &amp; FAQ</button>
@@ -3339,6 +3340,7 @@ const AUTH_REQUIRED=false;
    so it isn't redrawn and the meter has the phone to itself. (?swingtest=0/1 still sets it.) */
 // putts always follow the meter (the green's slope grid keeps moving while you set the stroke), whatever the setting
 const swAfter=()=>SWT&&!curClub().putter;
+var GRDK=(()=>{try{return localStorage.getItem('golf-grid')==='1';}catch(e){return false;}})();   // Darker grid lines on the green (pause menu), off by default
 let SWT=(()=>{try{const m=location.search.match(/[?&]swingtest=([01])/);if(m)localStorage.setItem('golf-swt',m[1]);return localStorage.getItem('golf-swt')==='1';}catch(e){return false;}})();
 const authOn=(()=>{try{const m=location.search.match(/[?&]signin=([01])/);if(m)localStorage.setItem('golf-signin',m[1]);return AUTH_REQUIRED||localStorage.getItem('golf-signin')==='1';}catch(e){return AUTH_REQUIRED;}})();
 function authLoad(){try{const a=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');return a&&a.refresh_token&&a.user&&a.user.id?a:null;}catch(e){return null;}}
@@ -3650,7 +3652,7 @@ function pauseCtx(){const h=G.hole;let tp=0,n=0;(G.scores||[]).forEach((x,i)=>{i
   return{course:CUR&&CUR.id,hole:(G.hi??-1)+1,mode:G.mode,stroke:(G.strokes||0)+1,lie:G.lie,state:G.state,toPar:n?tp:null,thru:n,ver:window.GOLF_VER||'',gfx:R3&&R3.q,
     screen:innerWidth+'x'+innerHeight+'@'+(devicePixelRatio||1),ua:navigator.userAgent.slice(0,180),app:matchMedia('(display-mode: standalone)').matches||!!navigator.standalone};}
 function inRound(){return!!G.hole&&G.state!=='intro'&&G.mode!=='spectate'&&G.mode!=='highlight'&&$('menuM').hidden;}
-function pauseSync(){document.querySelectorAll('#pSwing button').forEach(b=>b.classList.toggle('on',(b.dataset.s==='1')===SWT));document.querySelectorAll('#pFps button').forEach(b=>b.classList.toggle('on',(b.dataset.f==='1')===!!FPSM.on));document.querySelectorAll('#pSound button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===!!S.on));
+function pauseSync(){document.querySelectorAll('#pGrid button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='1')===GRDK));document.querySelectorAll('#pSwing button').forEach(b=>b.classList.toggle('on',(b.dataset.s==='1')===SWT));document.querySelectorAll('#pFps button').forEach(b=>b.classList.toggle('on',(b.dataset.f==='1')===!!FPSM.on));document.querySelectorAll('#pSound button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===!!S.on));
 
   document.querySelectorAll('#pGfx button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='high')===(R3.q==='high')));}
 function openPause(){PAUSE.shot=pauseShot();G.paused=true;const c=pauseCtx();
@@ -3734,6 +3736,7 @@ $('fbBack').addEventListener('click',()=>{A();$('pFbView').hidden=true;$('pMain'
 $('fbSend').addEventListener('click',()=>{A();sendFeedback();});
 document.querySelectorAll('#fbKind button').forEach(b=>b.addEventListener('click',()=>{A();PAUSE.kind=b.dataset.k;document.querySelectorAll('#fbKind button').forEach(x=>x.classList.toggle('on',x===b));}));
 document.querySelectorAll('#pSound button').forEach(b=>b.addEventListener('click',()=>{if((b.dataset.v==='1')!==!!S.on)$('soundBtn').click();pauseSync();}));
+document.querySelectorAll('#pGrid button').forEach(b=>b.addEventListener('click',()=>{GRDK=b.dataset.g==='1';try{localStorage.setItem('golf-grid',GRDK?'1':'0');}catch(_){}if(R3.GU&&R3.GU.slDk)R3.GU.slDk.value=GRDK?1:0;pauseSync();}));
 document.querySelectorAll('#pSwing button').forEach(b=>b.addEventListener('click',()=>{SWT=b.dataset.s==='1';try{localStorage.setItem('golf-swt',SWT?'1':'0');}catch(_){}pauseSync();}));
 document.querySelectorAll('#pFps button').forEach(b=>b.addEventListener('click',()=>{FPSM.on=b.dataset.f==='1';try{localStorage.setItem('golf-fps',FPSM.on?'1':'0');}catch(_){}FPSM.n=0;FPSM.t0=0;fpsTick(performance.now(),0);pauseSync();}));
 document.querySelectorAll('#pGfx button').forEach(b=>b.addEventListener('click',()=>{try{r3SetQuality(b.dataset.g==='high'?'high':'fast');}catch(e){}pauseSync();}));
@@ -5727,7 +5730,7 @@ float wNoise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);return mix(
   mat.customProgramCacheKey=()=>key;return mat;}
 
 /* ---- ground: the painted course, detail textures per surface, the slope grid on the green ---- */
-const R3_GROUND_HEAD=`float r3bump=0.;vec4 r3w=vec4(0.);vec3 r3nm=vec3(0.,0.,1.);float r3nk=0.;uniform sampler2D pG,pGN,pS,pSN;uniform float pOn;uniform vec4 tK;uniform sampler2D gTex,gSurf,dShort,dRough,dFes,dSand,gStex,slT,slHt;uniform vec4 gB,gSB,gSS,SLB;uniform float slMode;uniform vec3 slBall;uniform vec2 slRot;uniform float gMode,slOn,SLG,SLPX;uniform vec4 rlS,rlG;`;
+const R3_GROUND_HEAD=`float r3bump=0.;vec4 r3w=vec4(0.);vec3 r3nm=vec3(0.,0.,1.);float r3nk=0.;uniform sampler2D pG,pGN,pS,pSN;uniform float pOn;uniform vec4 tK;uniform sampler2D gTex,gSurf,dShort,dRough,dFes,dSand,gStex,slT,slHt;uniform vec4 gB,gSB,gSS,SLB;uniform float slMode;uniform vec3 slBall;uniform vec2 slRot;uniform float gMode,slOn,SLG,SLPX,slDk;uniform vec4 rlS,rlG;`;
 const R3_GROUND_BODY=`
   vec3 c;vec2 q=r3wp.xz;float dist=length(r3wp-E);
   vec2 su=(q-gSS.xy)/max(gSS.zw,vec2(1.));
@@ -5775,8 +5778,8 @@ const R3_GROUND_BODY=`
       vec2 gq=vec2(dot(q,slRot),dot(q,vec2(-slRot.y,slRot.x)))/SLG,gf=abs(fract(gq-.5)-.5);
       vec2 fw=max(fwidth(gq),vec2(.03));
       vec2 ln=1.-smoothstep(fw*.35,fw*1.9,gf),ln2=1.-smoothstep(fw*.9,fw*3.,gf);float Lf=(1.-smoothstep(.22,.45,max(fw.x,fw.y)))*(1.-smoothstep(50.,90.,dist));
-      /* Oct 2026 (player note): a soft dark edge either side of each line, so yellow and green lines still read on a bright green far off */
-      vec2 hl=1.-smoothstep(fw*1.2,fw*4.2,gf);float far=smoothstep(10.,35.,dist);c*=1.-(.26+.12*far)*max(hl.x,hl.y)*Lf*a;
+      /* Oct 2026 (player note), the Darker grid setting (slDk): a soft dark edge either side of each line, so yellow and green lines still read on a bright green far off */
+      vec2 hl=1.-smoothstep(fw*1.2,fw*4.2,gf);float far=smoothstep(10.,35.,dist)*slDk;c*=1.-slDk*(.26+.12*far)*max(hl.x,hl.y)*Lf*a;
       /* the grid lines run with the slope: bright dashes march along each line toward lower ground, faster the more it breaks.
          Each 1-yd stretch of line between crossings reads the slope at its middle, so the dashes never smear. */
       vec2 pr=vec2(-slRot.y,slRot.x);float dfd=1.-smoothstep(30.,60.,dist);
@@ -5789,7 +5792,7 @@ const R3_GROUND_BODY=`
         float dash=smoothstep(.4,.88,ph)*(1.-smoothstep(.88,.98,ph));
         float lw2=ax==0?ln2.x:ln2.y;float v=max(lw*mix(.62,.45,m),lw2*1.45*dash*m);if(ax==0)lx=v;else ly=v;}
       float L=max(lx,ly)*Lf;float hi=max(lx,ly)>.62?1.:0.;
-      vec3 rcd=mix(rc,rc*rc,.55)*.82,lc=mix(c*.9,rcd,.8),lb=rc*1.55+.16;c=mix(c,mix(lc,lb,clamp((max(lx,ly)-.62)/.75,0.,1.)),clamp(L*a*(1.+.4*far),0.,1.));}}}
+      vec3 rcd=mix(rc,rc*rc,.55)*.82,lc=mix(mix(c*1.1,rc*.85,.75),mix(c*.9,rcd,.8),slDk),lb=rc*1.55+.16;c=mix(c,mix(lc,lb,clamp((max(lx,ly)-.62)/.75,0.,1.)),clamp(L*a*(1.+.4*far),0.,1.));}}}
   if(rlOn>.5&&gMode>.5){
     /* mown stripes are light on the blades, not paint: grass mown away from you shows its pale sides, grass mown toward you its darker
        tips, so a stripe swaps shade as you walk round it and fades looking straight down. Same frame and width buildTerrain paints. */
@@ -5861,7 +5864,7 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   // materials
   R3.tK={value:new T.Vector4(1,1,1,1)};
   R3.GU={gTex:{value:null},gSurf:{value:null},dShort:{value:R3.det.short},dRough:{value:R3.det.rough},dFes:{value:R3.det.fescue},dSand:{value:R3.det.sand},gStex:{value:null},slT:{value:null},slHt:{value:null},slMode:{value:0},slBall:{value:new T.Vector3()},
-    gB:{value:new T.Vector4()},gSB:{value:new T.Vector4()},rlS:{value:new T.Vector4()},rlG:{value:new T.Vector4()},gSS:{value:new T.Vector4()},SLB:{value:new T.Vector4()},slRot:{value:new T.Vector2(1,0)},gMode:{value:1},pOn:R3.pOn,pG:{value:R3.ptex.g||null},pGN:{value:R3.ptex.gn||null},pS:{value:R3.ptex.s||null},pSN:{value:R3.ptex.sn||null},slOn:{value:0},SLG:{value:1},SLPX:{value:.002},tK:R3.tK};
+    gB:{value:new T.Vector4()},gSB:{value:new T.Vector4()},rlS:{value:new T.Vector4()},rlG:{value:new T.Vector4()},gSS:{value:new T.Vector4()},SLB:{value:new T.Vector4()},slRot:{value:new T.Vector2(1,0)},gMode:{value:1},pOn:R3.pOn,pG:{value:R3.ptex.g||null},pGN:{value:R3.ptex.gn||null},pS:{value:R3.ptex.s||null},pSN:{value:R3.ptex.sn||null},slOn:{value:0},slDk:{value:typeof GRDK!=='undefined'&&GRDK?1:0},SLG:{value:1},SLPX:{value:.002},tK:R3.tK};
   const GUfar={...R3.GU,gMode:{value:0}};
   R3.WU={rfT:{value:null},rfM:{value:new T.Matrix4()},rfOn:{value:0},wT:{value:0}};
   R3.mat={
@@ -7270,6 +7273,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-16-grid",date:"Oct 16, 2026",title:"Darker grid lines",items:[
+    "New setting in the pause menu: Grid lines \u00b7 Darker. It gives the green's slope grid deeper colours and a soft dark edge, so the lines stay easy to read on the far side of the green, the yellow ones especially. Standard stays the default."]},
   {id:"2026-10-15-vibe",date:"Oct 15, 2026",title:"Vibration removed",items:[
     "The light vibration on swing taps and holed putts is gone. It was hard to feel, and on iPhone it could make the game stutter for a moment."]},
   {id:"2026-10-15-swing",date:"Oct 15, 2026",title:"New swing option",items:[
