@@ -2560,13 +2560,17 @@ function stanceLabel(){if(curClub().putter||G.lie==='green')return'';const S=sta
 /* backspin on chips and pitches: it takes some of the release off but never checks them up or draws them back (that's
    what the flop and the spinner are for). Factor on the backspin's roll cut; 1 = full effect. */
 const SPIN_K={chip:.7,pitch:.6};
-function shotMods(){const c=curClub();if(c.putter)return{carry:1,apex:1,roll:1,curve:0,win:1,back:0,wind:1};const tj=G.traj||0;
+/* Oct 2026: how much of the strike dot's backspin a full shot keeps from each lie (grass between club and ball kills spin): it
+   shortens the roll-out by that share, and only a lie keeping at least half can still spin the ball back;
+   the short game has its own lie table (SG_LIE) */
+const BACK_LIE={cut:.8,rough:.3,fescue:0};
+function shotMods(){const c=curClub();if(c.putter)return{carry:1,apex:1,roll:1,curve:0,win:1,back:0,wind:1};const tj=G.traj||0,bl=isShort()?1:(BACK_LIE[G.lie]??1);
   const S=stance(),ix=G.imp.x,iy=G.imp.y,ps=G.pshot?1:0;
   return{carry:(1+.15*ps)*(1-clamp(S.along,-.15,.15)*1.1)*(1-Math.abs(ix)*.04)*(iy<0?1+iy*.04:1)*(tj>0?.97:1),
     apex:(1+clamp(S.along,-.15,.15)*1.8)*(1-.08*ps)*(tj>0?1.3:tj<0?.68:1),
-    roll:(1-clamp(S.along,-.15,.15)*1.5)*(iy>0?1+.9*iy:1+.72*iy*(SPIN_K[G.stype]??1))*(tj>0?.55:tj<0?1.6:1),wind:tj>0?1.35:tj<0?.55:1,
+    roll:(1-clamp(S.along,-.15,.15)*1.5)*(iy>0?1+.9*iy:1+.72*iy*(SPIN_K[G.stype]??1)*bl)*(tj>0?.55:tj<0?1.6:1),wind:tj>0?1.35:tj<0?.55:1,
     curve:ix*.085-clamp(S.side,-.15,.15)*.55-clamp(S.along,-.15,.15)*.12,
-    win:(ps?.72:1)*(tj?.9:1)*clamp(1-(Math.abs(S.along)+Math.abs(S.side))*2.2,.6,1),back:iy<-.5&&SPIN_K[G.stype]===undefined?(-iy-.5)*2:0};}
+    win:(ps?.72:1)*(tj?.9:1)*clamp(1-(Math.abs(S.along)+Math.abs(S.side))*2.2,.6,1),back:iy<-.5&&SPIN_K[G.stype]===undefined&&bl>=.5?(-iy-.5)*2*bl:0};}   // too little spin left to suck back (the rough): it checks, then releases
 function perfectWin(){if(!curClub().putter)return perfectWinBase()*shotMods().win*cmod().win(curClub());return perfectWinBase()*cmod().win(curClub());}
 // the player's window is 20% tighter than the rivals' (their timing spread was tuned against the original width)
 function perfectWinBase(){const k=G.aiTurn?1:.8;if(curClub().putter)return .026*k;return((G.lie==='sand'&&!BUNKER_T[G.stype]&&!isShort())?SAND_WIN:(G.lie==='rough'||G.lie==='sand'||G.lie==='fescue')?.018:G.lie==='cut'?.022:.024)*SHOTS[G.stype].win*k;}
@@ -7286,6 +7290,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-16-spin",date:"Oct 16, 2026",title:"Backspin from the rough",items:[
+    "Grass between the club and the ball now kills backspin on full shots, as in real golf. From the fairway or tee, full backspin works as before. From the first cut it\u2019s a little weaker. From the rough the ball checks but then releases forward, and from fescue there\u2019s no backspin at all. Plan for the run-out when you\u2019re in the long stuff."]},
   {id:"2026-10-16-home",date:"Oct 16, 2026",title:"Settings on the home screen",items:[
     "Settings and Send feedback are now on the home screen too, so you can change sound, graphics, swing, grid lines and more without starting a round."]},
   {id:"2026-10-16-grid",date:"Oct 16, 2026",title:"Darker grid lines",items:[
