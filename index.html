@@ -2440,7 +2440,7 @@ function previewDist(){const c=curClub();return c.putter?G.puttMax:isShort()&&G.
    spinner, pick, pitch) come off with no spin and release, so the hard shots carry the bigger risk. rel = extra roll as a share
    of carry at the worst blade */
 const R3B_TWIRL_YD=15;   // a twirl is possible when a pure approach is landing within this many yards of the pin (it plays if it finishes close)
-const BLADE={chipAmp:.6,chipR:1.2,rel:{pitch:.2,flop:1.3,spin:1.2,pick:.5,splash:.2}};
+const BLADE={chipAmp:.6,chipR:1.2,rel:{pitch:.2,flop:1.3,spin:1.2,pick:.5,splash:.2}},SG_RAMP=.01;   // short-game mishits ramp in over the first .01 of meter past the window (strikeShot)
 const SHORT_T={chip:1,pitch:1,flop:1,spin:1,splash:1,pick:1,blast:1},isShort=()=>!!SHORT_T[G.stype]&&!curClub().putter;
 const CHIP_R={'7I':3,'8I':2.5,'9I':2,'PW':1.6,'GW':1.25,'SW':1,'LW':.7},PITCH_R={'9I':.5,'PW':.42,'GW':.34,'SW':.27,'LW':.2};
 const SHORT_SURF={green:1,fairway:.7,tee:.7,cut:.5,rough:.28,fescue:.12,sand:0};
@@ -2928,9 +2928,12 @@ function strikeShot(power,e){
   const lm=lieMul(club,lie)*(1+(Math.random()*2-1)*lieVar(club,lie)),em=lieErr(club,lie)*ST.e*(club.id==='1W'&&lie!=='tee'&&!onTeeBox()?1.3:1);
   const M=shotMods();
   // short-game mishits: early (fat) chunks it short and dead; late (thin) blades it low and long and it runs
+  /* Oct 17 2026: no cliff at the window's edge. The chunk/blade grows in over the first SG_RAMP of the miss (about 12 ms on the
+     short-game cursor): a tap just outside the window is only a touch fat or thin, and from SG_RAMP on it is the full mishit as before
+     (it used to be at least 10% short or 14% long, plus the blade's roll and lost spin, the moment the tap left the window) */
   let mis=null;if(isShort()&&!miss&&G.missBy>0){const amp=({chip:BLADE.chipAmp,flop:1.5,pitch:.85,spin:1.6,pick:1.5,splash:1,blast:.8}[G.stype]??1)*(cmod().mis??1);
-    const bs=clamp((.14+G.missBy*9)*amp,.14,.9);
-    mis=e>0?{k:'chunk',c:1-clamp((.1+G.missBy*10)*amp,.1,.75),a:.75,r:.5}:{k:'blade',c:1+bs,a:.3,r:G.stype==='chip'?BLADE.chipR:2.2,rel:(BLADE.rel[G.stype]??0)*bs/.9};}
+    const t=clamp(G.missBy/SG_RAMP,0,1),bs=clamp((.14+G.missBy*9)*amp,.14,.9)*t,br=G.stype==='chip'?BLADE.chipR:2.2;
+    mis=e>0?{k:'chunk',t,c:1-clamp((.1+G.missBy*10)*amp,.1,.75)*t,a:1-.25*t,r:1-.5*t,sp:1}:{k:'blade',t,c:1+bs,a:1-.7*t,r:1+(br-1)*t,rel:(BLADE.rel[G.stype]??0)*bs/.9,sp:1-t};}
   const sgl=isShort()&&!miss?SG_LIE[lie]:null,sgk=cmod().sgLie??1;let sgv=1,sgChunk=false;
   if(sgl){sgv=1+(Math.random()*2-1)*sgl.v*sgk*(G.stype==='flop'?.7:1)*(cmod().sgVar??1);
     if(sgl.chunk&&!mis&&Math.random()<sgl.chunk*sgk){sgChunk=true;sgv*=.62+Math.random()*.16;if(!G.aiTurn)setTimeout(()=>toast('GRABBED!','The fescue caught the club','#ffb46a'),300);}}
@@ -2944,20 +2947,21 @@ function strikeShot(power,e){
   const w=dirOf(G.wind.a),wk=G.wind.mph*.85*(carry/200)*club.loft*ST.w*M.wind*cmod().wind;
   const thin=HARSH?Math.min(1,G.missBy/.06):0;const apex=shotApex(club,carry)*M.apex*(1-.3*thin)*(mis?mis.a:1);
   const usedPower=G.pshot;if(G.pshot)G.pshot=false;   // power shots are unlimited (Oct 11 2026)
-  G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll*(1+.7*thin)*(mis?mis.r:1)*(flyer>1?1-(1-perfBite)*.5:perfBite)*flyer*(sgl?1+((G.stype==='chip'?sgl.chip:sgl.r)-1)*sgk:1)*(sgChunk?.5:1)*(cmod().roll?cmod().roll(club,G.stype):1),rel:mis&&mis.rel||0,back:mis&&mis.k==='blade'?0:M.back*cmod().spin*(1-.8*thin)*(sgl?sgl.back:1),
+  G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll*(1+.7*thin)*(mis?mis.r:1)*(flyer>1?1-(1-perfBite)*.5:perfBite)*flyer*(sgl?1+((G.stype==='chip'?sgl.chip:sgl.r)-1)*sgk:1)*(sgChunk?.5:1)*(cmod().roll?cmod().roll(club,G.stype):1),rel:mis&&mis.rel||0,back:(mis?mis.sp:1)*M.back*cmod().spin*(1-.8*thin)*(sgl?sgl.back:1),
     fly:flyer>1&&lie!=='cut',full:isShort()?0:clubCarry(club)*lm*ST.c*M.carry};
   // a pure approach that comes down close: he twirls the club as it drops from the finish (r3golfer.js)
   {const q=flightPos(G.flight,1),p=G.hole.pin;G.twirl=perfect===2&&!isShort()&&!(perfTee&&onTeeBox()&&G.hole.par>=4)&&hyp(q[0]-p[0],q[1]-p[1])<=R3B_TWIRL_YD;}
   // perfect contact lights the ball up: red flames at full power, blue otherwise
   G.flame=perfect===2?(power>=.95||usedPower?'red':'blue'):null;
-  queueDivot(club,lie,carry/Math.max(1,clubCarry(club)*lm),miss||(mis&&mis.k==='chunk'),!!(mis&&mis.k==='blade'));
+  queueDivot(club,lie,carry/Math.max(1,clubCarry(club)*lm),miss||(mis&&mis.k==='chunk'&&mis.t>=.5),!!(mis&&mis.k==='blade'&&mis.t>=.5));
   G.teeQ=pegK?{x:G.ball.x,y:G.ball.y,a:G.aim,k:pegK,p:power,drv:club.kind==='wood'}:null;
   G.birdQ=club.kind==='wood'&&carry>170?{p:flightPos(G.flight,1),T:G.flight.T}:null;
   const lieNow=lie,kind=club.kind,fl=G.flame;
   setTimeout(()=>sfx.swoosh(.5+.5*power),Math.max(0,G.launchAt*1000-150));
   setTimeout(()=>{sfx.strike(power,q,kind,lieNow);if(fl)sfx.flame(fl==='red');if(perfect)setTimeout(sfx.nice,120);},G.launchAt*1000);
   if(perfect===2)toast(G.flame==='red'?'PERFECT! \ud83d\udd25':'PERFECT!',(G.flame==='red'?'Full-power fireball':'Dead centre')+(isShort()?'':perfTee?' \u00b7 +'+Math.round(((cmod().perf??1.03)-1)*100)+'% carry':' \u00b7 bites on landing'),G.flame==='red'?'#ff8a3c':'#7cc8ff');else if(perfect)toast('NICE SHOT!','','#ffc93c');
-  else if(mis)toast(mis.k==='chunk'?'CHUNKED!':'BLADED!',mis.k==='chunk'?'Tapped early \u00b7 caught it fat':'Tapped late \u00b7 caught it thin','#ff9b6a');
+  else if(mis&&mis.t>=.5)toast(mis.k==='chunk'?'CHUNKED!':'BLADED!',mis.k==='chunk'?'Tapped early \u00b7 caught it fat':'Tapped late \u00b7 caught it thin','#ff9b6a');
+  else if(mis)toast(mis.k==='chunk'?'A TOUCH FAT':'A TOUCH THIN',mis.k==='chunk'?'A touch early':'A touch late','#ffd2a8');
   else if(!miss&&Math.abs(e)>.035)toast(e>0?'HOOK!':'SLICE!',e>0?'Tapped early':'Tapped late','#ff9b6a');
   else if(!miss&&e!==0)toast(e>0?'PULLED':'PUSHED',e>0?'A touch early':'A touch late','#ffd2a8');
 }
@@ -7313,6 +7317,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-17-sgramp",date:"Oct 17, 2026",title:"Fairer short game",items:[
+    "Chips, pitches, flops and bunker shots no longer fall off a cliff just outside the impact window. A tap that only just misses now comes off a touch fat or thin and finishes a little short or long; the full chunk or blade still comes with a clear miss."]},
   {id:"2026-10-16-zoom",date:"Oct 16, 2026",title:"Flight zoom",items:[
     "New setting: Flight zoom. Choose Closer or Closest to have the camera frame the ball tighter while it flies and rolls out. Standard is the view you\u2019re used to."]},
   {id:"2026-10-16-spin",date:"Oct 16, 2026",title:"Backspin from the rough",items:[
