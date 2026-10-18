@@ -3,11 +3,13 @@
 import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
-JOB = {"name": "minnesota 5: jewel, ridges at sand creek, edinburgh usa, willingers, links at northfork",
-       "search": [[44.38, -92.37, 44.50, -92.22], [44.60, -93.66, 44.68, -93.55], [45.09, -93.36, 45.14, -93.29], [44.46, -93.36, 44.52, -93.28], [45.23, -93.54, 45.28, -93.47]],
-       "want": {"jewel": r"jewel", "ridges": r"ridges|sand creek", "edinburgh": r"edinburgh", "willingers": r"willinger", "northfork": r"north ?fork"},
-       "holes": {"jewel": r"jewel", "ridges": r"ridges|sand creek", "edinburgh": r"edinburgh", "willingers": r"willinger", "northfork": r"north ?fork"},
-       "steps": {"jewel": "all", "ridges": "all", "edinburgh": "all", "willingers": "all", "northfork": "all"}}
+JOB = {"name": "minnesota 5, second pass: ridges at sand creek (full outline), willingers (box from its holes)",
+       "search": [[44.60, -93.66, 44.68, -93.55], [44.46, -93.36, 44.52, -93.28]],
+       "want": {"ridges": r"^zzz$", "willingers": r"willinger"},
+       "holes": {"ridges": r"^zzz$", "willingers": r"willinger"},
+       "ids": {"ridges": "way/175655077"},
+       "boxes": {"willingers": [-93.3232, 44.4864, -93.3051, 44.4984]},
+       "steps": {"ridges": "all", "willingers": "all"}}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -292,7 +294,7 @@ def main():
     import subprocess   # keep the earlier courses' files on the results branch
     try:
         subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_mn5.json; [ -f out/run.log ] && mv out/run.log out/run_prev_mn5.log; true', shell=True)
+        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_mn5a.json; [ -f out/run.log ] && mv out/run.log out/run_prev_mn5a.log; true', shell=True)
     except Exception as e: SUM['errors'].append(f'keep old: {e}')
     try: res = discover()
     except Exception as e: err('discover', e); return
