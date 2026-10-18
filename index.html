@@ -489,8 +489,16 @@ td.won{background:rgba(255,201,60,.38)}
 #menuBtn.hasnew::after{top:-3px;right:-3px}
 #mNews{position:relative;display:block;margin:2px auto 6px}
 #mNews.hasnew::after{top:6px;right:-2px}
-#faqM{z-index:25}
+#faqM,#reqM{z-index:25}
 .faqcard{max-height:88vh;overflow:auto}
+.reqlink{display:block;margin:2px auto 12px;background:none;border:0;color:#c0542f;font-weight:800;font-size:15px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.reqform label{display:block;font-weight:800;font-size:14px;color:#12283b;margin:10px 0 4px}
+.reqform input,.reqform textarea{width:100%;box-sizing:border-box;border-radius:10px;border:1.5px solid rgba(18,40,59,.3);padding:9px 10px;font:inherit;font-size:16px;color:#12283b;background:#fffdf6}
+.reqform textarea{min-height:56px;resize:vertical}
+.reqform .primary{margin-top:12px}
+#reqStatus{min-height:20px;margin:8px 0 4px;font-size:14px;text-align:center}#reqStatus.ok{color:#2c7a3f}#reqStatus.err{color:#b3261e}
+.reqhave{background:rgba(44,122,63,.1);border-radius:12px;padding:9px 11px;font-size:14px;color:#12283b;margin:8px 0 0}.reqhave button{margin-top:6px}
+.reqmine{margin:12px 0 4px;font-size:14px;color:#12283b}.reqmine b{display:block;margin-bottom:4px}.reqmine div{padding:5px 0;border-top:1px solid rgba(18,40,59,.12);display:flex;justify-content:space-between;gap:8px}.reqmine em{font-style:normal;color:#51606b;white-space:nowrap}.reqmine em.done{color:#2c7a3f;font-weight:800}
 .faqask{background:rgba(18,40,59,.06);border-radius:14px;padding:10px;margin:0 0 12px}
 .faqask textarea{width:100%;box-sizing:border-box;min-height:64px;border-radius:10px;border:1.5px solid rgba(18,40,59,.3);padding:8px 10px;font:inherit;font-size:15px;color:#12283b;background:#fffdf6;resize:vertical}
 .faqask .primary{margin-top:8px}
@@ -773,10 +781,12 @@ td.won{background:rgba(255,201,60,.38)}
         <div id="mapView">
           <div class="usmap" id="usMap"></div>
           <div class="msub">Tap a state to see its courses</div>
+          <button class="reqlink" id="mReq">Don’t see your course? Request it</button>
         </div>
         <div id="stateView" hidden>
           <div class="sthead"><button class="stback" id="stBack" aria-label="Back to the map">‹ Map</button><b id="stName"></b><span id="stCount"></span></div>
           <div class="coursepick" id="coursePick" role="group" aria-label="Course"></div>
+          <button class="reqlink" id="stReq">Request a course</button>
         </div>
         <div id="mMain">
           <button class="primary disp" id="mContinue" hidden>Continue round</button>
@@ -854,6 +864,22 @@ td.won{background:rgba(255,201,60,.38)}
     </div>
   </div>
 
+  <div class="modal" id="reqM" hidden>
+    <div class="card newscard faqcard" role="dialog" aria-labelledby="reqTitle">
+      <h2 class="disp" id="reqTitle">Request a course</h2>
+      <div class="nsub">Tell us the course you want to play. Requests are built from real maps, aerial photos and lidar; the most-requested come first.</div>
+      <div class="reqform">
+        <label for="reqName">Course name</label><input id="reqName" maxlength="80" placeholder="e.g. Hidden Creek Golf Club" autocomplete="off">
+        <div id="reqHave" class="reqhave" hidden></div>
+        <label for="reqTown">Town and state</label><input id="reqTown" maxlength="60" placeholder="e.g. Rochester, MN" autocomplete="off">
+        <label for="reqNote">Anything else? <span style="font-weight:400">(optional)</span></label><textarea id="reqNote" maxlength="400" placeholder="Which tees you play, why you want it, a website…"></textarea>
+        <button class="primary disp" id="reqSend">Send request</button>
+        <div id="reqStatus" role="status" aria-live="polite"></div>
+      </div>
+      <div class="reqmine" id="reqMine" hidden></div>
+      <button class="ghost disp" id="reqClose">Close</button>
+    </div>
+  </div>
   <div class="modal" id="faqM" hidden>
     <div class="card newscard faqcard" role="dialog" aria-labelledby="faqTitle">
       <h2 class="disp" id="faqTitle">Help &amp; FAQ</h2>
@@ -3757,6 +3783,7 @@ const FAQ=[
  ['How does the daily round work?','Everyone plays the same course, pins, wind and weather that day, and you get one official round for the leaderboard. The course order is shuffled and future days are a surprise.'],
  ['What’s the difference between Challenge and Challenge V2?','Challenge is 18-hole match play up a ladder of rivals, earning points for gear upgrades and outfits. In V2 you start as the weakest golfer and unlock each golfer by beating them on their home course.'],
  ['Does my golfer matter?','Yes. Each golfer has Power, Control, Impact (timing window), Short game, Putting and Spin rated 1–10, plus a trait. They count in the daily round, full rounds and single holes.'],
+ ['Can I get my course added?','Yes. On the home screen, tap \u201cDon\u2019t see your course? Request it\u201d under the map (or \u201cRequest a course\u201d in a state\u2019s list) and enter the course and town. Courses are built from real maps, aerial photos and lidar, and the most-requested come first. Your requests show as Added \u2713 once they\u2019re in.'],
  ['How do I report a bug or suggest something?','Open the menu during a round to pause, then Send feedback. You can attach a screenshot of where you are. Every note gets read.']];
 const FAQX={hist:[]};
 function renderFaq(){const L=$('faqList');if(L.dataset.done)return;L.dataset.done=1;const esc=t=>t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
@@ -3777,6 +3804,37 @@ async function faqAsk(){const q=$('faqQ').value.trim();if(q.length<3){$('faqQ').
   catch(e){await queue();}
   h.wait=false;faqShow();$('faqGo').disabled=false;}
 $('mFaq').addEventListener('click',()=>{A();openFaq();});
+/* ---------- course requests: saved as feedback (kind 'course', message starts "[Request]"); your own requests are kept on the phone ---------- */
+const reqNorm=t=>String(t||'').toLowerCase().replace(/&/g,' and ').replace(/[’']/g,'').replace(/\b(the|golf|club|course|country|cc|gc|links|at)\b/g,' ').replace(/[^a-z0-9]+/g,' ').trim();
+function reqMatch(name){const n=reqNorm(name);if(n.length<3)return null;
+  for(const id in COURSES){const c=reqNorm(COURSES[id].name);if(c&&(c===n||(c.length>=4&&n.includes(c))||(n.length>=4&&c.includes(n))))return id;}return null;}
+function reqList(){try{return JSON.parse(localStorage.getItem('golf-requests')||'[]');}catch(e){return [];}}
+function reqShowMine(){const L=reqList(),el=$('reqMine');if(!L.length){el.hidden=true;return;}
+  const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  el.innerHTML='<b>Your requests</b>'+L.slice(0,8).map(r=>{const id=reqMatch(r.course);return '<div><span>'+esc(r.course)+(r.town?' · '+esc(r.town):'')+'</span>'+(id?'<em class="done">Added ✓</em>':'<em>Requested '+esc(r.date||'')+'</em>')+'</div>';}).join('');el.hidden=false;}
+function reqCheck(){const id=reqMatch($('reqName').value),el=$('reqHave');
+  if(!id){el.hidden=true;return;}const C=COURSES[id];
+  el.innerHTML='<b>'+C.name+'</b> ('+C.town+') is already in the game.<button class="ghost disp" id="reqPlay">Play it</button>';el.hidden=false;
+  $('reqPlay').addEventListener('click',()=>{A();$('reqM').hidden=true;pickCourse(id);});}
+function openReq(){$('reqStatus').textContent='';$('reqStatus').className='';$('reqSend').disabled=false;reqCheck();reqShowMine();$('reqM').hidden=false;sfx.tick();}
+async function sendReq(){const course=$('reqName').value.trim(),town=$('reqTown').value.trim(),note=$('reqNote').value.trim(),st=$('reqStatus');
+  if(course.length<3){st.textContent='Add the course name.';st.className='err';$('reqName').focus();return;}
+  if(town.length<2){st.textContent='Add the town and state so we find the right one.';st.className='err';$('reqTown').focus();return;}
+  if(!DAILY.url){st.textContent='Requests aren’t switched on yet.';st.className='err';return;}
+  $('reqSend').disabled=true;st.textContent='Sending…';st.className='';
+  const msg=('[Request] '+course+' — '+town+(note?'\n'+note:'')).slice(0,2000);
+  try{const r=await fetch(DAILY.url+'/rest/v1/feedback',{method:'POST',headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),
+      body:JSON.stringify({player_id:dailyPid(),name:dailyName()||'',kind:'course',message:msg,ctx:{request:{course,town,note},have:CUR&&CUR.id,ver:window.GOLF_VER||''}})});
+    if(r.ok){const L=reqList();L.unshift({course,town,date:new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'})});try{localStorage.setItem('golf-requests',JSON.stringify(L.slice(0,20)));}catch(e){}
+      st.textContent='Thanks! Your request is in.';st.className='ok';$('reqName').value='';$('reqTown').value='';$('reqNote').value='';$('reqHave').hidden=true;reqShowMine();$('reqSend').disabled=false;return;}
+    st.textContent='Couldn’t send it (error '+r.status+'). Try again in a bit.';st.className='err';}
+  catch(e){st.textContent='Couldn’t send it. Check your connection and try again.';st.className='err';}
+  $('reqSend').disabled=false;}
+$('mReq').addEventListener('click',()=>{A();openReq();});
+$('stReq').addEventListener('click',()=>{A();openReq();});
+$('reqSend').addEventListener('click',()=>{A();sendReq();});
+$('reqClose').addEventListener('click',()=>{A();$('reqM').hidden=true;});
+$('reqName').addEventListener('input',reqCheck);
 $('pFaq').addEventListener('click',()=>{A();openFaq();});
 $('pCard').addEventListener('click',()=>{A();openPauseCard();});
 $('pCardBack').addEventListener('click',()=>{A();$('pCardView').hidden=true;$('pMain').hidden=false;});
@@ -7317,6 +7375,7 @@ $('soundBtn').addEventListener('click',()=>{S.on=!S.on;$('soundWaves').style.opa
 const modalOpen=()=>!!document.querySelector('.modal:not([hidden])');
 window.addEventListener('keydown',e=>{
   if(!$('faqM').hidden){if(e.key==='Escape'){e.preventDefault();$('faqM').hidden=true;}return;}
+  if(!$('reqM').hidden){if(e.key==='Escape'){e.preventDefault();$('reqM').hidden=true;}return;}
   if(!$('pauseM').hidden){if(e.key==='Escape'){e.preventDefault();if(!$('pFbView').hidden&&!PAUSE.fbOnly){$('pFbView').hidden=true;$('pMain').hidden=false;}else if(PAUSE.home)closeSettings();else closePause();}return;}
   if(e.key==='Escape'&&!G.replay&&inRound()&&!modalOpen()){e.preventDefault();openPause();return;}
   if(G.replay&&(e.code==='Space'||e.key==='Escape')){e.preventDefault();endReplay();return;}
@@ -7371,6 +7430,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-18-req",date:"Oct 18, 2026",title:"Request a course",items:[
+    "Don\u2019t see your course? Tap \u201cRequest it\u201d under the course map, enter the course and town, and it goes on the list. The most-requested courses get built first, and your requests show Added \u2713 when they arrive."]},
   {id:"2026-10-18-2542",date:"Oct 18, 2026",title:"Five new Minnesota courses",items:[
     "The Jewel in Lake City: Hale Irwin's course along the Mississippi River bluffs, Black tees 7,050, par 71.",
     "The Ridges at Sand Creek in Jordan: open highland holes and a run through the wooded Sand Creek valley, Black tees 6,961.",
