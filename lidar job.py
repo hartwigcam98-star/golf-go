@@ -26,12 +26,63 @@ def get(url, params=None, tries=5, post=None, timeout=300):
             log('  err', e)
         time.sleep(8 * (k + 1))
     raise RuntimeError('failed ' + url)
-OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter']
+# GitHub runners have no IPv6 route: make requests use IPv4 only
+import socket, urllib3.util.connection as _uc
+_uc.allowed_gai_family = lambda: socket.AF_INET
+OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter',
+       'https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass.osm.jp/api/interpreter']
+def osmapi_box(w, s, e, n, step=0.02):
+    """Fallback without Overpass: the main OSM API map call, tiled, rebuilt as Overpass 'out geom' JSON"""
+    import xml.etree.ElementTree as ET
+    nodes, ways, rels = {}, {}, {}
+    xs = [w + i * step for i in range(int((e - w) / step) + 1)] + [e]; ys = [s + i * step for i in range(int((n - s) / step) + 1)] + [n]
+    tiles = [(a, b, c, d) for a, c in zip(xs, xs[1:]) if c > a for b, d in zip(ys, ys[1:]) if d > b]
+    def fetch(t, depth=0):
+        a, b, c, d = t
+        r = S.get(f'https://api.openstreetmap.org/api/0.6/map?bbox={a:.6f},{b:.6f},{c:.6f},{d:.6f}', timeout=300)
+        if r.status_code == 400 and depth < 3:   # too many nodes: split
+            mx, my = (a + c) / 2, (b + d) / 2
+            for q in ((a, b, mx, my), (mx, b, c, my), (a, my, mx, d), (mx, my, c, d)): fetch(q, depth + 1)
+            return
+        if r.status_code != 200: raise RuntimeError(f'osm api {r.status_code} {t}')
+        root = ET.fromstring(r.content)
+        for el in root:
+            tags = {t.get('k'): t.get('v') for t in el.findall('tag')}
+            if el.tag == 'node': nodes[int(el.get('id'))] = (float(el.get('lat')), float(el.get('lon')), tags)
+            elif el.tag == 'way': ways[int(el.get('id'))] = ([int(x.get('ref')) for x in el.findall('nd')], tags)
+            elif el.tag == 'relation': rels[int(el.get('id'))] = ([(m.get('type'), int(m.get('ref')), m.get('role')) for m in el.findall('member')], tags)
+    for t in tiles:
+        for k in range(4):
+            try: fetch(t); break
+            except Exception as ex: log('  osm api', ex); time.sleep(10 * (k + 1))
+    log('  osm api', len(tiles), 'tiles', len(nodes), 'nodes', len(ways), 'ways', len(rels), 'relations')
+    geom = lambda refs: [{'lat': nodes[r][0], 'lon': nodes[r][1]} for r in refs if r in nodes]
+    els = []
+    for i, (la, lo, tg) in nodes.items():
+        if tg: els.append({'type': 'node', 'id': i, 'lat': la, 'lon': lo, 'tags': tg})
+    for i, (refs, tg) in ways.items():
+        g = geom(refs)
+        if len(g) >= 2: els.append({'type': 'way', 'id': i, 'geometry': g, 'nodes': refs, 'tags': tg})
+    for i, (mem, tg) in rels.items():
+        ms = []
+        for ty, ref, role in mem:
+            if ty == 'way' and ref in ways: ms.append({'type': 'way', 'ref': ref, 'role': role, 'geometry': geom(ways[ref][0])})
+            elif ty == 'node' and ref in nodes: ms.append({'type': 'node', 'ref': ref, 'role': role, 'lat': nodes[ref][0], 'lon': nodes[ref][1]})
+        if ms: els.append({'type': 'relation', 'id': i, 'members': ms, 'tags': tg})
+    return {'elements': els}
+import re as _re
 def overpass(q):
     last = None
     for u in OVP:
         try: return get(u, post={'data': q}, tries=2).json()
         except Exception as e: last = e; log('  overpass mirror failed', u, e)
+    m = _re.search(r'\((-?[\d.]+),(-?[\d.]+),(-?[\d.]+),(-?[\d.]+)\)', q)
+    if m:
+        s_, w_, n_, e_ = map(float, m.groups()); log('  falling back to the OSM API for', s_, w_, n_, e_)
+        d = osmapi_box(w_, s_, e_, n_)
+        if 'golf_course' in q and 'nwr["highway"]' not in q:   # discover query: only outlines and holes
+            d['elements'] = [el for el in d['elements'] if el.get('tags', {}).get('leisure') == 'golf_course' or el.get('tags', {}).get('golf') == 'hole']
+        return d
     raise last
 def bbox_of(el):
     if 'bounds' in el: b = el['bounds']; return [b['minlon'], b['minlat'], b['maxlon'], b['maxlat']]
