@@ -4,7 +4,7 @@ name: Publish (course-split build)
 # while Pages still serves the main branch directly, the build runs as a check and nothing is published.
 on:
   push:
-    branches: [main, course-split]   # course-split: build check only (only main ever publishes)
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
