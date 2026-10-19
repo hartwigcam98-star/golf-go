@@ -2487,7 +2487,8 @@ function hfixApply(C,id){const F=HFIX[id];if(!F||C._hfix)return;C._hfix=1;for(co
 /* Oct 2026: load timings (ms) ride along with the next hole's stats as extra.ld: b = app start (once), h = this hole's set-up
    (sh: building it, ff: until it is on screen, tee: shader warm-up finished at Tee off, sc: switching course just before) */
 var LDT={boot:null,hole:null,sc:null,p:null};
-function setCourse(id,persist=true){const C=COURSES[id]||COURSES.troy;if(C===CUR&&TB===C.tb)return;if(!courseReady(C.id))courseSync(C.id);const sc0=performance.now();try{setCourseRun(C,persist);}finally{LDT.sc={c:C.id,ms:Math.round(performance.now()-sc0)};}}
+function setCourse(id,persist=true){const C=COURSES[id]||COURSES.troy;if(C===CUR&&TB===C.tb&&COURSE===C.course&&COURSE)return;   // (split build: the starting course's data arrives after CUR first points at it)
+  if(!courseReady(C.id))courseSync(C.id);const sc0=performance.now();try{setCourseRun(C,persist);}finally{LDT.sc={c:C.id,ms:Math.round(performance.now()-sc0)};}}
 function setCourseRun(C,persist){if(CUR)CUR.__seen=1;C.__seen=1;CUR=C;TB=C.tb;COURSE=C.course;hfixApply(COURSE,C.id);
   if(HFIX[C.id])for(const k in HFIX[C.id])if(HFIX[C.id][k].tip&&TB[k-1])TB[k-1].tip=HFIX[C.id][k].tip;DEM=C.dem;WIDE=C.wide;SAVE_KEY=C.saveKey;SURR.ready=null;
   HOLES.length=0;for(let i=0;i<TB.length;i++)HOLES[i]=null;G.terrains=[];G.hole=null;TOTAL_PAR=TB.reduce((s,h)=>s+h.par,0);
