@@ -1,0 +1,115 @@
+{
+ "started": "2026-10-19 02:33:55",
+ "courses": {
+  "desertcanyon": {
+   "epsg": 26912,
+   "osm_bld": 210,
+   "osm_park": 0,
+   "cand": [
+    "AZ_MaricopaPinal_1_2020"
+   ],
+   "tried": {
+    "AZ_MaricopaPinal_1_2020": 0.986
+   },
+   "used": "AZ_MaricopaPinal_1_2020",
+   "club": "osm",
+   "parking": 0,
+   "extra": 0,
+   "sec": 57
+  },
+  "jewel": {
+   "epsg": 26915,
+   "osm_bld": 5,
+   "osm_park": 1,
+   "cand": [
+    "MN_SEDriftless_2_2021",
+    "MN_GoodhueCo_1_2020",
+    "USGS_LPC_MN_Phase4_Metro_H_2011_LAS_2016",
+    "MN_FullState"
+   ],
+   "tried": {
+    "MN_SEDriftless_2_2021": 0.967
+   },
+   "used": "MN_SEDriftless_2_2021",
+   "club": "osm",
+   "parking": 1,
+   "extra": 0,
+   "sec": 57
+  },
+  "ridges": {
+   "epsg": 26915,
+   "osm_bld": 1,
+   "osm_park": 2,
+   "cand": [
+    "MN_CentralMissRiver_6_B22",
+    "USGS_LPC_MN_Phase4_Metro_G_2011_LAS_2016",
+    "MN_FullState"
+   ],
+   "tried": {
+    "MN_CentralMissRiver_6_B22": 0.982
+   },
+   "used": "MN_CentralMissRiver_6_B22",
+   "club": null,
+   "parking": 2,
+   "extra": 0,
+   "sec": 50
+  },
+  "edinburgh": {
+   "epsg": 26915,
+   "osm_bld": 209,
+   "osm_park": 4,
+   "cand": [
+    "MN_CentralMissRiver_4_B22",
+    "USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016",
+    "MN_FullState"
+   ],
+   "tried": {
+    "MN_CentralMissRiver_4_B22": 0.985
+   },
+   "used": "MN_CentralMissRiver_4_B22",
+   "club": "osm",
+   "parking": 3,
+   "extra": 0,
+   "sec": 73
+  },
+  "willingers": {
+   "epsg": 26915,
+   "osm_bld": 4,
+   "osm_park": 0,
+   "cand": [
+    "MN_SEDriftless_1_2021",
+    "USGS_LPC_MN_Phase4_Metro_Dakota_2011_LAS_2016",
+    "MN_FullState"
+   ],
+   "tried": {
+    "MN_SEDriftless_1_2021": 0.978
+   },
+   "used": "MN_SEDriftless_1_2021",
+   "club": "osm",
+   "parking": 0,
+   "extra": 0,
+   "sec": 193
+  },
+  "northfork": {
+   "epsg": 26915,
+   "osm_bld": 0,
+   "osm_park": 0,
+   "cand": [
+    "MN_CentralMissRiver_4_B22",
+    "MN_CentralMissRiver_5_B22",
+    "USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016",
+    "MN_FullState"
+   ],
+   "tried": {
+    "MN_CentralMissRiver_4_B22": 0.991
+   },
+   "used": "MN_CentralMissRiver_4_B22",
+   "club": "lidar",
+   "parking": 0,
+   "extra": 0,
+   "sec": 200
+  }
+ },
+ "errors": [],
+ "finished": "2026-10-19 02:44:43"
+}
