@@ -5107,7 +5107,7 @@ function r3GolferSet(id,cb){if(!R3.on||typeof R3BOSS==='undefined')return;
   r3CharFetch(fid,()=>R3CHAR_WANT===id,ok=>{if(!ok&&R3CHAR_WANT===id){const c=R3CHAR_CB;R3CHAR_WANT=null;R3CHAR_CB=null;c&&c(false);}});}   // on success the file itself calls R3CHAR, which switches to it
 // download a character's file. Phones sometimes rename uploads (char_brute.js -> "char brute.js"), so the usual spellings are tried in turn
 // bodies the legends wear carry part labels (Oct 2026): ask for the labelled file (?v=) so a phone's older cached copy is not used
-const CHAR_V={mh_tyger:'m4',mh_jack:'m4',mh_arnie:'m4',mh_phil:'m4',mh_rory:'m4',mh_scotty:'m4',mh_seve:'m4',mh_barry:'m4',mh_hoagan:'m4',mh_payne:'m4',ch12:'lg2',remy:'lg2',ch01:'lg2',ch08:'lg2',ch42:'lg2',ch23:'lg2',ch28:'lg2',mx_joe:'lg2',ch17:'lg2'};
+const CHAR_V={mh_tyger:'m5',mh_jack:'m5',mh_arnie:'m5',mh_phil:'m5',mh_rory:'m5',mh_scotty:'m5',mh_seve:'m5',mh_barry:'m5',mh_hoagan:'m5',mh_payne:'m5',ch12:'lg2',remy:'lg2',ch01:'lg2',ch08:'lg2',ch42:'lg2',ch23:'lg2',ch28:'lg2',mx_joe:'lg2',ch17:'lg2'};
 function r3CharFetch(id,keepTrying,done){const q=CHAR_V[id]?'?v='+CHAR_V[id]:'',names=['char_'+id+'.js'+q,'char%20'+id+'.js'+q,'char'+id+'.js'+q,'char-'+id+'.js'+q];let k=0;
   const tryNext=()=>{const s=document.createElement('script');s.id='chs_'+id;s.src=names[k];s.onload=()=>done(true);
     s.onerror=()=>{s.remove();if(++k<names.length&&keepTrying()){tryNext();return;}done(false);};document.head.appendChild(s);};
