@@ -1,7 +1,6 @@
 import sys;sys.path.insert(0,'/home/claude/golf/lidar2');sys.path.insert(0,'/home/claude/golf/lidar')
 from common import *
 cj={'cambrian':'cambrian/cr_all_course.json','troy':'course.json','stoneridge':'stoneridge/course.json','caledonia':'pawleys/cal_course.json','trueblue':'pawleys/tb_course.json','rossbridge':'alabama/rb_course.json','senator':'alabama/ch/sen_course.json','judge':'alabama/ch/jud_course.json','legislator':'alabama/ch/leg_course.json','sandvalley':'sandvalley/sandvalley_course.json','mammoth':'sandvalley/mammoth_course.json','lido':'sandvalley/lido_course.json','sedge':'sandvalley/sedge_course.json','wilderness':'iron/wilderness_course.json','quarry':'iron/quarry_course.json','legend':'iron/legend_course.json'}
-for _k in ('jewel','ridges','edinburgh','willingers','northfork'):cj[_k]='mn5/'+_k+'_course.json'
 class _CJ(dict):
     def __missing__(self,k):return f'auto/{k}/{k}_course.json'
 cj=_CJ(cj)
