@@ -3783,7 +3783,7 @@ const FAQ=[
  ['How does the daily round work?','Everyone plays the same course, pins, wind and weather that day, and you get one official round for the leaderboard. The course order is shuffled and future days are a surprise.'],
  ['What’s the difference between Challenge and Challenge V2?','Challenge is 18-hole match play up a ladder of rivals, earning points for gear upgrades and outfits. In V2 you start as the weakest golfer and unlock each golfer by beating them on their home course.'],
  ['Does my golfer matter?','Yes. Each golfer has Power, Control, Impact (timing window), Short game, Putting and Spin rated 1–10, plus a trait. They count in the daily round, full rounds and single holes.'],
- ['Can I get my course added?','Yes. On the home screen, tap \u201cDon\u2019t see your course? Request it\u201d under the map (or \u201cRequest a course\u201d in a state\u2019s list) and enter the course and town. Courses are built from real maps, aerial photos and lidar, and the most-requested come first. Your requests show as Added \u2713 once they\u2019re in.'],
+ ['Can I get my course added?','Yes. On the home screen, tap \u201cDon\u2019t see your course? Request it\u201d under the map (or \u201cRequest a course\u201d in a state\u2019s list) and enter the course and town. Courses are built from real maps, aerial photos and lidar, and the most-requested come first. You can have one request waiting at a time; it shows as Added \u2713 once it\u2019s in, and then you can ask for another.'],
  ['How do I report a bug or suggest something?','Open the menu during a round to pause, then Send feedback. You can attach a screenshot of where you are. Every note gets read.']];
 const FAQX={hist:[]};
 function renderFaq(){const L=$('faqList');if(L.dataset.done)return;L.dataset.done=1;const esc=t=>t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
@@ -3812,12 +3812,17 @@ function reqList(){try{return JSON.parse(localStorage.getItem('golf-requests')||
 function reqShowMine(){const L=reqList(),el=$('reqMine');if(!L.length){el.hidden=true;return;}
   const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
   el.innerHTML='<b>Your requests</b>'+L.slice(0,8).map(r=>{const id=reqMatch(r.course);return '<div><span>'+esc(r.course)+(r.town?' · '+esc(r.town):'')+'</span>'+(id?'<em class="done">Added ✓</em>':'<em>Requested '+esc(r.date||'')+'</em>')+'</div>';}).join('');el.hidden=false;}
+// one request per player at a time: a request still waiting (not in the game yet, under 14 days old) blocks a new one
+function reqWaiting(){return reqList().find(r=>!reqMatch(r.course)&&(!r.t||Date.now()-r.t<14*864e5))||null;}
+function reqGate(){const w=reqWaiting(),st=$('reqStatus');$('reqSend').disabled=!!w;
+  if(w){st.textContent='You have a request waiting ('+w.course+'). You can ask for another once it\u2019s added.';st.className='';}return !!w;}
 function reqCheck(){const id=reqMatch($('reqName').value),el=$('reqHave');
   if(!id){el.hidden=true;return;}const C=COURSES[id];
   el.innerHTML='<b>'+C.name+'</b> ('+C.town+') is already in the game.<button class="ghost disp" id="reqPlay">Play it</button>';el.hidden=false;
   $('reqPlay').addEventListener('click',()=>{A();$('reqM').hidden=true;pickCourse(id);});}
-function openReq(){$('reqStatus').textContent='';$('reqStatus').className='';$('reqSend').disabled=false;reqCheck();reqShowMine();$('reqM').hidden=false;sfx.tick();}
+function openReq(){$('reqStatus').textContent='';$('reqStatus').className='';$('reqSend').disabled=false;reqCheck();reqShowMine();reqGate();$('reqM').hidden=false;sfx.tick();}
 async function sendReq(){const course=$('reqName').value.trim(),town=$('reqTown').value.trim(),note=$('reqNote').value.trim(),st=$('reqStatus');
+  if(reqGate())return;
   if(course.length<3){st.textContent='Add the course name.';st.className='err';$('reqName').focus();return;}
   if(town.length<2){st.textContent='Add the town and state so we find the right one.';st.className='err';$('reqTown').focus();return;}
   if(!DAILY.url){st.textContent='Requests aren’t switched on yet.';st.className='err';return;}
@@ -3825,8 +3830,8 @@ async function sendReq(){const course=$('reqName').value.trim(),town=$('reqTown'
   const msg=('[Request] '+course+' — '+town+(note?'\n'+note:'')).slice(0,2000);
   try{const r=await fetch(DAILY.url+'/rest/v1/feedback',{method:'POST',headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),
       body:JSON.stringify({player_id:dailyPid(),name:dailyName()||'',kind:'course',message:msg,ctx:{request:{course,town,note},have:CUR&&CUR.id,ver:window.GOLF_VER||''}})});
-    if(r.ok){const L=reqList();L.unshift({course,town,date:new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'})});try{localStorage.setItem('golf-requests',JSON.stringify(L.slice(0,20)));}catch(e){}
-      st.textContent='Thanks! Your request is in.';st.className='ok';$('reqName').value='';$('reqTown').value='';$('reqNote').value='';$('reqHave').hidden=true;reqShowMine();$('reqSend').disabled=false;return;}
+    if(r.ok){const L=reqList();L.unshift({course,town,t:Date.now(),date:new Date().toLocaleDateString(undefined,{month:'short',day:'numeric'})});try{localStorage.setItem('golf-requests',JSON.stringify(L.slice(0,20)));}catch(e){}
+      st.textContent='Thanks! Your request is in.';st.className='ok';$('reqName').value='';$('reqTown').value='';$('reqNote').value='';$('reqHave').hidden=true;reqShowMine();$('reqSend').disabled=true;return;}
     st.textContent='Couldn’t send it (error '+r.status+'). Try again in a bit.';st.className='err';}
   catch(e){st.textContent='Couldn’t send it. Check your connection and try again.';st.className='err';}
   $('reqSend').disabled=false;}

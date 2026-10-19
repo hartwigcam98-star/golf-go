@@ -23,7 +23,9 @@ Run `auto/build_course.py` and `auto/consts.py` **inside /home/claude/golf/auto/
 - Requests = notes with kind `course` and a message starting `[Request]`. State lives in `pipeline/courses/requests.json`
   (`{"<note id>": {"status": "built|skipped|failed|duplicate", "key":..., "why":..., "date":...}}`). Ignore notes already in it.
 - Order: the course asked for by the most players first (group requests that are clearly the same course), then oldest.
-  Only one request per player counts per night.
+  One request per player at a time (player_id): only a player's oldest unhandled request is considered; their later
+  requests wait (don't record them) until that one is built, skipped or failed. The game also blocks a second request while
+  one is waiting (client-side, 14-day expiry), so this is the server-side backstop.
 - **Skip** (record status `skipped` + why, no build): not a real golf course; outside the lower 48 US states; private club
   (say so, Cam decides later); fewer than 18 holes; joke/abusive text. **Duplicate**: already in `COURSES` (check names/towns).
 - If the top request can't be built (see 3), record `failed` with the reason and try the next one, but build at most one.
