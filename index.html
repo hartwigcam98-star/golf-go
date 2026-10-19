@@ -1546,22 +1546,26 @@ function GGC(id,f,dat){const C=COURSES[id];if(!C)return;const o=f();C.course=o.c
 window.GGC=GGC;
 function courseRun(id,txt){(0,eval)(txt);if(!courseReady(id))throw new Error('course file had no data');}
 function courseFetch(id,prog){if(CLOAD[id])return CLOAD[id];const F=CFILES[id];
-  const p=(async()=>{const r=await fetch(F.u);if(!r.ok)throw new Error('http '+r.status);let txt;
+  // a stalled connection (no bytes for 20 s) is given up on, so the player gets Try again instead of waiting forever
+  const ctl=typeof AbortController!=='undefined'?new AbortController():null;let last=performance.now();
+  const wd=setInterval(()=>{if(performance.now()-last>20000&&ctl)ctl.abort();},2000);
+  const p=(async()=>{const r=await fetch(F.u,ctl?{signal:ctl.signal}:undefined);last=performance.now();if(!r.ok)throw new Error('http '+r.status);let txt;
     if(prog&&r.body&&r.body.getReader&&typeof TextDecoder!=='undefined'){const rd=r.body.getReader(),dec=new TextDecoder(),parts=[];let n=0;
-      for(;;){const{done,value}=await rd.read();if(done)break;n+=value.length;parts.push(dec.decode(value,{stream:true}));if(F.s)prog(Math.min(.99,n/F.s));}
+      for(;;){const{done,value}=await rd.read();if(done)break;last=performance.now();n+=value.length;parts.push(dec.decode(value,{stream:true}));if(F.s)prog(Math.min(.99,n/F.s));}
       parts.push(dec.decode());txt=parts.join('');}
     else txt=await r.text();
     courseRun(id,txt);})();
-  CLOAD[id]=p;p.catch(()=>{delete CLOAD[id];});return p;}
+  CLOAD[id]=p;p.then(()=>clearInterval(wd),()=>{clearInterval(wd);delete CLOAD[id];});return p;}
 // last resort for any path that switches course without asking first: fetch it there and then (blocking, but never broken)
 function courseSync(id){if(courseReady(id))return;try{const x=new XMLHttpRequest();x.open('GET',CFILES[id].u,false);x.send();if(x.status>=200&&x.status<300)courseRun(id,x.responseText);}catch(e){console.error('[course]',e);}}
 /* ask before switching: true means "wait, loading" (the overlay shows progress, then 'again' runs), false means go ahead now */
 function courseGate(id,again){if(courseReady(id))return false;const C=COURSES[id],M=$('cdlM'),bar=$('cdlBar');
-  const go=()=>{$('cdlT').textContent='Loading '+C.name;$('cdlS').textContent='First time on this course: it\u2019s saved on this device after this.';
-    $('cdlRetry').hidden=true;$('cdlCancel').hidden=true;bar.style.width='4%';M.hidden=false;
-    courseFetch(id,f=>{bar.style.width=Math.max(4,Math.round(f*100))+'%';}).then(()=>{bar.style.width='100%';M.hidden=true;again();},
-      ()=>{$('cdlT').textContent='Couldn\u2019t load '+C.name;$('cdlS').textContent='Check your connection and try again.';$('cdlRetry').hidden=false;$('cdlCancel').hidden=false;});};
-  $('cdlRetry').onclick=()=>{A();go();};$('cdlCancel').onclick=()=>{A();M.hidden=true;};go();return true;}
+  let off=false;   // Cancel (always offered): stay where you are; a download already under way still finishes and is kept
+  const go=()=>{off=false;$('cdlT').textContent='Loading '+C.name;$('cdlS').textContent='First time on this course: it\u2019s saved on this device after this.';
+    $('cdlRetry').hidden=true;$('cdlCancel').hidden=false;bar.style.width='4%';M.hidden=false;
+    courseFetch(id,f=>{bar.style.width=Math.max(4,Math.round(f*100))+'%';}).then(()=>{if(off)return;bar.style.width='100%';M.hidden=true;again();},
+      ()=>{if(off)return;$('cdlT').textContent='Couldn\u2019t load '+C.name;$('cdlS').textContent='Check your connection and try again.';$('cdlRetry').hidden=false;$('cdlCancel').hidden=false;});};
+  $('cdlRetry').onclick=()=>{A();go();};$('cdlCancel').onclick=()=>{A();off=true;M.hidden=true;};go();return true;}
 // warm the offline cache with courses likely to be played next (today's daily, the home course): fetched, not opened
 function coursePrefetch(ids){if(!CFILES)return;for(const id of ids)if(id&&CFILES[id]&&!courseReady(id)&&!CLOAD[id])fetch(CFILES[id].u).catch(()=>{});}
 // course-frame height in yards (Catmull-Rom bicubic over the grid, clamped at the edges)
