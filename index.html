@@ -3429,7 +3429,7 @@ function showCard(){
     if(isBest){try{localStorage.setItem('troyburne-best-18',String(tot));}catch(e){}}
     $('cEyebrow').textContent='Round complete';
     $('cTitle').textContent=tot+' ('+fmtDiff(d)+')';
-    note.hidden=false;note.textContent=isBest?(best?'New personal best — beat your old '+best+'.':'First round in the books. Go again and beat it.'):'Personal best on this device: '+best+'.';
+    note.hidden=false;note.textContent=TEE?'Played from the '+TEE_NAME[TEE]+'. Course records and personal bests count from the '+CUR.tees+' only.':isBest?(best?'New personal best — beat your old '+best+'.':'First round in the books. Go again and beat it.'):'Personal best on this device: '+best+'.';
     $('nextBtn').textContent='Play again';
     if(recCanPost())recOffer(tot,d);
   }else{
