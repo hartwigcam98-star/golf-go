@@ -107,7 +107,7 @@ for (const f of tracked) {
 // ---- offline cache: course files replace the three data files; new cache version for the new page
 let sw = fs.readFileSync('sw.js', 'utf8');
 const dm = /const DATA=(\[[^\]]*\]);/.exec(sw); if (!dm) die('sw.js DATA list not found');
-const DATA = JSON.parse(dm[1]).filter(u => !extraScripts.some(f => u.startsWith(f + '?'))).concat(Object.values(CF).map(x => x.u));
+const DATA = JSON.parse(dm[1]).filter(u => !extraScripts.some(f => u.startsWith(f + '?'))).concat(Object.values(CF).map(x => x.u.split('/').pop()));   // the cache keeps files whose last path part + ?v= is listed
 sw = sw.replace(dm[0], 'const DATA=' + JSON.stringify(DATA) + ';').replace(/const V='[0-9a-f]+'/, "const V='" + sha(coreText) + "'");
 if (!/const V='/.test(sw)) die('sw.js version not found');
 fs.writeFileSync(path.join(OUT, 'sw.js'), sw);
