@@ -1539,9 +1539,10 @@ setTimeout(cpkStep,2500);
    CFILES is absent and every course is simply ready. */
 const CFILES=window.CFILES||null,CLOAD={};
 function courseReady(id){const C=COURSES[id];return !C||!CFILES||!CFILES[id]||C.course!=null;}
-// a course file runs GGC(id, () => ({course, surr}), {g: LIDG part, w: LIDW part, b: BLDX part, n: R3NAIP part})
-function GGC(id,f,dat){const C=COURSES[id];if(!C)return;const o=f();C.course=o.course;C.surr=o.surr;dat=dat||{};
-  if(dat.g)Object.assign(LIDG,dat.g);if(dat.w)Object.assign(LIDW,dat.w);if(dat.b)Object.assign(BLDX,dat.b);if(dat.n)Object.assign(R3NAIP,dat.n);}
+// a course file runs GGC(id, () => ({course, surr}), {TABLE: {key: part}, ...}) for each per-course table of the data files
+// (LIDG, LIDW, BLDX, R3NAIP and any added later); the split page declares those tables as empty objects to be filled
+function GGC(id,f,dat){const C=COURSES[id];if(!C)return;const o=f();C.course=o.course;C.surr=o.surr;
+  for(const n in dat||{}){const T=window[n];if(T&&typeof T==='object')Object.assign(T,dat[n]);else console.warn('[course] no table',n);}}
 window.GGC=GGC;
 function courseRun(id,txt){(0,eval)(txt);if(!courseReady(id))throw new Error('course file had no data');}
 function courseFetch(id,prog){if(CLOAD[id])return CLOAD[id];const F=CFILES[id];

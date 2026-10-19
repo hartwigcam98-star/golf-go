@@ -59,13 +59,18 @@ let coreText = core.join('\n');
 // nothing left may still refer to a moved binding (outside strings this would be a ReferenceError on a phone)
 for (const n of moved) { const re = new RegExp('\\b' + n + '\\b'); if (re.test(coreText)) die('core still refers to ' + n); }
 
-// ---- the big per-course tables
-const table = (file, name) => { const line = fs.readFileSync(file, 'utf8').split('\n').find(l => l.startsWith('const ' + name + '='));
-  if (!line) die(name + ' not in ' + file); return JSON.parse(line.slice(('const ' + name + '=').length).replace(/;\s*$/, '')); };
-const T = { g: table('greens.js', 'LIDG'), w: table('ground.js', 'LIDW'), b: table('ground.js', 'BLDX'), n: table('trees.js', 'R3NAIP') };
-const extraScripts = ['greens.js', 'ground.js', 'trees.js'];
-for (const f of extraScripts) { const other = fs.readFileSync(f, 'utf8').split('\n').filter(l => /^(const|let|var|function) /.test(l) && !/^const (LIDG|LIDW|BLDX|R3NAIP)=/.test(l));
-  if (other.length) die(f + ' has other definitions the build does not carry: ' + other.map(l => l.slice(0, 40)).join(' | ')); }
+// ---- the data files: any `const NAME={...}` whose keys are all course (or shared data) keys is split per course; anything
+//      else in them (comments aside) stays in the core page as it is
+const allKeys = new Set(courses.flatMap(c => [c.id, c.data].filter(Boolean)));
+const extraScripts = ['greens.js', 'ground.js', 'trees.js'], T = {}, keep = [];
+for (const f of extraScripts) for (const l of fs.readFileSync(f, 'utf8').split('\n')) {
+  const m = /^(?:const|let|var) ([A-Za-z_$][\w$]*)=(.*)$/.exec(l);
+  if (m) { let o = null; try { o = JSON.parse(m[2].replace(/;\s*$/, '')); } catch (e) {}
+    if (o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length && Object.keys(o).every(k => allKeys.has(k))) { T[m[1]] = o; continue; } }
+  if (l.trim() && !/^\s*\/\//.test(l)) keep.push(l);
+}
+for (const n of ['LIDG', 'LIDW', 'R3NAIP']) if (!T[n]) die(n + ' was not found as a per-course table');
+console.log('per-course tables: ' + Object.keys(T).join(', ') + (keep.length ? '; kept in core from the data files: ' + keep.length + ' line(s)' : ''));
 
 // ---- course files
 fs.rmSync(OUT, { recursive: true, force: true }); fs.mkdirSync(path.join(OUT, 'c'), { recursive: true });
@@ -80,8 +85,6 @@ for (const c of courses) {
   CF[c.id] = { u: rel + '?v=' + v, s: Buffer.byteLength(text) };
   report.push([c.id, Math.round(Buffer.byteLength(text) / 1024)]);
 }
-const all = new Set(courses.flatMap(c => [c.id, c.data].filter(Boolean)));
-for (const k of Object.keys(T)) for (const key of Object.keys(T[k])) if (!all.has(key)) die(k + ' has data for ' + key + ', which no course uses');
 
 // ---- swap the three data scripts for the course map
 const tagRe = /<script src="(greens|ground|trees)\.js\?v=[^"]*"><\/script>\n?/g;
@@ -89,7 +92,8 @@ const tags = coreText.match(tagRe) || [];
 if (tags.length !== 3) die('expected 3 data script tags, found ' + tags.length);
 let first = true;
 coreText = coreText.replace(tagRe, () => { if (!first) return ''; first = false;
-  return '<script>window.CFILES=' + JSON.stringify(CF) + ';var LIDG={},LIDW={},BLDX={},R3NAIP={};</script>\n'; });
+  return '<script>window.CFILES=' + JSON.stringify(CF) + ';' + Object.keys(T).map(n => 'var ' + n + '={};').join('') + '</script>\n' +
+    (keep.length ? '<script>\n' + keep.join('\n') + '\n</script>\n' : ''); });
 fs.writeFileSync(path.join(OUT, 'index.html'), coreText);
 
 // ---- every other tracked file, as is
