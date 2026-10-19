@@ -2,7 +2,7 @@
 
 This folder (`pipeline/courses/` in the repo) is the whole course pipeline. Players ask for courses with the in-game
 "Request a course" form; each request is a feedback note (kind `course`, message `[Request] <course> — <town>`, `ctx.request`).
-The nightly task builds **at most one** course per night and ships it only if every check passes.
+The nightly task builds **at most two** courses per night (from two different players) and ships each one only if every check passes.
 
 ## 0. Setup (fresh session)
 ```
@@ -28,7 +28,10 @@ Run `auto/build_course.py` and `auto/consts.py` **inside /home/claude/golf/auto/
   one is waiting (client-side, 14-day expiry), so this is the server-side backstop.
 - **Skip** (record status `skipped` + why, no build): not a real golf course; outside the lower 48 US states; private club
   (say so, Cam decides later); fewer than 18 holes; joke/abusive text. **Duplicate**: already in `COURSES` (check names/towns).
-- If the top request can't be built (see 3), record `failed` with the reason and try the next one, but build at most one.
+- Take the top **two** buildable requests (from different players). If one can't be built (see 3), record `failed` with the reason
+  and try the next one, but build at most two. With two courses, do steps 2–6 for both: one fetch job can carry both
+  (two keys in want/holes/steps, two search boxes), and `inject_auto.py` takes both keys. If one course fails its gates,
+  inject and ship only the other (re-run inject_auto.py with just that key) and record the failure.
 
 ## 2. Research
 Search the web for the course's scorecard: back (championship) tees with per-hole par, handicap, yardage. Prefer the club
@@ -103,7 +106,7 @@ Look at the hero picture.
 
 ## 7. Ship (only after all gates pass)
 ```
-cd /home/claude/golf && python3 sc3/ship.py "New course: <name>" "<name> in <town>: <one line, tees and yardage>. Requested by a player." 
+cd /home/claude/golf && python3 sc3/ship.py "New course: <name>" "<name> in <town>: <one line, tees and yardage>. Requested by a player."   # two courses: "New courses: A and B" with one item each
 cd /home/claude/golf-go && git status --short
 ```
 Add an entry for the request to `pipeline/courses/requests.json` (`built`, key, date). Copy any changed pipeline files back
@@ -113,5 +116,5 @@ and push. If the push is rejected, pull, re-copy base, re-inject, re-test gate 5
 For failures/skips: commit only `pipeline/courses/requests.json`.
 
 ## 8. Report to Cam (PushNotification)
-Built: "<name> is live" + tees/length vs card, anything uncertain (pars that disagree, holes short of the card, softened greens),
+Built: "<name> is live" (or both names) + tees/length vs card, anything uncertain (pars that disagree, holes short of the card, softened greens),
 and "say 'remove <name>' to undo". Skipped/failed: what and why. Nothing to do: no notification.
