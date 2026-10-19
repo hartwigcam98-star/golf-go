@@ -1,0 +1,49 @@
+name: Publish (course-split build)
+# Builds what players download from the repo's all-in-one game: a small core plus one file per course (tools/split/build.js).
+# It only publishes when the repo's Pages source is "GitHub Actions" (Settings > Pages > Build and deployment > Source);
+# while Pages still serves the main branch directly, the build runs as a check and nothing is published.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.mode.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build
+        run: node tools/split/build.js dist
+      - name: Pages source
+        id: mode
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          t=$(gh api "repos/${{ github.repository }}/pages" --jq .build_type 2>/dev/null || echo unknown)
+          echo "Pages build type: $t"
+          if [ "$t" = "workflow" ]; then echo "publish=yes" >> "$GITHUB_OUTPUT"; else echo "publish=no" >> "$GITHUB_OUTPUT"; echo "::notice::Built and checked; not published (Pages serves the branch directly)."; fi
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.mode.outputs.publish == 'yes'
+        with:
+          path: dist
+  deploy:
+    needs: build
+    if: needs.build.outputs.publish == 'yes'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

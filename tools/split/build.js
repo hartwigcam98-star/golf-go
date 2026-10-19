@@ -1,0 +1,114 @@
+#!/usr/bin/env node
+/* Golf Go publish build: splits the repo's all-in-one game into a small core plus one file per course.
+
+   The repo keeps every course inline (index.html holds the layouts and surroundings; greens.js, ground.js and trees.js hold the
+   lidar greens, ground, buildings and tree crowns for all courses), because the course pipeline writes there. What players
+   download is built from it:
+     dist/index.html   the game without any course data; window.CFILES maps each course id to its file
+     dist/c/<id>.js    one course: its layout + surroundings (+ the shared blocks they use) and its LIDG/LIDW/BLDX/R3NAIP parts
+     dist/sw.js        offline cache list updated (course files instead of the three big data files)
+   and every other tracked file is copied as is. The game loads a course's file the first time it's played (see CFILES in
+   index.html); with no CFILES (the repo copy) every course is inline and ready.
+
+   usage: node tools/split/build.js [outDir=dist]       (run from the repo root) */
+const fs = require('fs'), path = require('path'), crypto = require('crypto'), { execSync } = require('child_process');
+const OUT = path.resolve(process.argv[2] || 'dist');
+const sha = t => crypto.createHash('sha1').update(t).digest('hex').slice(0, 10);
+const die = m => { console.error('BUILD FAILED: ' + m); process.exit(1); };
+
+const src = fs.readFileSync('index.html', 'utf8');
+const L = src.split('\n');
+
+// ---- the course registry: one line per course inside `const COURSES={ ... }};`
+const c0 = L.findIndex(l => l.startsWith('const COURSES={'));
+if (c0 < 0) die('no COURSES registry');
+let c1 = c0; while (c1 < L.length && !/\}\};\s*$/.test(L[c1])) c1++;
+const courses = [];
+for (let i = c0; i <= c1; i++) {
+  const m = /^\s*([a-z0-9_]+):\{.*\bid:'([a-z0-9_]+)'/.exec(L[i]); if (!m) continue;
+  const cm = /\bcourse:([A-Z][A-Z0-9_]*)/.exec(L[i]), sm = /\bsurr:([A-Z][A-Z0-9_]*)/.exec(L[i]), dm = /\bdata:'([a-z0-9_]+)'/.exec(L[i]);
+  if (!cm || !sm) die('course line without course/surr identifiers: ' + m[2]);
+  courses.push({ id: m[2], line: i, course: cm[1], surr: sm[1], data: dm ? dm[1] : null });
+}
+if (courses.length < 10) die('only ' + courses.length + ' courses found');
+
+// ---- top-level single-line data definitions (`let NAME=...;`) and what each refers to
+const defs = new Map();
+L.forEach((l, i) => { const m = /^let ([A-Z][A-Z0-9_]*)=/.exec(l); if (m) defs.set(m[1], i); });
+const refsOf = i => { const out = new Set(), t = L[i];
+  for (const m of t.matchAll(/\b[A-Z][A-Z0-9_]{2,}\b/g)) if (defs.has(m[0]) && defs.get(m[0]) !== i) out.add(m[0]); return out; };
+const closure = roots => { const seen = new Set(), st = [...roots];
+  while (st.length) { const n = st.pop(); if (seen.has(n)) continue; if (!defs.has(n)) die('no definition for ' + n); seen.add(n); for (const r of refsOf(defs.get(n))) st.push(r); }
+  return [...seen].sort((a, b) => defs.get(a) - defs.get(b)); };   // in file order, so each definition comes after what it uses
+const moved = new Set();
+for (const c of courses) { c.names = closure([c.course, c.surr]); c.names.forEach(n => moved.add(n)); }
+
+// ---- the statement that blanks those bindings after the registry (memory work): drop it with them
+const nullIdx = L.findIndex((l, i) => i > c1 && /^\((COURSE|SURR)_[A-Z0-9_]+=/.test(l));
+if (nullIdx >= 0) for (const m of L[nullIdx].matchAll(/\b([A-Z][A-Z0-9_]*)=/g)) if (!moved.has(m[1]) && defs.has(m[1])) die('blanking line names ' + m[1] + ' which is not course data');
+const dropLines = new Set([...moved].map(n => defs.get(n)));
+if (nullIdx >= 0) dropLines.add(nullIdx);
+
+// ---- core page
+const core = L.map((l, i) => {
+  if (dropLines.has(i)) return null;
+  if (i >= c0 && i <= c1) return l.replace(/\bcourse:[A-Z][A-Z0-9_]*/, 'course:null').replace(/\bsurr:[A-Z][A-Z0-9_]*/, 'surr:null');
+  return l;
+}).filter(l => l !== null);
+let coreText = core.join('\n');
+// nothing left may still refer to a moved binding (outside strings this would be a ReferenceError on a phone)
+for (const n of moved) { const re = new RegExp('\\b' + n + '\\b'); if (re.test(coreText)) die('core still refers to ' + n); }
+
+// ---- the big per-course tables
+const table = (file, name) => { const line = fs.readFileSync(file, 'utf8').split('\n').find(l => l.startsWith('const ' + name + '='));
+  if (!line) die(name + ' not in ' + file); return JSON.parse(line.slice(('const ' + name + '=').length).replace(/;\s*$/, '')); };
+const T = { g: table('greens.js', 'LIDG'), w: table('ground.js', 'LIDW'), b: table('ground.js', 'BLDX'), n: table('trees.js', 'R3NAIP') };
+const extraScripts = ['greens.js', 'ground.js', 'trees.js'];
+for (const f of extraScripts) { const other = fs.readFileSync(f, 'utf8').split('\n').filter(l => /^(const|let|var|function) /.test(l) && !/^const (LIDG|LIDW|BLDX|R3NAIP)=/.test(l));
+  if (other.length) die(f + ' has other definitions the build does not carry: ' + other.map(l => l.slice(0, 40)).join(' | ')); }
+
+// ---- course files
+fs.rmSync(OUT, { recursive: true, force: true }); fs.mkdirSync(path.join(OUT, 'c'), { recursive: true });
+const CF = {}, report = [];
+for (const c of courses) {
+  const keys = [...new Set([c.data || c.id, c.id])], dat = {};
+  for (const k of Object.keys(T)) for (const key of keys) if (T[k][key] !== undefined) (dat[k] = dat[k] || {})[key] = T[k][key];
+  const body = c.names.map(n => L[defs.get(n)]).join('\n');
+  const text = 'GGC(' + JSON.stringify(c.id) + ',function(){\n' + body + '\nreturn{course:' + c.course + ',surr:' + c.surr + '};},' + JSON.stringify(dat) + ');\n';
+  const v = sha(text), rel = 'c/' + c.id + '.js';
+  fs.writeFileSync(path.join(OUT, rel), text);
+  CF[c.id] = { u: rel + '?v=' + v, s: Buffer.byteLength(text) };
+  report.push([c.id, Math.round(Buffer.byteLength(text) / 1024)]);
+}
+const all = new Set(courses.flatMap(c => [c.id, c.data].filter(Boolean)));
+for (const k of Object.keys(T)) for (const key of Object.keys(T[k])) if (!all.has(key)) die(k + ' has data for ' + key + ', which no course uses');
+
+// ---- swap the three data scripts for the course map
+const tagRe = /<script src="(greens|ground|trees)\.js\?v=[^"]*"><\/script>\n?/g;
+const tags = coreText.match(tagRe) || [];
+if (tags.length !== 3) die('expected 3 data script tags, found ' + tags.length);
+let first = true;
+coreText = coreText.replace(tagRe, () => { if (!first) return ''; first = false;
+  return '<script>window.CFILES=' + JSON.stringify(CF) + ';var LIDG={},LIDW={},BLDX={},R3NAIP={};</script>\n'; });
+fs.writeFileSync(path.join(OUT, 'index.html'), coreText);
+
+// ---- every other tracked file, as is
+const skipTop = new Set(['.github', 'pipeline', 'supabase', 'app', 'tools', 'dist']);
+const tracked = execSync('git ls-files -z', { encoding: 'utf8' }).split('\0').filter(Boolean);
+for (const f of tracked) {
+  if (skipTop.has(f.split('/')[0]) || f === 'index.html' || f === 'sw.js' || extraScripts.includes(f)) continue;
+  const to = path.join(OUT, f); fs.mkdirSync(path.dirname(to), { recursive: true }); fs.copyFileSync(f, to);
+}
+
+// ---- offline cache: course files replace the three data files; new cache version for the new page
+let sw = fs.readFileSync('sw.js', 'utf8');
+const dm = /const DATA=(\[[^\]]*\]);/.exec(sw); if (!dm) die('sw.js DATA list not found');
+const DATA = JSON.parse(dm[1]).filter(u => !extraScripts.some(f => u.startsWith(f + '?'))).concat(Object.values(CF).map(x => x.u));
+sw = sw.replace(dm[0], 'const DATA=' + JSON.stringify(DATA) + ';').replace(/const V='[0-9a-f]+'/, "const V='" + sha(coreText) + "'");
+if (!/const V='/.test(sw)) die('sw.js version not found');
+fs.writeFileSync(path.join(OUT, 'sw.js'), sw);
+fs.writeFileSync(path.join(OUT, '.nojekyll'), '');
+
+const kb = f => Math.round(fs.statSync(f).size / 1024);
+console.log('core index.html ' + kb(path.join(OUT, 'index.html')) + ' KB (was ' + kb('index.html') + ' KB); ' + courses.length + ' course files, ' +
+  report.reduce((a, b) => a + b[1], 0) + ' KB in all; largest ' + report.sort((a, b) => b[1] - a[1]).slice(0, 3).map(r => r.join(' ') + ' KB').join(', '));
