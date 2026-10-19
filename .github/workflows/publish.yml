@@ -4,7 +4,7 @@ name: Publish (course-split build)
 # while Pages still serves the main branch directly, the build runs as a check and nothing is published.
 on:
   push:
-    branches: [main]
+    branches: [main, course-split]   # course-split: build check only (only main ever publishes)
   workflow_dispatch:
 permissions:
   contents: read
@@ -32,7 +32,7 @@ jobs:
         run: |
           t=$(gh api "repos/${{ github.repository }}/pages" --jq .build_type 2>/dev/null || echo unknown)
           echo "Pages build type: $t"
-          if [ "$t" = "workflow" ]; then echo "publish=yes" >> "$GITHUB_OUTPUT"; else echo "publish=no" >> "$GITHUB_OUTPUT"; echo "::notice::Built and checked; not published (Pages serves the branch directly)."; fi
+          if [ "$t" = "workflow" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then echo "publish=yes" >> "$GITHUB_OUTPUT"; else echo "publish=no" >> "$GITHUB_OUTPUT"; echo "::notice::Built and checked; not published (Pages serves the branch directly)."; fi
       - uses: actions/upload-pages-artifact@v3
         if: steps.mode.outputs.publish == 'yes'
         with:
