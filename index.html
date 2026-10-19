@@ -1089,9 +1089,13 @@ function chamfer(dist,nx,ny){const a=1,d=1.414;
    forward on each hole. Where the map has no such tee box, a tee is laid on the hole line (clear of water and sand) at about 6%
    shorter than the set behind it. The daily round, challenges and course records always play set 0. ---------- */
 let TEE=0;
-const TEE_MK=t=>t===1?'#f2f1ec':t===2?'#d9ae2f':CUR&&CUR.id==='stoneridge'?'#2f63c8':'#1b1b1b';   // marker colours: the course's own, white, gold
+const TEE_HUE={black:'#1b1b1b',navy:'#1d2b57',blue:'#2f63c8',white:'#f2f1ec',gold:'#d9ae2f',yellow:'#e8c832',green:'#2f8a45',red:'#c8312a',silver:'#b9bec4',gray:'#8d9298',grey:'#8d9298',purple:'#6a3b9c',orange:'#e57c22',copper:'#b46a3c',tan:'#c9ad80',teal:'#2b8f8a',maroon:'#7a2232',burgundy:'#7a2232',bronze:'#9c6b32',platinum:'#d8d8d4',royal:'#2346a8',jade:'#3d9a72'};
+const teeHue=n=>{const m=/[a-z]+/g,w=String(n||'').toLowerCase().match(m)||[];for(const x of w)if(TEE_HUE[x])return TEE_HUE[x];return null;};
+const TEE_MK=(t,K=CUR)=>teeHue(teeNameOf(K,t))||(t===1?'#f2f1ec':t===2?'#d9ae2f':'#1b1b1b');   // marker colours: the colour in the set's name, else black / white / gold
 const TEE_NAME=['','Middle tees','Forward tees'];
-const teeName=(t=TEE)=>t?TEE_NAME[t]:CUR.tees;
+const teeNameOf=(K,t)=>t?(TEECARD[K.id]&&TEECARD[K.id].s[t-1]?TEECARD[K.id].s[t-1][0]:TEE_NAME[t]):K.tees,teeName=(t=TEE)=>teeNameOf(CUR,t);
+/* the second and third sets on each course's scorecard (Oct 2026): names, and per-hole yards in the game's hole order next to the back set's (b) */
+const TEECARD={};
 const TEESPOT={};
 const teeSpots=i=>teeSpotsOf(CUR,i);
 function teeSpotsOf(K,i){const cc=TEESPOT[K.id]||(TEESPOT[K.id]=[]);if(cc[i])return cc[i];hfixApply(K.course,K.id);
@@ -1106,7 +1110,15 @@ function teeSpotsOf(K,i){const cc=TEESPOT[K.id]||(TEESPOT[K.id]=[]);if(cc[i])ret
   cand.sort((a,b)=>b.pl-a.pl);
   const along=s=>{for(let k=0;k<L.length-1;k++){const g=dd(L[k],L[k+1]);if(s<=g||k===L.length-2){const t=Math.min(1,s/g);return{p:[L[k][0]+(L[k+1][0]-L[k][0])*t,L[k][1]+(L[k+1][1]-L[k][1])*t],k};}s-=g;}};
   const out=[{p:L[0],k:0,pl:len}];
-  for(const n of[1,2]){const prev=out[n-1];let c=cand.find(c=>c.pl<=prev.pl-8&&c.pl>=len*(n===1?.78:.6));
+  const card=TEECARD[K.id];
+  for(const n of[1,2]){const prev=out[n-1];let c=null;
+    if(card&&card.s[n-1]){   // the scorecard's set: its yardage on this hole, scaled to the mapped hole, on the nearest tee box or on the line
+      const cy=card.s[n-1][1][i],by=card.b[i],tg=len*cy/by,tol=Math.max(8,tg*.05);
+      if(cy>=(n===1?by:card.s[n-2][1][i])-2)c=prev;   // the card shares the tee behind on this hole
+      else{let bd=1e9;for(const q of cand)if(q.pl<=prev.pl-3&&Math.abs(q.pl-tg)<=tol&&Math.abs(q.pl-tg)<bd){bd=Math.abs(q.pl-tg);c=q;}
+        if(!c){let s=len-Math.min(tg,prev.pl-3);while(s<len*.45&&wet(along(s).p))s+=5;const a=along(s);c=s<len*.45&&!wet(a.p)?{p:a.p,k:a.k,pl:len-s,syn:1}:prev;}}
+      out.push(c);continue;}
+    c=cand.find(c=>c.pl<=prev.pl-8&&c.pl>=len*(n===1?.78:.6));
     if(!c){let s=len-(prev.pl-Math.max(10,len*.06));while(s<len*.45&&wet(along(s).p))s+=5;const a=along(s);c=s<len*.45&&!wet(a.p)?{p:a.p,k:a.k,pl:len-s,syn:1}:prev;}   // a tee laid on the line
     out.push(c);}
   return cc[i]=out;}
@@ -3429,7 +3441,7 @@ function showCard(){
     if(isBest){try{localStorage.setItem('troyburne-best-18',String(tot));}catch(e){}}
     $('cEyebrow').textContent='Round complete';
     $('cTitle').textContent=tot+' ('+fmtDiff(d)+')';
-    note.hidden=false;note.textContent=TEE?'Played from the '+TEE_NAME[TEE]+'. Course records and personal bests count from the '+CUR.tees+' only.':isBest?(best?'New personal best — beat your old '+best+'.':'First round in the books. Go again and beat it.'):'Personal best on this device: '+best+'.';
+    note.hidden=false;note.textContent=TEE?'Played from the '+teeName()+'. Course records and personal bests count from the '+CUR.tees+' only.':isBest?(best?'New personal best — beat your old '+best+'.':'First round in the books. Go again and beat it.'):'Personal best on this device: '+best+'.';
     $('nextBtn').textContent='Play again';
     if(recCanPost())recOffer(tot,d);
   }else{
@@ -7389,7 +7401,7 @@ const US_MAP={w:1000,h:620,st:{"AL":"M680,392L715,389L729,440L734,450L734,452L73
 // a course from the list: its tees next (the furthest back first), then hole 1
 function pickCourse(id){A();if(courseGate(id,()=>pickCourse(id)))return;const K=COURSES[id],cur=id===CUR.id&&!MATCH.on?TEE:0;
   $('teeT').textContent=K.name;$('teeS').textContent='Choose your tees';
-  $('teeL').innerHTML=[0,1,2].map(t=>{const col=t?TEE_MK(t):id==='stoneridge'?'#2f63c8':'#1b1b1b';return '<button data-t="'+t+'"'+(t===cur?' class="on"':'')+'><i style="background:'+col+'"></i><b>'+(t?TEE_NAME[t]:K.tees)+'</b><span>'+teeYards(K,t).toLocaleString('en-US')+' yds</span></button>';}).join('');
+  $('teeL').innerHTML=[0,1,2].map(t=>{const col=TEE_MK(t,K);return '<button data-t="'+t+'"'+(t===cur?' class="on"':'')+'><i style="background:'+col+'"></i><b>'+teeNameOf(K,t)+'</b><span>'+teeYards(K,t).toLocaleString('en-US')+' yds</span></button>';}).join('');
   $('teeL').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{$('teeM').hidden=true;teeGo(id,+b.dataset.t);}));
   $('teeM').hidden=false;try{$('teeL').querySelector('.on').focus();}catch(e){}}
 $('teeX').addEventListener('click',()=>{A();$('teeM').hidden=true;});
@@ -7418,7 +7430,7 @@ function showState(st){MSTATE=st;const ids=Object.keys(COURSES).filter(id=>state
 function showMap(){MSTATE=null;$('stateView').hidden=true;$('mapView').hidden=false;const st=stateOf(CUR.id);$('usMap').querySelectorAll('path.has').forEach(p=>p.classList.toggle('cur',p.dataset.st===st));}
 // the menu headline is your Quick play course (Continue and New round play there), even straight after a Daily, match or saved shot elsewhere
 function menuHero(){const C=COURSES[homeCourse()],img=courseImg(C.id),el=$('mHeroImg');if(img)el.src=img;else el.removeAttribute('src');
-  const sv=C===CUR?null:loadSave(C.saveKey,C.tb.length);$('mEyebrow').textContent=C.name+' \u00b7 '+(C===CUR?teeName():sv&&sv.tee?TEE_NAME[sv.tee]:C.tees)+' \u00b7 Par '+C.tb.reduce((a,h)=>a+h.par,0);$('mTitle').textContent=C.name;}
+  const sv=C===CUR?null:loadSave(C.saveKey,C.tb.length);$('mEyebrow').textContent=C.name+' \u00b7 '+(C===CUR?teeName():sv&&sv.tee?teeNameOf(C,sv.tee):C.tees)+' \u00b7 Par '+C.tb.reduce((a,h)=>a+h.par,0);$('mTitle').textContent=C.name;}
 function setTab(t){const c=t!=='play';$('tabC').hidden=!c;$('tabP').hidden=c;$('tabBtnC').classList.toggle('on',c);$('tabBtnP').classList.toggle('on',!c);$('tabBtnC').setAttribute('aria-selected',String(c));$('tabBtnP').setAttribute('aria-selected',String(!c));
   try{localStorage.setItem('golf-tab',c?'courses':'play');}catch(e){}}
 $('tabBtnC').addEventListener('click',()=>{A();sfx.tick();setTab('courses');});$('tabBtnP').addEventListener('click',()=>{A();sfx.tick();setTab('play');});
