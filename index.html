@@ -907,7 +907,7 @@ td.won{background:rgba(255,201,60,.38)}
 </div>
 
 <script src="greens.js?v=220df6ab8c"></script>
-<script src="ground.js?v=f77f5b3422"></script>
+<script src="ground.js?v=5e18cd5126"></script>
 <script src="trees.js?v=9d9df988af"></script>
 <script>/* three.js r170 (MIT) */
 (function(){
@@ -1149,7 +1149,7 @@ function buildHole(d,idx){
     for(let i=border.length-1;i>=0;i--){const t=border[i];if(homeSide>0?t.x>B[2]+14:t.x<B[0]-14){if(R()<.8)border.splice(i,1);}}}
   h.allTrees=[...trees,...border];h.allTrees.forEach(t=>t.shade=R());
   if(CUR.surr)surrForHole(h);
-  bldxForHole(h);
+  bldxForHole(h);bldSanity(h);
   // keep trees out of buildings and their parking/entry area
   bldTreeClear(h);
   return h;
@@ -2035,6 +2035,25 @@ function quadO(out,a,b,c,d,col,n){triO(out,a,b,c,col,n);triO(out,a,c,d,col,n);}
 const BLD_LUM=c=>.3*c[0]+.59*c[1]+.11*c[2],BLD_LIGHTW=['#e6e1d6','#d9d4c8','#cfd5d6','#e3d8c2','#d8dcd2'],BLD_DARKW=['#b5a690','#a39c8c','#9a6b56','#b3ab9c','#8d979c'],BLD_BARNW=['#b9b09c','#8c9a86','#a8aba6','#9c8b72','#7d8a92'];
 // a photo roof colour, a little darker and greyer so it sits right under the game's sun
 function bldRoofCol(c){const r=((c>>16)&255)/255,g=((c>>8)&255)/255,b=(c&255)/255,l=.3*r+.59*g+.11*b,k=.9-.2*l;return[(r*.8+l*.2)*k,(g*.8+l*.2)*k,(b*.8+l*.2)*k];}
+/* building sanity (Oct 19 2026 check): (1) the same footprint loaded twice (a map clubhouse and a lidar "extra" building, or two
+   copies of an OSM outline) is drawn once, keeping the clubhouse, then the one with a measured roof; (2) a house-sized building whose
+   lidar eave reads over 12 yd measured the trees over it (Interlachen, Pines): it gets a normal 3.6-yd eave; (3) an outline that
+   contains three or more other buildings is an area drawn as a building (Prestwick's 46,000 sq yd block), not a building: dropped. */
+function bldOverlap(a,c){if(a.bb[2]<c.bb[0]||c.bb[2]<a.bb[0]||a.bb[3]<c.bb[1]||c.bb[3]<a.bb[1])return 0;
+  const x0=Math.max(a.bb[0],c.bb[0]),x1=Math.min(a.bb[2],c.bb[2]),y0=Math.max(a.bb[1],c.bb[1]),y1=Math.min(a.bb[3],c.bb[3]),st=Math.max(.5,Math.sqrt((x1-x0)*(y1-y0)/300));let n=0;
+  for(let y=y0+st/2;y<y1;y+=st)for(let x=x0+st/2;x<x1;x+=st)if(inPoly(a,x,y)&&inPoly(c,x,y))n++;return n*st*st/Math.max(1,Math.min(a.area,c.area));}
+function bldSanity(h){const B=h.buildings||[];if(!B.length)return;
+  const rank=q=>(q.club?4:0)+(q.rec?2:0)+(q.ci!=null||q.ai!=null?1:0),drop=new Set();
+  for(let i=0;i<B.length;i++)for(let j=i+1;j<B.length;j++){const a=B[i],c=B[j];if(drop.has(a)||drop.has(c))continue;
+    const r=a.area/Math.max(1,c.area);if(r<.75||r>1.33)continue;if(bldOverlap(a,c)>.6){const lose=rank(a)>=rank(c)?c:a,keep=lose===a?c:a;if(lose.club)keep.club=true;if(!keep.rec&&lose.rec)keep.rec=lose.rec;drop.add(lose);}}
+  for(const q of B){if(drop.has(q)||q.club||q.area<2000)continue;let n=0;for(const o of B)if(o!==q&&!drop.has(o)&&o.area<q.area*.5&&inPoly(q,o.x,o.y)&&++n>=3)break;if(n>=3)drop.add(q);}
+  if(drop.size)h.buildings=B.filter(q=>!drop.has(q));
+  // the map's clubhouse outline is only loaded on holes whose box holds it; a lidar copy of the same footprint loaded on the other
+  // holes is that clubhouse too (Troy, The Legends, FarmLinks: plain grey box from most holes before)
+  const X=typeof BLDX!=='undefined'&&BLDX?(BLDX[CUR.id]||(CUR.data&&BLDX[CUR.data])):null;
+  if(!(X&&(X.nc||(X.a||[]).some(a=>a&&a[2]==='club')))&&(COURSE.polys.clubhouse||[]).length){const T0=h.T0,CP=COURSE.polys.clubhouse.map(P=>mkPoly(P.map(p=>[p[0]-T0[0],p[1]-T0[1]]),'clubhouse'));
+    for(const q of h.buildings)if(!q.club){const c=CP.find(c=>{const r=q.area/Math.max(1,c.area);return r>.75&&r<1.33&&bldOverlap(q,c)>.6;});if(c){q.club=true;q.bk=null;}}}
+  for(const q of h.buildings)if(!q.club&&q.rec&&q.rec[0]>12&&q.area<800){q.rec=q.rec.slice();q.rec[0]=3.6;}}
 // no trees growing through buildings: clear round every building, and wider round a clubhouse (its porch, terrace, steps and drive)
 function bldTreeClear(h){const blds=(h.buildings||[]).filter(q=>q.area>6);if(!blds.length)return;
   const hit=t=>blds.some(q=>{if(t.x<q.bb[0]-40||t.x>q.bb[2]+40||t.y<q.bb[1]-40||t.y>q.bb[3]+40)return false;return polyDist(q,t.x,t.y,40)<(t.r||8)*.7+(q.club?14:3);});
