@@ -3051,10 +3051,7 @@ function tap(at){
   if(G.pendRes)return;
   if(G.aiTurn){skipAI();return;}
   if(G.overview){G.overview=false;return;}
-  /* Oct 2026: Swing during the pre-shot routine (every tee shot and most putts, up to ~9 s) used to only cut the routine short, so
-     a player's first tap did nothing, the rest of their taps landed one step early (the impact tap set the power) and the meter ran
-     out: a mishit. Now the same tap skips the routine and starts the backswing. */
-  if(R3.on)r3RoutineSkip();
+  if(R3.on&&r3RoutineSkip())return;   // Swing during the walk-up only skips it (Cam, Oct 22); the next tap starts the swing
   if(G.fc&&G.state==='aim'){lookEnd();return;}
   const m=G.meter;
   /* the meter reached the bottom a moment ago (see update): a tap made before that moment still counts, by its own time */
@@ -7620,7 +7617,6 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 (()=>{
 const UPDATES=[
   {id:"2026-10-21-taps",date:"Oct 21, 2026",title:"Fewer missed swing taps",items:[
-    "Tapping Swing while your golfer tees up or lines up a putt now skips that and starts the backswing in the same tap (it used to take an extra tap, which threw the rest of the swing off by one).",
     "A tap made just as the meter reaches the bottom now counts instead of being called a mishit.",
     "Tap the screen to skip your golfer\u2019s walk-up before a shot or his reaction after one.",
     "Smoother play: no hitch at the moment of contact, fewer hitches while aiming and in flight, and a phone that had settled on a softer picture tries a sharper one again between holes."]},
