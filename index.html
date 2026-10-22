@@ -1132,21 +1132,23 @@ function teeUse(t){t=t>0&&t<3?t|0:0;if(t!==TEE){TEE=t;setCourseRun(CUR,false);}}
 /* ---------- the driving range (Oct 2026): each course's mapped range, played as one more "hole" (index TB.length). The tee is at the
    end nearest the clubhouse and the first tee; a target green sits about 150 yd out; every ball comes back to the mat. ---------- */
 const RANGES={},RANGE_D={par:4,tip:'',green:{elev:.35}};
+/* ranges traced from aerial photos where the map has none (Oct 2026): per course, the outline in the course's yards and the hitting end */
+const RANGEX={};
 function rangeOf(K){if(RANGES[K.id]!==undefined)return RANGES[K.id];hfixApply(K.course,K.id);const CO=K.course,R=CO.polys.range||[],H=CO.holes;
   const cen=P=>{let x=0,y=0;for(const q of P){x+=q[0];y+=q[1];}return[x/P.length,y/P.length];};
-  const refs=[H[0].line[0],H[H.length-1].pin,...(CO.polys.clubhouse||[]).map(cen)];let best=null;
-  for(const P of R){const c=cen(P);let sxx=0,syy=0,sxy=0;for(const q of P){const dx=q[0]-c[0],dy=q[1]-c[1];sxx+=dx*dx;syy+=dy*dy;sxy+=dx*dy;}
+  const refs0=[H[0].line[0],H[H.length-1].pin,...(CO.polys.clubhouse||[]).map(cen)];let best=null;
+  for(const E of [...R,...(RANGEX[K.id]||[])]){const P=E.P||E,refs=E.t?[E.t]:refs0;const c=cen(P);let sxx=0,syy=0,sxy=0;for(const q of P){const dx=q[0]-c[0],dy=q[1]-c[1];sxx+=dx*dx;syy+=dy*dy;sxy+=dx*dy;}
     const th=.5*Math.atan2(2*sxy,sxx-syy),ux=Math.cos(th),uy=Math.sin(th);let lo=1e9,hi=-1e9;for(const q of P){const t=(q[0]-c[0])*ux+(q[1]-c[1])*uy;lo=Math.min(lo,t);hi=Math.max(hi,t);}
     if(hi-lo<180)continue;   // a short-game area, not a range
     const inR=(x,y)=>{let r=false;for(let a=0,b=P.length-1;a<P.length;b=a++){const[xa,ya]=P[a],[xb,yb]=P[b];if((ya>y)!==(yb>y)&&x<(xb-xa)*(y-ya)/(yb-ya)+xa)r=!r;}return r;};
     const pt=t=>{const x=c[0]+ux*t,y=c[1]+uy*t;let run=0,bs=0,be=0,st=0;for(let o=-250;o<=252;o+=2){const q=o<=250&&inR(x-uy*o,y+ux*o);if(q){if(!run)st=o;run++;if(run>bs){bs=run;be=st;}}else run=0;}   // centred across the range here
       return bs?[x-uy*(be+bs-1),y+ux*(be+bs-1)]:null;};
     const dn=p=>Math.min(...refs.map(q=>hyp(q[0]-p[0],q[1]-p[1]))),A=[c[0]+ux*lo,c[1]+uy*lo],B=[c[0]+ux*hi,c[1]+uy*hi],fw=dn(A)<=dn(B),d=Math.min(dn(A),dn(B));
-    if(d>900)continue;   // another course's range (resorts share their map)
+    if(d>900&&!E.t)continue;   // another course's range (resorts share their map)
     let e0=8;while(e0<60&&!pt(fw?lo+e0:hi-e0))e0+=3;
     const L=hi-lo-e0-4,tg=Math.min(150,L*.55),tee=pt(fw?lo+e0:hi-e0),far=pt(fw?hi-4:lo+4)||(fw?B:A),pin=pt(fw?lo+e0+tg:hi-e0-tg);
     if(!tee||!pin)continue;
-    if(!best||d<best.d)best={d,P,par:4,hcp:0,line:[tee,far],pin,len:Math.round(L)};}
+    if(!best||d<best.d)best={d:E.t?0:d,P,par:4,hcp:0,line:[tee,far],pin,len:Math.round(L)};}
   return RANGES[K.id]=best;}
 const holeData=i=>i===TB.length?rangeOf(CUR):COURSE.holes[i];
 function holeLineOf(K,i,t){if(i===K.tb.length)return rangeOf(K).line;const L=K.course.holes[i].line;if(!t)return L;const q=teeSpotsOf(K,i)[t];return q.p===L[0]?L:[q.p,...L.slice(q.k+1)];}
