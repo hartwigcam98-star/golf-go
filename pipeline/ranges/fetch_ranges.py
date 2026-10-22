@@ -85,6 +85,7 @@ def aerial(c, F, box=None):
         except Exception as e: log('  naip failed', u, e)
     raise RuntimeError('no NAIP source worked')
 
+WIDE_R = {'santee': 3200, 'willingers': 3200}   # photo half-width (yd) where the course may be off centre
 COORD = {   # where the name search found the wrong place (lat, lon of the course)
     'wilderness': [47.836, -92.315], 'santee': [33.478, -80.468], 'willingers': [44.533, -93.297], 'chaska': [44.815, -93.637], 'jewel': [44.432, -92.283]}
 
@@ -122,7 +123,8 @@ for c in COURSES:
         rec['err'] = f'only {n} greens line up'; log(c['id'], rec['err'], rec['osm'])
         if AERIAL:   # still a photo around the place the search found, for finding the range by eye (frame not lined up with the game)
             rec['frame'] = {'lat0': lat0, 'lon0': lon0, 'K': K, 'L': L, 'off': [0, 0], 'unaligned': True}
-            try: aerial(c, rec['frame'], [-1300, -1300, 1300, 1300])
+            rr = WIDE_R.get(c['id'], 1300)
+            try: aerial(c, rec['frame'], [-rr, -rr, rr, rr])
             except Exception as e: log('  aerial failed', c['id'], e)
         continue
     pairs = []
