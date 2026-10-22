@@ -3171,7 +3171,7 @@ function strikeShot(power,e){
   const w=dirOf(G.wind.a),wk=G.wind.mph*.85*(carry/200)*club.loft*ST.w*M.wind*cmod().wind;
   const thin=HARSH?Math.min(1,G.missBy/.06):0;const apex=shotApex(club,carry)*M.apex*(1-.3*thin)*(mis?mis.a:1);
   const usedPower=G.pshot;if(G.pshot)G.pshot=false;   // power shots are unlimited (Oct 11 2026)
-  if(G.hole&&G.hole.range)G.tmShot={club,apex,miss:G.missBy||0,iy:(G.imp&&G.imp.y)||0,st:G.stype,aim:G.aim};
+  if(G.hole&&G.hole.range)G.tmShot={club,apex,miss:G.missBy||0,iy:(G.imp&&G.imp.y)||0,st:G.stype,aim:G.aim,pw:power};
   G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll*(1+.7*thin)*(mis?mis.r:1)*(flyer>1?1-(1-perfBite)*.5:perfBite)*flyer*(sgl?1+((G.stype==='chip'?sgl.chip:sgl.r)-1)*sgk:1)*(sgChunk?.5:1)*(cmod().roll?cmod().roll(club,G.stype):1),rel:mis&&mis.rel||0,back:(mis?mis.sp:1)*M.back*cmod().spin*(1-.8*thin)*(sgl?sgl.back:1),
     fly:flyer>1&&lie!=='cut',full:isShort()?0:clubCarry(club)*lm*ST.c*M.carry};
   // a pure approach that comes down close: he twirls the club as it drops from the finish (r3golfer.js)
@@ -3394,12 +3394,12 @@ const TM_REF=[[250,.655,1.48,11,2700],[230,.68,1.47,9.5,3600],[215,.69,1.46,10,4
   [148,.77,1.34,18,7900],[136,.79,1.31,20.5,8600],[124,.81,1.25,24,9300],[108,.85,1.22,27,9800],[92,.90,1.20,30,10200],[75,.98,1.17,33,10500]];
 function tmRef(c){const k=c.carry||150;let i=0;while(i<TM_REF.length-1&&TM_REF[i+1][0]>=k)i++;const a=TM_REF[i],b=TM_REF[Math.min(i+1,TM_REF.length-1)],t=a===b||a[0]===b[0]?0:clamp((a[0]-k)/(a[0]-b[0]),0,1);return a.map((v,j)=>v+(b[j]-v)*t);}
 function tmShow(I,tot){const S=G.tmShot;G.tmShot=null;const el=$('tmPanel');G.tmLast={carry:I.carry};if(!S||!S.club||S.club.putter){el.hidden=true;return;}
-  const R=tmRef(S.club),carry=I.carry,stK={punch:.75,chip:.8,pitch:.95,flop:1.15}[S.st]||1,smash=R[2]*(1-Math.min(.15,S.miss*1.5)),bs=R[1]*carry*Math.max(.85,1-Math.max(0,S.miss)*.4);
-  const expA=(S.club.apex||1)*Math.sqrt(clamp(carry/(S.club.carry||carry),.2,1)),launch=R[3]*Math.pow(clamp(S.apex/expA,.4,2),.7)*(1-.12*S.iy),spin=R[4]*stK*(1-.35*S.iy)*(1-Math.min(.3,S.miss*3));
+  const R=tmRef(S.club),carry=I.carry,stK={punch:.75,chip:.8,pitch:.95,flop:1.15}[S.st]||1,cc=S.club.carry||carry,cs=R[1]*cc/R[2]*Math.pow(clamp(S.pw??1,.15,1.1),.6),smash=R[2]*(1-Math.min(.4,Math.max(0,S.miss)*3)),bs=cs*smash;   // club speed from how hard you swung; a mishit shows in the smash
+  const expA=(S.club.apex||1)*Math.sqrt(clamp(Math.pow(clamp(S.pw??1,.15,1.1),1.4),.2,1)),launch=R[3]*Math.pow(clamp(S.apex/expA,.3,2),.7)*(1-.12*S.iy),spin=R[4]*stK*(1-.35*S.iy)*(1-Math.min(.3,S.miss*3));
   const head=angTo(I.sx,I.sy,G.ball.x,G.ball.y);let dA=head-S.aim;while(dA>Math.PI)dA-=TAU;while(dA<-Math.PI)dA+=TAU;const off=tot*Math.sin(dA);
   const c=(v,u,l)=>'<div><b>'+v+(u?'<i>'+u+'</i>':'')+'</b><span>'+l+'</span></div>';
-  el.innerHTML=c(Math.round(bs),'mph','Ball speed')+c(Math.round(bs/smash),'mph','Club speed')+c(smash.toFixed(2),'','Smash')+c(launch.toFixed(1),'\u00b0','Launch')+c(Math.round(spin/50)*50,'rpm','Spin')+c(Math.round(I.peak*3),'ft','Apex')
-    +c(Math.round(carry),'yd','Carry')+c(Math.round(tot),'yd','Total')+c(Math.abs(off)<.5?'0':Math.abs(off).toFixed(1)+(off>0?'R':'L'),'yd','Side');
+  el.innerHTML=c(Math.round(bs),'mph','Ball speed')+c(Math.round(cs),'mph','Club speed')+c(smash.toFixed(2),'','Smash')+c(launch.toFixed(1),'\u00b0','Launch')+c(Math.round(spin/50)*50,'rpm','Spin')+c(Math.round(I.peak*3),'ft','Apex')
+    +c(Math.round(carry),'yd','Carry')+c(Math.round(tot),'yd','Total')+c(Math.abs(off)<.5?'0':Math.abs(off).toFixed(1),Math.abs(off)<.5?'yd':'yd '+(off>0?'R':'L'),'Side');
   el.hidden=false;}
 function showShotStats(){const I=G.shotInfo;G.shotInfo=null;if(!I)return;const tot=hyp(G.ball.x-I.sx,G.ball.y-I.sy),el=$('shotStats');
   if(G.hole&&G.hole.range){tmShow(I,tot);return;}
@@ -3427,7 +3427,7 @@ function rangeChart(d){const L=G.rangeLog||[],ds=[...new Set(L.map(q=>q.d))].sor
   g+='</svg>';$('chartPlot').innerHTML=g;
   const dist=Q.map(q=>hyp(q.lo,q.ri)),av=dist.reduce((a,b)=>a+b,0)/dist.length,best=Math.min(...dist),on=Q.filter(q=>hyp(q.ri,q.lo*1.25)<t.r).length,cs=Q.filter(q=>q.carry!=null),ac=cs.length?cs.reduce((a,b)=>a+b.carry,0)/cs.length:null;
   const st=(v,l)=>'<div><b>'+v+'</b><span>'+l+'</span></div>';
-  $('chartStats').innerHTML=st(Q.length,'Shots')+st(av<10?Math.round(av*3)+' ft':av.toFixed(1)+' yd','Avg to pin')+st(best<10?Math.round(best*3)+' ft':best.toFixed(1)+' yd','Closest')+st(on+'/'+Q.length,'On the green')+st(ac==null?'\u2013':Math.round(ac)+' yd','Avg carry');
+  $('chartStats').innerHTML=st(Q.length,'Shots')+st(av<10?Math.round(av*3)+' ft':av.toFixed(1)+' yd','Avg to pin')+st(best<10?Math.round(best*3)+' ft':best.toFixed(1)+' yd','Closest')+st(on+'/'+Q.length,'On green')+st(ac==null?'\u2013':Math.round(ac)+' yd','Avg carry');
   $('chartM').hidden=false;}
 function rangeGoTo(){A();if(!rangeOf(CUR))return;startHole(TB.length);}   // the round or Daily keeps its mode, scores and pins; nothing on the range is saved
 function rangeLeave(){A();if(!G.hole||!G.hole.range)return;startHole(0);}
@@ -7720,7 +7720,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 const UPDATES=[
   {id:"2026-10-22-range",date:"Oct 22, 2026",title:"Driving ranges",items:[
     "Hole 1\u2019s card now has two buttons: Tee off, or Hit the range to warm up on the course\u2019s own driving range first. It works for quick rounds and the Daily, and nothing you hit on the range counts.",
-    "The range is laid out from the course map, hitting from the end by the clubhouse, with target greens every 50 yards spread across the range, each flag showing its distance; balls that finish on a target green stay there while you practise. Every ball comes back to the mat; tap First tee when you\u2019re ready.",
+    "The range is laid out from the course map, hitting from the end by the clubhouse, with target greens every 50 yards spread across the range, each flag showing its distance; balls that finish on a target green stay there while you practise.",
+    "After each ball a launch-monitor panel shows ball and club speed, smash, launch, spin, apex, carry, total and how far offline, and the Chart button plots your shots around each target with your average and closest. Every ball comes back to the mat; tap First tee when you\u2019re ready.",
     "24 courses have their range so far; more are on the way."]},
   {id:"2026-10-21-taps",date:"Oct 21, 2026",title:"Fewer missed swing taps",items:[
     "A tap made just as the meter reaches the bottom now counts instead of being called a mishit.",
