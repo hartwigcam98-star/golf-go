@@ -68,6 +68,8 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 /* toast */
 .shotstats{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 128px);background:rgba(12,30,46,.88);color:#fff6dc;border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;letter-spacing:.03em;white-space:nowrap;font-variant-numeric:tabular-nums;pointer-events:none;animation:rise .3s ease-out}
 .shotstats b{color:var(--sun)}
+.tmpanel{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 112px);z-index:3;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,246,220,.12);border-radius:14px;overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.25);pointer-events:none;max-width:420px;margin:0 auto}
+.tmpanel div{background:rgba(12,30,46,.9);padding:6px 4px 5px;text-align:center}.tmpanel b{display:block;font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:21px;color:#fff6dc;line-height:1}.tmpanel span{display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9fb4c4;margin-top:3px}.tmpanel i{font-style:normal;font-size:12px;color:var(--sun);margin-left:2px}
 #toast{position:absolute;left:0;right:0;top:30%;text-align:center;pointer-events:none;opacity:0;padding-inline:16px;contain:layout style}
 #toast .t1{font-size:clamp(38px,11vw,64px);line-height:1;color:var(--sun);text-shadow:0 4px 0 #0f2233,0 0 24px rgba(0,0,0,.35);-webkit-text-stroke:2px #0f2233;paint-order:stroke fill}
 #toast .t2{margin-top:6px;font-weight:700;font-size:17px;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 2px 0 #0f2233}
@@ -573,6 +575,7 @@ td.won{background:rgba(255,201,60,.38)}
   <div id="bcPlate" aria-hidden="true"><span class="nm disp" id="bcName">The Boss</span><span class="sc disp" id="bcScore">E</span><span class="th" id="bcThru">thru 0</span></div>
   <div id="toast"><div class="t1 disp"></div><div class="t2"></div></div>
   <div id="shotStats" class="shotstats" hidden></div>
+  <div id="tmPanel" class="tmpanel" hidden></div>
   <div id="matchTag" class="matchtag" hidden></div>
   <button id="lookBtn" class="lookbtn" aria-label="Look around the hole" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="#fff6dc" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="#fff6dc" stroke-width="2"/></svg></button>
   <button id="camBtn" class="lookbtn cambtn" aria-label="Change camera view" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8.5h3.2l1.6-2.5h8.4l1.6 2.5H21v10H3z" fill="none" stroke="#fff6dc" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13.2" r="3.3" fill="none" stroke="#fff6dc" stroke-width="2"/></svg><b id="camNum">1</b></button>
@@ -3042,7 +3045,7 @@ function startHole(i){
   G.wind=holeWind(i);
   G.state='intro';
   const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];
-  const rg=!!G.hole.range;G.rangeN=0;G.rangeBalls=[];G.rangeFollow=true;try{G.rangeFollow=localStorage.getItem('golf-rangecam2')!=='golfer';}catch(_){}$('iNum').textContent=rg?'R':i+1;$('iPar').textContent=rg?'Driving range':'Par '+G.hole.par;$('iLen').textContent=rg?Math.round(holeData(i).len)+' yds long':G.hole.len+' yds'+(G.hole.pinTag&&G.hole.pinTag[G.hole.pinIx]?' \u00b7 '+G.hole.pinTag[G.hole.pinIx]+' pin':'');
+  const rg=!!G.hole.range;G.rangeN=0;G.rangeBalls=[];$('tmPanel').hidden=true;G.rangeFollow=true;try{G.rangeFollow=localStorage.getItem('golf-rangecam2')!=='golfer';}catch(_){}$('iNum').textContent=rg?'R':i+1;$('iPar').textContent=rg?'Driving range':'Par '+G.hole.par;$('iLen').textContent=rg?Math.round(holeData(i).len)+' yds long':G.hole.len+' yds'+(G.hole.pinTag&&G.hole.pinTag[G.hole.pinIx]?' \u00b7 '+G.hole.pinTag[G.hole.pinIx]+' pin':'');
   $('iWind').textContent=G.wind.mph?'Wind '+G.wind.mph+' mph':'Calm';
   $('iTip').textContent=rg?'Warm up as long as you like: every ball comes back to the mat. Tap First tee when you\u2019re ready.':G.hole.tip;$('teeBtn').textContent=rg?'Start hitting':'Tee off';$('matchTag').hidden=!MATCH.on;
   $('howto').hidden=!(i===0&&G.mode==='round');$('iFine').hidden=i!==0;$('rangeGo').hidden=!rg;$('iRange').hidden=!(i===0&&(G.mode==='round'||G.mode==='daily')&&!MATCH.on&&!!rangeOf(CUR));
@@ -3118,7 +3121,7 @@ function strikeShot(power,e){
   const club=curClub(),lie=G.lie;
   const pegK=G.strokes===0&&lie==='tee'?pegFor(club):0;G.settle=null;
   G.rec=[];G.recT=0;G.recOn=true;G.canReplay=false;G.recHoled=false;
-  G.shotInfo=null;$('shotStats').hidden=true;
+  G.shotInfo=null;$('shotStats').hidden=true;$('tmPanel').hidden=true;
   G.ff=G.hole&&G.hole.range?(G.rangeFF||4):1;G.strokes++;G.prev={...G.ball};G.fromLie=lie;G.trail=[];G.shotRot=G.aim;G.state='flight';G.followT=.001;G.bY=hAt(G.ball.x,G.ball.y)+.03;G.launchAt=club.putter?PUTT_IMPACT:IMPACT_T;G.swingBack=Math.max(.15,G.meter.power);if(SWT&&!club.putter)G.launchAt+=.25+.35*G.swingBack;G.swingType=club.putter?'putt':G.stype;G.swingClub=G.clubIdx;
   G.golferAt={x:G.ball.x,y:G.ball.y,aim:G.aim};G.twirl=false;
   const miss=e===null;let perfect=false,q=.05;G.missBy=0;
@@ -3163,6 +3166,7 @@ function strikeShot(power,e){
   const w=dirOf(G.wind.a),wk=G.wind.mph*.85*(carry/200)*club.loft*ST.w*M.wind*cmod().wind;
   const thin=HARSH?Math.min(1,G.missBy/.06):0;const apex=shotApex(club,carry)*M.apex*(1-.3*thin)*(mis?mis.a:1);
   const usedPower=G.pshot;if(G.pshot)G.pshot=false;   // power shots are unlimited (Oct 11 2026)
+  if(G.hole&&G.hole.range)G.tmShot={club,apex,miss:G.missBy||0,iy:(G.imp&&G.imp.y)||0,st:G.stype,aim:G.aim};
   G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll*(1+.7*thin)*(mis?mis.r:1)*(flyer>1?1-(1-perfBite)*.5:perfBite)*flyer*(sgl?1+((G.stype==='chip'?sgl.chip:sgl.r)-1)*sgk:1)*(sgChunk?.5:1)*(cmod().roll?cmod().roll(club,G.stype):1),rel:mis&&mis.rel||0,back:(mis?mis.sp:1)*M.back*cmod().spin*(1-.8*thin)*(sgl?sgl.back:1),
     fly:flyer>1&&lie!=='cut',full:isShort()?0:clubCarry(club)*lm*ST.c*M.carry};
   // a pure approach that comes down close: he twirls the club as it drops from the finish (r3golfer.js)
@@ -3378,7 +3382,22 @@ function recDensify(R){const n=R.length;if(n<3)return R;
       if(j===m)Y=b.Y;if(Y<g)Y=g;
       out.push({t,x,y,Y});}}
   return out;}
+/* launch monitor numbers on the range (Oct 2026): ball speed, club speed and smash, launch, spin, carry, total, offline and apex. The game's flight
+   gives carry, apex and where the ball finished; the rest follow tour averages for the club (nearest by its stock carry), moved by the strike:
+   a mishit costs smash, a low strike (backspin) adds spin and launch, punch and chip shots spin less. */
+const TM_REF=[[250,.655,1.48,11,2700],[230,.68,1.47,9.5,3600],[215,.69,1.46,10,4300],[200,.70,1.45,11,4500],[182,.73,1.40,12,5400],[171,.74,1.38,14,6200],[160,.75,1.36,16,7000],
+  [148,.77,1.34,18,7900],[136,.79,1.31,20.5,8600],[124,.81,1.25,24,9300],[108,.85,1.22,27,9800],[92,.90,1.20,30,10200],[75,.98,1.17,33,10500]];
+function tmRef(c){const k=c.carry||150;let i=0;while(i<TM_REF.length-1&&TM_REF[i+1][0]>=k)i++;const a=TM_REF[i],b=TM_REF[Math.min(i+1,TM_REF.length-1)],t=a===b||a[0]===b[0]?0:clamp((a[0]-k)/(a[0]-b[0]),0,1);return a.map((v,j)=>v+(b[j]-v)*t);}
+function tmShow(I,tot){const S=G.tmShot;G.tmShot=null;const el=$('tmPanel');if(!S||!S.club||S.club.putter){el.hidden=true;return;}
+  const R=tmRef(S.club),carry=I.carry,stK={punch:.75,chip:.8,pitch:.95,flop:1.15}[S.st]||1,smash=R[2]*(1-Math.min(.15,S.miss*1.5)),bs=R[1]*carry*Math.max(.85,1-Math.max(0,S.miss)*.4);
+  const expA=(S.club.apex||1)*Math.sqrt(clamp(carry/(S.club.carry||carry),.2,1)),launch=R[3]*Math.pow(clamp(S.apex/expA,.4,2),.7)*(1-.12*S.iy),spin=R[4]*stK*(1-.35*S.iy)*(1-Math.min(.3,S.miss*3));
+  const head=angTo(I.sx,I.sy,G.ball.x,G.ball.y);let dA=head-S.aim;while(dA>Math.PI)dA-=TAU;while(dA<-Math.PI)dA+=TAU;const off=tot*Math.sin(dA);
+  const c=(v,u,l)=>'<div><b>'+v+(u?'<i>'+u+'</i>':'')+'</b><span>'+l+'</span></div>';
+  el.innerHTML=c(Math.round(bs),'mph','Ball speed')+c(Math.round(bs/smash),'mph','Club speed')+c(smash.toFixed(2),'','Smash')+c(launch.toFixed(1),'\u00b0','Launch')+c(Math.round(spin/50)*50,'rpm','Spin')+c(Math.round(I.peak*3),'ft','Apex')
+    +c(Math.round(carry),'yd','Carry')+c(Math.round(tot),'yd','Total')+c(Math.abs(off)<.5?'0':Math.abs(off).toFixed(1)+(off>0?'R':'L'),'yd','Side');
+  el.hidden=false;}
 function showShotStats(){const I=G.shotInfo;G.shotInfo=null;if(!I)return;const tot=hyp(G.ball.x-I.sx,G.ball.y-I.sy),el=$('shotStats');
+  if(G.hole&&G.hole.range){tmShow(I,tot);return;}
   el.innerHTML='Carry <b>'+Math.round(I.carry)+'</b> \u00b7 Total <b>'+Math.round(tot)+'</b> \u00b7 Peak <b>'+Math.round(I.peak*3)+' ft</b>';el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>{el.hidden=true;},3600);}
 function rangeNext(){G.rangeN=(G.rangeN||0)+1;if(G.golferAt)G.rngAim=G.golferAt.aim;
   if(G.hole.targets&&G.hole.targets.some(t=>hyp(G.ball.x-t.x,G.ball.y-t.y)<t.r)){(G.rangeBalls=G.rangeBalls||[]).push({x:G.ball.x,y:G.ball.y});if(G.rangeBalls.length>80)G.rangeBalls.shift();}
