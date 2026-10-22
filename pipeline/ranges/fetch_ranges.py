@@ -72,12 +72,12 @@ def aerial(c, F, box=None):
     lon = lambda x: F['lon0'] + (x - F['off'][0]) / F['K']; lat = lambda y: F['lat0'] - (y - F['off'][1]) / F['L']
     b = [lon(x0), lat(y1), lon(x1), lat(y0)]   # west, south, east, north
     w = int((x1 - x0) / .75); h = int((y1 - y0) / .75); sc = min(1, 4000 / max(w, h)); size = [int(w * sc), int(h * sc)]
-    for u in NAIP + NAIP:   # each source twice (they time out now and then)
+    for u in NAIP + NAIP + ['https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export']:   # each NAIP source twice (they time out now and then), then Esri's world imagery
         try:
             j = S.get(u, params=dict(bbox=','.join(map(str, b)), bboxSR=4326, imageSR=4326, size=f'{size[0]},{size[1]}', f='json', format='jpg', compressionQuality=85), timeout=240).json()
             if 'href' not in j: raise RuntimeError(str(j)[:200])
             img = S.get(j['href'], timeout=240).content
-            if len(img) < 50000: raise RuntimeError('tiny image')
+            if len(img) < 50000 or len(img) < size[0] * size[1] / 40: raise RuntimeError('blank or tiny image %d' % len(img))
             ex = j['extent']; gx = lambda lo: (lo - F['lon0']) * F['K'] + F['off'][0]; gy = lambda la: -(la - F['lat0']) * F['L'] + F['off'][1]
             os.makedirs('out', exist_ok=True); open(f"out/aerial_{c['id']}.jpg", 'wb').write(img)
             json.dump({'size': [j['width'], j['height']], 'game': [gx(ex['xmin']), gy(ex['ymax']), gx(ex['xmax']), gy(ex['ymin'])], 'src': u}, open(f"out/aerial_{c['id']}.json", 'w'))   # game x left..right, y top..bottom
@@ -85,13 +85,16 @@ def aerial(c, F, box=None):
         except Exception as e: log('  naip failed', u, e)
     raise RuntimeError('no NAIP source worked')
 
+COORD = {   # where the name search found the wrong place (lat, lon of the course)
+    'wilderness': [47.836, -92.315], 'santee': [33.478, -80.468], 'willingers': [44.533, -93.297], 'chaska': [44.815, -93.637], 'jewel': [44.432, -92.283]}
+
 out = {}
 for c in COURSES:
     if ONLY is not None and c['id'] not in ONLY: continue
     if ONLY is None and c['hasRange']: continue
     rec = out[c['id']] = {'name': c['name']}
     q = HINT.get(c['id']) or f"{c['name'].split(' · ')[0]} golf, {c['town']}"
-    g = geocode(q) or geocode(f"{c['name'].split(' · ')[0]}, {c['town']}") or geocode(f"{c['name'].split(' · ')[0]} {c['town'].split(', ')[-1]}")
+    g = (COORD[c['id']] + ['given']) if c['id'] in COORD else geocode(q) or geocode(f"{c['name'].split(' · ')[0]}, {c['town']}") or geocode(f"{c['name'].split(' · ')[0]} {c['town'].split(', ')[-1]}")
     if not g: rec['err'] = 'not found: ' + q; log(c['id'], rec['err']); continue
     lat0, lon0, disp = g; rec['geo'] = [lat0, lon0, disp]
     K = math.cos(math.radians(lat0)) * 111320 * 1.0936; L = 110574 * 1.0936
