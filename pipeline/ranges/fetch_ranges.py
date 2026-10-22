@@ -85,9 +85,9 @@ def aerial(c, F, box=None):
         except Exception as e: log('  naip failed', u, e)
     raise RuntimeError('no NAIP source worked')
 
-WIDE_R = {'santee': 3200, 'willingers': 3200}   # photo half-width (yd) where the course may be off centre
+WIDE_R = {'santee': 1600, 'willingers': 1600}   # photo half-width (yd) where the course may be off centre
 COORD = {   # where the name search found the wrong place (lat, lon of the course)
-    'wilderness': [47.836, -92.315], 'santee': [33.478, -80.468], 'willingers': [44.533, -93.297], 'chaska': [44.815, -93.637], 'jewel': [44.432, -92.283]}
+    'wilderness': [47.836, -92.315], 'santee': [33.4859, -80.4841], 'willingers': [44.4899, -93.3203], 'chaska': [44.815, -93.637], 'jewel': [44.432, -92.283]}
 
 out = {}
 for c in COURSES:
