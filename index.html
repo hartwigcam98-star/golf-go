@@ -3040,7 +3040,7 @@ function startHole(i){
   G.wind=holeWind(i);
   G.state='intro';
   const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];
-  const rg=!!G.hole.range;G.rangeN=0;G.rangeBalls=[];try{G.rangeFollow=localStorage.getItem('golf-rangecam')==='trail';}catch(_){}$('iNum').textContent=rg?'R':i+1;$('iPar').textContent=rg?'Driving range':'Par '+G.hole.par;$('iLen').textContent=rg?Math.round(holeData(i).len)+' yds long':G.hole.len+' yds'+(G.hole.pinTag&&G.hole.pinTag[G.hole.pinIx]?' \u00b7 '+G.hole.pinTag[G.hole.pinIx]+' pin':'');
+  const rg=!!G.hole.range;G.rangeN=0;G.rangeBalls=[];G.rangeFollow=true;try{G.rangeFollow=localStorage.getItem('golf-rangecam2')!=='golfer';}catch(_){}$('iNum').textContent=rg?'R':i+1;$('iPar').textContent=rg?'Driving range':'Par '+G.hole.par;$('iLen').textContent=rg?Math.round(holeData(i).len)+' yds long':G.hole.len+' yds'+(G.hole.pinTag&&G.hole.pinTag[G.hole.pinIx]?' \u00b7 '+G.hole.pinTag[G.hole.pinIx]+' pin':'');
   $('iWind').textContent=G.wind.mph?'Wind '+G.wind.mph+' mph':'Calm';
   $('iTip').textContent=rg?'Warm up as long as you like: every ball comes back to the mat. Tap First tee when you\u2019re ready.':G.hole.tip;$('teeBtn').textContent=rg?'Start hitting':'Tee off';$('matchTag').hidden=!MATCH.on;
   $('howto').hidden=!(i===0&&G.mode==='round');$('iFine').hidden=i!==0;$('rangeGo').hidden=!rg;$('iRange').hidden=!(i===0&&(G.mode==='round'||G.mode==='daily')&&!MATCH.on&&!!rangeOf(CUR));
@@ -3117,7 +3117,7 @@ function strikeShot(power,e){
   const pegK=G.strokes===0&&lie==='tee'?pegFor(club):0;G.settle=null;
   G.rec=[];G.recT=0;G.recOn=true;G.canReplay=false;G.recHoled=false;
   G.shotInfo=null;$('shotStats').hidden=true;
-  G.ff=1;G.strokes++;G.prev={...G.ball};G.fromLie=lie;G.trail=[];G.shotRot=G.aim;G.state='flight';G.followT=.001;G.bY=hAt(G.ball.x,G.ball.y)+.03;G.launchAt=club.putter?PUTT_IMPACT:IMPACT_T;G.swingBack=Math.max(.15,G.meter.power);if(SWT&&!club.putter)G.launchAt+=.25+.35*G.swingBack;G.swingType=club.putter?'putt':G.stype;G.swingClub=G.clubIdx;
+  G.ff=G.hole&&G.hole.range?(G.rangeFF||4):1;G.strokes++;G.prev={...G.ball};G.fromLie=lie;G.trail=[];G.shotRot=G.aim;G.state='flight';G.followT=.001;G.bY=hAt(G.ball.x,G.ball.y)+.03;G.launchAt=club.putter?PUTT_IMPACT:IMPACT_T;G.swingBack=Math.max(.15,G.meter.power);if(SWT&&!club.putter)G.launchAt+=.25+.35*G.swingBack;G.swingType=club.putter?'putt':G.stype;G.swingClub=G.clubIdx;
   G.golferAt={x:G.ball.x,y:G.ball.y,aim:G.aim};G.twirl=false;
   const miss=e===null;let perfect=false,q=.05;G.missBy=0;
   // the player's timing is judged more strictly than the rivals' (their difficulty is tuned through their own timing spread)
@@ -7152,7 +7152,7 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
 const keys={};let holdL=0,holdR=0;
 // fast-forward: while the ball is moving (or a replay runs) the whole simulation can run 2x or 4x
 function ffActive(){return G.state==='replay'||((G.state==='flight'||G.state==='bounce'||G.state==='roll')&&G.followT>=(G.launchAt||0));}
-function cycleFF(){if(!ffActive())return;G.ff=G.ff===1?2:G.ff===2?4:1;sfx.tick();}
+function cycleFF(){if(!ffActive())return;G.ff=G.ff===1?2:G.ff===2?4:1;if(G.hole&&G.hole.range)G.rangeFF=G.ff;sfx.tick();}   // the range keeps its speed for the next balls (4x to start)
 function update(dt){
   T+=dt;
   if(G.aiTurn){aiStep(dt);if(G.aiSkip&&ffActive()&&G.ff<8)G.ff=8;}
@@ -7451,7 +7451,7 @@ cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',end
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('wheel',e=>{if(G.state!=='aim'||G.aiTurn||G.overview)return;e.preventDefault();if(!G.fc&&!lookStart())return;lookZoom(Math.exp(clamp(e.deltaY,-120,120)*.0025));},{passive:false});
 $('flagBtn').addEventListener('click',e=>{e.stopPropagation();A();if(G.state!=='aim'||G.aiTurn)return;G.flagOut=!G.flagOut;sfx.tick();});
-$('flyCamBtn').addEventListener('click',e=>{e.stopPropagation();A();if(G.hole&&G.hole.range&&!G.replay){G.rangeFollow=!G.rangeFollow;try{localStorage.setItem('golf-rangecam',G.rangeFollow?'trail':'golfer');}catch(_){}sfx.tick();return;}FLY_TV=!FLY_TV;try{localStorage.setItem('golf-flycam',FLY_TV?'tv':'trail');}catch(_){}if(typeof R3!=='undefined'&&R3.tv){R3.tv.cam=null;R3.tv.cutDone=false;}sfx.tick();});
+$('flyCamBtn').addEventListener('click',e=>{e.stopPropagation();A();if(G.hole&&G.hole.range&&!G.replay){G.rangeFollow=!G.rangeFollow;try{localStorage.setItem('golf-rangecam2',G.rangeFollow?'trail':'golfer');}catch(_){}sfx.tick();return;}FLY_TV=!FLY_TV;try{localStorage.setItem('golf-flycam',FLY_TV?'tv':'trail');}catch(_){}if(typeof R3!=='undefined'&&R3.tv){R3.tv.cam=null;R3.tv.cutDone=false;}sfx.tick();});
 $('camBtn').addEventListener('click',e=>{e.stopPropagation();A();camCycle();});
 $('lookBtn').addEventListener('click',e=>{e.stopPropagation();A();if(G.fc&&!(G.fc.fly&&G.fc.fly.dir<0))lookEnd();else lookStart();});
 $('lookGreen').addEventListener('click',e=>{e.stopPropagation();lookGreen();});
