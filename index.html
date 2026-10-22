@@ -3040,7 +3040,7 @@ function startHole(i){
   G.wind=holeWind(i);
   G.state='intro';
   const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];
-  const rg=!!G.hole.range;G.rangeN=0;G.rangeBalls=[];$('iNum').textContent=rg?'R':i+1;$('iPar').textContent=rg?'Driving range':'Par '+G.hole.par;$('iLen').textContent=rg?Math.round(holeData(i).len)+' yds long':G.hole.len+' yds'+(G.hole.pinTag&&G.hole.pinTag[G.hole.pinIx]?' \u00b7 '+G.hole.pinTag[G.hole.pinIx]+' pin':'');
+  const rg=!!G.hole.range;G.rangeN=0;G.rangeBalls=[];try{G.rangeFollow=localStorage.getItem('golf-rangecam')==='trail';}catch(_){}$('iNum').textContent=rg?'R':i+1;$('iPar').textContent=rg?'Driving range':'Par '+G.hole.par;$('iLen').textContent=rg?Math.round(holeData(i).len)+' yds long':G.hole.len+' yds'+(G.hole.pinTag&&G.hole.pinTag[G.hole.pinIx]?' \u00b7 '+G.hole.pinTag[G.hole.pinIx]+' pin':'');
   $('iWind').textContent=G.wind.mph?'Wind '+G.wind.mph+' mph':'Calm';
   $('iTip').textContent=rg?'Warm up as long as you like: every ball comes back to the mat. Tap First tee when you\u2019re ready.':G.hole.tip;$('teeBtn').textContent=rg?'Start hitting':'Tee off';$('matchTag').hidden=!MATCH.on;
   $('howto').hidden=!(i===0&&G.mode==='round');$('iFine').hidden=i!==0;$('rangeGo').hidden=!rg;$('iRange').hidden=!(i===0&&(G.mode==='round'||G.mode==='daily')&&!MATCH.on&&!!rangeOf(CUR));
@@ -4579,6 +4579,7 @@ function camAddress(x,y,aim){const V2=CAMV_SET[CAMV];if(!V2)return null;const[dx
 function camCycle(){CAMV=(CAMV+1)%3;try{localStorage.setItem('golf-camv',String(CAMV));}catch(e){}sfx.tick();}
 function camTarget(){
   if(G.replay)return replayCam();
+  if(G.hole&&G.hole.range&&!G.rangeFollow&&G.golferAt&&(G.state==='flight'||G.state==='bounce'||G.state==='roll'||G.state==='wait')){const ga=G.golferAt,[ax,az]=dirOf(ga.aim),g0=hAt(ga.x,ga.y);return{E:[ga.x-ax*12,g0+4.2,ga.y-az*12],L:[ga.x+ax*90,g0+6,ga.y+az*90]};}   // the range: the view stays at the golfer
   {const tv=r3TvCam();if(tv)return tv;}
   const h=G.hole,b=G.ball,gb=hAt(b.x,b.y);
   if(G.overview||G.state==='intro'||G.state==='card'){
@@ -4601,7 +4602,6 @@ function camTarget(){
     {const ca=camAddress(b.x,b.y,G.aim);if(ca)return ca;}
     const look=Math.min(70,D*.6),lx=b.x+dx*look,lz=b.y+dz*look;return{E:[b.x-dx*13,gb+5.4,b.y-dz*13],L:[lx,hAt(lx,lz)*.6+gb*.4,lz]};
   }
-  if(h.range&&G.golferAt&&(G.state==='flight'||G.state==='bounce'||G.state==='roll'||G.state==='wait')){const ga=G.golferAt,[ax,az]=dirOf(ga.aim),g0=hAt(ga.x,ga.y);return{E:[ga.x-ax*12,g0+4.2,ga.y-az*12],L:[ga.x+ax*90,g0+6,ga.y+az*90]};}   // the range: the view stays at the golfer, down the range
   if((G.state==='flight'||G.state==='roll')&&G.golferAt&&G.followT>0&&G.followT<(G.launchAt||0)+.4){const ga=G.golferAt,[ax,az]=dirOf(ga.aim),g0=hAt(ga.x,ga.y);if(G.fromLie!=='green'){const ca=camAddress(ga.x,ga.y,ga.aim);if(ca)return ca;}return{E:[ga.x-ax*13,g0+5.4,ga.y-az*13],L:[ga.x+ax*40,g0,ga.y+az*40]};}
   const[dx,dz]=dirOf(G.shotRot);
   if(G.state==='holed'){const p=h.pin,gp=hAt(p[0],p[1]);return{E:[p[0]-dx*4.5,gp+2.2,p[1]-dz*4.5],L:[p[0],gp,p[1]]};}
@@ -6979,7 +6979,7 @@ function r3GrassTileHas(h,i,j){if(R3G.maskH!==h){R3G.maskH=h;R3G.mask=new Map();
 function drawRangeLabels(){const h=G.hole;if(!h.range||!h.targets)return;sctx.font='700 13px "Barlow Semi Condensed",system-ui,sans-serif';sctx.textAlign='center';sctx.textBaseline='middle';
   const boxes=[],hit=(x,y,w)=>boxes.some(b=>Math.abs(b[0]-x)<(b[2]+w)/2+3&&Math.abs(b[1]-y)<22);   // nearest first; a label that would cover another moves up once, or is left out
   for(const t of h.targets.slice().sort((a,b)=>a.d-b.d)){const g=hAt(t.x,t.y),top=proj(t.x,g+2.6,t.y);if(!top)continue;
-    const tx=Math.round(hyp(t.x-G.ball.x,t.y-G.ball.y))+'y',w=sctx.measureText(tx).width+18;let y=top[1]-16;if(hit(top[0],y,w)){y-=22;if(hit(top[0],y,w))continue;}boxes.push([top[0],y,w]);
+    const tx=Math.round(hyp(t.x,t.y))+'y',w=sctx.measureText(tx).width+18;let y=top[1]-16;if(hit(top[0],y,w)){y-=22;if(hit(top[0],y,w))continue;}boxes.push([top[0],y,w]);
     sctx.fillStyle='rgba(12,30,46,.85)';sctx.beginPath();sctx.roundRect(top[0]-w/2,y-10,w,20,10);sctx.fill();
     sctx.fillStyle=t.col;sctx.beginPath();sctx.arc(top[0]-w/2+8,y,3,0,TAU);sctx.fill();sctx.fillStyle='#fff6dc';sctx.fillText(tx,top[0]+3,y);}}
 function drawPinLabel(){
@@ -7087,7 +7087,7 @@ function updHud(){
   $('replayBtn').hidden=!(G.state==='aim'&&G.canReplay&&!G.overview&&!G.aiTurn&&!G.fc);
   { const gb=$('flagBtn'),on=G.state==='aim'&&!G.aiTurn&&curClub().putter&&G.lie==='green';gb.hidden=!on;if(on){if(!MCLK.w||MCLK.fb==null)MCLK.fb=$('menuBtn').getBoundingClientRect().bottom+8;gb.style.top=MCLK.fb+'px';setT('flagBtn',G.flagOut?'\u26f3 Flag out':'\u26f3 Flag in');} }   // v105: a small chip top right, under the menu, clear of the golfer
   { const rb=$('rpBar'),rv=!!G.replay&&!REC.on&&!SPEC.on;rb.hidden=!rv;if(rv){rb.style.bottom=(botH+4)+'px';const sv=$('rpSave');sv.hidden=G.mode==='highlight';sv.textContent=G.lastShot&&G.lastShot.saved?'\u2605 Saved':'\u2606 Save';sv.classList.toggle('on',!!(G.lastShot&&G.lastShot.saved));$('rpVideo').hidden=!recOK();} }
-  { const fb=$('flyCamBtn'),on=G.hole&&G.hole.range&&!G.replay?false:G.replay?(!REC.on&&!G.lastShot.putt):(G.state==='flight'||G.state==='bounce'||G.state==='roll')&&G.fromLie!=='green'&&!(typeof SPEC!=='undefined'&&SPEC.on);fb.hidden=!on;if(on){fb.style.bottom=(botH+4)+'px';setT('flyCamBtn',FLY_TV?'\ud83c\udfaf Trail view':'\ud83d\udcfa TV view');} }
+  { const fb=$('flyCamBtn'),rgc=!!(G.hole&&G.hole.range&&!G.replay),on=rgc?(G.state==='flight'||G.state==='bounce'||G.state==='roll'):G.replay?(!REC.on&&!G.lastShot.putt):(G.state==='flight'||G.state==='bounce'||G.state==='roll')&&G.fromLie!=='green'&&!(typeof SPEC!=='undefined'&&SPEC.on);fb.hidden=!on;if(on){fb.style.bottom=(botH+4)+'px';setT('flyCamBtn',rgc?(G.rangeFollow?'\ud83c\udfcc\ufe0f Golfer view':'\ud83c\udfaf Trail view'):FLY_TV?'\ud83c\udfaf Trail view':'\ud83d\udcfa TV view');} }
   const ffOk=ffActive();$('ffBtn').hidden=!ffOk;if(ffOk){setT('ffBtn',G.ff>1?'\u23e9 '+G.ff+'\u00d7 speed':'\u23e9 Speed up');$('ffBtn').classList.toggle('on',G.ff>1);}
   $('cardReplay').hidden=!G.canReplay;
   {const rb=$('rangeGo'),on=!!h.range&&(G.state==='aim'||G.state==='wait');rb.hidden=!on;if(on){if(!MCLK.w||MCLK.fb==null)MCLK.fb=$('menuBtn').getBoundingClientRect().bottom+8;rb.style.top=MCLK.fb+'px';}}
@@ -7451,7 +7451,7 @@ cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',end
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('wheel',e=>{if(G.state!=='aim'||G.aiTurn||G.overview)return;e.preventDefault();if(!G.fc&&!lookStart())return;lookZoom(Math.exp(clamp(e.deltaY,-120,120)*.0025));},{passive:false});
 $('flagBtn').addEventListener('click',e=>{e.stopPropagation();A();if(G.state!=='aim'||G.aiTurn)return;G.flagOut=!G.flagOut;sfx.tick();});
-$('flyCamBtn').addEventListener('click',e=>{e.stopPropagation();A();FLY_TV=!FLY_TV;try{localStorage.setItem('golf-flycam',FLY_TV?'tv':'trail');}catch(_){}if(typeof R3!=='undefined'&&R3.tv){R3.tv.cam=null;R3.tv.cutDone=false;}sfx.tick();});
+$('flyCamBtn').addEventListener('click',e=>{e.stopPropagation();A();if(G.hole&&G.hole.range&&!G.replay){G.rangeFollow=!G.rangeFollow;try{localStorage.setItem('golf-rangecam',G.rangeFollow?'trail':'golfer');}catch(_){}sfx.tick();return;}FLY_TV=!FLY_TV;try{localStorage.setItem('golf-flycam',FLY_TV?'tv':'trail');}catch(_){}if(typeof R3!=='undefined'&&R3.tv){R3.tv.cam=null;R3.tv.cutDone=false;}sfx.tick();});
 $('camBtn').addEventListener('click',e=>{e.stopPropagation();A();camCycle();});
 $('lookBtn').addEventListener('click',e=>{e.stopPropagation();A();if(G.fc&&!(G.fc.fly&&G.fc.fly.dir<0))lookEnd();else lookStart();});
 $('lookGreen').addEventListener('click',e=>{e.stopPropagation();lookGreen();});
