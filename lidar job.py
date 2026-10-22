@@ -97,12 +97,14 @@ def site(key, cfg):
         c, links = imgs_of(u); cand += c
         for l in links[:8]:
             c2, _ = imgs_of(l); cand += [(x, t + ' @' + urlparse(l).path) for x, t in c2]
-    qq = cfg['name'] + ' ' + cfg.get('town', '') + ' golf clubhouse'
     must = cfg.get('must', re.escape(cfg['name'].split()[0]))
-    web = bing(qq, must)
-    dd = [c for c in ddg(qq, 30) if re.search(must, c[1], re.I)]
-    print(key, 'ddg', len(dd), flush=True)
-    web = web + dd
+    web = []
+    for qq in [cfg['name'] + ' ' + cfg.get('town', '') + ' golf clubhouse'] + cfg.get('qs', []):
+        got1 = bing(qq, must, 14)
+        dd = [c for c in ddg(qq, 30) if re.search(must, c[1], re.I)]
+        print(key, qq, 'bing', len(got1), 'ddg', len(dd), flush=True)
+        web += got1 + dd[:10]
+        time.sleep(2)
     print(key, 'search', len(web), flush=True)
     cand = web + [c for c in cand if re.search(r'club ?house|lodge|exterior|building|patio', c[0] + c[1], re.I)] + cand
     if cfg.get('q'): cand += [c for c in commons(cfg['q'] + ' golf') if re.search(r'\.(jpe?g|png)$', c[1], re.I)]
@@ -113,10 +115,10 @@ def site(key, cfg):
         scored.append((s, u, t))
     scored.sort(key=lambda x: -x[0]); got = []   # stable: search results keep their rank
     with cf.ThreadPoolExecutor(6) as ex:
-        res = list(ex.map(lambda x: (x, fetch_img(x[1])), scored[:50]))
+        res = list(ex.map(lambda x: (x, fetch_img(x[1])), scored[:70]))
     for (s, u, t), im in res:
         if im is not None: got.append((s, u, t, im))
-        if len(got) >= 20: break
+        if len(got) >= 28: break
     if not got: return key, 0, []
     cw, ch = 480, 320; sheet = Image.new('RGB', (cw * 4, ch * ((len(got) + 3) // 4)), (30, 30, 30)); d = ImageDraw.Draw(sheet)
     for i, (s, u, t, im) in enumerate(got):
@@ -127,7 +129,7 @@ def site(key, cfg):
     for i, (s, u, t, im) in enumerate(got): im.save(f'{OUT}/{key}/{i:02d}.jpg', quality=85)
     return key, len(got), [dict(i=i, url=u, txt=t.strip()[:120]) for i, (s, u, t, im) in enumerate(got)]
 SUM = {}
-with cf.ThreadPoolExecutor(4) as ex:
+with cf.ThreadPoolExecutor(2) as ex:
     for key, n, src in ex.map(lambda kv: site(*kv), SITES.items()):
         SUM[key] = src; print(key, n, flush=True)
 json.dump(SUM, open(f'{OUT}/sources.json', 'w'), indent=1)
