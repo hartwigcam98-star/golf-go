@@ -130,6 +130,8 @@ def range_lidar(c, F, box, ST=3.0):
     json.dump([round(x0, 2), round(y0, 2), ST, nx, ny, round(zmin, 3), base64.b64encode(venc(q)).decode()], open(f"out/rlid_{c['id']}.json", 'w'))
     log('  range lidar', c['id'], nx, 'x', ny, 'z yd', round(zmin, 1), round(float(zz.max()), 1))
 
+if os.path.exists(os.path.join(HERE, 'coords.json')): COORD.update(json.load(open(os.path.join(HERE, 'coords.json'))))   # new courses: [lat, lon] from the research step
+
 out = {}
 for c in COURSES:
     if ONLY is not None and c['id'] not in ONLY: continue
