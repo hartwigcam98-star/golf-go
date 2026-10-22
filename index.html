@@ -1798,6 +1798,42 @@ function lieAt(x,y){const c=lieCodeAt(G.hole,x,y);return c<0?'ob':LIE_CODES[c];}
 function polyPath(g,P){g.beginPath();const p=P.pts;g.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length;i++)g.lineTo(p[i][0],p[i][1]);g.closePath();}
 function strokePl(g,pls){for(const pl of pls){g.beginPath();g.moveTo(pl[0][0],pl[0][1]);for(let i=1;i<pl.length;i++)g.lineTo(pl[i][0],pl[i][1]);g.stroke();}}
 const pot=n=>{let p=1;while(p<n)p*=2;return Math.min(4096,p);};
+/* ---------- regional ground cover (Oct 2026): what lies between the holes and under the trees ----------
+   pine straw under the pines and oaks of the South, dark needle-and-leaf duff in the north woods, open sand blowouts in the
+   Wisconsin barrens. Cosmetic only: the lie stays rough or fescue. h.cover: 1 straw, 2 duff, 3 sand, per 1-yd cell of h.lg. */
+function coverAt(h,x,y){const C=h.cover,L=h.lg;if(!C||!L)return 0;const i=Math.floor(x-L.x0+.5),j=Math.floor(y-L.y0+.5);return i<0||j<0||i>=L.nx||j>=L.ny?0:C[j*L.nx+i];}
+function coverRegion(){const id=CUR.data||CUR.id;if(CUR.scen==='desert')return 0;if(R3T_BARRENS[id])return 3;if(R3T_NORTH[id])return 2;if(id==='farmlinks')return 2;if(CUR.scen==='lowcountry'||R3T_SOUTH[id])return 1;return 0;}
+function groundCover(h){if(h.cover!==undefined)return h.cover;h.cover=null;const reg=coverRegion(),L=h.lg;if(!reg||!L)return null;
+  // the photo's trees, placed now so the ground under them can be painted (the species pass reuses them)
+  if(R3.on&&R3T_COURSES[CUR.id]&&!h.naipDone){h.naipDone=1;try{r3NaipApply(h);}catch(e){}}
+  const nx=L.nx,ny=L.ny,C=new Uint8Array(nx*ny),code=L.code,dm=L.dmown;let n=0;
+  const ok=k=>(code[k]===0||code[k]===1)&&dm[k]>(code[k]===1?3.5:2.5);
+  const disc=(x,y,r,v)=>{const i0=Math.max(0,Math.floor(x-r-L.x0)),i1=Math.min(nx-1,Math.ceil(x+r-L.x0)),j0=Math.max(0,Math.floor(y-r-L.y0)),j1=Math.min(ny-1,Math.ceil(y+r-L.y0));
+    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const dx=L.x0+i-x,dy=L.y0+j-y;if(dx*dx+dy*dy>r*r)continue;const k=j*nx+i;if(!C[k]&&ok(k)){C[k]=v;n++;}}};
+  const trees=(h.allTrees||[]).concat(h.farTrees||[]);
+  for(const t of trees){if(t.cactus)continue;const r=(t.r||3)*(reg===1?(t.con?1.15:.95):reg===2?1:t.con?1.05:.7);if(reg===3&&!t.con)continue;disc(t.x,t.y,r,reg===3?3:reg);}
+  // inside the mapped woods the floor is straw or duff all through
+  if(reg!==3)for(const P of h.woods||[]){const bb=P.bb;for(let j=Math.max(0,Math.floor(bb[1]-L.y0));j<=Math.min(ny-1,Math.ceil(bb[3]-L.y0));j++)for(let i=Math.max(0,Math.floor(bb[0]-L.x0));i<=Math.min(nx-1,Math.ceil(bb[2]-L.x0));i++){const k=j*nx+i;if(C[k]||!ok(k))continue;if(inPoly(P,L.x0+i,L.y0+j)){C[k]=reg;n++;}}}
+  // the barrens: open sand drifts through the native areas, set back from the mown grass
+  if(reg===3){const nz=(x,y)=>Math.sin(x*.043+y*.017)*Math.sin(x*.021-y*.039)+.45*Math.sin(x*.11+1.3)*Math.sin(y*.097-.7);
+    for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const k=j*nx+i;if(C[k]||code[k]!==0||dm[k]<5)continue;const x=L.x0+i,y=L.y0+j;if(nz(x,y)>(CUR.id==='sedge'?.62:.32)-Math.min(.25,(dm[k]-5)*.008)){C[k]=3;n++;}}}
+  return h.cover=n?C:null;}
+function paintCover(h,g,R){const C=groundCover(h);if(!C)return;const L=h.lg,nx=L.nx,ny=L.ny;
+  const BASE={1:[122,86,56],2:[92,76,56],3:[214,198,160]};
+  const m=document.createElement('canvas');m.width=nx;m.height=ny;const mc=m.getContext('2d'),id=mc.createImageData(nx,ny);
+  for(let k=0;k<C.length;k++){const v=C[k];if(!v)continue;const b=BASE[v],o=k*4,j=((k*2654435761)>>>24)/255*.16-.08;id.data[o]=b[0]*(1+j);id.data[o+1]=b[1]*(1+j);id.data[o+2]=b[2]*(1+j);id.data[o+3]=v===3?235:225;}
+  mc.putImageData(id,0,0);g.save();g.imageSmoothingEnabled=true;g.filter='blur(0.6px)';g.drawImage(m,L.x0-.5,L.y0-.5,nx,ny);g.filter='none';
+  const at=(x,y)=>{const i=Math.floor(x-L.x0+.5),j=Math.floor(y-L.y0+.5);return i<0||j<0||i>=nx||j>=ny?0:C[j*nx+i];};
+  // texture: straw needles, duff with ferns and moss, sand with marram tufts and ripples
+  const N=nx*ny/2.2;for(let q=0;q<N;q++){const x=L.x0+R()*nx,y=L.y0+R()*ny,v=at(x,y);if(!v)continue;const u=R();
+    if(v===1){if(u<.7){g.strokeStyle=u<.35?'rgba(176,122,70,.55)':'rgba(96,58,30,.5)';g.lineWidth=.12;const a=R()*TAU,l=.5+R()*.9;g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l);g.stroke();}
+      else{g.fillStyle=u<.9?'rgba(110,70,38,.35)':'rgba(70,96,46,.35)';g.beginPath();g.arc(x,y,.3+R()*.7,0,TAU);g.fill();}}
+    else if(v===2){if(u<.45){g.fillStyle=u<.25?'rgba(52,42,32,.55)':'rgba(104,84,60,.45)';g.beginPath();g.arc(x,y,.25+R()*.6,0,TAU);g.fill();}
+      else if(u<.8){g.fillStyle=u<.62?'rgba(70,104,48,.55)':'rgba(96,128,62,.5)';g.beginPath();g.ellipse(x,y,.5+R()*.9,.25+R()*.4,R()*TAU,0,TAU);g.fill();}
+      else{g.strokeStyle='rgba(150,120,80,.4)';g.lineWidth=.12;const a=R()*TAU,l=.4+R()*.7;g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l);g.stroke();}}
+    else{if(u<.22){g.fillStyle=u<.12?'rgba(118,122,72,.6)':'rgba(150,150,96,.5)';g.beginPath();g.arc(x,y,.3+R()*.8,0,TAU);g.fill();}
+      else if(u<.5){g.fillStyle=u<.36?'rgba(236,224,192,.4)':'rgba(176,156,120,.3)';g.beginPath();g.ellipse(x,y,.8+R()*1.6,.15+R()*.2,.4,0,TAU);g.fill();}}}
+  g.restore();}
 function buildTerrain(h){
   const[x0,y0,x1,y1]=h.bounds,ww=x1-x0,hh=y1-y0;
   let TW=pot(ww*6),TH=pot(hh*6);while(TW*TH>8.4e6){if(TW/ww>TH/hh)TW/=2;else TH/=2;}
@@ -1835,6 +1871,7 @@ function buildTerrain(h){
   { const L=h.lg,m=document.createElement('canvas'),RC=turfRGB([74,140,60],TU.ro);m.width=L.nx;m.height=L.ny;const mc=m.getContext('2d'),id=mc.createImageData(L.nx,L.ny);
     for(let k=0;k<L.code.length;k++){if(L.code[k]!==0){id.data[k*4]=RC[0];id.data[k*4+1]=RC[1];id.data[k*4+2]=RC[2];id.data[k*4+3]=255;}}
     mc.putImageData(id,0,0);g.save();g.imageSmoothingEnabled=true;g.drawImage(m,x0-.5,y0-.5,L.nx,L.ny);g.restore(); }
+  try{paintCover(h,g,rng(11));}catch(e){}
   g.lineCap='round';g.lineJoin='round';
   // a paved apron round the clubhouse
   for(const P of h.buildings||[])if(P.club){polyPath(g,P);g.lineJoin='miter';g.strokeStyle='#9c978d';g.lineWidth=8.4;g.stroke();g.strokeStyle='#b9b4a9';g.lineWidth=7.6;g.stroke();g.fillStyle='#b9b4a9';g.fill();g.lineJoin='round';}
@@ -2543,6 +2580,39 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
     for(let k=0;k<nd;k++){const t=(k+.5)/nd;panel(E,t,hw+.15,dh,dh+.3,trim,.07);panel(E,t,hw,plinth,dh,door,.06);for(const y of[.33,.66])panel(E,t,hw,plinth+(dh-plinth)*y-.05,plinth+(dh-plinth)*y+.05,rib,.08);}
     panel(edge(bi+1),.3,.5,plinth,Math.min(2.2,H1-.4),hexc('#5d6a72'),.06);}
 }
+/* ---------- course landmarks (Oct 2026): pond fountains, stone or boulder pond edges, bridge styles, and the city skyline
+   on the horizon where one is in view. CFEEL[courseId]: fo fountains (largest ponds first), pe pond edge 'boulder'|'wall'|'timber',
+   br bridge style 'stone'|'white' (default timber), sky true for a city skyline on the horizon (off by default: from the ground
+   the towers are only a few pixels at 15+ km and trees hide them). */
+const CFEEL={"crls":{"pe":"timber"},"crsc":{"pe":"timber"},"dove":{"fo":2,"pe":"boulder"},"edinburgh":{"pe":"boulder"},"hazeltine":{"br":"stone"},"interlachen":{"fo":1},"judge":{"pe":"timber"},"legend":{"pe":"boulder"},"legends":{"fo":1,"pe":"wall"},"legislator":{"pe":"timber"},"lookout":{"pe":"wall"},"mystic":{"fo":3,"pe":"timber"},"orangeburg":{"fo":1,"pe":"wall"},"pawplant":{"fo":2,"pe":"timber"},"pines":{"fo":1,"pe":"boulder"},"preserve":{"fo":1},"prestwick":{"fo":1},"quarry":{"pe":"boulder"},"ridges":{"fo":1},"santee":{"br":"white"},"troy":{"fo":2},"valley":{"pe":"timber"},"wigwam":{"pe":"wall"},"wilderness":{"pe":"boulder"},"willingers":{"fo":1},"wyboo":{"pe":"timber"}};
+const SKYLINES=[{lat:44.9778,lon:-93.2650,n:26,hmax:241,spread:1400,seed:11},{lat:44.9490,lon:-93.0930,n:14,hmax:143,spread:900,seed:23},
+  {lat:33.4484,lon:-112.0740,n:16,hmax:148,spread:1200,seed:37},{lat:33.5186,lon:-86.8104,n:12,hmax:139,spread:900,seed:41}];
+function courseFeel(h,out){const DBG=h._feel={fo:0,pe:0,sky:0};const F=CFEEL[CUR.id]||{},b=h.bounds,L0=h.line||[[0,0]],R=rng(((h.T0[0]*3)|0)^((h.T0[1]*5)|0)^9091);
+  const near=(x,y,d)=>{for(let i=0;i<L0.length-1;i++){const a=L0[i],c=L0[i+1],dx=c[0]-a[0],dy=c[1]-a[1],l2=dx*dx+dy*dy||1,t=clamp(((x-a[0])*dx+(y-a[1])*dy)/l2,0,1);if(hyp(a[0]+dx*t-x,a[1]+dy*t-y)<d)return true;}return false;};
+  const W=(h.water||[]).filter(w=>w.bb[2]>b[0]&&w.bb[0]<b[2]&&w.bb[3]>b[1]&&w.bb[1]<b[3]);
+  // aerating fountains in the biggest ponds
+  if(F.fo){const big=W.filter(w=>w.area>900).sort((a,c)=>c.area-a.area).slice(0,F.fo);
+    for(const w of big){let bx=null,bd=0;const bb=w.bb;for(let i=1;i<14;i++)for(let j=1;j<14;j++){const x=bb[0]+(bb[2]-bb[0])*i/14,y=bb[1]+(bb[3]-bb[1])*j/14;if(!inPoly(w,x,y))continue;const d=-polyDist(w,x,y,60);if(d>bd){bd=d;bx=[x,y];}}
+      if(!bx||bd<5)continue;DBG.fo++;if(!DBG.fpos)DBG.fpos=[bx[0],bx[1]];const x=bx[0],z=bx[1],y0=hAtH(h,x,z)+.02,Hf=2.6+Math.min(2.4,Math.sqrt(w.area)/60),wc=[.93,.96,.97],fc=[.84,.9,.92];
+      for(let k=0;k<3;k++){const a=k/3*Math.PI,ca=Math.cos(a),sa=Math.sin(a),nn=[-sa,0,ca];quadO(out,[x-ca*.12,y0,z-sa*.12],[x+ca*.12,y0,z+sa*.12],[x+ca*.5,y0+Hf,z+sa*.5],[x-ca*.5,y0+Hf,z-sa*.5],wc,nn);quadO(out,[x-ca*.12,y0,z-sa*.12],[x+ca*.12,y0,z+sa*.12],[x+ca*.5,y0+Hf,z+sa*.5],[x-ca*.5,y0+Hf,z-sa*.5],wc,mul(nn,-1));}
+      const N=14,rr=1.9+Hf*.35;for(let k=0;k<N;k++){const a=k/N*TAU,ca=Math.cos(a),sa=Math.sin(a),T=[x+ca*.4,y0+Hf*.92,z+sa*.4],M=[x+ca*rr*.6,y0+Hf*.75,z+sa*rr*.6],B=[x+ca*rr,y0+.05,z+sa*rr],px=-sa*.16,pz=ca*.16,nn=nrm([ca,.6,sa]);
+        quadO(out,[T[0]-px,T[1],T[2]-pz],[T[0]+px,T[1],T[2]+pz],[M[0]+px,M[1],M[2]+pz],[M[0]-px,M[1],M[2]-pz],wc,nn);quadO(out,[M[0]-px,M[1],M[2]-pz],[M[0]+px,M[1],M[2]+pz],[B[0]+px*1.6,B[1],B[2]+pz*1.6],[B[0]-px*1.6,B[1],B[2]-pz*1.6],wc,nn);}
+      for(let k=0;k<16;k++){const a1=k/16*TAU,a2=(k+1)/16*TAU,r1=rr*.55,r2=rr*1.25;quadO(out,[x+Math.cos(a1)*r1,y0,z+Math.sin(a1)*r1],[x+Math.cos(a1)*r2,y0,z+Math.sin(a1)*r2],[x+Math.cos(a2)*r2,y0,z+Math.sin(a2)*r2],[x+Math.cos(a2)*r1,y0,z+Math.sin(a2)*r1],fc,[0,1,0]);}}}
+  // pond edges: boulders, a dry-laid stone wall, or a timber bulkhead along the banks near play
+  if(F.pe){let n=0;const stn=F.pe==='timber'?[.36,.27,.19]:F.pe==='wall'?[.62,.59,.53]:[.68,.65,.6];
+    for(const w of W){const p=w.pts;for(let i=0;i<p.length&&n<2400;i++){const a=p[i],c=p[(i+1)%p.length],l=hyp(c[0]-a[0],c[1]-a[1]);if(l<.3)continue;const st=F.pe==='boulder'?1.4:2,m=Math.max(1,Math.round(l/st));
+        for(let k=0;k<m;k++){const t=(k+.5)/m,x=a[0]+(c[0]-a[0])*t,z=a[1]+(c[1]-a[1])*t;if(x<b[0]||x>b[2]||z<b[1]||z>b[3]||!near(x,z,240))continue;if(F.pe!=='boulder'&&!(h.greens||[]).concat(h.tees||[]).some(P=>polyDist(P,x,z,30)<22))continue;const y=hAtH(h,x,z),ang=Math.atan2(c[1]-a[1],c[0]-a[0]);n++;if(!DBG.epos&&(h.greens||[]).some(P=>polyDist(P,x,z,30)<15))DBG.epos=[x,z];
+          if(F.pe==='boulder'){const s=.5+R()*.75,v=.82+R()*.3,col=mul(stn,v*(R()<.3?.85:1)),sx=s*(.9+R()*.5),sy=s*(.55+R()*.3),sz=s*(.8+R()*.4),ra=R()*TAU,ca=Math.cos(ra),sa=Math.sin(ra),sd=R()*100;
+            const P=q=>{const k=1+.18*Math.sin(q[0]*5.1+sd)*Math.sin(q[2]*4.3+sd*.7)+.1*Math.sin(q[1]*6.7+sd*1.3),lx=q[0]*sx*k,ly=q[1]*sy*k,lz=q[2]*sz*k;return[x+lx*ca-lz*sa,y+ly+sy*.15,z+lx*sa+lz*ca];};
+            for(const[a,b2,c2]of ICO0){if(a[1]+b2[1]+c2[1]<-1.2)continue;pushTri(out,P(a),P(b2),P(c2),col);}}
+          else{const hw=l/m/2+.05,ht=F.pe==='timber'?.55:.75,v=F.pe==='timber'?.9+R()*.15:.85+R()*.25;boxO(out,x,y+ht/2-.2,z,hw,ht/2,F.pe==='timber'?.12:.3,ang,mul(stn,v));
+            if(F.pe==='wall'&&k%2===0)boxO(out,x,y+ht-.12,z,hw*.9,.08,.36,ang,mul(stn,1.12));}}}}}
+  // the city on the horizon
+  if(F.sky===true&&COURSE&&COURSE.origin){const[la0,lo0]=COURSE.origin,K=Math.cos(la0*Math.PI/180)*111320*1.0936,Lq=110574*1.0936;
+    for(const S of SKYLINES){let dx=(S.lon-lo0)*K-h.T0[0],dz=-(S.lat-la0)*Lq-h.T0[1];const D=hyp(dx,dz);if(D<4000||D>48000)continue;
+      const Dc=Math.min(D,26000),f=Dc/D,ux=dx/D,uz=dz/D,px=-uz,pz=ux,cx=ux*Dc,cz=uz*Dc,base=hAtH(h,0,0)-30*f,Rs=rng(S.seed),cols=[[.55,.6,.66],[.45,.5,.56],[.66,.64,.6],[.5,.55,.58]];
+      for(let k=0;k<S.n;k++){const o=(Rs()-.5)*S.spread*1.0936*f*(k<4?.5:1),dd=(Rs()-.5)*S.spread*.6*f,hgt=(k===0?S.hmax:S.hmax*(.25+Rs()*.6))*1.0936*f,wd=(22+Rs()*30)*1.0936*f;
+        DBG.sky++;const x=cx+px*o+ux*dd,z=cz+pz*o+uz*dd;boxO(out,x,base+(hgt+30*f)/2,z,wd/2,(hgt+30*f)/2,wd/2*(.7+Rs()*.6),Math.atan2(uz,ux)+Rs()*.4,cols[k%4]);}}}}
 function buildStructures(h,out){const ST=STYLE[CUR.scen]||STYLE.prairie,R=rng(4242);
   // buildings from their footprints; far from the hole's line they get the plain version (box walls + roof)
   const L0=h.line||[[0,0]],lodD=(typeof R3!=='undefined'&&(R3.q!=='high'||R3.perf>0))?200:350;
@@ -2554,7 +2624,8 @@ function buildStructures(h,out){const ST=STYLE[CUR.scen]||STYLE.prairie,R=rng(42
   for(const pl of h.paths||[]){const pts=[];for(let i=0;i<pl.length-1;i++){const a=pl[i],b=pl[i+1],L=hyp(b[0]-a[0],b[1]-a[1]),n=Math.max(1,Math.ceil(L));for(let k=0;k<n;k++)pts.push([a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]);}
     if(pl.length)pts.push(pl[pl.length-1]);
     let run=null;const spans=[];for(let i=0;i<pts.length;i++){const w=wet(pts[i][0],pts[i][1]);if(w&&!run)run=[i,i];else if(w)run[1]=i;else if(run){spans.push(run);run=null;}}if(run)spans.push(run);
-    for(const[i0,i1]of spans){const a=Math.max(0,i0-4),b=Math.min(pts.length-1,i1+4);if(b-a<3)continue;deck(out,pts.slice(a,b+1),2.7,hexc('#7a5a3c'),hexc('#5c4330'),false);}}
+    for(const[i0,i1]of spans){const a=Math.max(0,i0-4),b=Math.min(pts.length-1,i1+4);if(b-a<3)continue;const FB=(CFEEL[CUR.id]||{}).br,BC=FB==='stone'?['#a8a294','#8c8679']:FB==='white'?['#8a7d6a','#f1efe8']:['#7a5a3c','#5c4330'];deck(out,pts.slice(a,b+1),2.7,hexc(BC[0]),hexc(BC[1]),false);}}
+  try{courseFeel(h,out);}catch(e){}
   // road bridges from the map (overpasses)
   if(CUR.surr)for(const r of CUR.surr.bridges||[]){const pts=r.slice(2).map(q=>[q[0]-h.T0[0],q[1]-h.T0[1]]);const b=h.bounds;if(!pts.some(q=>q[0]>b[0]-900&&q[0]<b[2]+900&&q[1]>b[1]-900&&q[1]<b[3]+900))continue;
     const L=pts.length>1?hyp(pts[1][0]-pts[0][0],pts[1][1]-pts[0][1]):0;if(L<8)continue;const ext=[[pts[0][0]-(pts[1][0]-pts[0][0])/L*6,pts[0][1]-(pts[1][1]-pts[0][1])/L*6]];
@@ -5865,7 +5936,8 @@ function r3TreeSpecies(h){R3T.use=R3.on&&!!R3T_COURSES[CUR.id];R3T.h=h;if(!R3T.u
     if(ctx==='wood'){if(grove(t.x,t.y)&&q<.35)return'aspen';return q<.62?'pine':q<.82?'oak':q<.9?'buroak':q<.96?'birch':'redcedar';}
     if(ctx==='row')return q<.7?'pine':'oak';
     return q<.45?'oak':q<.75?'pine':q<.9?'buroak':'redcedar';};
-  const pick=(t,ctx)=>{if(t.preset)return t.preset;if(desert)return pickDesert(t,ctx);if(az)return pickAZ(t,ctx);if(barrens)return pickBarrens(t,ctx);if(north)return pickNorth(t,ctx);if(low)return pickLow(t,ctx);if(south)return pickSouth(t,ctx);const q=R();
+  const scm=CUR.id==='santee'||CUR.id==='wyboo'||CUR.id==='orangeburg';
+  const pick=(t,ctx)=>{if(t.preset)return t.preset;if(desert)return pickDesert(t,ctx);if(scm&&!t.con&&ctx!=='wood'&&R()<.22)return'liveoak';if(az)return pickAZ(t,ctx);if(barrens)return pickBarrens(t,ctx);if(north)return pickNorth(t,ctx);if(low)return pickLow(t,ctx);if(south)return pickSouth(t,ctx);const q=R();
     if(ctx==='water')return q<.55?'willow':'cottonwood';
     if(ctx==='yard')return q<.35?'spruce':q<.65?'maple':q<.85?'oak':'birch';
     if(ctx==='wood'){if(grove(t.x,t.y)&&q<.7)return'aspen';return q<.28?'buroak':q<.48?'oak':q<.66?'maple':q<.76?'pine':q<.84?'aspen':q<.9?'birch':'redcedar';}
@@ -6329,8 +6401,8 @@ function r3SetHole(h,canvas){const T=THREE,GU=R3.GU;
    if(g&&Number.isFinite(g.x)&&st[3]>0)GU.rlG.value.set(g.x,g.y,Math.cos(a+.6),Math.sin(a+.6));else GU.rlG.value.set(0,0,0,0);}
   if(typeof turfOf==='function'){const k=turfOf().k;R3.tK.value.set(k[0],k[1],k[2],k[3]);}
   // surface weights
-  { const L=h.lg,d=new Uint8Array(L.nx*L.ny*4);   // r short grass, g rough, b fescue, none = sand; alpha marks the putting surface
-    for(let k=0;k<L.code.length;k++){const v=L.code[k],o=k*4;d[o]=(v>=2&&v<=4||v===6)?255:v===7?150:0;d[o+1]=v===1?255:v===7?105:0;d[o+2]=v===0&&CUR.scen!=='desert'?255:0;d[o+3]=v===4?255:0;if(v===5){d[o]=0;d[o+1]=0;d[o+2]=0;}}
+  { const L=h.lg,d=new Uint8Array(L.nx*L.ny*4),CV=(()=>{try{return groundCover(h);}catch(e){return null;}})();   // r short grass, g rough, b fescue, none = sand; alpha marks the putting surface
+    for(let k=0;k<L.code.length;k++){const v=L.code[k],o=k*4;d[o]=(v>=2&&v<=4||v===6)?255:v===7?150:0;d[o+1]=v===1?255:v===7?105:0;d[o+2]=v===0&&CUR.scen!=='desert'?255:0;d[o+3]=v===4?255:0;if(v===5||(CV&&CV[k])){d[o]=0;d[o+1]=0;d[o+2]=0;}}
     if(GU.gSurf.value)GU.gSurf.value.dispose();GU.gSurf.value=r3DataTex(d,L.nx,L.ny);GU.gSB.value.set(L.x0,L.y0,L.nx,L.ny); }
   // terrain from the height grid (full resolution on the phone's GPU is fine with 32-bit indices)
   r3Dispose(R3.terrain);
@@ -7069,7 +7141,7 @@ function r3LeafAtlas(){const c=document.createElement('canvas');c.width=1024;c.h
   g.restore();return c;}
 
 function r3GrassTileHas(h,i,j){if(R3G.maskH!==h){R3G.maskH=h;R3G.mask=new Map();}const key=i*100003+j;let v=R3G.mask.get(key);if(v!==undefined)return v;
-  const S=R3G.S;v=false;for(let a=0;a<=S&&!v;a+=1)for(let b=0;b<=S;b+=1){const c=lieCodeAt(h,i*S+a,j*S+b);if(c===1||(c===0&&CUR.scen!=='desert')){v=true;break;}}R3G.mask.set(key,v);return v;}
+  const S=R3G.S;v=false;for(let a=0;a<=S&&!v;a+=1)for(let b=0;b<=S;b+=1){const c=lieCodeAt(h,i*S+a,j*S+b);if((c===1||(c===0&&CUR.scen!=='desert'))&&!coverAt(h,i*S+a,j*S+b)){v=true;break;}}R3G.mask.set(key,v);return v;}
 
 
 function drawRangeLabels(){const h=G.hole;if(!h.range||!h.targets)return;sctx.font='700 13px "Barlow Semi Condensed",system-ui,sans-serif';sctx.textAlign='center';sctx.textBaseline='middle';
