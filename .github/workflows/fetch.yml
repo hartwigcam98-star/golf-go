@@ -28,7 +28,7 @@ jobs:
           cp -r out/. /tmp/o/ || true
           cp run.log /tmp/o/ || true
           cd /tmp/o
-          git init -q -b course-data
+          git init -q -b club-photos-data
           git add -A
-          git -c user.name=lidar-bot -c user.email=lidar-bot@users.noreply.github.com commit -qm "course data run $GITHUB_RUN_ID"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" course-data
+          git -c user.name=lidar-bot -c user.email=lidar-bot@users.noreply.github.com commit -qm "club photos run $GITHUB_RUN_ID"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" club-photos-data
