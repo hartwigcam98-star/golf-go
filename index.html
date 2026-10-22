@@ -649,6 +649,7 @@ td.won{background:rgba(255,201,60,.38)}
         <li><b>Tap a third time</b> right on the white impact line as it comes back. Early hooks left, late slices right.</li>
       </ol>
       <button class="primary disp" id="teeBtn">Tee off</button>
+      <button class="ghost disp" id="iRange" hidden>Hit the range</button>
       <button class="textbtn" id="iMenu">Menu</button>
     </div>
   </div>
@@ -1745,7 +1746,7 @@ function pinIndex(i){let seed;if(G.mode==='highlight'&&G.hlPin!=null)return G.hl
   else if(G.mode==='round'){if(!G.pinSeed)G.pinSeed=1+Math.floor(Math.random()*1e9);seed=G.pinSeed+i*7919;}
   else return Math.floor(Math.random()*3);
   return Math.floor(rng(seed)()*3)%3;}
-function setPinFor(h,i){if(!h.pins)return;const k=pinIndex(i);h.pinIx=k;h.pin=[...h.pins[k]];h.pinSlope=h.pinSet[k].s;}
+function setPinFor(h,i){if(!h.pins||h.range)return;const k=pinIndex(i);h.pinIx=k;h.pin=[...h.pins[k]];h.pinSlope=h.pinSet[k].s;}
 function buildHeights(h){
   for(const w of h.water)if(w.lvl===undefined){let m=1e9;for(const p of w.pts)m=Math.min(m,demRel(h,p[0],p[1]));w.lvl=m-.7;}
   const b=h.bounds,st=2,nx=Math.ceil((b[2]-b[0])/st)+1,ny=Math.ceil((b[3]-b[1])/st)+1,data=new Float32Array(nx*ny);
@@ -2993,7 +2994,7 @@ function scoreName(strokes,par){const d=strokes-par;if(strokes===1)return'HOLE I
 /* ---------- flow ---------- */
 /* ---------- save file (this device) ---------- */
 let SAVE_KEY=CUR.saveKey;
-function saveGame(o={}){if(G.mode==='daily'){dailySave(o);return;}if(G.mode!=='round')return;
+function saveGame(o={}){if(G.hole&&G.hole.range)return;if(G.mode==='daily'){dailySave(o);return;}if(G.mode!=='round')return;
   const d={v:1,pin:G.pinSeed||0,shots:G.rShots||[],ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,pend:o.pend||null,tee:TEE,ts:Date.now()};
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(d));}catch(e){}}
 function loadSave(key=SAVE_KEY,n=TB.length){try{const d=JSON.parse(localStorage.getItem(key)||'null');if(d&&d.v===1&&Number.isInteger(d.hi)&&d.hi>=0&&d.hi<n)return d;}catch(e){}return null;}
@@ -3034,7 +3035,7 @@ function startHole(i){
   const rg=!!G.hole.range;G.rangeN=0;$('iNum').textContent=rg?'R':i+1;$('iPar').textContent=rg?'Driving range':'Par '+G.hole.par;$('iLen').textContent=rg?Math.round(holeData(i).len)+' yds long':G.hole.len+' yds'+(G.hole.pinTag&&G.hole.pinTag[G.hole.pinIx]?' \u00b7 '+G.hole.pinTag[G.hole.pinIx]+' pin':'');
   $('iWind').textContent=G.wind.mph?'Wind '+G.wind.mph+' mph':'Calm';
   $('iTip').textContent=rg?'Warm up as long as you like: every ball comes back to the mat. Tap First tee when you\u2019re ready.':G.hole.tip;$('teeBtn').textContent=rg?'Start hitting':'Tee off';$('matchTag').hidden=!MATCH.on;
-  $('howto').hidden=!(i===0&&G.mode==='round');$('iFine').hidden=i!==0;$('rangeGo').hidden=!rg;
+  $('howto').hidden=!(i===0&&G.mode==='round');$('iFine').hidden=i!==0;$('rangeGo').hidden=!rg;$('iRange').hidden=!(i===0&&(G.mode==='round'||G.mode==='daily')&&!MATCH.on&&!!rangeOf(CUR));
   if(i===0){const cn=(COURSES[CUR.id]&&COURSES[CUR.id].name||'the club').split(' \u00b7 ')[0];$('iFine').textContent='Unofficial re-creation built from the mapped course layout (\u00a9 OpenStreetMap contributors), aerial photos, USGS 3DEP elevation and published hole descriptions. Not affiliated with '+cn+'.';}
   $('iEyebrow').textContent=G.mode==='practice'?CUR.name+' \u00b7 practice hole':G.mode==='daily'?'Daily round \u00b7 '+dailyNice(G.dailyDay)+' \u00b7 '+CUR.name:courseLine();
   $('cardM').hidden=true;$('reliefM').hidden=true;$('introM').hidden=false;
@@ -3371,7 +3372,8 @@ function showShotStats(){const I=G.shotInfo;G.shotInfo=null;if(!I)return;const t
   el.innerHTML='Carry <b>'+Math.round(I.carry)+'</b> \u00b7 Total <b>'+Math.round(tot)+'</b> \u00b7 Peak <b>'+Math.round(I.peak*3)+' ft</b>';el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>{el.hidden=true;},3600);}
 function rangeNext(){G.rangeN=(G.rangeN||0)+1;later(1.6,()=>{if(!G.hole||!G.hole.range||G.state!=='wait')return;
   G.ball={x:0,y:0};G.prev={...G.ball};G.strokes=0;G.fromLie='tee';G.trail=[];G.settle=null;prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];});}
-function rangeLeave(){A();if(!G.hole||!G.hole.range)return;G.mode='round';G.scores=[];G.pinSeed=0;startHole(0);}
+function rangeGoTo(){A();if(!rangeOf(CUR))return;startHole(TB.length);}   // the round or Daily keeps its mode, scores and pins; nothing on the range is saved
+function rangeLeave(){A();if(!G.hole||!G.hole.range)return;startHole(0);}
 function stopBall(){
   {const r0=G.roll;if(r0){const v=hyp(r0.vx,r0.vy);G.settle={t:0,dx:v>1e-6?r0.vx/v:0,dy:v>1e-6?r0.vy/v:0};}}   // a last little rock before it sits still
   showShotStats();
@@ -7483,13 +7485,11 @@ const US_MAP={w:1000,h:620,st:{"AL":"M680,392L715,389L729,440L734,450L734,452L73
 function pickCourse(id){A();if(courseGate(id,()=>pickCourse(id)))return;const K=COURSES[id],cur=id===CUR.id&&!MATCH.on?TEE:0;
   $('teeT').textContent=K.name;$('teeS').textContent='Choose your tees';
   $('teeL').innerHTML=[0,1,2].map(t=>{const col=TEE_MK(t,K);return '<button data-t="'+t+'"'+(t===cur?' class="on"':'')+'><i style="background:'+col+'"></i><b>'+teeNameOf(K,t)+'</b><span>'+teeYards(K,t).toLocaleString('en-US')+' yds</span></button>';}).join('');
-  $('teeL').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{const t=+b.dataset.t;if(!rangeOf(K)){$('teeM').hidden=true;teeGo(id,t);return;}A();
-    $('teeS').textContent=teeNameOf(K,t)+' \u00b7 warm up first?';
-    $('teeL').innerHTML='<button data-r="1"><i style="background:#3f8f4a"></i><b>Driving range</b><span>Hit some balls</span></button><button data-r="0"><i style="background:'+TEE_MK(t,K)+'"></i><b>First tee</b><span>Straight to hole 1</span></button>';
-    $('teeL').querySelectorAll('button').forEach(c=>c.addEventListener('click',()=>{$('teeM').hidden=true;teeGo(id,t,c.dataset.r==='1');}));}));
+  $('teeL').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{$('teeM').hidden=true;teeGo(id,+b.dataset.t);}));
   $('teeM').hidden=false;try{$('teeL').querySelector('.on').focus();}catch(e){}}
 $('teeX').addEventListener('click',()=>{A();$('teeM').hidden=true;});
 $('rangeGo').addEventListener('click',e=>{e.stopPropagation();rangeLeave();});
+$('iRange').addEventListener('click',e=>{e.stopPropagation();rangeGoTo();});
 function teeGo(id,t,rg){if(id===CUR.id&&TEE===t&&!MATCH.on&&!rg&&!(G.hole&&G.hole.range)){closeMenu();return;}endMatchMode();setCourse(id,true,t);G.pinSeed=0;G.scores=[];G.mode='round';if(R3.on)r3NewWx();clearSave();startHole(rg?TB.length:0);try{updHud();}catch(e){}closeMenu();sfx.tick();}   // straight to the range or hole 1's tee card (the menu's Continue / New round would restart hole 1)
 /* ---- home screen: a map of the states we have courses in; tap one for its courses (with a picture of each) ---- */
 const ST_NAME={AL:'Alabama',AR:'Arkansas',AZ:'Arizona',CA:'California',CO:'Colorado',CT:'Connecticut',DC:'Washington, DC',DE:'Delaware',FL:'Florida',GA:'Georgia',IA:'Iowa',ID:'Idaho',IL:'Illinois',IN:'Indiana',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',MA:'Massachusetts',MD:'Maryland',ME:'Maine',MI:'Michigan',MN:'Minnesota',MO:'Missouri',MS:'Mississippi',MT:'Montana',NC:'North Carolina',ND:'North Dakota',NE:'Nebraska',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NV:'Nevada',NY:'New York',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VA:'Virginia',VT:'Vermont',WA:'Washington',WI:'Wisconsin',WV:'West Virginia',WY:'Wyoming'};
@@ -7651,7 +7651,7 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 (()=>{
 const UPDATES=[
   {id:"2026-10-22-range",date:"Oct 22, 2026",title:"Driving ranges",items:[
-    "After you choose your tees, warm up on the course\u2019s own driving range or go straight to the first tee.",
+    "Hole 1\u2019s card now has two buttons: Tee off, or Hit the range to warm up on the course\u2019s own driving range first. It works for quick rounds and the Daily, and nothing you hit on the range counts.",
     "The range is laid out from the course map, hitting from the end by the clubhouse, with a target green about 150 yards out. Every ball comes back to the mat; tap First tee when you\u2019re ready.",
     "24 courses have their range so far; more are on the way."]},
   {id:"2026-10-21-taps",date:"Oct 21, 2026",title:"Fewer missed swing taps",items:[
