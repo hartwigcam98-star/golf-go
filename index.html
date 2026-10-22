@@ -327,6 +327,9 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
 #dCardV th.tap{cursor:pointer;background:#2c5d86;text-decoration:underline;text-underline-offset:3px}
 #flagBtn{left:auto;right:12px;bottom:auto;height:32px;padding:0 12px;font-size:14px}
 #rangeGo{left:auto;right:12px;bottom:auto;height:36px;padding:0 14px;font-size:15px;background:#f5b51c;color:#12283b}
+#rangeChartBtn{left:auto;right:12px;bottom:auto;height:32px;padding:0 12px;font-size:14px}
+#chartM{z-index:30}.chartcard h2{margin:0 0 8px}.charttabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.charttabs button{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:2px solid #12283b;font-weight:700;font-size:14px;color:#12283b}.charttabs button.on{background:#12283b;color:var(--sun)}.charttabs i{width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.3)}
+#chartPlot svg{width:100%;max-width:320px;display:block;margin:0 auto}.chartstats{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:12px 0}.chartstats div{text-align:center}.chartstats b{display:block;font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:19px;color:#12283b}.chartstats span{font-size:10.5px;font-weight:700;color:#51606b;text-transform:uppercase;letter-spacing:.04em}
 .flycam{position:absolute;left:12px;z-index:3;height:38px;padding:0 14px;border-radius:999px;background:var(--panel);color:#fff6dc;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.28)}
 .rpbar{position:absolute;right:12px;z-index:3;display:flex;gap:8px}.rpbar button{height:38px;padding:0 14px;border-radius:999px;background:var(--panel);color:#fff6dc;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.28)}.rpbar button.on{background:#ffc93c;color:#0f2233}
 .hlrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(18,40,59,.12)}.hlrow div{flex:1;min-width:0}.hlrow b{display:block;font-size:16px}.hlrow span{display:block;font-size:13px;opacity:.7}.hlrow button{height:36px;min-width:40px;padding:0 10px;border-radius:12px;border:2px solid #12283b;color:#12283b;font-size:15px}.hlrow button.go{background:#12283b;color:#ffc93c}
@@ -569,6 +572,7 @@ td.won{background:rgba(255,201,60,.38)}
   <button id="ffBtn" class="replaybtn ffbtn disp" hidden aria-label="Fast forward">⏩ Speed up</button>
   <button id="flagBtn" class="flycam disp" hidden aria-label="Flagstick in or out">⛳ Flag out</button>
   <button id="rangeGo" class="flycam disp" hidden aria-label="Leave the range for the first tee">First tee ›</button>
+  <button id="rangeChartBtn" class="flycam disp" hidden aria-label="Shot chart for each target">📊 Chart</button>
   <button id="flyCamBtn" class="flycam disp" hidden aria-label="Switch the ball-flight camera">📺 TV view</button>
   <div id="rpBar" class="rpbar" hidden><button id="rpSave" class="disp">☆ Save</button><button id="rpVideo" class="disp">⬇ Video</button></div>
   <div id="specBar" class="specbar" hidden><button id="specFF" class="disp" aria-label="Playback speed">⏩ 1×</button><button id="specNext" class="disp">Next hole ›</button><button id="specExit" class="disp">✕ Done</button></div>
@@ -837,6 +841,7 @@ td.won{background:rgba(255,201,60,.38)}
     </div>
   </div>
   <div id="fpsChip" hidden aria-hidden="true"><b id="fpsN">--</b><span>FPS</span><i id="fpsQ"></i></div>
+  <div class="modal" id="chartM" hidden><div class="card chartcard" role="dialog" aria-labelledby="chartT"><h2 class="disp" id="chartT">Shot chart</h2><div class="charttabs" id="chartTabs"></div><div id="chartPlot"></div><div class="chartstats" id="chartStats"></div><button class="primary disp" id="chartX">Keep hitting</button></div></div>
   <div class="modal" id="teeM" hidden><div class="card" role="dialog" aria-labelledby="teeT"><h2 class="disp" id="teeT">Choose your tees</h2><div class="psub" id="teeS"></div><div class="teelist" id="teeL"></div><button class="textbtn" id="teeX">Cancel</button></div></div>
   <div class="modal" id="cdlM" hidden><div class="card cdlcard" role="dialog" aria-live="polite"><h2 class="disp" id="cdlT">Loading</h2><div class="cdlbar"><i id="cdlBar"></i></div><div class="psub" id="cdlS"></div><button class="primary disp" id="cdlRetry" hidden>Try again</button><button class="textbtn" id="cdlCancel" hidden>Cancel</button></div></div>
   <div class="modal" id="pauseM" hidden>
@@ -3045,7 +3050,7 @@ function startHole(i){
   G.wind=holeWind(i);
   G.state='intro';
   const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];
-  const rg=!!G.hole.range;G.rangeN=0;G.rangeBalls=[];$('tmPanel').hidden=true;G.rangeFollow=true;try{G.rangeFollow=localStorage.getItem('golf-rangecam2')!=='golfer';}catch(_){}$('iNum').textContent=rg?'R':i+1;$('iPar').textContent=rg?'Driving range':'Par '+G.hole.par;$('iLen').textContent=rg?Math.round(holeData(i).len)+' yds long':G.hole.len+' yds'+(G.hole.pinTag&&G.hole.pinTag[G.hole.pinIx]?' \u00b7 '+G.hole.pinTag[G.hole.pinIx]+' pin':'');
+  const rg=!!G.hole.range;G.rangeN=0;G.rangeBalls=[];G.rangeLog=[];G.tmLast=null;$('tmPanel').hidden=true;G.rangeFollow=true;try{G.rangeFollow=localStorage.getItem('golf-rangecam2')!=='golfer';}catch(_){}$('iNum').textContent=rg?'R':i+1;$('iPar').textContent=rg?'Driving range':'Par '+G.hole.par;$('iLen').textContent=rg?Math.round(holeData(i).len)+' yds long':G.hole.len+' yds'+(G.hole.pinTag&&G.hole.pinTag[G.hole.pinIx]?' \u00b7 '+G.hole.pinTag[G.hole.pinIx]+' pin':'');
   $('iWind').textContent=G.wind.mph?'Wind '+G.wind.mph+' mph':'Calm';
   $('iTip').textContent=rg?'Warm up as long as you like: every ball comes back to the mat. Tap First tee when you\u2019re ready.':G.hole.tip;$('teeBtn').textContent=rg?'Start hitting':'Tee off';$('matchTag').hidden=!MATCH.on;
   $('howto').hidden=!(i===0&&G.mode==='round');$('iFine').hidden=i!==0;$('rangeGo').hidden=!rg;$('iRange').hidden=!(i===0&&(G.mode==='round'||G.mode==='daily')&&!MATCH.on&&!!rangeOf(CUR));
@@ -3388,7 +3393,7 @@ function recDensify(R){const n=R.length;if(n<3)return R;
 const TM_REF=[[250,.655,1.48,11,2700],[230,.68,1.47,9.5,3600],[215,.69,1.46,10,4300],[200,.70,1.45,11,4500],[182,.73,1.40,12,5400],[171,.74,1.38,14,6200],[160,.75,1.36,16,7000],
   [148,.77,1.34,18,7900],[136,.79,1.31,20.5,8600],[124,.81,1.25,24,9300],[108,.85,1.22,27,9800],[92,.90,1.20,30,10200],[75,.98,1.17,33,10500]];
 function tmRef(c){const k=c.carry||150;let i=0;while(i<TM_REF.length-1&&TM_REF[i+1][0]>=k)i++;const a=TM_REF[i],b=TM_REF[Math.min(i+1,TM_REF.length-1)],t=a===b||a[0]===b[0]?0:clamp((a[0]-k)/(a[0]-b[0]),0,1);return a.map((v,j)=>v+(b[j]-v)*t);}
-function tmShow(I,tot){const S=G.tmShot;G.tmShot=null;const el=$('tmPanel');if(!S||!S.club||S.club.putter){el.hidden=true;return;}
+function tmShow(I,tot){const S=G.tmShot;G.tmShot=null;const el=$('tmPanel');G.tmLast={carry:I.carry};if(!S||!S.club||S.club.putter){el.hidden=true;return;}
   const R=tmRef(S.club),carry=I.carry,stK={punch:.75,chip:.8,pitch:.95,flop:1.15}[S.st]||1,smash=R[2]*(1-Math.min(.15,S.miss*1.5)),bs=R[1]*carry*Math.max(.85,1-Math.max(0,S.miss)*.4);
   const expA=(S.club.apex||1)*Math.sqrt(clamp(carry/(S.club.carry||carry),.2,1)),launch=R[3]*Math.pow(clamp(S.apex/expA,.4,2),.7)*(1-.12*S.iy),spin=R[4]*stK*(1-.35*S.iy)*(1-Math.min(.3,S.miss*3));
   const head=angTo(I.sx,I.sy,G.ball.x,G.ball.y);let dA=head-S.aim;while(dA>Math.PI)dA-=TAU;while(dA<-Math.PI)dA+=TAU;const off=tot*Math.sin(dA);
@@ -3399,12 +3404,31 @@ function tmShow(I,tot){const S=G.tmShot;G.tmShot=null;const el=$('tmPanel');if(!
 function showShotStats(){const I=G.shotInfo;G.shotInfo=null;if(!I)return;const tot=hyp(G.ball.x-I.sx,G.ball.y-I.sy),el=$('shotStats');
   if(G.hole&&G.hole.range){tmShow(I,tot);return;}
   el.innerHTML='Carry <b>'+Math.round(I.carry)+'</b> \u00b7 Total <b>'+Math.round(tot)+'</b> \u00b7 Peak <b>'+Math.round(I.peak*3)+' ft</b>';el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>{el.hidden=true;},3600);}
-function rangeNext(){G.rangeN=(G.rangeN||0)+1;if(G.golferAt)G.rngAim=G.golferAt.aim;
+function rangeNext(){G.rangeN=(G.rangeN||0)+1;if(G.golferAt)G.rngAim=G.golferAt.aim;rangeLog();
   if(G.hole.targets&&G.hole.targets.some(t=>hyp(G.ball.x-t.x,G.ball.y-t.y)<t.r)){(G.rangeBalls=G.rangeBalls||[]).push({x:G.ball.x,y:G.ball.y});if(G.rangeBalls.length>80)G.rangeBalls.shift();}
   later(1.6,()=>{if(!G.hole||!G.hole.range||G.state!=='wait')return;
   const k={aim:G.rngAim,c:G.clubIdx,st:G.stype,sp:G.spin,tr:G.traj};G.ball={x:0,y:0};G.prev={...G.ball};G.strokes=0;G.fromLie='tee';G.trail=[];G.settle=null;prepareShot();
   if(k.aim!=null){G.aim=k.aim;G.clubIdx=k.c;G.stype=k.st||'full';G.spin=k.sp||0;G.traj=k.tr||0;G.shortP=null;setShortMax();G.puttMax=calcPuttMax();}   // the same club, shot and aim for the next ball
   });}
+function rangeLog(){const h=G.hole;if(!h.targets||!h.targets.length||(G.ball.x===0&&G.ball.y===0))return;
+  const t=h.targets.reduce((a,b)=>hyp(G.ball.x-b.x,G.ball.y-b.y)<hyp(G.ball.x-a.x,G.ball.y-a.y)?b:a),a=angTo(0,0,t.x,t.y),rx=G.ball.x-t.x,ry=G.ball.y-t.y;
+  (G.rangeLog=G.rangeLog||[]).push({d:t.d,lo:rx*Math.sin(a)-ry*Math.cos(a),ri:rx*Math.cos(a)+ry*Math.sin(a),c:curClub().name||curClub().id,carry:G.tmLast?G.tmLast.carry:null,n:G.rangeN});}
+let CHART_D=null;
+function rangeChart(d){const L=G.rangeLog||[],ds=[...new Set(L.map(q=>q.d))].sort((a,b)=>a-b);const h=G.hole;if(!ds.length){toast('NO SHOTS YET','Hit a few balls first','#fff6dc');return;}
+  if(d==null||!ds.includes(d))d=CHART_D!=null&&ds.includes(CHART_D)?CHART_D:L[L.length-1].d;CHART_D=d;const t=h.targets.find(q=>q.d===d)||{r:8},Q=L.filter(q=>q.d===d),last=L[L.length-1];
+  $('chartTabs').innerHTML=ds.map(x=>{const tg=h.targets.find(q=>q.d===x);return '<button data-d="'+x+'"'+(x===d?' class="on"':'')+'><i style="background:'+(tg?tg.col:'#fff')+'"></i>'+x+'y</button>';}).join('');
+  $('chartTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{A();rangeChart(+b.dataset.d);});
+  const ext=Math.max(t.r*1.6,25,...Q.map(q=>Math.max(Math.abs(q.lo),Math.abs(q.ri))*1.15)),S=150/ext,sv=(x,y)=>[160+x*S,160-y*S];
+  let g='<svg viewBox="0 0 320 320" role="img" aria-label="Where your shots at the '+d+' yard target finished"><rect width="320" height="320" rx="16" fill="#2f6b3a"/>';
+  for(const rr of [10,20,30,50])if(rr<ext)g+='<circle cx="160" cy="160" r="'+(rr*S)+'" fill="none" stroke="rgba(255,255,255,.22)" stroke-dasharray="4 4"/><text x="'+(163+rr*S*.71)+'" y="'+(157-rr*S*.71)+'" fill="rgba(255,255,255,.55)" font-size="10">'+rr+'y</text>';
+  g+='<ellipse cx="160" cy="160" rx="'+(t.r*S)+'" ry="'+(t.r*.8*S)+'" fill="#5fae4f" stroke="#8fd27a"/><line x1="160" y1="160" x2="160" y2="'+(160-14)+'" stroke="#fff" stroke-width="2"/><path d="M160 146 l9 3 -9 3z" fill="'+(t.col||'#ffd23c')+'"/>';
+  g+='<text x="160" y="312" fill="rgba(255,255,255,.6)" font-size="11" text-anchor="middle">short</text><text x="160" y="16" fill="rgba(255,255,255,.6)" font-size="11" text-anchor="middle">long</text><text x="8" y="164" fill="rgba(255,255,255,.6)" font-size="11">left</text><text x="312" y="164" fill="rgba(255,255,255,.6)" font-size="11" text-anchor="end">right</text>';
+  for(const q of Q){const[x,y]=sv(q.ri,q.lo),me=q===last;g+='<circle cx="'+x+'" cy="'+y+'" r="'+(me?6:4.5)+'" fill="'+(me?'#ffd23c':'#fff')+'" stroke="#12283b" stroke-width="1.5"/>';}
+  g+='</svg>';$('chartPlot').innerHTML=g;
+  const dist=Q.map(q=>hyp(q.lo,q.ri)),av=dist.reduce((a,b)=>a+b,0)/dist.length,best=Math.min(...dist),on=Q.filter(q=>hyp(q.ri,q.lo*1.25)<t.r).length,cs=Q.filter(q=>q.carry!=null),ac=cs.length?cs.reduce((a,b)=>a+b.carry,0)/cs.length:null;
+  const st=(v,l)=>'<div><b>'+v+'</b><span>'+l+'</span></div>';
+  $('chartStats').innerHTML=st(Q.length,'Shots')+st(av<10?Math.round(av*3)+' ft':av.toFixed(1)+' yd','Avg to pin')+st(best<10?Math.round(best*3)+' ft':best.toFixed(1)+' yd','Closest')+st(on+'/'+Q.length,'On the green')+st(ac==null?'\u2013':Math.round(ac)+' yd','Avg carry');
+  $('chartM').hidden=false;}
 function rangeGoTo(){A();if(!rangeOf(CUR))return;startHole(TB.length);}   // the round or Daily keeps its mode, scores and pins; nothing on the range is saved
 function rangeLeave(){A();if(!G.hole||!G.hole.range)return;startHole(0);}
 function stopBall(){
@@ -3467,7 +3491,8 @@ function reliefAsk(o){if(G.aiTurn||G.aiSkip||o.length===1){reliefApply(reliefBes
     b.onclick=()=>{A();reliefApply(q);};el.appendChild(b);}
   $('reliefM').hidden=false;}
 const GIMME_YD=4/3;   // 4 ft
-function holed(kind){const gim=kind==='Gimme';
+function holed(kind){if(G.hole&&G.hole.range){const p=G.hole.pin;G.ball={x:p[0],y:p[1]};endRec(false);G.roll=null;G.flight=null;G.hop=null;G.state='wait';G.trail=[];G.inCup=true;try{sfx.cup(false);}catch(e){}toast('IN THE HOLE!','Shame it was the range','#ffc93c');showShotStats();rangeNext();return;}   // the range: no card, the next ball comes
+  const gim=kind==='Gimme';
   const p=G.hole.pin;G.ball={x:p[0],y:p[1]};endRec(true);G.roll=null;G.flight=null;G.hop=null;G.inCup=true;G.state='holed';G.trail=[];
   if(!MATCH.on){G.scores[G.hi]=G.strokes;if(G.mode!=='practice'&&G.hi<TB.length-1)saveGame({hi:G.hi+1,strokes:0,mid:false,ball:{x:0,y:0},prev:{x:0,y:0}});}
   const name=scoreName(G.strokes,G.hole.par);
@@ -7111,7 +7136,7 @@ function updHud(){
   { const fb=$('flyCamBtn'),rgc=!!(G.hole&&G.hole.range&&!G.replay),on=rgc?(G.state==='flight'||G.state==='bounce'||G.state==='roll'):G.replay?(!REC.on&&!G.lastShot.putt):(G.state==='flight'||G.state==='bounce'||G.state==='roll')&&G.fromLie!=='green'&&!(typeof SPEC!=='undefined'&&SPEC.on);fb.hidden=!on;if(on){fb.style.bottom=(botH+4)+'px';setT('flyCamBtn',rgc?(G.rangeFollow?'\ud83c\udfcc\ufe0f Golfer view':'\ud83c\udfaf Trail view'):FLY_TV?'\ud83c\udfaf Trail view':'\ud83d\udcfa TV view');} }
   const ffOk=ffActive();$('ffBtn').hidden=!ffOk;if(ffOk){setT('ffBtn',G.ff>1?'\u23e9 '+G.ff+'\u00d7 speed':'\u23e9 Speed up');$('ffBtn').classList.toggle('on',G.ff>1);}
   $('cardReplay').hidden=!G.canReplay;
-  {const rb=$('rangeGo'),on=!!h.range&&(G.state==='aim'||G.state==='wait');rb.hidden=!on;if(on){if(!MCLK.w||MCLK.fb==null)MCLK.fb=$('menuBtn').getBoundingClientRect().bottom+8;rb.style.top=MCLK.fb+'px';}}
+  {const rb=$('rangeGo'),cb=$('rangeChartBtn'),on=!!h.range&&(G.state==='aim'||G.state==='wait');rb.hidden=!on;cb.hidden=!on||!(G.rangeLog&&G.rangeLog.length);if(on){if(!MCLK.w||MCLK.fb==null)MCLK.fb=$('menuBtn').getBoundingClientRect().bottom+8;rb.style.top=MCLK.fb+'px';cb.style.top=(MCLK.fb+44)+'px';}}
   if(h.range){setT('hNum','R');setT('hPar','Driving range');setT('hStroke','Ball '+((G.rangeN||0)+1));setT('windV',String(G.wind.mph));}else{setT('hNum',String(G.hi+1));setT('hPar','Par '+h.par+' · '+h.len+' yds');
   const sn=Math.min(10,G.strokes+(G.state==='holed'||G.state==='card'?0:1));
   if(MATCH.on){setT('hStroke',(G.aiTurn?rn(MATCH.r):'You')+' \u00b7 stroke '+sn);const up=matchUp(),n=holesPlayed();setT('matchTag',(G.state==='card'||G.state==='intro'?'vs '+rn(MATCH.r):G.aiTurn?rn(MATCH.r)+'\u2019s shot':'Your shot')+' \u00b7 '+statusShort(up)+(n?' thru '+Math.min(18,n):''));}
@@ -7531,6 +7556,8 @@ function pickCourse(id){A();if(courseGate(id,()=>pickCourse(id)))return;const K=
 $('teeX').addEventListener('click',()=>{A();$('teeM').hidden=true;});
 $('rangeGo').addEventListener('click',e=>{e.stopPropagation();rangeLeave();});
 $('iRange').addEventListener('click',e=>{e.stopPropagation();rangeGoTo();});
+$('rangeChartBtn').addEventListener('click',e=>{e.stopPropagation();A();rangeChart();});
+$('chartX').addEventListener('click',e=>{e.stopPropagation();A();$('chartM').hidden=true;});
 function teeGo(id,t,rg){if(id===CUR.id&&TEE===t&&!MATCH.on&&!rg&&!(G.hole&&G.hole.range)){closeMenu();return;}endMatchMode();setCourse(id,true,t);G.pinSeed=0;G.scores=[];G.mode='round';if(R3.on)r3NewWx();clearSave();startHole(rg?TB.length:0);try{updHud();}catch(e){}closeMenu();sfx.tick();}   // straight to the range or hole 1's tee card (the menu's Continue / New round would restart hole 1)
 /* ---- home screen: a map of the states we have courses in; tap one for its courses (with a picture of each) ---- */
 const ST_NAME={AL:'Alabama',AR:'Arkansas',AZ:'Arizona',CA:'California',CO:'Colorado',CT:'Connecticut',DC:'Washington, DC',DE:'Delaware',FL:'Florida',GA:'Georgia',IA:'Iowa',ID:'Idaho',IL:'Illinois',IN:'Indiana',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',MA:'Massachusetts',MD:'Maryland',ME:'Maine',MI:'Michigan',MN:'Minnesota',MO:'Missouri',MS:'Mississippi',MT:'Montana',NC:'North Carolina',ND:'North Dakota',NE:'Nebraska',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NV:'Nevada',NY:'New York',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VA:'Virginia',VT:'Vermont',WA:'Washington',WI:'Wisconsin',WV:'West Virginia',WY:'Wyoming'};
