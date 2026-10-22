@@ -64,6 +64,13 @@ def bing(q, must, n=16):
     for first in (0, 35):
         try:
             r = S.get('https://www.bing.com/images/async', params={'q': q, 'first': first, 'count': 35, 'mmasync': 1, 'setlang': 'en-us', 'cc': 'US'}, timeout=20)
+            print('bing http', r.status_code, len(r.text), flush=True)
+            if not os.path.exists('out/bing_raw.html'): open('out/bing_raw.html', 'w').write(r.text)
+            if 'm="{' not in r.text:
+                r2 = S.get('https://www.bing.com/images/search', params={'q': q, 'form': 'HDRSC2', 'first': first + 1}, timeout=20)
+                print('bing search http', r2.status_code, len(r2.text), flush=True)
+                if not os.path.exists('out/bing_raw2.html'): open('out/bing_raw2.html', 'w').write(r2.text)
+                r = r2
         except Exception as e:
             print('bing', q, e); continue
         for m in re.finditer(r'\bm="(\{.*?\})"', r.text):
@@ -90,14 +97,19 @@ def site(key, cfg):
         c, links = imgs_of(u); cand += c
         for l in links[:8]:
             c2, _ = imgs_of(l); cand += [(x, t + ' @' + urlparse(l).path) for x, t in c2]
-    web = bing(cfg['name'] + ' ' + cfg.get('town', '') + ' golf clubhouse', cfg.get('must', re.escape(cfg['name'].split()[0])))
+    qq = cfg['name'] + ' ' + cfg.get('town', '') + ' golf clubhouse'
+    must = cfg.get('must', re.escape(cfg['name'].split()[0]))
+    web = bing(qq, must)
+    dd = [c for c in ddg(qq, 30) if re.search(must, c[1], re.I)]
+    print(key, 'ddg', len(dd), flush=True)
+    web = web + dd
     print(key, 'search', len(web), flush=True)
     cand = web + [c for c in cand if re.search(r'club ?house|lodge|exterior|building|patio', c[0] + c[1], re.I)] + cand
     if cfg.get('q'): cand += [c for c in commons(cfg['q'] + ' golf') if re.search(r'\.(jpe?g|png)$', c[1], re.I)]
     seen = set(); scored = []
     for u, t in cand:
         if u in seen or not u.startswith('http') or BAD.search(u + ' ' + t) or re.search(r'\.(svg|gif)(\?|$)', u, re.I): continue
-        seen.add(u); s = (3 if re.search(r'club ?house|lodge|exterior', u + t, re.I) else 0) + (1 if GOOD.search(u + ' ' + t) else 0) + (1 if t.startswith('og') else 0) + (6 if t.startswith(('ddg', 'bing')) else 0)
+        seen.add(u); s = (3 if re.search(r'club ?house|lodge|exterior', u + t, re.I) else 0) + (2 if re.search(r'club ?house', t, re.I) and t.startswith(('ddg', 'bing')) else 0) + (1 if GOOD.search(u + ' ' + t) else 0) + (1 if t.startswith('og') else 0) + (6 if t.startswith(('ddg', 'bing')) else 0)
         scored.append((s, u, t))
     scored.sort(key=lambda x: -x[0]); got = []   # stable: search results keep their rank
     with cf.ThreadPoolExecutor(6) as ex:
