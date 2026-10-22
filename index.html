@@ -5534,6 +5534,9 @@ function r3React(kind,delay){const r=R3_REACT[kind];if(!r||!r3ReactOK()||!R3B.cl
 // advances the reaction clock; true while the golfer should be in his reaction
 // still mid-reaction (the hole-out flow waits for the dance to finish before the replay or the card)
 function r3ReactBusy(){const P=R3R.post;return!!(P&&P.on&&P.t<P.r.dur-.05&&(G.state==='wait'||G.state==='holed'));}
+// a tap during a reaction: end it, and cut short the wait that was held for it (the next shot, the replay or the card comes next)
+function r3SkipReact(){const P=R3R.post;if(!R3.on||!P||!P.on||(G.state!=='wait'&&G.state!=='holed'))return false;
+  P.on=false;if(G.waitFn&&G.waitT>.25)G.waitT=.25;return true;}
 function r3PostLive(dt){const P=R3R.post;if(!P.on)return false;if(G.state!=='wait'&&G.state!=='holed'){P.on=false;return false;}
   P.t+=dt;if(P.t>P.r.dur+.6){P.on=false;return false;}return P.t>=0;}
 function r3ReactPick(){const L=lieAt(G.ball.x,G.ball.y),fl=G.fromLie,ft=pinDist()*3,coin=Math.random()<.5;
@@ -7372,6 +7375,10 @@ cv.addEventListener('pointerdown',e=>{
   if(G.aiTurn){skipAI();return;}
   if(G.overview){G.overview=false;return;}
   if(G.state==='power'||G.state==='acc'){tap(e.timeStamp);return;}
+  /* Oct 2026: a tap on the picture skips the golfer's cutscenes: his reaction after a shot (and the wait held for it), and his
+     walk-up before one (it used to take a drag of the aim or the Swing button) */
+  if(r3SkipReact())return;
+  if(G.state==='aim'&&R3.on)r3RoutineSkip();
   if(G.state==='aim'){PTS.set(e.pointerId,{x:e.clientX,y:e.clientY});try{cv.setPointerCapture(e.pointerId);}catch(_){}
     if(PTS.size>=2&&!G.fc)lookStart();   // a second finger (pinch) opens the look camera
     if(G.fc)drag=null;else drag={x:e.clientX,id:e.pointerId};}
@@ -7615,6 +7622,7 @@ const UPDATES=[
   {id:"2026-10-21-taps",date:"Oct 21, 2026",title:"Fewer missed swing taps",items:[
     "Tapping Swing while your golfer tees up or lines up a putt now skips that and starts the backswing in the same tap (it used to take an extra tap, which threw the rest of the swing off by one).",
     "A tap made just as the meter reaches the bottom now counts instead of being called a mishit.",
+    "Tap the screen to skip your golfer\u2019s walk-up before a shot or his reaction after one.",
     "Smoother play: no hitch at the moment of contact, fewer hitches while aiming and in flight, and a phone that had settled on a softer picture tries a sharper one again between holes."]},
   {id:"2026-10-19-tees",date:"Oct 19, 2026",title:"Three sets of tees",items:[
     "Every course now has three sets of tees: its back tees and the next two sets on its scorecard. Tap a course and choose your tees, with each set\u2019s total yardage; the back tees are picked unless you choose otherwise.",
