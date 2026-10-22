@@ -65,13 +65,14 @@ AERIAL = bool(os.environ.get('AERIAL'))
 NAIP = ['https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage',
         'https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage',
         'https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPPlus/ImageServer/exportImage']
-def aerial(c, F):
+def aerial(c, F, box=None):
     """An aerial photo of the whole property (the game's greens plus 450 yd), saved with its corners in the game frame, for tracing ranges."""
     pts = c['pins'] + c['greens']; x0 = min(p[0] for p in pts) - 450; x1 = max(p[0] for p in pts) + 450; y0 = min(p[1] for p in pts) - 450; y1 = max(p[1] for p in pts) + 450
+    if box: x0, y0, x1, y1 = box   # (unaligned: yards around the course's map pin)
     lon = lambda x: F['lon0'] + (x - F['off'][0]) / F['K']; lat = lambda y: F['lat0'] - (y - F['off'][1]) / F['L']
     b = [lon(x0), lat(y1), lon(x1), lat(y0)]   # west, south, east, north
     w = int((x1 - x0) / .75); h = int((y1 - y0) / .75); sc = min(1, 4000 / max(w, h)); size = [int(w * sc), int(h * sc)]
-    for u in NAIP:
+    for u in NAIP + NAIP:   # each source twice (they time out now and then)
         try:
             j = S.get(u, params=dict(bbox=','.join(map(str, b)), bboxSR=4326, imageSR=4326, size=f'{size[0]},{size[1]}', f='json', format='jpg', compressionQuality=85), timeout=240).json()
             if 'href' not in j: raise RuntimeError(str(j)[:200])
@@ -114,7 +115,13 @@ for c in COURSES:
             n = sum(1 for q in greens if min(math.hypot(q[0] + dx - p[0], q[1] + dy - p[1]) for p in G) < 10)
             if n > best[0]: best = (n, (dx, dy))
     n, off = best; rec['matched'] = n
-    if n < 6 or not off: rec['err'] = f'only {n} greens line up'; log(c['id'], rec['err'], rec['osm']); continue
+    if n < 6 or not off:
+        rec['err'] = f'only {n} greens line up'; log(c['id'], rec['err'], rec['osm'])
+        if AERIAL:   # still a photo around the place the search found, for finding the range by eye (frame not lined up with the game)
+            rec['frame'] = {'lat0': lat0, 'lon0': lon0, 'K': K, 'L': L, 'off': [0, 0], 'unaligned': True}
+            try: aerial(c, rec['frame'], [-1300, -1300, 1300, 1300])
+            except Exception as e: log('  aerial failed', c['id'], e)
+        continue
     pairs = []
     for q in greens:
         p = min(G, key=lambda p: math.hypot(q[0] + off[0] - p[0], q[1] + off[1] - p[1]))
