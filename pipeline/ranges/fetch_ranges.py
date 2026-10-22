@@ -61,6 +61,29 @@ def rings(el):
     if el['type'] == 'relation': return [[(p['lat'], p['lon']) for p in m['geometry']] for m in el.get('members', []) if m.get('role', 'outer') == 'outer' and 'geometry' in m]
     return []
 
+AERIAL = bool(os.environ.get('AERIAL'))
+NAIP = ['https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage',
+        'https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage',
+        'https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPPlus/ImageServer/exportImage']
+def aerial(c, F):
+    """An aerial photo of the whole property (the game's greens plus 450 yd), saved with its corners in the game frame, for tracing ranges."""
+    pts = c['pins'] + c['greens']; x0 = min(p[0] for p in pts) - 450; x1 = max(p[0] for p in pts) + 450; y0 = min(p[1] for p in pts) - 450; y1 = max(p[1] for p in pts) + 450
+    lon = lambda x: F['lon0'] + (x - F['off'][0]) / F['K']; lat = lambda y: F['lat0'] - (y - F['off'][1]) / F['L']
+    b = [lon(x0), lat(y1), lon(x1), lat(y0)]   # west, south, east, north
+    w = int((x1 - x0) / .75); h = int((y1 - y0) / .75); sc = min(1, 4000 / max(w, h)); size = [int(w * sc), int(h * sc)]
+    for u in NAIP:
+        try:
+            j = S.get(u, params=dict(bbox=','.join(map(str, b)), bboxSR=4326, imageSR=4326, size=f'{size[0]},{size[1]}', f='json', format='jpg', compressionQuality=85), timeout=240).json()
+            if 'href' not in j: raise RuntimeError(str(j)[:200])
+            img = S.get(j['href'], timeout=240).content
+            if len(img) < 50000: raise RuntimeError('tiny image')
+            ex = j['extent']; gx = lambda lo: (lo - F['lon0']) * F['K'] + F['off'][0]; gy = lambda la: -(la - F['lat0']) * F['L'] + F['off'][1]
+            os.makedirs('out', exist_ok=True); open(f"out/aerial_{c['id']}.jpg", 'wb').write(img)
+            json.dump({'size': [j['width'], j['height']], 'game': [gx(ex['xmin']), gy(ex['ymax']), gx(ex['xmax']), gy(ex['ymin'])], 'src': u}, open(f"out/aerial_{c['id']}.json", 'w'))   # game x left..right, y top..bottom
+            log('  aerial', c['id'], j['width'], 'x', j['height'], len(img) // 1024, 'KB'); return
+        except Exception as e: log('  naip failed', u, e)
+    raise RuntimeError('no NAIP source worked')
+
 out = {}
 for c in COURSES:
     if ONLY is not None and c['id'] not in ONLY: continue
@@ -99,7 +122,11 @@ for c in COURSES:
     off = (sum(a for a, b in pairs) / len(pairs), sum(b for a, b in pairs) / len(pairs))
     rec['rms'] = round(math.sqrt(sum((a - off[0]) ** 2 + (b - off[1]) ** 2 for a, b in pairs) / len(pairs)), 1)
     rec['ranges'] = [{'tags': r['tags'], 'P': [[round(x + off[0], 1), round(y + off[1], 1)] for x, y in r['P']]} for r in ranges]
+    rec['frame'] = {'lat0': lat0, 'lon0': lon0, 'K': K, 'L': L, 'off': off}   # game (x, y) = ((lon-lon0)*K + off x, -(lat-lat0)*L + off y)
     log(c['id'], 'greens', n, 'rms', rec['rms'], 'ranges', len(ranges))
+    if AERIAL:
+        try: aerial(c, rec['frame'])
+        except Exception as e: log('  aerial failed', c['id'], e); rec['aerial_err'] = str(e)
     time.sleep(2)
 os.makedirs('out', exist_ok=True)
 json.dump(out, open('out/ranges.json', 'w'), indent=1)
