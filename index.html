@@ -5974,7 +5974,12 @@ function lidPatches(){const id=CUR.data||CUR.id;if(LIDC[id]!==undefined)return L
 function lidWide(){const id=CUR.data||CUR.id;if(LIDWC[id]!==undefined)return LIDWC[id];if(typeof LIDW==='undefined'||!LIDW[id])return LIDWC[id]=null;
   const[x0,y0,st,nx,ny,z0,b64]=LIDW[id];return LIDWC[id]={x0,y0,st,nx,ny,d:lidDecode(b64,nx,ny,z0,100)};}
 // course-frame ground: {z, w} with w easing from 0 to 1 over the outer 25 yards of the lidar coverage
-function lidW(X,Y){const L=lidWide();if(!L)return null;const fx=(X-L.x0)/L.st,fy=(Y-L.y0)/L.st;if(fx<1||fy<1||fx>L.nx-2.01||fy>L.ny-2.01)return null;
+/* lidar ground over driving ranges outside the course grid (Oct 2026, pipeline/ranges): per course [x0,y0,st,nx,ny,z0,b64], course yards like LIDW */
+const RLID={},RLIDC={};
+function rlidW(X,Y){const id=CUR&&CUR.id;if(!id||!RLID[id])return null;const L=RLIDC[id]||(RLIDC[id]=(([x0,y0,st,nx,ny,z0,b64])=>({x0,y0,st,nx,ny,d:lidDecode(b64,nx,ny,z0,100)}))(RLID[id]));
+  const fx=(X-L.x0)/L.st,fy=(Y-L.y0)/L.st;if(fx<1||fy<1||fx>L.nx-2.01||fy>L.ny-2.01)return null;const e=Math.min(fx-1,L.nx-2.01-fx,fy-1,L.ny-2.01-fy)*L.st;return{z:lidCubic(L.d,L.nx,L.ny,fx,fy),w:smooth(0,20,e)};}
+function lidW(X,Y){const R=rlidW(X,Y),A=lidW0(X,Y);return R&&(!A||R.w>A.w)?R:A;}
+function lidW0(X,Y){const L=lidWide();if(!L)return null;const fx=(X-L.x0)/L.st,fy=(Y-L.y0)/L.st;if(fx<1||fy<1||fx>L.nx-2.01||fy>L.ny-2.01)return null;
   const e=Math.min(fx-1,L.nx-2.01-fx,fy-1,L.ny-2.01-fy)*L.st;return{z:lidCubic(L.d,L.nx,L.ny,fx,fy),w:smooth(0,25,e)};}
 // green surrounds (hole-local x,y; patches at 0.5 or 1 yd): full inside each patch, easing out over its outer 6 yards
 function lidAt(h,x,y){const L=lidPatches();if(!L)return null;const X=x+h.T0[0],Y=y+h.T0[1];let best=null,bw=0;
