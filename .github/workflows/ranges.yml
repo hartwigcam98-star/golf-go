@@ -13,10 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: deps
-        run: pip install -q requests
+        run: pip install -q requests numpy
       - name: fetch
         env:
-          AERIAL: '1'
+          LIDAR: '1'
         run: python pipeline/ranges/fetch_ranges.py 2>&1 | tee run.log
       - name: save
         if: always()
