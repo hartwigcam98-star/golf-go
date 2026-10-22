@@ -16,12 +16,15 @@ HINT = {  # better search text where the game's name is a routing, not the club
     'legislator': 'Capitol Hill Golf Course, Prattville, Alabama', 'judge': 'Capitol Hill Golf Course, Prattville, Alabama', 'senator': 'Capitol Hill Golf Course, Prattville, Alabama',
     'slmh': 'Silver Lakes Golf Course, Glencoe, Alabama', 'slbm': 'Silver Lakes Golf Course, Glencoe, Alabama',
     'quarry': 'Giants Ridge, Biwabik, Minnesota', 'legend': 'Giants Ridge, Biwabik, Minnesota',
-    'wilderness': 'The Wilderness at Fortune Bay, Tower, Minnesota', 'lehman': "Cragun's Legacy Courses, Brainerd, Minnesota",
+    'wilderness': 'Fortune Bay Resort Casino, Tower, Minnesota', 'lehman': "Cragun's Resort, Brainerd, Minnesota",
     'maddens': "Madden's on Gull Lake, Brainerd, Minnesota", 'pines': 'Grand View Lodge, Nisswa, Minnesota', 'preserve': 'The Preserve Golf Course, Pequot Lakes, Minnesota',
     'deacon': "Deacon's Lodge Golf Course, Breezy Point, Minnesota", 'wigwam': 'The Wigwam Golf, Litchfield Park, Arizona',
-    'mystic': 'The Meadows at Mystic Lake, Prior Lake, Minnesota', 'legends': 'The Legends Club, Prior Lake, Minnesota',
+    'mystic': 'The Meadows at Mystic Lake, Prior Lake, Minnesota', 'legends': 'Legends Club, Prior Lake, Minnesota',
     'sandvalley': 'Sand Valley Golf Resort, Nekoosa, Wisconsin', 'mammoth': 'Sand Valley Golf Resort, Nekoosa, Wisconsin',
     'lido': 'Sand Valley Golf Resort, Nekoosa, Wisconsin', 'sedge': 'Sand Valley Golf Resort, Nekoosa, Wisconsin',
+    'heritage': 'Heritage Club, Pawleys Island, South Carolina', 'orangeburg': 'Orangeburg Country Club, Orangeburg, South Carolina',
+    'santee': 'Santee National Golf Course, Santee, South Carolina', 'willingers': "Willinger's Golf Club, Northfield, Minnesota",
+    'northfork': 'Links at Northfork, Ramsey, Minnesota', 'wyboo': 'Wyboo Golf Club, Manning, South Carolina', 'desertcanyon': 'Desert Canyon Golf Club, Fountain Hills, Arizona',
 }
 S = requests.Session(); S.headers['User-Agent'] = 'golf-go-range-finder (github.com/hartwigcam98-star/golf-go)'
 import socket, urllib3.util.connection as _uc
@@ -64,7 +67,7 @@ for c in COURSES:
     if ONLY is None and c['hasRange']: continue
     rec = out[c['id']] = {'name': c['name']}
     q = HINT.get(c['id']) or f"{c['name'].split(' · ')[0]} golf, {c['town']}"
-    g = geocode(q) or geocode(f"{c['name'].split(' · ')[0]}, {c['town']}")
+    g = geocode(q) or geocode(f"{c['name'].split(' · ')[0]}, {c['town']}") or geocode(f"{c['name'].split(' · ')[0]} {c['town'].split(', ')[-1]}")
     if not g: rec['err'] = 'not found: ' + q; log(c['id'], rec['err']); continue
     lat0, lon0, disp = g; rec['geo'] = [lat0, lon0, disp]
     K = math.cos(math.radians(lat0)) * 111320 * 1.0936; L = 110574 * 1.0936
