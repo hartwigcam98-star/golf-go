@@ -1,0 +1,29 @@
+name: range-data
+# Finds each course's driving range on OpenStreetMap and brings it into the game's course frame (pipeline/ranges/fetch_ranges.py).
+on:
+  workflow_dispatch:
+  push:
+    paths: ['pipeline/ranges/**']
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: deps
+        run: pip install -q requests
+      - name: fetch
+        run: python pipeline/ranges/fetch_ranges.py 2>&1 | tee run.log
+      - name: save
+        if: always()
+        run: |
+          mkdir -p /tmp/o
+          cp -r out/. /tmp/o/ || true
+          cp run.log /tmp/o/ || true
+          cd /tmp/o
+          git init -q -b range-data
+          git add -A
+          git -c user.name=range-bot -c user.email=range-bot@users.noreply.github.com commit -qm "range data run $GITHUB_RUN_ID"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" range-data
