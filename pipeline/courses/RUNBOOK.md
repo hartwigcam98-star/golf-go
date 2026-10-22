@@ -39,6 +39,10 @@ site, then GolfPass, opengolfapi, 18birdies, Stymie; check that holes sum to the
 names tees, use those. Also: town, lat/lon, architect/year, turf (bent vs Bermuda), signature holes.
 Pick a key (lowercase, 3–15 letters, not used in index.html) and a 3-letter SUF not used (`grep -c "COURSE_XYZ=" index.html`).
 `mkdir -p auto/<key>` and write `auto/<key>/scorecard.json`: `{"tees":"Blue tees","yards":6700,"card":[[par,hcp,yds],...18]}`.
+**Tee sets:** from the same card take the next two sets shorter than the back tees (exact names as printed, per-hole yards; skip combo
+sets) and add them to `pipeline/courses/teecard.json` (in the golf-go repo) as
+`"<key>": {"n":"Blue tees","b":[18 back yds],"s":[["White tees",[18 yds]],["Gold tees",[18 yds]]]}` in the game's hole order.
+These become the Middle/Forward choices (markers take the colour in the name). No usable card rows: leave it out (the game estimates).
 
 ## 3. Fetch (GitHub Actions)
 Write a job.json (`auto/mkjob.py` docstring) with a search box ±0.03° round the course, want/holes regex from the
@@ -65,6 +69,18 @@ nothing absurd. Fix with `auto/<key>/<key>_edits.json` (retag / drop / lines / a
 Typical fixes: a green mapped as a tee (retag), a reversed hole, back tees missing (zoom with draw.py's window args,
 find the tee box, set `tees`). A tee spot must be on a mapped tee or fairway.
 
+## 4b. Driving range
+Every course gets one (players choose "Hit the range" on hole 1). In order:
+1. **Mapped:** `auto/<key>/<key>_course.json` has `polys.range` (a range 180+ yd long near the clubhouse) → nothing to do.
+2. **On the photo:** `python3 auto/draw.py <key> run_<key> /tmp/<key>_r.jpg 0.6 xa ya xb yb` with a window (course yards) round the
+   clubhouse and 1st tee; look for the range (striped hitting area, target greens, open field). Pixel (px,py) = course yards
+   (xa+px*0.6, ya+py*0.6). Trace it in `pipeline/ranges/traced.json`: `"<key>": {"P":[[x,y],...], "t":[x,y]}` with `t` at the hitting end
+   (by the clubhouse / practice tee). Keep it clear of the holes.
+3. **Shared:** a resort or neighbour already in the game with the same range → `pipeline/ranges/borrow.json`: `"<key>": "<other key>"`
+   (or trace it in this course's yards, as Heritage does with True Blue's).
+4. **Not found:** `python3 /home/claude/golf-go/pipeline/ranges/place.py <key> auto/<key>/<key>_course.json` puts one by the clubhouse,
+   35+ yd clear of every hole. Say so in the report.
+
 ## 5. Lidar greens, ground, trees
 From golf/:
 ```
@@ -80,6 +96,14 @@ cd auto/<key> && python3 ../consts.py <key> <SUF> ../../run_<key>
 ```
 If bunkers show ~0 depth the scan predates the course: no green patches from points (use the 1 m model, soften to ~3%).
 
+### 5b. Lidar under the range (only when gate 6 says it's under 90%)
+The course grid from `build_wide.py` usually covers the range. When `qa/range.js` reports less than 90%, in the golf-go repo:
+`node pipeline/ranges/courses_json.js /home/claude/golf/work/index.html` (adds the new course's greens), then write
+`pipeline/ranges/only.json` = `["<key>"]`, `pipeline/ranges/lidar_want.json` = `{"<key>": <box gate 6 printed>}`,
+`pipeline/ranges/coords.json` = `{"<key>": [lat, lon]}` and push those to main (it runs `ranges.yml`, ~10–20 min). From the `range-data`
+branch take `rlid_<key>.json` into `pipeline/ranges/rlid.json` as `"<key>": [...]`, then set `only.json` back to `[]`, re-run the sync
+and gate 6. (The run log shows `greens N rms R`: R under ~1 yd means the patch lines up with the course.)
+
 ## 6. Inject, test, gates
 Write `auto/<key>/meta.json` (inject_auto.py docstring). day = today's dailyNum + 2
 (`python3 -c "import time;print(int(time.time()//86400)+2)"`). Pick an existing emblem that suits it:
@@ -91,6 +115,7 @@ south), `desertcanyon` (desert; also scen `desert`, trees `az`). trees: `north` 
 cd /home/claude/golf-go && git pull -q origin main
 cp index.html /home/claude/golf/work/base_index.html && cp greens.js ground.js trees.js /home/claude/golf/work/base/
 cd /home/claude/golf && python3 auto/inject_auto.py <key>
+python3 /home/claude/golf-go/pipeline/ranges/sync.py work/index.html     # ranges, range lidar and tee sets from pipeline/ranges + teecard.json
 python3 test/mkharness.py work/index.html work/test/index.html && cp work/greens.js work/ground.js work/trees.js work/test/
 ```
 Hero picture: `cd work/test && (python3 -m http.server 8766 >/dev/null 2>&1 &); sleep 2; cd ../../qa && node hero.js '[["<key>",-1]]' /tmp`
@@ -103,6 +128,8 @@ Look at the hero picture.
 3. Game total length within 5% of the card, and no hole more than 15% (or 40 yd) off its card (unless a reason is clear).
 4. `node qa/smoke.js <key> 8766`: a result on every hole, no page errors (water/holed states are fine).
 5. The full page loads with no page errors and the course plays (pick it from its state on the map).
+6. `node qa/range.js <key> 8766` prints `RANGE PASS` (range found, tee and target inside it, a ball comes back to the mat).
+   Lidar under 90% → step 5b, then re-run.
 
 ## 7. Ship (only after all gates pass)
 ```
@@ -111,10 +138,10 @@ cd /home/claude/golf-go && git status --short
 ```
 Add an entry for the request to `pipeline/courses/requests.json` (`built`, key, date). Copy any changed pipeline files back
 into `pipeline/courses/` (e.g. `auto/<key>/meta.json`, `*_edits.json`, scorecard; not the big json/npz data).
-Commit `index.html greens.js ground.js trees.js sw.js pipeline/courses/` to main ("New course: <name> (player request)")
+Commit `index.html greens.js ground.js trees.js sw.js pipeline/courses/ pipeline/ranges/` to main ("New course: <name> (player request)")
 and push. If the push is rejected, pull, re-copy base, re-inject, re-test gate 5, push again.
 For failures/skips: commit only `pipeline/courses/requests.json`.
 
 ## 8. Report to Cam (PushNotification)
-Built: "<name> is live" (or both names) + tees/length vs card, anything uncertain (pars that disagree, holes short of the card, softened greens),
+Built: "<name> is live" (or both names) + tees/length vs card, its tee sets, where its range came from (mapped / traced / shared / placed), anything uncertain (pars that disagree, holes short of the card, softened greens),
 and "say 'remove <name>' to undo". Skipped/failed: what and why. Nothing to do: no notification.

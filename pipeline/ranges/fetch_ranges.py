@@ -85,8 +85,52 @@ def aerial(c, F, box=None):
         except Exception as e: log('  naip failed', u, e)
     raise RuntimeError('no NAIP source worked')
 
+WIDE_R = {'santee': 1600, 'willingers': 1600}   # photo half-width (yd) where the course may be off centre
 COORD = {   # where the name search found the wrong place (lat, lon of the course)
-    'wilderness': [47.836, -92.315], 'santee': [33.478, -80.468], 'willingers': [44.533, -93.297], 'chaska': [44.815, -93.637], 'jewel': [44.432, -92.283]}
+    'wilderness': [47.836, -92.315], 'santee': [33.4859, -80.4841], 'willingers': [44.4899, -93.3203], 'chaska': [44.815, -93.637], 'jewel': [44.432, -92.283]}
+
+LIDAR = bool(os.environ.get('LIDAR'))
+WANT = json.load(open(os.path.join(HERE, 'lidar_want.json'))) if os.path.exists(os.path.join(HERE, 'lidar_want.json')) else {}
+DEP = 'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage'
+def venc(q):   # the game's lidar encoding (pipeline/courses/lidar/build_patches.py enc): planar prediction, zigzag varints
+    import numpy as np
+    p = np.zeros_like(q); p[0, 1:] = q[0, :-1]; p[1:, 0] = q[:-1, 0]; p[1:, 1:] = q[1:, :-1] + q[:-1, 1:] - q[:-1, :-1]
+    rr = (q - p).ravel(); z = np.where(rr >= 0, 2 * rr, -2 * rr - 1).astype(np.int64); o = bytearray()
+    for v in z:
+        v = int(v)
+        while v >= 128: o.append((v & 127) | 128); v >>= 7
+        o.append(v)
+    return bytes(o)
+def range_lidar(c, F, box, ST=3.0):
+    """3DEP 1 m ground (from lidar) over the range, as a grid in the course frame (yards, absolute height in yards) like LIDW."""
+    import numpy as np, base64
+    x0, y0, x1, y1 = box
+    lon = lambda x: F['lon0'] + (x - F['off'][0]) / F['K']; lat = lambda y: F['lat0'] - (y - F['off'][1]) / F['L']
+    b = [lon(x0 - 20), lat(y1 + 20), lon(x1 + 20), lat(y0 - 20)]
+    w = int((b[2] - b[0]) * 111320 * math.cos(math.radians(b[1]))); h = int((b[3] - b[1]) * 110574)
+    rr = S.get(DEP, params=dict(bbox=','.join(map(str, b)), bboxSR=4326, imageSR=4326, size=f'{w},{h}', format='bsq', pixelType='F32', interpolation='RSP_BilinearInterpolation', f='image'), timeout=300)
+    if len(rr.content) < w * h * 4: raise RuntimeError('short dem %d' % len(rr.content))
+    Z = np.frombuffer(rr.content[:w * h * 4], '<f4').reshape(h, w).astype(np.float64)
+    bad = ~np.isfinite(Z) | (Z < -500)
+    if bad.all(): raise RuntimeError('no elevation')
+    if bad.any(): Z[bad] = np.median(Z[~bad])
+    res = max((b[2] - b[0]) / w, (b[3] - b[1]) / h); cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2; W0 = cx - res * w / 2; N0 = cy + res * h / 2   # square-degree pixels
+    k = 2; Zs = Z.copy()   # a light 5x5 box blur (about 2 yd), like the course grids' smoothing
+    acc = np.zeros_like(Z); n = 0
+    for dy in range(-k, k + 1):
+        for dx in range(-k, k + 1): acc += np.roll(np.roll(Z, dy, 0), dx, 1); n += 1
+    Zs = acc / n
+    nx = int((x1 - x0) / ST) + 1; ny = int((y1 - y0) / ST) + 1
+    GX, GY = np.meshgrid(x0 + np.arange(nx) * ST, y0 + np.arange(ny) * ST)
+    px = (lon(GX) - W0) / res - .5; py = (N0 - lat(GY)) / res - .5
+    i0 = np.clip(np.floor(px).astype(int), 0, w - 2); j0 = np.clip(np.floor(py).astype(int), 0, h - 2); tx = np.clip(px - i0, 0, 1); ty = np.clip(py - j0, 0, 1)
+    zz = (Zs[j0, i0] * (1 - tx) * (1 - ty) + Zs[j0, i0 + 1] * tx * (1 - ty) + Zs[j0 + 1, i0] * (1 - tx) * ty + Zs[j0 + 1, i0 + 1] * tx * ty) * 1.09361
+    zmin = float(zz.min()); q = np.round((zz - zmin) * 100).astype(np.int64)
+    os.makedirs('out', exist_ok=True)
+    json.dump([round(x0, 2), round(y0, 2), ST, nx, ny, round(zmin, 3), base64.b64encode(venc(q)).decode()], open(f"out/rlid_{c['id']}.json", 'w'))
+    log('  range lidar', c['id'], nx, 'x', ny, 'z yd', round(zmin, 1), round(float(zz.max()), 1))
+
+if os.path.exists(os.path.join(HERE, 'coords.json')): COORD.update(json.load(open(os.path.join(HERE, 'coords.json'))))   # new courses: [lat, lon] from the research step
 
 out = {}
 for c in COURSES:
@@ -122,7 +166,8 @@ for c in COURSES:
         rec['err'] = f'only {n} greens line up'; log(c['id'], rec['err'], rec['osm'])
         if AERIAL:   # still a photo around the place the search found, for finding the range by eye (frame not lined up with the game)
             rec['frame'] = {'lat0': lat0, 'lon0': lon0, 'K': K, 'L': L, 'off': [0, 0], 'unaligned': True}
-            try: aerial(c, rec['frame'], [-1300, -1300, 1300, 1300])
+            rr = WIDE_R.get(c['id'], 1300)
+            try: aerial(c, rec['frame'], [-rr, -rr, rr, rr])
             except Exception as e: log('  aerial failed', c['id'], e)
         continue
     pairs = []
@@ -134,6 +179,9 @@ for c in COURSES:
     rec['ranges'] = [{'tags': r['tags'], 'P': [[round(x + off[0], 1), round(y + off[1], 1)] for x, y in r['P']]} for r in ranges]
     rec['frame'] = {'lat0': lat0, 'lon0': lon0, 'K': K, 'L': L, 'off': off}   # game (x, y) = ((lon-lon0)*K + off x, -(lat-lat0)*L + off y)
     log(c['id'], 'greens', n, 'rms', rec['rms'], 'ranges', len(ranges))
+    if LIDAR and c['id'] in WANT:
+        try: range_lidar(c, rec['frame'], WANT[c['id']])
+        except Exception as e: log('  lidar failed', c['id'], e); rec['lidar_err'] = str(e)
     if AERIAL:
         try: aerial(c, rec['frame'])
         except Exception as e: log('  aerial failed', c['id'], e); rec['aerial_err'] = str(e)
