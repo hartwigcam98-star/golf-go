@@ -534,6 +534,11 @@ td.won{background:rgba(255,201,60,.38)}
 .newsitem .nd{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6d7f8c}
 .newsitem .nt{font-size:20px;color:#12283b;margin:2px 0 4px}
 .newsitem ul{margin:0;padding-left:18px;font-size:15px;line-height:1.35;color:#24384a}
+.newsitem .nlink{display:block;width:100%;margin-top:10px;padding:10px 12px;border:0;border-radius:10px;background:#12283b;color:#fff;font:inherit;font-size:15px;font-weight:700;text-align:center;cursor:pointer}
+#pageM{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;background:#0f2233}
+#pageM .pbar{display:flex;justify-content:flex-end;padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 10px) 8px calc(env(safe-area-inset-left,0px) + 10px)}
+#pageM .pbar button{border:0;border-radius:999px;padding:8px 16px;background:#8ee6a8;color:#0f2233;font:inherit;font-weight:700;font-size:15px}
+#pageM iframe{flex:1;width:100%;border:0;background:#0f2233}
 .newsitem li+li{margin-top:4px}
 #newsM .primary{margin-top:14px}
 </style>
@@ -7765,6 +7770,10 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-22-clubhouses",date:"Oct 22, 2026",title:"New clubhouses",items:[
+    "Every clubhouse was checked against photos of the real building, and most got a new look: the right number of storeys, roof shape and colours, stone, brick or siding, gables, towers, clocks and patios.",
+    "Edinburgh USA is now a big stone manor with steep slate roofs and a clock gable. The Jewel, The Ridges, Willinger\u2019s, Northfork and Desert Canyon have their real clubhouses instead of plain boxes, and Cragun\u2019s, Oxmoor Valley, Grand National, Capitol Hill, Interlachen and others look much more like the real thing."],
+    link:{href:"clubhouses/",label:"See every clubhouse, before and after"}},
   {id:"2026-10-22-range",date:"Oct 22, 2026",title:"Driving ranges",items:[
     "Hole 1\u2019s card now has two buttons: Tee off, or Hit the range to warm up on the course\u2019s own driving range first. It works for quick rounds and the Daily, and nothing you hit on the range counts.",
     "The range is laid out from the course map, hitting from the end by the clubhouse, with target greens every 50 yards spread across the range, each flag showing its distance; balls that finish on a target green stay there while you practise.",
@@ -8018,8 +8027,13 @@ function render(onlyNew){const seen=get(),idx=UPDATES.findIndex(u=>u.id===seen);
   const unread=idx<0?UPDATES.length:idx,list=onlyNew?UPDATES.slice(0,Math.max(1,unread)):UPDATES;
   $('newsTitle').textContent=onlyNew?'New in this update':'What’s new';
   $('newsSub').textContent=onlyNew?'Here’s what changed since you last played.':'Every update to Golf Go, newest first.';
-  $('newsList').innerHTML=list.map((u,i)=>'<div class="newsitem'+(i<unread?' fresh':'')+'"><div class="nd">'+esc(u.date)+(i<unread?' · New':'')+'</div><div class="nt disp">'+esc(u.title)+'</div><ul>'+u.items.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul></div>').join('');
-  $('newsList').scrollTop=0;}
+  $('newsList').innerHTML=list.map((u,i)=>'<div class="newsitem'+(i<unread?' fresh':'')+'"><div class="nd">'+esc(u.date)+(i<unread?' · New':'')+'</div><div class="nt disp">'+esc(u.title)+'</div><ul>'+u.items.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>'+(u.link?'<button type="button" class="nlink" data-href="'+esc(u.link.href)+'">'+esc(u.link.label)+' \u203a</button>':'')+'</div>').join('');
+  $('newsList').scrollTop=0;
+  $('newsList').querySelectorAll('.nlink').forEach(b=>b.addEventListener('click',()=>page(b.dataset.href)));}
+// a page that goes with an update (the clubhouse before/after gallery), shown over the game with a Done button
+function page(href){let M=$('pageM');if(!M){M=document.createElement('div');M.id='pageM';M.innerHTML='<div class="pbar"><button type="button">Done</button></div><iframe title="Update details"></iframe>';
+    document.body.appendChild(M);M.querySelector('button').addEventListener('click',()=>{M.hidden=true;M.querySelector('iframe').src='about:blank';});}
+  M.querySelector('iframe').src=href;M.hidden=false;}
 function dots(){const on=get()!==latest;$('menuBtn').classList.toggle('hasnew',on);$('mNews').classList.toggle('hasnew',on);}
 function open(onlyNew){render(onlyNew);$('newsM').hidden=false;}
 function close(){$('newsM').hidden=true;set(latest);dots();}
