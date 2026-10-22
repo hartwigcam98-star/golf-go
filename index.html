@@ -7405,18 +7405,6 @@ $('lookDone').addEventListener('click',e=>{e.stopPropagation();lookEnd();});
 $('swing').addEventListener('pointerdown',e=>{e.preventDefault();tap(e.timeStamp);});
 $('swing').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tap(e.timeStamp);}});
 $('meter').addEventListener('pointerdown',e=>{e.preventDefault();if((G.state!=='aim'||G.aiTurn))tap(e.timeStamp);});
-/* Oct 2026, "I tapped and nothing happened, so it was a mishit": while the meter runs only the Swing button, the meter and the open
-   picture counted. The rest of the bottom panel (the aim arrows and map button either side of Swing, the gaps between them, the
-   labels, the club row) took the tap and did nothing, so a thumb a little off Swing let the meter run out. Now, during the meter,
-   a touch anywhere is the swing tap, except the menu button (and an open dialog); the click that follows it is dropped, so the
-   button under the thumb doesn't also act after the shot. */
-let METAP=null;
-document.addEventListener('pointerdown',e=>{
-  if((G.state!=='power'&&G.state!=='acc')||G.aiTurn||G.paused||G.replay||!G.hole||(SPEC&&SPEC.on)||e.button>0)return;
-  const t=e.target;if(!(t instanceof Element)||t.closest('#menuBtn,.modal'))return;
-  e.preventDefault();e.stopPropagation();METAP={el:t,until:performance.now()+1000};tap(e.timeStamp);},{capture:true,passive:false});
-document.addEventListener('click',e=>{const M=METAP;if(!M)return;if(performance.now()>M.until){METAP=null;return;}
-  if(e.target instanceof Node&&(M.el===e.target||M.el.contains(e.target)||e.target.contains(M.el))){METAP=null;e.preventDefault();e.stopPropagation();}},true);
 const btnHold={L:false,R:false};
 for(const[id,k]of[['aimL','L'],['aimR','R']]){const b=$(id);
   b.addEventListener('pointerdown',e=>{e.preventDefault();btnHold[k]=true;if(G.state==='aim'&&!G.aiTurn){const D=Math.max(previewDist(),3);G.aim+=(k==='R'?1:-1)*Math.max(.4,D*.006)/D;}});
@@ -7624,8 +7612,7 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
-  {id:"2026-10-21-taps",date:"Oct 21, 2026",title:"Every swing tap counts",items:[
-    "While the swing meter runs, a tap anywhere on the screen is your swing tap, not just the Swing button (the menu button still pauses). A thumb that lands on the aim arrows or the panel beside Swing no longer lets the meter run out into a mishit.",
+  {id:"2026-10-21-taps",date:"Oct 21, 2026",title:"Fewer missed swing taps",items:[
     "Tapping Swing while your golfer tees up or lines up a putt now skips that and starts the backswing in the same tap (it used to take an extra tap, which threw the rest of the swing off by one).",
     "A tap made just as the meter reaches the bottom now counts instead of being called a mishit.",
     "Smoother play: no hitch at the moment of contact, fewer hitches while aiming and in flight, and a phone that had settled on a softer picture tries a sharper one again between holes."]},
