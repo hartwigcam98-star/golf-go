@@ -68,7 +68,7 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 /* toast */
 .shotstats{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 128px);background:rgba(12,30,46,.88);color:#fff6dc;border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;letter-spacing:.03em;white-space:nowrap;font-variant-numeric:tabular-nums;pointer-events:none;animation:rise .3s ease-out}
 .shotstats b{color:var(--sun)}
-.tmpanel{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 112px);z-index:3;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,246,220,.12);border-radius:14px;overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.25);pointer-events:none;max-width:420px;margin:0 auto}
+.tmpanel{margin:6px 0 10px;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,246,220,.12);border-radius:14px;overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.25);pointer-events:none;max-width:420px;margin:0 auto}
 .tmpanel div{background:rgba(12,30,46,.9);padding:6px 4px 5px;text-align:center}.tmpanel b{display:block;font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:21px;color:#fff6dc;line-height:1}.tmpanel span{display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9fb4c4;margin-top:3px}.tmpanel i{font-style:normal;font-size:12px;color:var(--sun);margin-left:2px}
 #toast{position:absolute;left:0;right:0;top:30%;text-align:center;pointer-events:none;opacity:0;padding-inline:16px;contain:layout style}
 #toast .t1{font-size:clamp(38px,11vw,64px);line-height:1;color:var(--sun);text-shadow:0 4px 0 #0f2233,0 0 24px rgba(0,0,0,.35);-webkit-text-stroke:2px #0f2233;paint-order:stroke fill}
@@ -327,7 +327,8 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
 #dCardV th.tap{cursor:pointer;background:#2c5d86;text-decoration:underline;text-underline-offset:3px}
 #flagBtn{left:auto;right:12px;bottom:auto;height:32px;padding:0 12px;font-size:14px}
 #rangeGo{left:auto;right:12px;bottom:auto;height:36px;padding:0 14px;font-size:15px;background:#f5b51c;color:#12283b}
-#rangeChartBtn{left:auto;right:12px;bottom:auto;height:32px;padding:0 12px;font-size:14px}
+#rangeChartBtn,#rangeDataBtn{left:auto;right:12px;bottom:auto;height:32px;padding:0 12px;font-size:14px}
+#tmM{z-index:30}.tmtab{max-height:30vh;overflow:auto;margin-bottom:12px}.tmtab table{width:100%;border-collapse:collapse;font-size:13px;color:#12283b}.tmtab th{text-align:left;font-size:10.5px;text-transform:uppercase;color:#51606b;padding:3px 4px;position:sticky;top:0;background:var(--paper,#fdf6e3)}.tmtab td{padding:4px;border-top:1px solid #e3dccb;font-weight:700}
 #chartM{z-index:30}.chartcard h2{margin:0 0 8px}.charttabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.charttabs button{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:2px solid #12283b;font-weight:700;font-size:14px;color:#12283b}.charttabs button.on{background:#12283b;color:var(--sun)}.charttabs i{width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.3)}
 #chartPlot svg{width:100%;max-width:320px;display:block;margin:0 auto}.chartstats{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:12px 0}.chartstats div{text-align:center}.chartstats b{display:block;font-family:"Lilita One",system-ui,sans-serif;font-weight:400;font-size:19px;color:#12283b}.chartstats span{font-size:10.5px;font-weight:700;color:#51606b;text-transform:uppercase;letter-spacing:.04em}
 .flycam{position:absolute;left:12px;z-index:3;height:38px;padding:0 14px;border-radius:999px;background:var(--panel);color:#fff6dc;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.28)}
@@ -579,7 +580,8 @@ td.won{background:rgba(255,201,60,.38)}
   <div id="bcPlate" aria-hidden="true"><span class="nm disp" id="bcName">The Boss</span><span class="sc disp" id="bcScore">E</span><span class="th" id="bcThru">thru 0</span></div>
   <div id="toast"><div class="t1 disp"></div><div class="t2"></div></div>
   <div id="shotStats" class="shotstats" hidden></div>
-  <div id="tmPanel" class="tmpanel" hidden></div>
+  <div id="tmPanel" hidden></div>
+  <button id="rangeDataBtn" class="flycam disp" hidden aria-label="Launch monitor numbers">📈 Data</button>
   <div id="matchTag" class="matchtag" hidden></div>
   <button id="lookBtn" class="lookbtn" aria-label="Look around the hole" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="#fff6dc" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="#fff6dc" stroke-width="2"/></svg></button>
   <button id="camBtn" class="lookbtn cambtn" aria-label="Change camera view" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8.5h3.2l1.6-2.5h8.4l1.6 2.5H21v10H3z" fill="none" stroke="#fff6dc" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13.2" r="3.3" fill="none" stroke="#fff6dc" stroke-width="2"/></svg><b id="camNum">1</b></button>
@@ -841,6 +843,7 @@ td.won{background:rgba(255,201,60,.38)}
     </div>
   </div>
   <div id="fpsChip" hidden aria-hidden="true"><b id="fpsN">--</b><span>FPS</span><i id="fpsQ"></i></div>
+  <div class="modal" id="tmM" hidden><div class="card chartcard" role="dialog" aria-labelledby="tmT"><h2 class="disp" id="tmT">Launch monitor</h2><div class="psub">Last shot</div><div class="tmpanel" id="tmGrid"></div><div class="tmtab"><table id="tmRows"></table></div><button class="primary disp" id="tmX">Keep hitting</button></div></div>
   <div class="modal" id="chartM" hidden><div class="card chartcard" role="dialog" aria-labelledby="chartT"><h2 class="disp" id="chartT">Shot chart</h2><div class="charttabs" id="chartTabs"></div><div id="chartPlot"></div><div class="chartstats" id="chartStats"></div><button class="primary disp" id="chartX">Keep hitting</button></div></div>
   <div class="modal" id="teeM" hidden><div class="card" role="dialog" aria-labelledby="teeT"><h2 class="disp" id="teeT">Choose your tees</h2><div class="psub" id="teeS"></div><div class="teelist" id="teeL"></div><button class="textbtn" id="teeX">Cancel</button></div></div>
   <div class="modal" id="cdlM" hidden><div class="card cdlcard" role="dialog" aria-live="polite"><h2 class="disp" id="cdlT">Loading</h2><div class="cdlbar"><i id="cdlBar"></i></div><div class="psub" id="cdlS"></div><button class="primary disp" id="cdlRetry" hidden>Try again</button><button class="textbtn" id="cdlCancel" hidden>Cancel</button></div></div>
@@ -3050,7 +3053,7 @@ function startHole(i){
   G.wind=holeWind(i);
   G.state='intro';
   const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];
-  const rg=!!G.hole.range;G.rangeN=0;G.rangeBalls=[];G.rangeLog=[];G.tmLast=null;$('tmPanel').hidden=true;G.rangeFollow=true;try{G.rangeFollow=localStorage.getItem('golf-rangecam2')!=='golfer';}catch(_){}$('iNum').textContent=rg?'R':i+1;$('iPar').textContent=rg?'Driving range':'Par '+G.hole.par;$('iLen').textContent=rg?Math.round(holeData(i).len)+' yds long':G.hole.len+' yds'+(G.hole.pinTag&&G.hole.pinTag[G.hole.pinIx]?' \u00b7 '+G.hole.pinTag[G.hole.pinIx]+' pin':'');
+  const rg=!!G.hole.range;G.rangeN=0;G.rangeBalls=[];G.rangeLog=[];G.tmLast=null;$('tmPanel').hidden=true;G.tmHist=[];G.rangeFollow=true;try{G.rangeFollow=localStorage.getItem('golf-rangecam2')!=='golfer';}catch(_){}$('iNum').textContent=rg?'R':i+1;$('iPar').textContent=rg?'Driving range':'Par '+G.hole.par;$('iLen').textContent=rg?Math.round(holeData(i).len)+' yds long':G.hole.len+' yds'+(G.hole.pinTag&&G.hole.pinTag[G.hole.pinIx]?' \u00b7 '+G.hole.pinTag[G.hole.pinIx]+' pin':'');
   $('iWind').textContent=G.wind.mph?'Wind '+G.wind.mph+' mph':'Calm';
   $('iTip').textContent=rg?'Warm up as long as you like: every ball comes back to the mat. Tap First tee when you\u2019re ready.':G.hole.tip;$('teeBtn').textContent=rg?'Start hitting':'Tee off';$('matchTag').hidden=!MATCH.on;
   $('howto').hidden=!(i===0&&G.mode==='round');$('iFine').hidden=i!==0;$('rangeGo').hidden=!rg;$('iRange').hidden=!(i===0&&(G.mode==='round'||G.mode==='daily')&&!MATCH.on&&!!rangeOf(CUR));
@@ -3398,11 +3401,16 @@ function tmShow(I,tot){const S=G.tmShot;G.tmShot=null;const el=$('tmPanel');G.tm
   const expA=(S.club.apex||1)*Math.sqrt(clamp(Math.pow(clamp(S.pw??1,.15,1.1),1.4),.2,1)),launch=R[3]*Math.pow(clamp(S.apex/expA,.3,2),.7)*(1-.12*S.iy),spin=R[4]*stK*(1-.35*S.iy)*(1-Math.min(.3,S.miss*3));
   const head=angTo(I.sx,I.sy,G.ball.x,G.ball.y);let dA=head-S.aim;while(dA>Math.PI)dA-=TAU;while(dA<-Math.PI)dA+=TAU;const off=tot*Math.sin(dA);
   const c=(v,u,l)=>'<div><b>'+v+(u?'<i>'+u+'</i>':'')+'</b><span>'+l+'</span></div>';
+  const sd=Math.abs(off)<.5?'0':Math.abs(off).toFixed(1)+(off>0?'R':'L');(G.tmHist=G.tmHist||[]).push({club:S.club.id||S.club.name,bs:Math.round(bs),cs:Math.round(cs),carry:Math.round(carry),tot:Math.round(tot),side:sd,spin:Math.round(spin/50)*50,launch:launch.toFixed(1)});if(G.tmHist.length>50)G.tmHist.shift();
   el.innerHTML=c(Math.round(bs),'mph','Ball speed')+c(Math.round(cs),'mph','Club speed')+c(smash.toFixed(2),'','Smash')+c(launch.toFixed(1),'\u00b0','Launch')+c(Math.round(spin/50)*50,'rpm','Spin')+c(Math.round(I.peak*3),'ft','Apex')
     +c(Math.round(carry),'yd','Carry')+c(Math.round(tot),'yd','Total')+c(Math.abs(off)<.5?'0':Math.abs(off).toFixed(1),Math.abs(off)<.5?'yd':'yd '+(off>0?'R':'L'),'Side');
-  el.hidden=false;}
+  if(!$('tmM').hidden)tmOpen();}
+function tmOpen(){const H=G.tmHist||[];if(!H.length){toast('NO SHOTS YET','Hit a ball first','#fff6dc');return;}
+  $('tmGrid').innerHTML=$('tmPanel').innerHTML;
+  $('tmRows').innerHTML='<tr><th>#</th><th>Club</th><th>Ball</th><th>Carry</th><th>Total</th><th>Side</th><th>Spin</th></tr>'+H.slice(-12).reverse().map((q,i)=>'<tr><td>'+(H.length-i)+'</td><td>'+q.club+'</td><td>'+q.bs+'</td><td>'+q.carry+'</td><td>'+q.tot+'</td><td>'+q.side+'</td><td>'+q.spin+'</td></tr>').join('');
+  $('tmM').hidden=false;}
 function showShotStats(){const I=G.shotInfo;G.shotInfo=null;if(!I)return;const tot=hyp(G.ball.x-I.sx,G.ball.y-I.sy),el=$('shotStats');
-  if(G.hole&&G.hole.range){tmShow(I,tot);return;}
+  if(G.hole&&G.hole.range)tmShow(I,tot);
   el.innerHTML='Carry <b>'+Math.round(I.carry)+'</b> \u00b7 Total <b>'+Math.round(tot)+'</b> \u00b7 Peak <b>'+Math.round(I.peak*3)+' ft</b>';el.hidden=false;clearTimeout(el._t);el._t=setTimeout(()=>{el.hidden=true;},3600);}
 function rangeNext(){G.rangeN=(G.rangeN||0)+1;if(G.golferAt)G.rngAim=G.golferAt.aim;rangeLog();
   if(G.hole.targets&&G.hole.targets.some(t=>hyp(G.ball.x-t.x,G.ball.y-t.y)<t.r)){(G.rangeBalls=G.rangeBalls||[]).push({x:G.ball.x,y:G.ball.y});if(G.rangeBalls.length>80)G.rangeBalls.shift();}
@@ -7136,7 +7144,7 @@ function updHud(){
   { const fb=$('flyCamBtn'),rgc=!!(G.hole&&G.hole.range&&!G.replay),on=rgc?(G.state==='flight'||G.state==='bounce'||G.state==='roll'):G.replay?(!REC.on&&!G.lastShot.putt):(G.state==='flight'||G.state==='bounce'||G.state==='roll')&&G.fromLie!=='green'&&!(typeof SPEC!=='undefined'&&SPEC.on);fb.hidden=!on;if(on){fb.style.bottom=(botH+4)+'px';setT('flyCamBtn',rgc?(G.rangeFollow?'\ud83c\udfcc\ufe0f Golfer view':'\ud83c\udfaf Trail view'):FLY_TV?'\ud83c\udfaf Trail view':'\ud83d\udcfa TV view');} }
   const ffOk=ffActive();$('ffBtn').hidden=!ffOk;if(ffOk){setT('ffBtn',G.ff>1?'\u23e9 '+G.ff+'\u00d7 speed':'\u23e9 Speed up');$('ffBtn').classList.toggle('on',G.ff>1);}
   $('cardReplay').hidden=!G.canReplay;
-  {const rb=$('rangeGo'),cb=$('rangeChartBtn'),on=!!h.range&&(G.state==='aim'||G.state==='wait');rb.hidden=!on;cb.hidden=!on||!(G.rangeLog&&G.rangeLog.length);if(on){if(!MCLK.w||MCLK.fb==null)MCLK.fb=$('menuBtn').getBoundingClientRect().bottom+8;rb.style.top=MCLK.fb+'px';cb.style.top=(MCLK.fb+44)+'px';}}
+  {const rb=$('rangeGo'),cb=$('rangeChartBtn'),on=!!h.range&&(G.state==='aim'||G.state==='wait');rb.hidden=!on;cb.hidden=!on||!(G.rangeLog&&G.rangeLog.length);const db=$('rangeDataBtn');db.hidden=!on||!(G.tmHist&&G.tmHist.length);if(on){if(!MCLK.w||MCLK.fb==null)MCLK.fb=$('menuBtn').getBoundingClientRect().bottom+8;rb.style.top=MCLK.fb+'px';cb.style.top=(MCLK.fb+44)+'px';db.style.top=(MCLK.fb+(cb.hidden?44:84))+'px';}}
   if(h.range){setT('hNum','R');setT('hPar','Driving range');setT('hStroke','Ball '+((G.rangeN||0)+1));setT('windV',String(G.wind.mph));}else{setT('hNum',String(G.hi+1));setT('hPar','Par '+h.par+' · '+h.len+' yds');
   const sn=Math.min(10,G.strokes+(G.state==='holed'||G.state==='card'?0:1));
   if(MATCH.on){setT('hStroke',(G.aiTurn?rn(MATCH.r):'You')+' \u00b7 stroke '+sn);const up=matchUp(),n=holesPlayed();setT('matchTag',(G.state==='card'||G.state==='intro'?'vs '+rn(MATCH.r):G.aiTurn?rn(MATCH.r)+'\u2019s shot':'Your shot')+' \u00b7 '+statusShort(up)+(n?' thru '+Math.min(18,n):''));}
@@ -7557,6 +7565,8 @@ $('teeX').addEventListener('click',()=>{A();$('teeM').hidden=true;});
 $('rangeGo').addEventListener('click',e=>{e.stopPropagation();rangeLeave();});
 $('iRange').addEventListener('click',e=>{e.stopPropagation();rangeGoTo();});
 $('rangeChartBtn').addEventListener('click',e=>{e.stopPropagation();A();rangeChart();});
+$('rangeDataBtn').addEventListener('click',e=>{e.stopPropagation();A();tmOpen();});
+$('tmX').addEventListener('click',e=>{e.stopPropagation();A();$('tmM').hidden=true;});
 $('chartX').addEventListener('click',e=>{e.stopPropagation();A();$('chartM').hidden=true;});
 function teeGo(id,t,rg){if(id===CUR.id&&TEE===t&&!MATCH.on&&!rg&&!(G.hole&&G.hole.range)){closeMenu();return;}endMatchMode();setCourse(id,true,t);G.pinSeed=0;G.scores=[];G.mode='round';if(R3.on)r3NewWx();clearSave();startHole(rg?TB.length:0);try{updHud();}catch(e){}closeMenu();sfx.tick();}   // straight to the range or hole 1's tee card (the menu's Continue / New round would restart hole 1)
 /* ---- home screen: a map of the states we have courses in; tap one for its courses (with a picture of each) ---- */
@@ -7721,7 +7731,7 @@ const UPDATES=[
   {id:"2026-10-22-range",date:"Oct 22, 2026",title:"Driving ranges",items:[
     "Hole 1\u2019s card now has two buttons: Tee off, or Hit the range to warm up on the course\u2019s own driving range first. It works for quick rounds and the Daily, and nothing you hit on the range counts.",
     "The range is laid out from the course map, hitting from the end by the clubhouse, with target greens every 50 yards spread across the range, each flag showing its distance; balls that finish on a target green stay there while you practise.",
-    "After each ball a launch-monitor panel shows ball and club speed, smash, launch, spin, apex, carry, total and how far offline, and the Chart button plots your shots around each target with your average and closest. Every ball comes back to the mat; tap First tee when you\u2019re ready.",
+    "The Data button opens launch-monitor numbers for your last shot (ball and club speed, smash, launch, spin, apex, carry, total and how far offline) and a list of your recent shots, and the Chart button plots your shots around each target with your average and closest. Every ball comes back to the mat; tap First tee when you\u2019re ready.",
     "Where the map has no range, it\u2019s traced from aerial photos: 38 courses now have their own range."]},
   {id:"2026-10-21-taps",date:"Oct 21, 2026",title:"Fewer missed swing taps",items:[
     "A tap made just as the meter reaches the bottom now counts instead of being called a mishit.",
