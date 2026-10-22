@@ -1177,8 +1177,11 @@ function buildHole(d,idx){
   const HL0=C.line;h.teeSets=teeSpots(idx).map((q,t,A)=>{if(t&&q===A[t-1])return null;const p=loc(q.p),n=loc(HL0[q.k+1]||HL0[HL0.length-1]);return{t,x:p[0],y:p[1],a:angTo(p[0],p[1],n[0],n[1])};}).filter(Boolean);
   for(const S of h.teeSets){if(h.tees.some(P=>polyDist(P,S.x,S.y,12)<2))continue;const ux=Math.sin(S.a),uy=-Math.cos(S.a),px=Math.cos(S.a),py=Math.sin(S.a),pt=(s,o)=>[S.x+ux*s+px*o,S.y+uy*s+py*o];
     const T=mkPoly([pt(-6,-4),pt(4,-4),pt(4,4),pt(-6,4)],'tee');T.syn=true;h.tees.push(T);}
-  if(C.P){h.range=true;h.teeSets=[];h.fairways.push(mkPoly(C.P.map(loc),'fairway'));   // the range: mown ground and a round target green
-    const g=[];for(let k=0;k<20;k++){const a=k/20*TAU;g.push([h.pin[0]+Math.cos(a)*10,h.pin[1]+Math.sin(a)*10]);}h.greens.push(mkPoly(g,'green'));}
+  if(C.P){h.range=true;h.teeSets=[];const RP=mkPoly(C.P.map(loc),'fairway');h.fairways.push(RP);   // the range: mown ground and target greens every 50 yd
+    const cols=['#ffd23c','#ff6a48','#4db6ff','#ffffff','#6fdc6f','#c27dff','#ff9f1c','#ff5fa2'],offs=[0,-13,11,-9,13,-7,9,0];h.targets=[];
+    for(let d=50,k=0;d<=h.len-12;d+=50,k++){let q=at(d,offs[k%offs.length]);if(!inPoly(RP,q[0],q[1]))q=at(d,0);h.targets.push({d,x:q[0],y:q[1],r:Math.min(15,5+d*.04),col:cols[k%cols.length]});}
+    if(h.targets.length){const pt=h.targets.reduce((a,b)=>Math.abs(b.d-150)<Math.abs(a.d-150)?b:a);pt.pin=true;h.pin=[pt.x,pt.y];h.axis=angTo(0,0,pt.x,pt.y);}
+    for(const t of h.targets){const g=[];for(let k=0;k<20;k++){const a=k/20*TAU;g.push([t.x+Math.cos(a)*t.r,t.y+Math.sin(a)*t.r*.8]);}h.greens.push(mkPoly(g,'green'));}}
   h.buildings=(COURSE.polys.clubhouse||[]).map((p,i)=>{const P=mkPoly(p.map(loc),'clubhouse');P.ci=i;return P;}).filter(inB);h.buildings.forEach(P=>P.club=true);h.woods=(COURSE.polys.wood||[]).map(p=>mkPoly(p.map(loc),'wood')).filter(P=>!(P.bb[2]<B[0]-60||P.bb[0]>B[2]+60||P.bb[3]<B[1]-60||P.bb[1]>B[3]+60));
   h.paths=COURSE.paths.map(pl=>pl.map(loc)).filter(pl=>pl.some(p=>p[0]>B[0]&&p[0]<B[2]&&p[1]>B[1]&&p[1]<B[3]));
   // this hole's green: the one holding the pin
@@ -2520,7 +2523,8 @@ function buildStructures(h,out){const ST=STYLE[CUR.scen]||STYLE.prairie,R=rng(42
   // flags on the other greens, the range targets, and this hole's tee markers
   const flag=(x,y,col)=>{const g0=hAtH(h,x,y);boxO(out,x,g0+1.25,y,.04,1.25,.04,0,[.95,.95,.95]);pushTri(out,[x,g0+2.45,y],[x+.8,g0+2.2,y],[x,g0+1.95,y],col,[0,0,1],[0,0,1],[0,0,1]);pushTri(out,[x,g0+2.45,y],[x,g0+1.95,y],[x+.8,g0+2.2,y],mul(col,.8),[0,0,-1],[0,0,-1],[0,0,-1]);};
   COURSE.holes.forEach((H,k)=>{if(k===G.hi)return;const x=H.pin[0]-h.T0[0],y=H.pin[1]-h.T0[1],b=h.bounds;if(x<b[0]-800||x>b[2]+800||y<b[1]-800||y>b[3]+800)return;flag(x,y,hexc(typeof r3FlagStyle==='function'?r3FlagStyle(CUR.id).bg:'#ff6a48'));});
-  for(const P0 of COURSE.polys.range||[]){const P=P0.map(q=>[q[0]-h.T0[0],q[1]-h.T0[1]]),Q=mkPoly(P,'range');let L=0,a0=null,a1=null;
+  for(const t of h.range?h.targets||[]:[])if(!t.pin)flag(t.x,t.y,hexc(t.col));
+  for(const P0 of h.range?[]:COURSE.polys.range||[]){const P=P0.map(q=>[q[0]-h.T0[0],q[1]-h.T0[1]]),Q=mkPoly(P,'range');let L=0,a0=null,a1=null;
     for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const l=hyp(P[j][0]-P[i][0],P[j][1]-P[i][1]);if(l>L){L=l;a0=P[i];a1=P[j];}}
     const cols=['#ffd23c','#ff6a48','#4db6ff','#ffffff','#6fdc6f'];[.22,.38,.54,.7,.86].forEach((t,i)=>{const x=a0[0]+(a1[0]-a0[0])*t,y=a0[1]+(a1[1]-a0[1])*t;if(inPoly(Q,x,y))flag(x,y,hexc(cols[i]));});}
   // tee markers for every set (Oct 2026): a pair of painted balls on each set's tee, the course's own colour at the back, white, gold
@@ -6965,8 +6969,14 @@ function r3GrassTileHas(h,i,j){if(R3G.maskH!==h){R3G.maskH=h;R3G.mask=new Map();
   const S=R3G.S;v=false;for(let a=0;a<=S&&!v;a+=1)for(let b=0;b<=S;b+=1){const c=lieCodeAt(h,i*S+a,j*S+b);if(c===1||(c===0&&CUR.scen!=='desert')){v=true;break;}}R3G.mask.set(key,v);return v;}
 
 
+function drawRangeLabels(){const h=G.hole;if(!h.range||!h.targets)return;sctx.font='700 13px "Barlow Semi Condensed",system-ui,sans-serif';sctx.textAlign='center';sctx.textBaseline='middle';
+  const boxes=[],hit=(x,y,w)=>boxes.some(b=>Math.abs(b[0]-x)<(b[2]+w)/2+3&&Math.abs(b[1]-y)<22);   // nearest first; a label that would cover another moves up once, or is left out
+  for(const t of h.targets.slice().sort((a,b)=>a.d-b.d)){const g=hAt(t.x,t.y),top=proj(t.x,g+2.6,t.y);if(!top)continue;
+    const tx=Math.round(hyp(t.x-G.ball.x,t.y-G.ball.y))+'y',w=sctx.measureText(tx).width+18;let y=top[1]-16;if(hit(top[0],y,w)){y-=22;if(hit(top[0],y,w))continue;}boxes.push([top[0],y,w]);
+    sctx.fillStyle='rgba(12,30,46,.85)';sctx.beginPath();sctx.roundRect(top[0]-w/2,y-10,w,20,10);sctx.fill();
+    sctx.fillStyle=t.col;sctx.beginPath();sctx.arc(top[0]-w/2+8,y,3,0,TAU);sctx.fill();sctx.fillStyle='#fff6dc';sctx.fillText(tx,top[0]+3,y);}}
 function drawPinLabel(){
-  const h=G.hole,px=h.pin[0],pz=h.pin[1],gp=hAt(px,pz);const pc=proj(px,gp,pz);if(!pc)return;const ps=Math.max(1,30/(2.6*pc[3]));
+  if(G.hole.range)return;const h=G.hole,px=h.pin[0],pz=h.pin[1],gp=hAt(px,pz);const pc=proj(px,gp,pz);if(!pc)return;const ps=Math.max(1,30/(2.6*pc[3]));
   const top=proj(px,gp+2.6*ps,pz);if(!top||G.inCup||(aimingState()&&curClub().putter))return;
   const tx=Math.round(pinDist())+'y';sctx.font='700 13px "Barlow Semi Condensed",system-ui,sans-serif';const w=sctx.measureText(tx).width+14;
   sctx.fillStyle='rgba(12,30,46,.85)';sctx.beginPath();sctx.roundRect(top[0]-w/2,top[1]-26,w,20,10);sctx.fill();
@@ -7021,7 +7031,7 @@ function renderScene(){
   const flameKind=G.state==='replay'?(G.lastShot&&G.lastShot.flame):G.flame;
   if(flameKind&&G.trail.length>1)drawFlames(flameKind);
   if(!R3.on&&G.trail.length>1){sctx.lineCap='round';let prev=null;G.trail.forEach((p,i)=>{const s=proj(p.x,p.Y+.05,p.y);if(s&&prev){sctx.strokeStyle='rgba(255,255,255,'+(i/G.trail.length*.7)+')';sctx.lineWidth=clamp(.08*s[3],1,4)*(.4+i/G.trail.length);sctx.beginPath();sctx.moveTo(prev[0],prev[1]);sctx.lineTo(s[0],s[1]);sctx.stroke();}prev=s;});}
-  drawPinLabel();
+  drawRangeLabels();drawPinLabel();
   if(MATCH.on&&MATCH.P&&G.state!=='intro'&&G.state!=='card'&&!G.overview){const o=MATCH.P[1-MATCH.turn];if(o&&!o.done&&o.strokes>0){const q=proj(o.ball.x,hAt(o.ball.x,o.ball.y)+.3,o.ball.y);
     if(q&&q[2]<450&&q[1]>topH&&q[1]<H-botH){const tx=MATCH.turn===0?rn(MATCH.r):'You';sctx.font='700 12px "Barlow Semi Condensed",system-ui,sans-serif';const w=sctx.measureText(tx).width+12;
       sctx.fillStyle=MATCH.turn===0?'rgba(120,30,40,.85)':'rgba(12,30,46,.85)';sctx.beginPath();sctx.roundRect(q[0]-w/2,q[1]-24,w,17,8.5);sctx.fill();sctx.fillStyle='#fff6dc';sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText(tx,q[0],q[1]-15.5);}}}
@@ -7655,7 +7665,7 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 const UPDATES=[
   {id:"2026-10-22-range",date:"Oct 22, 2026",title:"Driving ranges",items:[
     "Hole 1\u2019s card now has two buttons: Tee off, or Hit the range to warm up on the course\u2019s own driving range first. It works for quick rounds and the Daily, and nothing you hit on the range counts.",
-    "The range is laid out from the course map, hitting from the end by the clubhouse, with a target green about 150 yards out. Every ball comes back to the mat; tap First tee when you\u2019re ready.",
+    "The range is laid out from the course map, hitting from the end by the clubhouse, with target greens every 50 yards, each flag showing its distance. Every ball comes back to the mat; tap First tee when you\u2019re ready.",
     "24 courses have their range so far; more are on the way."]},
   {id:"2026-10-21-taps",date:"Oct 21, 2026",title:"Fewer missed swing taps",items:[
     "A tap made just as the meter reaches the bottom now counts instead of being called a mishit.",
