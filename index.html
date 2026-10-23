@@ -2245,15 +2245,20 @@ function blockMass(h,q,out,L,C){
     if(L.blocks&&L.blocks.length)ev.push(blockMass(h,q,out,{o:L.o,a:L.a,ref:L.ref,blocks:L.blocks},Object.assign({},C,{F:F0})).eave);
     for(const pt of L.parts)ev.push(blockMass(h,q,out,{o:pt.o,a:pt.a,ref:[0,0],blocks:pt.blocks},Object.assign({},C,{F:F0})).eave);
     ev.sort((x,y)=>x-y);return{F:F0,eave:ev[ev.length>>1]};}
-  const a=L.a*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ox=L.o[0]-h.T0[0],oz=L.o[1]-h.T0[1],B=L.blocks;
+  const a=L.a*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ox=L.o[0]-h.T0[0],oz=L.o[1]-h.T0[1],B0=L.blocks;
   const X=(u,v)=>ox+u*ca+v*sa,Z=(u,v)=>oz-u*sa+v*ca,gAt=(u,v)=>hAtH(h,X(u,v),Z(u,v)),F=C.F!=null?C.F:gAt(L.ref[0],L.ref[1]),P=(u,v,y)=>[X(u,v),F+y,Z(u,v)];
   const DU=[ca,0,-sa],DV=[sa,0,ca],UP=[0,1,0],nU=k=>[DU[0]*k,0,DU[2]*k],nV=k=>[DV[0]*k,0,DV[2]*k];
   const shade=n=>.82+.18*Math.max(0,dot3(n,nrm([-.5,.6,.6]))),q4=(A,B2,C2,D,col,n)=>quadO(out,A,B2,C2,D,col,n);
-  const rc=n=>mul(C.roof,shade(n)),ov=b=>b[0]==='T'?.15:b[0]==='F'?.05:Math.min(.6,(Math.min(b[2]-b[1],b[4]-b[3]))*.08);
+  const rc=n=>mul(C.roof,shade(n)),ov=b=>b[0]==='T'?.15:b[0]==='C'?.1:b[0]==='F'?.05:Math.min(.6,(Math.min(b[2]-b[1],b[4]-b[3]))*.08);
   // the roof height of block b at (u,v), or -1e9 outside it
   const rh=(b,u,v)=>{const[t,u0,u1,v0,v1,e,p,cap]=b;if(u<u0-1e-6||u>u1+1e-6||v<v0-1e-6||v>v1+1e-6)return -1e9;const du=Math.min(u-u0,u1-u),dv=Math.min(v-v0,v1-v);
     let y=t==='H'?e+p*Math.min(du,dv):t==='GU'?e+p*dv:t==='GV'?e+p*du:t==='SU'?e+p*(u-u0):t==='SV'?e+p*(v-v0):t==='T'?Math.min(cap,Math.max(e,cap-(cap-e)*(1-Math.min(du,dv)/Math.max(.01,Math.min(u1-u0,v1-v0)/2)))):e;
     return t==='SU'||t==='SV'?Math.min(Math.max(y,Math.min(e,cap)),Math.max(e,cap)):Math.min(y,Math.max(cap,e));};
+  // a tower block too slim for a room is a chimney: a flat-capped stack in the chimney colour, standing at most ~1.6 yd over the roof
+  // around it (a stray flagpole or tree point can lift the survey's top)
+  const B=B0.map(b=>{if(b[0]!=='T'||Math.min(b[2]-b[1],b[4]-b[3])>=2.6)return b;const uc=(b[1]+b[2])/2,vc=(b[3]+b[4])/2;
+    let r=-1e9;for(const o of B0)if(o!==b&&o[0]!=='T')r=Math.max(r,rh(o,uc,vc));const top=r>-1e8?Math.min(Math.max(b[5],b[7]),r+1.6):Math.max(b[5],b[7]);
+    return['C',b[1],b[2],b[3],b[4],top,0,top,b[8]];});
   const inBlk=(u,v,me)=>B.some(b=>b!==me&&!(b[8]||'').includes('o')&&u>b[1]+ov(b)&&u<b[2]-ov(b)&&v>b[3]+ov(b)&&v<b[4]-ov(b));
   // roofs
   const hipShell=(u0,u1,v0,v1,hb,p,cap,col)=>{let t=p>0?(cap-hb)/p:0;t=Math.max(0,Math.min(t,(u1-u0)/2,(v1-v0)/2));const ht=hb+p*t,U0=u0+t,U1=u1-t,V0=v0+t,V1=v1-t;
@@ -2269,12 +2274,22 @@ function blockMass(h,q,out,L,C){
       q4(Q(s0,r0,e),Q(S1,r0,e),Q(S1,r0+tt,ht),Q(s0,r0+tt,ht),rc(nA),nA);q4(Q(s0,r1,e),Q(S1,r1,e),Q(S1,r1-tt,ht),Q(s0,r1-tt,ht),rc(nB),nB);
       if(r1-tt>r0+tt+.05)q4(Q(s0,r0+tt,ht),Q(S1,r0+tt,ht),Q(S1,r1-tt,ht),Q(s0,r1-tt,ht),C.roof,UP);
 }
+    else if(t==='C'){q4(P(u0-.08,v0-.08,e+.1),P(u1+.08,v0-.08,e+.1),P(u1+.08,v1+.08,e+.1),P(u0-.08,v1+.08,e+.1),mul(C.ch,.8),UP);
+      for(const[A2,B2,n]of[[[u0,v0],[u1,v0],nV(-1)],[[u1,v0],[u1,v1],nU(1)],[[u1,v1],[u0,v1],nV(1)],[[u0,v1],[u0,v0],nU(-1)]]){const d=[n[0]*.08,0,n[2]*.08],A3=P(A2[0],A2[1],e-.2),B3=P(B2[0],B2[1],e-.2);
+        q4([A3[0]+d[0],A3[1],A3[2]+d[2]],[B3[0]+d[0],B3[1],B3[2]+d[2]],[B3[0]+d[0],B3[1]+.3,B3[2]+d[2]],[A3[0]+d[0],A3[1]+.3,A3[2]+d[2]],mul(C.ch,.85),n);}}
     else if(t==='SU'||t==='SV'){const along=t==='SU';const corners=[[u0,v0],[u1,v0],[u1,v1],[u0,v1]].map(([u,v])=>P(u,v,rh(b,u,v)));
       const n=nrm(along?[-DU[0]*p,1,-DU[2]*p]:[-DV[0]*p,1,-DV[2]*p]);q4(corners[0],corners[1],corners[2],corners[3],rc(n),n);}
     else{q4(P(u0,v0,e),P(u1,v0,e),P(u1,v1,e),P(u0,v1,e),fl.includes('d')?C.deck:C.flat,UP);
       for(const[A2,B2,n]of[[[u0,v0],[u1,v0],nV(-1)],[[u1,v0],[u1,v1],nU(1)],[[u1,v1],[u0,v1],nV(1)],[[u0,v1],[u0,v0],nU(-1)]]){
         if(fl.includes('d')){q4(P(A2[0],A2[1],e+.95),P(B2[0],B2[1],e+.95),P(B2[0],B2[1],e+1.07),P(A2[0],A2[1],e+1.07),C.trim,n);}
         else q4(P(A2[0],A2[1],e-.3),P(B2[0],B2[1],e-.3),P(B2[0],B2[1],e+(fl.includes('o')?0:.35)),P(A2[0],A2[1],e+(fl.includes('o')?0:.35)),C.trim,n);}}}
+  // the clock on the clock tower (the tallest tower block wide enough for one): a face on each side below its eave
+  if(C.clk){let tb=null;for(const b of B)if(b[0]==='T'&&Math.min(b[2]-b[1],b[4]-b[3])>=2.5&&(!tb||Math.max(b[5],b[7])>Math.max(tb[5],tb[7])))tb=b;
+    if(tb){const[,u0,u1,v0,v1,e]=tb,uc=(u0+u1)/2,vc=(v0+v1)/2,r=Math.min(1.05,Math.min(u1-u0,v1-v0)*.28),yc=e-r-.45,hu=(u1-u0)/2-.1,hv=(v1-v0)/2-.1;
+      if(yc-r>gAt(uc,vc)-F+2)for(const[n,du,dv,T]of[[nU(1),hu,0,DV],[nU(-1),-hu,0,nV(-1)],[nV(1),0,hv,nU(-1)],[nV(-1),0,-hv,DU]]){const c=P(uc+du,vc+dv,yc),
+        pt=(ang,rr,o)=>[c[0]+T[0]*Math.cos(ang)*rr+n[0]*o,c[1]+Math.sin(ang)*rr,c[2]+T[2]*Math.cos(ang)*rr+n[2]*o];
+        for(let j=0;j<12;j++){const a1=j/12*TAU,a2=(j+1)/12*TAU;triO(out,[c[0]+n[0]*.03,c[1],c[2]+n[2]*.03],pt(a1,r+.12,.025),pt(a2,r+.12,.025),C.trim,n);triO(out,[c[0]+n[0]*.05,c[1],c[2]+n[2]*.05],pt(a1,r,.05),pt(a2,r,.05),[.95,.94,.9],n);}
+        for(const[ang,len,w]of[[1.1,r*.55,.06],[2.6,r*.8,.04]]){const A=pt(ang+Math.PI/2,w,.07),B2=pt(ang-Math.PI/2,w,.07),D=pt(ang,len,.07);triO(out,A,B2,D,[.12,.12,.12],n);}}}}
   // walls (and posts under open roofs)
   const ext=[];
   for(const b of B){const[t,u0,u1,v0,v1,e,p,cap]=b,fl=b[8]||'',o=ov(b),U0=u0+o,U1=u1-o,V0=v0+o,V1=v1-o;
@@ -2289,18 +2304,18 @@ function blockMass(h,q,out,L,C){
       ts.sort((x,y)=>x-y);
       for(let k=0;k<ts.length-1;k++){const t0=ts[k],t1=ts[k+1];if(t1-t0<1e-4)continue;const ua=a0+(a1-a0)*t0,va=b0+(b1-b0)*t0,ub=a0+(a1-a0)*t1,vb=b0+(b1-b0)*t1;
         const ya=rh(b,ua,va),yb=rh(b,ub,vb),ga=gAt(ua,va)-F-.3,gb=gAt(ub,vb)-F-.3;if(ya<-1e8||yb<-1e8)continue;
-        q4(P(ua,va,ga),P(ub,vb,gb),P(ub,vb,yb-.03),P(ua,va,ya-.03),C.wall,n);
+        q4(P(ua,va,ga),P(ub,vb,gb),P(ub,vb,yb-.03),P(ua,va,ya-.03),t==='C'?C.ch:C.wall,n);
         const um=(ua+ub)/2+(n[0]*ca-n[2]*sa)*.7,vm=(va+vb)/2+(n[0]*sa+n[2]*ca)*.7;
-        ext.push([ua,va,ub,vb,n,ga+.3,gb+.3,Math.min(ya,yb),inBlk(um,vm,b)?1:0,t===`T`?1:0]);}
+        ext.push([ua,va,ub,vb,n,ga+.3,gb+.3,Math.min(ya,yb),inBlk(um,vm,b)||t==='C'?1:0,t===`T`?1:0]);}
       // eave trim
-      if(t!=='T')q4(P(a0,b0,rh(b,a0,b0)-.32),P(a1,b1,rh(b,a1,b1)-.32),P(a1,b1,rh(b,a1,b1)-.02),P(a0,b0,rh(b,a0,b0)-.02),C.trim,n);}}
+      if(t!=='T'&&t!=='C')q4(P(a0,b0,rh(b,a0,b0)-.32),P(a1,b1,rh(b,a1,b1)-.32),P(a1,b1,rh(b,a1,b1)-.02),P(a0,b0,rh(b,a0,b0)-.02),C.trim,n);}}
   // dressing: plinth, siding courses, windows per storey on walls that face open air
   const eaves=[];
   for(const[ua,va,ub,vb,n,g0,g1,yt,hid,tw]of ext){const Lr=hyp(ub-ua,vb-va),o=.035,Q=(t,y)=>{const p_=P(ua+(ub-ua)*t,va+(vb-va)*t,y);return[p_[0]+n[0]*o,p_[1],p_[2]+n[2]*o];};
     if(hid)continue;const gl=Math.max(g0,g1),gm=Math.min(g0,g1);if(!tw)eaves.push(yt);
     if(C.plinth>0&&yt-gm>1.5&&!tw)q4(Q(0,g0-.3),Q(1,g1-.3),Q(1,g1+C.plinth),Q(0,g0+C.plinth),C.stone,n);
     // a brick or stone ground storey, then the wall material: lap or log courses, battens, stone coursing or tudor timbers
-    const yb=C.lo>0?F+C.lo:gm+C.plinth;if(C.lo>0&&yb>gm+.5)q4(Q(0,g0-.3),Q(1,g1-.3),Q(1,Math.max(g1,yb)),Q(0,Math.max(g0,yb)),C.lc,n);
+    const yb=C.lo>0?C.lo:gm+C.plinth;if(C.lo>0&&yb>gm+.5)q4(Q(0,g0-.3),Q(1,g1-.3),Q(1,Math.max(g1,yb)),Q(0,Math.max(g0,yb)),C.lc,n);
     if(C.lines&&yt-gl>1)for(let y=Math.max(gl,yb)+C.lines;y<yt-.4;y+=C.lines)q4(Q(0,y),Q(1,y),Q(1,y+(C.mat==='log'?.08:.04)),Q(0,y+(C.mat==='log'?.08:.04)),C.line,n);
     if((C.mat==='board'||C.mat==='tudor')&&yt-gl>1){const nb=Math.max(1,Math.round(Lr/(C.mat==='tudor'?1.4:.75))),w=(C.mat==='tudor'?.08:.04)/Lr,y0=Math.max(gl,yb),col=C.mat==='tudor'?C.tc:C.line;
       for(let k=0;k<nb;k++){const t=(k+.5)/nb;q4(Q(t-w,y0),Q(t+w,y0),Q(t+w,yt-.3),Q(t-w,yt-.3),col,n);}
@@ -2368,7 +2383,7 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
   if(LD){const MM=LK&&LK.m,ln=MM==='siding'?.42:MM==='log'?.38:MM==='brick'?.5:0;
     const LK0=club?(CLUBLOOK[CUR.id]||(CUR.data&&CLUBLOOK[CUR.data])||{}):{};
     const LDr=blockMass(h,q,out,LD,{wall:MM==='stone'?mul(wall,.84):wall,roof,trim,stone,glass,frame,flat:hexc('#9d9a93'),deck:hexc('#b0a48e'),post:LK0.c?hexc(LK0.c):trim,plinth:Math.min(plinth,1.2),
-      lines:MM==='stone'?.55:ln,line:mul(wall,MM==='log'?.68:MM==='brick'?.86:MM==='stone'?.78:.83),mat:MM,tc:hexc(LK0.tc||LK0.t||'#3e2e24'),lo:LK0.lo||0,lc:hexc(LK0.lc||'#8a6a58')});
+      lines:MM==='stone'?.55:ln,line:mul(wall,MM==='log'?.68:MM==='brick'?.86:MM==='stone'?.78:.83),mat:MM,tc:hexc(LK0.tc||LK0.t||'#3e2e24'),lo:LK0.lo||0,lc:hexc(LK0.lc||'#8a6a58'),clk:LK0.clk,ch:LK0.ch?hexc(LK0.ch):mul(stone,.9)});
     H1=Math.max(2.4,LDr.eave-gh);}
   // walls: stone plinth, siding, a trim band under the eave (or the parapet coping), rows of windows
   if(!LD)for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length],ex2=b[0]-a[0],ez=b[1]-a[1],L=hyp(ex2,ez);if(L<.2)continue;
