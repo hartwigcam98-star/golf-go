@@ -2632,7 +2632,7 @@ function clubModel(h,out){const M=CLUBMODEL[CUR.id];if(!M)return;const T0=h.T0,a
   const X=(u,v)=>ox+u*ca+v*sa,Z=(u,v)=>oz-u*sa+v*ca,gAt=(u,v)=>hAtH(h,X(u,v),Z(u,v)),F=gAt(M.ref[0],M.ref[1]),P=(u,v,y)=>[X(u,v),F+y,Z(u,v)];
   const b=h.bounds;if(ox<b[0]-700||ox>b[2]+700||oz<b[1]-700||oz>b[3]+700)return;
   const DU=[ca,0,-sa],DV=[sa,0,ca],UP=[0,1,0],rot=-a,R=rng(9157);
-  const C={wall:hexc('#f3f3ef'),trim:hexc('#fbfbf8'),glass:hexc('#2c3842'),glass2:hexc('#3d4d5a'),roof:hexc('#4b5452'),skirt:hexc('#606a67'),band:hexc('#26323a'),deck:hexc('#b9b2a4'),pave:hexc('#d6d0c4'),dark:hexc('#3a3632')};
+  const C={wall:hexc('#f3f3ef'),trim:hexc('#fbfbf8'),glass:hexc('#3e5262'),glass2:hexc('#3a4a56'),roof:hexc('#4b5452'),skirt:hexc('#606a67'),band:hexc('#26323a'),deck:hexc('#b9b2a4'),pave:hexc('#d6d0c4'),dark:hexc('#3a3632')};
   const nU=s=>[DU[0]*s,0,DU[2]*s],nV=s=>[DV[0]*s,0,DV[2]*s];
   const q4=(A,B,Cc,D,col,n)=>quadO(out,A,B,Cc,D,col,n);
   // a hip roof shell on a rectangle from height hb, pitch p, flat top at cap (or a ridge where the slopes meet); ring=true leaves the top open
@@ -2659,7 +2659,7 @@ function clubModel(h,out){const M=CLUBMODEL[CUR.id];if(!M)return;const T0=h.T0,a
         const north=n===sides[1][4]&&v0<-5,ga=north?.3:.06,gb=north?.7:.94;
         q4(Pq(ua+(ub-ua)*ga,va+(vb-va)*ga,.45),Pq(ua+(ub-ua)*gb,va+(vb-va)*gb,.45),Pq(ua+(ub-ua)*gb,va+(vb-va)*gb,2.45),Pq(ua+(ub-ua)*ga,va+(vb-va)*ga,2.45),C.glass,n);
         // the lower level, where the ground falls away
-        if(g0<-2.4){q4(Pq(ua+(ub-ua)*.12,va+(vb-va)*.12,Math.max(g0+.7,-3.2)),Pq(ua+(ub-ua)*.88,va+(vb-va)*.88,Math.max(g0+.7,-3.2)),Pq(ua+(ub-ua)*.88,va+(vb-va)*.88,-1.1),Pq(ua+(ub-ua)*.12,va+(vb-va)*.12,-1.1),C.glass2,n);
+        if(g0<-2.4){if(k%2===0)q4(Pq(ua+(ub-ua)*.3,va+(vb-va)*.3,Math.max(g0+1.0,-2.9)),Pq(ua+(ub-ua)*.7,va+(vb-va)*.7,Math.max(g0+1.0,-2.9)),Pq(ua+(ub-ua)*.7,va+(vb-va)*.7,-1.3),Pq(ua+(ub-ua)*.3,va+(vb-va)*.3,-1.3),C.glass2,n);
           if(!inDeck(um+(n[0]*ca-n[2]*sa)*1.5,vm+(n[0]*sa+n[2]*ca)*1.5))balc.push([ua,va,ub,vb,n]);}}}}
   // white slab line between the floors where the lower level shows
   for(const[ua,va,ub,vb,n]of balc){const d=1.5,nu=n[0]*ca-n[2]*sa,nv=n[0]*sa+n[2]*ca,o2=(u,v)=>[u+nu*d,v+nv*d];const A2=o2(ua,va),B2=o2(ub,vb);
