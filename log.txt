@@ -1,0 +1,6 @@
+resources 2283
+pawplant USGS_LPC_SC_Georgetown_2016_LAS_2019 136817 pts 3.3 /m2
+heritage USGS_LPC_SC_Georgetown_2016_LAS_2019 149491 pts 5.8 /m2
+done heritage {'epsg': 32617, 'cands': ['USGS_LPC_SC_Georgetown_2016_LAS_2019'], 'src': 'USGS_LPC_SC_Georgetown_2016_LAS_2019', 'dens': 5.8394921875, 'gps': [167256691.12722492, 167257137.19813704], 'classes': {1: 110135, 2: 39329, 7: 14, 9: 12, 10: 1}, 'aerial': ['naip']}
+done pawplant {'epsg': 32617, 'cands': ['USGS_LPC_SC_Georgetown_2016_LAS_2019'], 'src': 'USGS_LPC_SC_Georgetown_2016_LAS_2019', 'dens': 3.287605728565936, 'gps': [167255260.6744473, 167255266.20209527], 'classes': {1: 79573, 2: 56761, 7: 10, 9: 456, 10: 17}, 'aerial': ['naip']}
+all done

@@ -1,0 +1,45 @@
+resources 2283
+(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directorypawplant USGS_LPC_SC_Georgetown_2016_LAS_2019 136817 pts 3.3 /m2
+heritage USGS_LPC_SC_Georgetown_2016_LAS_2019 149491 pts 5.8 /m2
+done heritage {'epsg': 32617, 'cands': ['USGS_LPC_SC_Georgetown_2016_LAS_2019'], 'src': 'USGS_LPC_SC_Georgetown_2016_LAS_2019', 'dens': 5.8394921875, 'gps': [167256691.12722492, 167257137.19813704], 'classes': {1: 110135, 2: 39329, 7: 14, 9: 12, 10: 1}, 'aerial': ['naip']}
+done pawplant {'epsg': 32617, 'cands': ['USGS_LPC_SC_Georgetown_2016_LAS_2019'], 'src': 'USGS_LPC_SC_Georgetown_2016_LAS_2019', 'dens': 3.287605728565936, 'gps': [167255260.6744473, 167255266.20209527], 'classes': {1: 79573, 2: 56761, 7: 10, 9: 456, 10: 17}, 'aerial': ['naip']}
+all done
+bing http 200 377911
+heritage_course The Heritage Club golf course pond fountain bing 14 ddg 0
+bing http 200 300197
+heritage_club The Heritage Club Pawleys Island SC golf clubhouse bing 14 ddg 0
+bing http 200 395538
+heritage_course The Heritage Club golf course bridge bing 14 ddg 0
+bing http 200 186756
+heritage_club The Heritage Club Pawleys Island SC clubhouse bing 14 ddg 0
+bing http 200 380189
+heritage_course The Heritage Club signature hole bing 14 ddg 0
+bing http 200 285104
+heritage_club The Heritage Club clubhouse patio bing 14 ddg 0
+bing http 200 400760
+heritage_course The Heritage Club golf course aerial bing 14 ddg 0
+heritage_club search 42
+heritage_course search 56
+heritage_club 28
+heritage_course 28
+bing http 200 181528
+pawplant_course Pawleys Plantation Golf Club golf course pond fountain bing 14 ddg 0
+bing http 200 199052
+pawplant_club Pawleys Plantation Golf Club Pawleys Island SC golf clubhouse bing 14 ddg 0
+bing http 200 189131
+pawplant_course Pawleys Plantation Golf Club golf course bridge bing 14 ddg 0
+bing http 200 191986
+pawplant_club Pawleys Plantation Golf Club Pawleys Island SC clubhouse bing 14 ddg 0
+bing http 200 407321
+pawplant_course Pawleys Plantation Golf Club signature hole bing 14 ddg 0
+bing http 200 299766
+pawplant_club Pawleys Plantation Golf Club clubhouse patio bing 14 ddg 0
+bing http 200 197984
+pawplant_course Pawleys Plantation Golf Club golf course aerial bing 14 ddg 0
+pawplant_club search 42
+pawplant_course search 56
+/home/runner/micromamba/envs/pd/lib/python3.11/site-packages/PIL/Image.py:3728: UserWarning: image file could not be identified because AVIF support not installed
+  warnings.warn(message)
+pawplant_club 28
+pawplant_course 28
+extras job done 0
