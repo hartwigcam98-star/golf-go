@@ -2224,13 +2224,95 @@ function bldWings(q,p,ob){if(q._w!==undefined)return q._w;const g=.7,nu=Math.cei
     if(!best||best.a*g*g<14)break;for(let j=best.j0;j<best.j1;j++)for(let i=best.i0;i<best.i1;i++)if(M[j*nu+i]===1){M[j*nu+i]=2;cov++;}
     W.push([ob.u0+best.i0*g,ob.u0+best.i1*g,ob.v0+best.j0*g,ob.v0+best.j1*g]);if(cov>=tot*.93)break;}
   return q._w=W.length>1?W:null;}
+// the lidar-modelled clubhouse for building q on this course, if there is one
+function lidOf(q,h){const L=typeof CLUBLID!=='undefined'&&(CLUBLID[CUR.id]||(CUR.data&&CLUBLID[CUR.data]));if(!L||!q.club)return null;
+  const ox=L.o[0]-h.T0[0],oz=L.o[1]-h.T0[1];if(hyp(q.x-ox,q.y-oz)>Math.max(18,Math.sqrt(q.area)*.6))return null;
+  return L.blocks||L.parts?L:null;}
+/* A clubhouse modelled on its lidar survey (CLUBLID: one per course, built with the bk.py toolkit): roof blocks in the building's own frame,
+   [type,u0,u1,v0,v1,eave,pitch,ridge,flags]; H hip, GU/GV gable with the ridge along u/v, SU/SV shed, F flat, T tower or cupola;
+   flag o = open underneath (porch, veranda, porte-cochere: posts, no walls), d = deck (railing). Overlapping blocks make the real
+   roof: the highest surface shows everywhere, so valleys and hips come from the union. Walls in the clubhouse's own materials
+   (CLUBLOOK colours), windows per storey, gable ends that follow the roof; bldDraw keeps the doors, entry, patio and flag. */
+function blockMass(h,q,out,L,C){
+  // wings set at their own angle (a Y- or V-plan) come as parts, each with its own frame; heights stay on the main reference ground
+  if(L.parts){const a0=L.a*Math.PI/180,F0=hAtH(h,L.o[0]-h.T0[0]+L.ref[0]*Math.cos(a0)+L.ref[1]*Math.sin(a0),L.o[1]-h.T0[1]-L.ref[0]*Math.sin(a0)+L.ref[1]*Math.cos(a0));let ev=[];
+    if(L.blocks&&L.blocks.length)ev.push(blockMass(h,q,out,{o:L.o,a:L.a,ref:L.ref,blocks:L.blocks},Object.assign({},C,{F:F0})).eave);
+    for(const pt of L.parts)ev.push(blockMass(h,q,out,{o:pt.o,a:pt.a,ref:[0,0],blocks:pt.blocks},Object.assign({},C,{F:F0})).eave);
+    ev.sort((x,y)=>x-y);return{F:F0,eave:ev[ev.length>>1]};}
+  const a=L.a*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ox=L.o[0]-h.T0[0],oz=L.o[1]-h.T0[1],B=L.blocks;
+  const X=(u,v)=>ox+u*ca+v*sa,Z=(u,v)=>oz-u*sa+v*ca,gAt=(u,v)=>hAtH(h,X(u,v),Z(u,v)),F=C.F!=null?C.F:gAt(L.ref[0],L.ref[1]),P=(u,v,y)=>[X(u,v),F+y,Z(u,v)];
+  const DU=[ca,0,-sa],DV=[sa,0,ca],UP=[0,1,0],nU=k=>[DU[0]*k,0,DU[2]*k],nV=k=>[DV[0]*k,0,DV[2]*k];
+  const shade=n=>.82+.18*Math.max(0,dot3(n,nrm([-.5,.6,.6]))),q4=(A,B2,C2,D,col,n)=>quadO(out,A,B2,C2,D,col,n);
+  const rc=n=>mul(C.roof,shade(n)),ov=b=>b[0]==='T'?.15:b[0]==='F'?.05:Math.min(.6,(Math.min(b[2]-b[1],b[4]-b[3]))*.08);
+  // the roof height of block b at (u,v), or -1e9 outside it
+  const rh=(b,u,v)=>{const[t,u0,u1,v0,v1,e,p,cap]=b;if(u<u0-1e-6||u>u1+1e-6||v<v0-1e-6||v>v1+1e-6)return -1e9;const du=Math.min(u-u0,u1-u),dv=Math.min(v-v0,v1-v);
+    let y=t==='H'?e+p*Math.min(du,dv):t==='GU'?e+p*dv:t==='GV'?e+p*du:t==='SU'?e+p*(u-u0):t==='SV'?e+p*(v-v0):t==='T'?Math.min(cap,Math.max(e,cap-(cap-e)*(1-Math.min(du,dv)/Math.max(.01,Math.min(u1-u0,v1-v0)/2)))):e;
+    return t==='SU'||t==='SV'?Math.min(Math.max(y,Math.min(e,cap)),Math.max(e,cap)):Math.min(y,Math.max(cap,e));};
+  const inBlk=(u,v,me)=>B.some(b=>b!==me&&!(b[8]||'').includes('o')&&u>b[1]+ov(b)&&u<b[2]-ov(b)&&v>b[3]+ov(b)&&v<b[4]-ov(b));
+  // roofs
+  const hipShell=(u0,u1,v0,v1,hb,p,cap,col)=>{let t=p>0?(cap-hb)/p:0;t=Math.max(0,Math.min(t,(u1-u0)/2,(v1-v0)/2));const ht=hb+p*t,U0=u0+t,U1=u1-t,V0=v0+t,V1=v1-t;
+    if(t>0){const nS=nrm([DV[0]*p,1,DV[2]*p]),nN=nrm([-DV[0]*p,1,-DV[2]*p]),nE=nrm([DU[0]*p,1,DU[2]*p]),nW=nrm([-DU[0]*p,1,-DU[2]*p]);
+      q4(P(u0,v1,hb),P(u1,v1,hb),P(U1,V1,ht),P(U0,V1,ht),col||rc(nS),nS);q4(P(u1,v0,hb),P(u0,v0,hb),P(U0,V0,ht),P(U1,V0,ht),col||rc(nN),nN);
+      q4(P(u1,v1,hb),P(u1,v0,hb),P(U1,V0,ht),P(U1,V1,ht),col||rc(nE),nE);q4(P(u0,v0,hb),P(u0,v1,hb),P(U0,V1,ht),P(U0,V0,ht),col||rc(nW),nW);}
+    if(U1-U0>.05&&V1-V0>.05)q4(P(U0,V0,ht),P(U1,V0,ht),P(U1,V1,ht),P(U0,V1,ht),col||C.roof,UP);};
+  for(const b of B){const[t,u0,u1,v0,v1,e,p,cap]=b,fl=b[8]||'';
+    if(t==='H'||t==='T'){if(t==='T'){const o=ov(b),tw=Math.min(u1-u0,v1-v0)/2,pp=Math.max(.3,(cap-e)/Math.max(.3,tw));hipShell(u0,u1,v0,v1,e,pp,cap);}else hipShell(u0,u1,v0,v1,e,p,cap);}
+    else if(t==='GU'||t==='GV'){const along=t==='GU',w=along?v1-v0:u1-u0,tt=Math.max(0,Math.min(w/2,p>0?(cap-e)/p:0)),ht=e+p*tt;
+      const Q=(s,r,y)=>along?P(s,r,y):P(r,s,y),s0=along?u0:v0,s1=along?u1:v0,r0=along?v0:u0,r1=along?v1:u1,S1=along?u1:v1,DD=along?DV:DU;
+      const nA=nrm([-DD[0]*p,1,-DD[2]*p]),nB=nrm([DD[0]*p,1,DD[2]*p]);
+      q4(Q(s0,r0,e),Q(S1,r0,e),Q(S1,r0+tt,ht),Q(s0,r0+tt,ht),rc(nA),nA);q4(Q(s0,r1,e),Q(S1,r1,e),Q(S1,r1-tt,ht),Q(s0,r1-tt,ht),rc(nB),nB);
+      if(r1-tt>r0+tt+.05)q4(Q(s0,r0+tt,ht),Q(S1,r0+tt,ht),Q(S1,r1-tt,ht),Q(s0,r1-tt,ht),C.roof,UP);
+}
+    else if(t==='SU'||t==='SV'){const along=t==='SU';const corners=[[u0,v0],[u1,v0],[u1,v1],[u0,v1]].map(([u,v])=>P(u,v,rh(b,u,v)));
+      const n=nrm(along?[-DU[0]*p,1,-DU[2]*p]:[-DV[0]*p,1,-DV[2]*p]);q4(corners[0],corners[1],corners[2],corners[3],rc(n),n);}
+    else{q4(P(u0,v0,e),P(u1,v0,e),P(u1,v1,e),P(u0,v1,e),fl.includes('d')?C.deck:C.flat,UP);
+      for(const[A2,B2,n]of[[[u0,v0],[u1,v0],nV(-1)],[[u1,v0],[u1,v1],nU(1)],[[u1,v1],[u0,v1],nV(1)],[[u0,v1],[u0,v0],nU(-1)]]){
+        if(fl.includes('d')){q4(P(A2[0],A2[1],e+.95),P(B2[0],B2[1],e+.95),P(B2[0],B2[1],e+1.07),P(A2[0],A2[1],e+1.07),C.trim,n);}
+        else q4(P(A2[0],A2[1],e-.3),P(B2[0],B2[1],e-.3),P(B2[0],B2[1],e+(fl.includes('o')?0:.35)),P(A2[0],A2[1],e+(fl.includes('o')?0:.35)),C.trim,n);}}}
+  // walls (and posts under open roofs)
+  const ext=[];
+  for(const b of B){const[t,u0,u1,v0,v1,e,p,cap]=b,fl=b[8]||'',o=ov(b),U0=u0+o,U1=u1-o,V0=v0+o,V1=v1-o;
+    const sides=[[U0,V1,U1,V1,nV(1)],[U1,V0,U0,V0,nV(-1)],[U1,V1,U1,V0,nU(1)],[U0,V0,U0,V1,nU(-1)]];
+    if(fl.includes('o')||fl.includes('d')){for(const[a0,b0,a1,b1,n]of sides){const Lr=hyp(a1-a0,b1-b0),m=Math.max(1,Math.round(Lr/3.2));
+        for(let k=0;k<=m;k++){const u=a0+(a1-a0)*k/m,v=b0+(b1-b0)*k/m;if(inBlk(u,v,b))continue;const g=gAt(u,v)-F,y=(fl.includes('d')?e:rh(b,u,v))-.3;if(y-g<.4)continue;
+          boxO(out,X(u,v),F+(g+y)/2,Z(u,v),.11,(y-g)/2,.11,-a,fl.includes('d')?C.trim:C.post);}}continue;}
+    for(const[a0,b0,a1,b1,n]of sides){const Lr=hyp(a1-a0,b1-b0);if(Lr<.05)continue;const ts=[0,1];const ns=Math.max(1,Math.round(Lr/2));for(let k=1;k<ns;k++)ts.push(k/ns);
+      // breakpoints where the roof line kinks (gable peaks, ridge ends)
+      for(const s of[(u0+u1)/2,(v0+v1)/2]){const tt=Math.abs(a1-a0)>1e-6?(s-a0)/(a1-a0):(s-b0)/(b1-b0);if(tt>0&&tt<1)ts.push(tt);}
+      const rr=Math.max(0,p>0?(cap-e)/p:0);for(const d of[rr,-rr])for(const s of[(Math.abs(a1-a0)>1e-6?(u0+u1)/2:(v0+v1)/2)+d]){const tt=Math.abs(a1-a0)>1e-6?(s-a0)/(a1-a0):(s-b0)/(b1-b0);if(tt>0&&tt<1)ts.push(tt);}
+      ts.sort((x,y)=>x-y);
+      for(let k=0;k<ts.length-1;k++){const t0=ts[k],t1=ts[k+1];if(t1-t0<1e-4)continue;const ua=a0+(a1-a0)*t0,va=b0+(b1-b0)*t0,ub=a0+(a1-a0)*t1,vb=b0+(b1-b0)*t1;
+        const ya=rh(b,ua,va),yb=rh(b,ub,vb),ga=gAt(ua,va)-F-.3,gb=gAt(ub,vb)-F-.3;if(ya<-1e8||yb<-1e8)continue;
+        q4(P(ua,va,ga),P(ub,vb,gb),P(ub,vb,yb-.03),P(ua,va,ya-.03),C.wall,n);
+        const um=(ua+ub)/2+(n[0]*ca-n[2]*sa)*.7,vm=(va+vb)/2+(n[0]*sa+n[2]*ca)*.7;
+        ext.push([ua,va,ub,vb,n,ga+.3,gb+.3,Math.min(ya,yb),inBlk(um,vm,b)?1:0,t===`T`?1:0]);}
+      // eave trim
+      if(t!=='T')q4(P(a0,b0,rh(b,a0,b0)-.32),P(a1,b1,rh(b,a1,b1)-.32),P(a1,b1,rh(b,a1,b1)-.02),P(a0,b0,rh(b,a0,b0)-.02),C.trim,n);}}
+  // dressing: plinth, siding courses, windows per storey on walls that face open air
+  const eaves=[];
+  for(const[ua,va,ub,vb,n,g0,g1,yt,hid,tw]of ext){const Lr=hyp(ub-ua,vb-va),o=.035,Q=(t,y)=>{const p_=P(ua+(ub-ua)*t,va+(vb-va)*t,y);return[p_[0]+n[0]*o,p_[1],p_[2]+n[2]*o];};
+    if(hid)continue;const gl=Math.max(g0,g1),gm=Math.min(g0,g1);if(!tw)eaves.push(yt);
+    if(C.plinth>0&&yt-gm>1.5&&!tw)q4(Q(0,g0-.3),Q(1,g1-.3),Q(1,g1+C.plinth),Q(0,g0+C.plinth),C.stone,n);
+    // a brick or stone ground storey, then the wall material: lap or log courses, battens, stone coursing or tudor timbers
+    const yb=C.lo>0?F+C.lo:gm+C.plinth;if(C.lo>0&&yb>gm+.5)q4(Q(0,g0-.3),Q(1,g1-.3),Q(1,Math.max(g1,yb)),Q(0,Math.max(g0,yb)),C.lc,n);
+    if(C.lines&&yt-gl>1)for(let y=Math.max(gl,yb)+C.lines;y<yt-.4;y+=C.lines)q4(Q(0,y),Q(1,y),Q(1,y+(C.mat==='log'?.08:.04)),Q(0,y+(C.mat==='log'?.08:.04)),C.line,n);
+    if((C.mat==='board'||C.mat==='tudor')&&yt-gl>1){const nb=Math.max(1,Math.round(Lr/(C.mat==='tudor'?1.4:.75))),w=(C.mat==='tudor'?.08:.04)/Lr,y0=Math.max(gl,yb),col=C.mat==='tudor'?C.tc:C.line;
+      for(let k=0;k<nb;k++){const t=(k+.5)/nb;q4(Q(t-w,y0),Q(t+w,y0),Q(t+w,yt-.3),Q(t-w,yt-.3),col,n);}
+      if(C.mat==='tudor'){const ym=y0+(yt-y0)*.45;q4(Q(0,ym),Q(1,ym),Q(1,ym+.14),Q(0,ym+.14),col,n);q4(Q(0,y0),Q(1,y0),Q(1,y0+.16),Q(0,y0+.16),col,n);}}
+    if(Lr<1.3)continue;const nw=Math.max(1,Math.floor(Lr/2.3));
+    for(let fy=tw?yt-1.6:gl+.95;fy+1.0<yt-.3;fy+=3.3){const wh=Math.min(1.5,yt-.35-fy);if(wh<.7)break;
+      for(let k=0;k<nw;k++){const t=(k+.5)/nw,hw=Math.min(.55,Lr/nw*.3)/Lr;q4(Q(t-hw-.05/Lr,fy-.08),Q(t+hw+.05/Lr,fy-.08),Q(t+hw+.05/Lr,fy+wh+.08),Q(t-hw-.05/Lr,fy+wh+.08),C.frame,n);
+        const o2=.05,R2=(tt,y)=>{const p_=P(ua+(ub-ua)*tt,va+(vb-va)*tt,y);return[p_[0]+n[0]*o2,p_[1],p_[2]+n[2]*o2];};q4(R2(t-hw,fy),R2(t+hw,fy),R2(t+hw,fy+wh),R2(t-hw,fy+wh),C.glass,n);}}}
+  eaves.sort((x,y)=>x-y);return{F,eave:F+(eaves.length?eaves[eaves.length>>1]:3)};}
 function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;const A=Math.abs(polyArea(p));if(A<8)return;
   const rec=q.rec||null,kind=q.bk||null,club=!!q.club,ex=!!(rec||kind),gh=(q.gh||0)-.2,hs=Math.abs(Math.round(q.x*7.3+q.y*13.1))%9973;
   let H1,rise=null,rt=2;
   if(rec){H1=Math.max(2.2,+rec[0]||0)+.2;rise=Math.max(0,+rec[1]||0);rt=clamp(rec[2]|0,0,2);if(rt&&rise<.3)rt=0;}
   else if(kind){H1=kind==='shack'?2.7:kind==='barn'?4.4:4.2;if(kind!=='building'){rt=1;rise=kind==='shack'?1.1:.9;}if(q.wbarn){H1=5;rise=3.4;}}
   else H1=q.h||(club?(A>900?7.2:4.6):4.2);
-  const LK=club?(CLUBLOOK[CUR.id]||(CUR.data&&CLUBLOOK[CUR.data])||null):null;
+  let LK=club?(CLUBLOOK[CUR.id]||(CUR.data&&CLUBLOOK[CUR.data])||null):null;
+  // a clubhouse measured from lidar draws its own walls and roof (blockMass); the look's extra massing (gables, towers, porches) is in the survey already
+  const LD=!simple&&club?lidOf(q,h):null;if(LD&&LK)LK=Object.assign({},LK,{xg:0,eg:0,tw:0,cu:0,ch:0,dm:0,oct:0,pc:0,po:0,bal:0,clk:0,v:'none',lo:0,ga:0,gb:0});
   if(LK&&LK.fl)rt=0;
   if(LK&&LK.eh)H1=Math.max(H1,LK.eh+.2);if(LK&&LK.rs!=null&&rt)rise=LK.rs;
   // on a slope the walls still clear the high side of the footprint
@@ -2277,8 +2359,13 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
   const flat=(ex||LK&&LK.fl)&&rt===0,Htop=flat?H1+.45:H1,plinth=LK?(LK.b!=null?LK.b:.5):kind&&kind!=='building'?.3:club?1.1:.5;
   let rows=[];if(!simple&&kind!=='shack'&&kind!=='barn'){if(!ex)rows=H1>6?[[1.8,3.3],[4.6,6.1]]:[[1.6,3.1]];else for(let y=club?1.8:1.5;y+1.5<H1-.3&&rows.length<6;y+=3.1)rows.push([y,y+1.5]);
     if(!rows.length&&H1>2.5)rows.push([Math.max(plinth+.25,.9),Math.min(H1-.55,2.6)]);}
+  if(LD){const MM=LK&&LK.m,ln=MM==='siding'?.42:MM==='log'?.38:MM==='brick'?.5:0;
+    const LK0=club?(CLUBLOOK[CUR.id]||(CUR.data&&CLUBLOOK[CUR.data])||{}):{};
+    const LDr=blockMass(h,q,out,LD,{wall:MM==='stone'?mul(wall,.84):wall,roof,trim,stone,glass,frame,flat:hexc('#9d9a93'),deck:hexc('#b0a48e'),post:LK0.c?hexc(LK0.c):trim,plinth:Math.min(plinth,1.2),
+      lines:MM==='stone'?.55:ln,line:mul(wall,MM==='log'?.68:MM==='brick'?.86:MM==='stone'?.78:.83),mat:MM,tc:hexc(LK0.tc||LK0.t||'#3e2e24'),lo:LK0.lo||0,lc:hexc(LK0.lc||'#8a6a58')});
+    H1=Math.max(2.4,LDr.eave-gh);}
   // walls: stone plinth, siding, a trim band under the eave (or the parapet coping), rows of windows
-  for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length],ex2=b[0]-a[0],ez=b[1]-a[1],L=hyp(ex2,ez);if(L<.2)continue;
+  if(!LD)for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length],ex2=b[0]-a[0],ez=b[1]-a[1],L=hyp(ex2,ez);if(L<.2)continue;
     const n=[ez/L*s,0,-ex2/L*s];
     // a side wing in its own material (Hazeltine's grey board-and-batten wings beside the stone main block)
     const sideW=!!(LK&&LK.wg&&wings&&ob&&(()=>{const mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2,u=mx*ob.ux+mz*ob.uy,v=mz*ob.ux-mx*ob.uy,w=wings[0];return u<w[0]-1.2||u>w[1]+1.2||v<w[2]-1.2||v>w[3]+1.2;})()),WL=sideW?hexc(LK.wg.w):wall;
@@ -2315,7 +2402,7 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
   const slope=(a,b,c,d,under)=>{let nn=nrm(cross(sub(b,a),sub(d,a)));if(nn[1]<0)nn=mul(nn,-1);quadO(out,a,b,c,d,mul(roof,shadeOf(nn)),nn);if(under)quadO(out,a,b,c,d,mul(trim,.8),mul(nn,-1));};
   let top=null,peak=null;   // points on the roof for the club's chimney and cupola
   const chim=LK&&LK.ch?hexc(LK.ch):stone;
-  if(wings){
+  if(LD){}else if(wings){
     // each wing gets its own roof: ridge along its long side, a rise to suit its width (the measured rise on the main wing), hips or gables;
     // the wings' roofs run into each other the way a real clubhouse's cross wings do
     const yE=gh+H1-.05,o=.6,w0=wings[0],sh0=Math.min(w0[1]-w0[0],w0[3]-w0[2]),R0=rise!=null?rise:(club?.62:.7)*Math.min(club?7:4.5,sh0/2);
@@ -2813,7 +2900,7 @@ function courseFeel2(h,out){const F=CFEEL[CUR.id]||{},b=h.bounds,T0=h.T0,R=rng((
     else if(o.k==='snag'){const c=hexc('#cfccc2');cyl(x,g-.2,z,.62,11,7,c,true);cyl(x,g+10.6,z,.38,2.2,6,c,true);for(let k=0;k<7;k++){const a=k*2.1+R()*.5,y=g+3.2+k*1.15,l=3.2+R()*2.2-k*.2;const A1=[x,y,z],B1=[x+Math.cos(a)*l,y+l*.6,z+Math.sin(a)*l];quadO(out,[A1[0]-.34,A1[1],A1[2]],[A1[0]+.34,A1[1],A1[2]],[B1[0]+.14,B1[1],B1[2]],[B1[0]-.14,B1[1],B1[2]],c,[0,0,1]);quadO(out,[A1[0],A1[1],A1[2]-.34],[A1[0],A1[1],A1[2]+.34],[B1[0],B1[1],B1[2]+.14],[B1[0],B1[1],B1[2]-.14],c,[1,0,0]);quadO(out,[A1[0]-.34,A1[1],A1[2]],[A1[0]+.34,A1[1],A1[2]],[B1[0]+.14,B1[1],B1[2]],[B1[0]-.14,B1[1],B1[2]],c,[0,0,-1]);quadO(out,[A1[0],A1[1],A1[2]-.34],[A1[0],A1[1],A1[2]+.34],[B1[0],B1[1],B1[2]+.14],[B1[0],B1[1],B1[2]-.14],c,[-1,0,0]);}}}
   // a chateau's skyline on the club building (the Renaissance Ross Bridge hotel): round corner turrets with tall slate spires and steep
   // stone gables along the long walls, above the measured walls and roof
-  if(F.chateau)for(const q of h.buildings||[])if(q.club&&q.rec){const p=bldSimplify(q.pts.slice(),2.5),n=p.length,gh=(q.gh||0)-.2,eave=gh+Math.max(2.4,+q.rec[0]||0)+.2,stc=hexc('#e2d6b8'),sl=hexc('#3f4652');
+  if(F.chateau)for(const q of h.buildings||[])if(q.club&&q.rec&&!lidOf(q,h)){const p=bldSimplify(q.pts.slice(),2.5),n=p.length,gh=(q.gh||0)-.2,eave=gh+Math.max(2.4,+q.rec[0]||0)+.2,stc=hexc('#e2d6b8'),sl=hexc('#3f4652');
     let ar=0;for(let i=0;i<n;i++){const a=p[i],b=p[(i+1)%n];ar+=a[0]*b[1]-b[0]*a[1];}const cw=ar<0?1:-1;let tc=0;
     for(let i=0;i<n&&tc<9;i++){const a=p[(i+n-1)%n],b=p[i],c=p[(i+1)%n],d1=[b[0]-a[0],b[1]-a[1]],d2=[c[0]-b[0],c[1]-b[1]],l1=hyp(d1[0],d1[1]),l2=hyp(d2[0],d2[1]);if(l1<6||l2<6)continue;
       const crs=(d1[0]*d2[1]-d1[1]*d2[0])*cw;if(crs>0)continue;tc++;const r=2.4,top=eave+3.5;cyl(b[0],gh,b[1],r,top-gh,12,stc,false);for(let k=0;k<12;k++){const a1=k/12*TAU,a2=(k+1)/12*TAU,A1=[b[0]+Math.cos(a1)*(r+.3),top,b[1]+Math.sin(a1)*(r+.3)],A2=[b[0]+Math.cos(a2)*(r+.3),top,b[1]+Math.sin(a2)*(r+.3)],T=[b[0],top+8.5,b[1]];triO(out,A1,A2,T,sl,nrm([Math.cos((a1+a2)/2),.45,Math.sin((a1+a2)/2)]));}}
