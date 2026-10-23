@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Golf Go · Course landmarks</title>
+<meta name="theme-color" content="#0f2233">
+<style>
+:root{--bg:#0f2233;--card:#16304a;--fg:#eef3f6;--muted:#a9bccb;--line:#24425f;--accent:#8ee6a8;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+h1{font-size:28px;line-height:1.15;margin:0 0 6px}
+.lede{color:var(--muted);margin:0 0 20px;max-width:62ch}
+.back{display:inline-block;margin-bottom:14px;color:var(--accent);text-decoration:none;font-weight:600}
+.list{display:grid;gap:18px}
+.course{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+h2{font-size:20px;margin:0;line-height:1.2}
+.town{color:var(--muted);font-size:13px}
+.real{margin:0;color:var(--muted);font-size:14px}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:620px){.shots{grid-template-columns:1fr}}
+figure{margin:0;display:grid;gap:4px;min-width:0}
+img{width:100%;height:auto;border-radius:8px;display:block;background:#0b1a28}
+figcaption{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.now figcaption{color:var(--accent);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" id="back" href="../" hidden>&larr; Back to Golf Go</a>
+<h1>Course landmarks</h1>
+<p class="lede">October 23, 2026. Courses picked up their real landmarks from photos of each course: bridges, barns, a silo, a gazebo and pavilion, a hotel tower, flowing waterfalls, stone ledges and flower beds. Here's each one before and after, seen from the course. (The waterfalls move in the game.)</p>
+<div class="list">
+<article class="course" id="northfork_truss_bridge">
+  <div class="top"><h2>Truss bridge</h2><span class="town">The Links at Northfork · Ramsey, MN</span></div>
+  <p class="real">The big red-brown steel arch bridge that carries the cart path over the road by the clubhouse, on stone-block abutments.</p>
+  <div class="shots">
+    <figure><img src="img/northfork_truss_bridge_before.jpg" alt="The Links at Northfork, truss bridge: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/northfork_truss_bridge_after.jpg" alt="The Links at Northfork, truss bridge: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="windsong_silo">
+  <div class="top"><h2>Silo</h2><span class="town">Windsong Farm · Independence, MN</span></div>
+  <p class="real">The farm silo that stands beside the 4th green.</p>
+  <div class="shots">
+    <figure><img src="img/windsong_silo_before.jpg" alt="Windsong Farm, silo: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/windsong_silo_after.jpg" alt="Windsong Farm, silo: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="windsong_boardwalk">
+  <div class="top"><h2>Boardwalk</h2><span class="town">Windsong Farm · Independence, MN</span></div>
+  <p class="real">The long grey timber boardwalk that crosses the pond.</p>
+  <div class="shots">
+    <figure><img src="img/windsong_boardwalk_before.jpg" alt="Windsong Farm, boardwalk: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/windsong_boardwalk_after.jpg" alt="Windsong Farm, boardwalk: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="maddens_covered_bridge">
+  <div class="top"><h2>Covered bridge</h2><span class="town">The Classic at Madden&#x27;s · Brainerd, MN</span></div>
+  <p class="real">A roofed wooden covered bridge over the marsh.</p>
+  <div class="shots">
+    <figure><img src="img/maddens_covered_bridge_before.jpg" alt="The Classic at Madden&#x27;s, covered bridge: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/maddens_covered_bridge_after.jpg" alt="The Classic at Madden&#x27;s, covered bridge: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="maddens_pavilion">
+  <div class="top"><h2>Pavilion</h2><span class="town">The Classic at Madden&#x27;s · Brainerd, MN</span></div>
+  <p class="real">The covered timber pavilion on the pond bank behind a green.</p>
+  <div class="shots">
+    <figure><img src="img/maddens_pavilion_before.jpg" alt="The Classic at Madden&#x27;s, pavilion: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/maddens_pavilion_after.jpg" alt="The Classic at Madden&#x27;s, pavilion: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="stoneridge_barn">
+  <div class="top"><h2>The Barn</h2><span class="town">StoneRidge · Stillwater, MN</span></div>
+  <p class="real">The building by the pond was already there; it&#x27;s now drawn as The Barn from the club&#x27;s logo, with barn doors and its real shape.</p>
+  <div class="shots">
+    <figure><img src="img/stoneridge_barn_before.jpg" alt="StoneRidge, the barn: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/stoneridge_barn_after.jpg" alt="StoneRidge, the barn: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="troy_barn">
+  <div class="top"><h2>Barn</h2><span class="town">Troy Burne · Hudson, WI</span></div>
+  <p class="real">The small dark barn by the par-3 pond.</p>
+  <div class="shots">
+    <figure><img src="img/troy_barn_before.jpg" alt="Troy Burne, barn: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/troy_barn_after.jpg" alt="Troy Burne, barn: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="mystic_gazebo">
+  <div class="top"><h2>Gazebo</h2><span class="town">The Meadows at Mystic Lake · Prior Lake, MN</span></div>
+  <p class="real">The white gazebo on the bank of the big pond.</p>
+  <div class="shots">
+    <figure><img src="img/mystic_gazebo_before.jpg" alt="The Meadows at Mystic Lake, gazebo: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/mystic_gazebo_after.jpg" alt="The Meadows at Mystic Lake, gazebo: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="mystic_hotel_tower">
+  <div class="top"><h2>Hotel tower</h2><span class="town">The Meadows at Mystic Lake · Prior Lake, MN</span></div>
+  <p class="real">Mystic Lake&#x27;s hotel tower rising over the casino, seen across the course.</p>
+  <div class="shots">
+    <figure><img src="img/mystic_hotel_tower_before.jpg" alt="The Meadows at Mystic Lake, hotel tower: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/mystic_hotel_tower_after.jpg" alt="The Meadows at Mystic Lake, hotel tower: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="rossbridge_waterfall_1">
+  <div class="top"><h2>Waterfall</h2><span class="town">Ross Bridge · Hoover, AL</span></div>
+  <p class="real">A flowing waterfall over limestone ledges into the pond, with a foam pool where it lands.</p>
+  <div class="shots">
+    <figure><img src="img/rossbridge_waterfall_1_before.jpg" alt="Ross Bridge, waterfall: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/rossbridge_waterfall_1_after.jpg" alt="Ross Bridge, waterfall: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="rossbridge_waterfall_2">
+  <div class="top"><h2>Waterfall</h2><span class="town">Ross Bridge · Hoover, AL</span></div>
+  <p class="real">The second waterfall, by the 8th green.</p>
+  <div class="shots">
+    <figure><img src="img/rossbridge_waterfall_2_before.jpg" alt="Ross Bridge, waterfall: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/rossbridge_waterfall_2_after.jpg" alt="Ross Bridge, waterfall: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="mystic_waterfall">
+  <div class="top"><h2>Waterfall</h2><span class="town">The Meadows at Mystic Lake · Prior Lake, MN</span></div>
+  <p class="real">A stone waterfall cascading into the pond.</p>
+  <div class="shots">
+    <figure><img src="img/mystic_waterfall_before.jpg" alt="The Meadows at Mystic Lake, waterfall: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/mystic_waterfall_after.jpg" alt="The Meadows at Mystic Lake, waterfall: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="troy_limestone_ledges">
+  <div class="top"><h2>Limestone ledges</h2><span class="town">Troy Burne · Hudson, WI</span></div>
+  <p class="real">Stacked limestone ledges along the pond banks by the greens.</p>
+  <div class="shots">
+    <figure><img src="img/troy_limestone_ledges_before.jpg" alt="Troy Burne, limestone ledges: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/troy_limestone_ledges_after.jpg" alt="Troy Burne, limestone ledges: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="legend_begonia_beds">
+  <div class="top"><h2>Begonia beds</h2><span class="town">The Legend · Biwabik, MN</span></div>
+  <p class="real">Red begonia beds behind the tees.</p>
+  <div class="shots">
+    <figure><img src="img/legend_begonia_beds_before.jpg" alt="The Legend, begonia beds: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/legend_begonia_beds_after.jpg" alt="The Legend, begonia beds: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="pines_begonia_beds">
+  <div class="top"><h2>Begonia beds</h2><span class="town">The Pines · Nisswa, MN</span></div>
+  <p class="real">Red begonia beds behind the greens.</p>
+  <div class="shots">
+    <figure><img src="img/pines_begonia_beds_before.jpg" alt="The Pines, begonia beds: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/pines_begonia_beds_after.jpg" alt="The Pines, begonia beds: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="farmlinks_marble">
+  <div class="top"><h2>Marble outcrop</h2><span class="town">FarmLinks at Pursell Farms · Sylacauga, AL</span></div>
+  <p class="real">White marble rock by the 5th tee.</p>
+  <div class="shots">
+    <figure><img src="img/farmlinks_marble_before.jpg" alt="FarmLinks at Pursell Farms, marble outcrop: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/farmlinks_marble_after.jpg" alt="FarmLinks at Pursell Farms, marble outcrop: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="wilderness_snag">
+  <div class="top"><h2>Dead snag</h2><span class="town">The Wilderness · Tower, MN</span></div>
+  <p class="real">The tall bare dead tree near the 12th.</p>
+  <div class="shots">
+    <figure><img src="img/wilderness_snag_before.jpg" alt="The Wilderness, dead snag: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/wilderness_snag_after.jpg" alt="The Wilderness, dead snag: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="wilderness_fortune_bay">
+  <div class="top"><h2>Fortune Bay resort</h2><span class="town">The Wilderness · Tower, MN</span></div>
+  <p class="real">The Fortune Bay resort and casino now stand at their real height over the course.</p>
+  <div class="shots">
+    <figure><img src="img/wilderness_fortune_bay_before.jpg" alt="The Wilderness, fortune bay resort: before" loading="lazy" width="640" height="400"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/wilderness_fortune_bay_after.jpg" alt="The Wilderness, fortune bay resort: now" loading="lazy" width="640" height="400"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+</div>
+</div>
+<script>if(window.top===window.self)document.getElementById('back').hidden=false;</script>
+</body>
+</html>
