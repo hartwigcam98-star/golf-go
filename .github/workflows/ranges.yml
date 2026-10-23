@@ -16,7 +16,7 @@ jobs:
         run: pip install -q requests numpy
       - name: fetch
         env:
-          LIDAR: '1'
+          AERIAL: '1'
         run: python pipeline/ranges/fetch_ranges.py 2>&1 | tee run.log
       - name: save
         if: always()
@@ -25,7 +25,7 @@ jobs:
           cp -r out/. /tmp/o/ || true
           cp run.log /tmp/o/ || true
           cd /tmp/o
-          git init -q -b range-data
+          git init -q -b qa-aerials
           git add -A
           git -c user.name=range-bot -c user.email=range-bot@users.noreply.github.com commit -qm "range data run $GITHUB_RUN_ID"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" range-data
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" qa-aerials
