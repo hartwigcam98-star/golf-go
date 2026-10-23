@@ -27,7 +27,9 @@ Examples: models/pines (Y plan), models/legend (curved lodge as segments), model
 
 ## Rules the renderer applies (so you don't have to)
 - A T block thinner than 2.6 yd is drawn as a chimney (flat-capped stack in the chimney colour, at most 1.6 yd over the roof round it).
-- The tallest T block at least 2.5 yd wide gets clock faces when the CLUBLOOK has `clk`.
+- Clocks: flag `c` on a T block puts clock faces on that tower; flag `c` on a GU/GV block puts a clock high in its gable ends
+  (where they show). Without a `c` flag, the tallest T block at least 2.5 yd wide gets the clock when the CLUBLOOK has `clk`.
+  Flags combine: "oc" is not useful, but "c" can sit with nothing else. Examples: models/legends (tower), models/edinburgh (gable).
 - Verandas and porches must carry the "o" flag or they are drawn as solid walls (Oxmoor Valley's wrap-round veranda needed it).
 
 ## Reference models
