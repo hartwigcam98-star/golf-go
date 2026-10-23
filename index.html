@@ -1252,6 +1252,7 @@ function buildHole(d,idx){
   h.allTrees=[...trees,...border];h.allTrees.forEach(t=>t.shade=R());
   if(CUR.surr)surrForHole(h);
   bldxForHole(h);bldSanity(h);
+  try{clubModelFp(h);}catch(e){console.warn('cmfp',e);}
   // keep trees out of buildings and their parking/entry area
   bldTreeClear(h);
   return h;
@@ -2614,6 +2615,101 @@ function lmAnchors(){if(CUR._lm&&CUR._lm.id===CUR.id)return CUR._lm;const F=CFEE
   if(F.cov)A.list.push({k:'cov',x:F.cov[0],y:F.cov[1]});
   for(const sp of F.spans||[])A.list.push({k:'span',x:(sp[0]+sp[2])/2,y:(sp[1]+sp[3])/2,sp});
   return A;}
+/* Clubhouses built from survey data rather than the generic house kit. The Royal Golf Club (Lake Elmo): the old 3M Tartan Park clubhouse,
+   rebuilt in 2017, measured from the 2022 Minnesota state lidar (each wing's hip roof fitted to the point cloud: footprint, eave, pitch
+   and ridge, to about 0.15 yd) and the 2025 Metro aerial photo, and dressed from photos: white walls under two-tier grey-green metal hip
+   roofs, a long band of glass round the main floor, a big square lantern cupola over the dining room, a white chimney, the walkout lower
+   level on the course side, the deck with white umbrellas at the west end, a glass-railed balcony along the south front, golf carts lined
+   up below it and three paved fire-pit circles on the lawn. Block = [name,u0,u1,v0,v1,eave,pitch,ridge] in yards, in the building's own
+   frame (u along the long axis, 24 deg north of east; v toward the course), heights above the parking-lot grade. */
+const CLUBMODEL={royal:{"o":[228.0,-282.0],"a":24,"ov":1.2,"blocks":[["NW",-23.79,-11.5,-26.18,-2.0,3.87,0.41,6.26],["C2",-24.93,3.42,-11.83,9.12,2.62,0.45,6.88],["C",-16.05,12.66,-7.77,20.04,2.68,0.46,6.7],["W",-34.5,-14.13,-2.79,11.08,2.58,0.57,5.85],["SB",-3.72,11.83,7.95,24.0,2.67,0.53,6.16],["EH",3.61,28.45,1.58,18.2,2.64,0.49,6.15],["EV",16.22,25.35,-11.93,8.05,3.44,0.47,4.97],["NC",-0.14,16.28,-22.63,-9.7,2.59,0.56,5.47],["Nflat",-0.2,6.0,-11.0,-6.5,3.45,0,3.45]],"cup":[-5.3,2.0,2.9,9.3,9.0,10.5],"chim":[-23.75,-22.25,-4.75,-3.0,8.2],"deck":[-36.8,-17.2,11.8,21.8],"fp":[[197.0,-295.6],[205.5,-274.2],[196.7,-270.0],[201.4,-259.5],[217.8,-266.8],[217.2,-268.7],[221.9,-258.8],[232.9,-263.7],[234.7,-260.1],[246.8,-265.5],[245.4,-271.1],[259.8,-277.6],[254.0,-290.6],[250.9,-289.5],[245.6,-301.6],[239.4,-298.8],[244.6,-286.4],[239.3,-284.3],[235.5,-292.7],[227.0,-289.2],[229.2,-291.0],[228.3,-293.1],[226.0,-292.1],[225.6,-293.0],[237.2,-298.2],[233.0,-307.7],[220.2,-302.0],[224.3,-292.1],[212.2,-286.7],[206.2,-299.7]],"ref":[-5,-30],"pits":[[-25.7,26.7,2.6],[-42.0,21.2,2.4],[-10.8,25.0,2.0]],"yard":[-40.7,-22.7,-14.9,0.8],"annex":{"p":[[174,-259],[187,-262],[190,-247],[177,-245]],"c":[182,-253],"e":2.6,"r":2.6}}};
+function clubModelFp(h){const M=CLUBMODEL[CUR.id];if(!M||!h.buildings)return;const cl=h.buildings.filter(q=>q.club);if(!cl.length)return;
+  const c=cl.sort((a,b)=>b.area-a.area)[0],T0=h.T0,P=mkPoly(M.fp.map(p=>[p[0]-T0[0],p[1]-T0[1]]),c.kind||'bld');
+  for(const k of Object.keys(c))if(!(k in P))P[k]=c[k];P.cm=1;P.lmHide=1;h.buildings[h.buildings.indexOf(c)]=P;
+  const a=M.a*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),uv=q=>{const dx=q.x+T0[0]-M.o[0],dy=q.y+T0[1]-M.o[1];return[dx*ca-dy*sa,dx*sa+dy*ca];};
+  for(const q of h.buildings)if(q!==P){const[u,v]=uv(q),d=M.deck;if(u>d[0]-2&&u<d[1]+2&&v>d[2]-2&&v<d[3]+2)q.lmHide=1;if(M.annex&&hyp(q.x+T0[0]-M.annex.c[0],q.y+T0[1]-M.annex.c[1])<5)q.lmHide=1;}}
+function clubModel(h,out){const M=CLUBMODEL[CUR.id];if(!M)return;const T0=h.T0,a=M.a*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ox=M.o[0]-T0[0],oz=M.o[1]-T0[1];
+  const X=(u,v)=>ox+u*ca+v*sa,Z=(u,v)=>oz-u*sa+v*ca,gAt=(u,v)=>hAtH(h,X(u,v),Z(u,v)),F=gAt(M.ref[0],M.ref[1]),P=(u,v,y)=>[X(u,v),F+y,Z(u,v)];
+  const b=h.bounds;if(ox<b[0]-700||ox>b[2]+700||oz<b[1]-700||oz>b[3]+700)return;
+  const DU=[ca,0,-sa],DV=[sa,0,ca],UP=[0,1,0],rot=-a,R=rng(9157);
+  const C={wall:hexc('#f3f3ef'),trim:hexc('#fbfbf8'),glass:hexc('#2c3842'),glass2:hexc('#3d4d5a'),roof:hexc('#4b5452'),skirt:hexc('#606a67'),band:hexc('#26323a'),deck:hexc('#b9b2a4'),pave:hexc('#d6d0c4'),dark:hexc('#3a3632')};
+  const nU=s=>[DU[0]*s,0,DU[2]*s],nV=s=>[DV[0]*s,0,DV[2]*s];
+  const q4=(A,B,Cc,D,col,n)=>quadO(out,A,B,Cc,D,col,n);
+  // a hip roof shell on a rectangle from height hb, pitch p, flat top at cap (or a ridge where the slopes meet); ring=true leaves the top open
+  const hip=(u0,u1,v0,v1,hb,p,cap,col,ring,tmax)=>{let t=p>0?(cap-hb)/p:0;t=Math.max(0,Math.min(t,(u1-u0)/2,(v1-v0)/2,tmax??1e9));const ht=hb+p*t,U0=u0+t,U1=u1-t,V0=v0+t,V1=v1-t;
+    if(t>0){q4(P(u0,v1,hb),P(u1,v1,hb),P(U1,V1,ht),P(U0,V1,ht),col,nrm([DV[0]*p,1,DV[2]*p]));q4(P(u1,v0,hb),P(u0,v0,hb),P(U0,V0,ht),P(U1,V0,ht),col,nrm([-DV[0]*p,1,-DV[2]*p]));
+      q4(P(u1,v1,hb),P(u1,v0,hb),P(U1,V0,ht),P(U1,V1,ht),col,nrm([DU[0]*p,1,DU[2]*p]));q4(P(u0,v0,hb),P(u0,v1,hb),P(U0,V1,ht),P(U0,V0,ht),col,nrm([-DU[0]*p,1,-DU[2]*p]));}
+    if(!ring&&U1-U0>.05&&V1-V0>.05)q4(P(U0,V0,ht),P(U1,V0,ht),P(U1,V1,ht),P(U0,V1,ht),col,UP);return[U0,U1,V0,V1,ht];};
+  // vertical band round a rectangle
+  const band=(u0,u1,v0,v1,y0,y1,col)=>{q4(P(u0,v1,y0),P(u1,v1,y0),P(u1,v1,y1),P(u0,v1,y1),col,nV(1));q4(P(u0,v0,y0),P(u1,v0,y0),P(u1,v0,y1),P(u0,v0,y1),col,nV(-1));
+    q4(P(u1,v0,y0),P(u1,v1,y0),P(u1,v1,y1),P(u1,v0,y1),col,nU(1));q4(P(u0,v0,y0),P(u0,v1,y0),P(u0,v1,y1),P(u0,v0,y1),col,nU(-1));};
+  const box=(u,v,y,hu,hy,hv,col)=>boxO(out,X(u,v),F+y,Z(u,v),hu,hy,hv,rot,col);
+  const inDeck=(u,v)=>{const d=M.deck;return u>d[0]-.5&&u<d[1]+.5&&v>d[2]-.5&&v<d[3]+.5;};
+  const inBlk=(u,v,me)=>M.blocks.some(B=>B!==me&&u>B[1]+M.ov-.05&&u<B[2]-M.ov+.05&&v>B[3]+M.ov-.05&&v<B[4]-M.ov+.05);
+  const balc=[];
+  // walls: white, down to the ground (the lower level walks out on the course side), a glass band round the main floor, windows on the
+  // lower level where it stands clear of the ground
+  for(const B of M.blocks){const[,u0,u1,v0,v1,e,p]=B,o=M.ov,wt=e+p*o-.05;const sides=[[u0+o,v1-o,u1-o,v1-o,nV(1)],[u1-o,v0+o,u0+o,v0+o,nV(-1)],[u1-o,v1-o,u1-o,v0+o,nU(1)],[u0+o,v0+o,u0+o,v1-o,nU(-1)]];
+    for(const[a0,b0,a1,b1,n]of sides){const L=hyp(a1-a0,b1-b0),ns=Math.max(1,Math.round(L/2));
+      for(let k=0;k<ns;k++){const t0=k/ns,t1=(k+1)/ns,ua=a0+(a1-a0)*t0,va=b0+(b1-b0)*t0,ub=a0+(a1-a0)*t1,vb=b0+(b1-b0)*t1,um=(ua+ub)/2,vm=(va+vb)/2;
+        if(inBlk(um+n[0]*ca*.3-n[2]*sa*.3,vm+(n[0]*sa+n[2]*ca)*.3,B))continue;   // inside another wing
+        const g0=Math.min(gAt(ua,va),gAt(ub,vb),gAt(um,vm))-F-.4;q4(P(ua,va,g0),P(ub,vb,g0),P(ub,vb,wt),P(ua,va,wt),C.wall,n);
+        const off=[n[0]*.04,0,n[2]*.04],Pq=(u,v,y)=>{const r=P(u,v,y);return[r[0]+off[0],r[1],r[2]+off[2]];};
+        // main floor glass with white mullions; the parking side gets separate windows
+        const north=n===sides[1][4]&&v0<-5,ga=north?.3:.06,gb=north?.7:.94;
+        q4(Pq(ua+(ub-ua)*ga,va+(vb-va)*ga,.45),Pq(ua+(ub-ua)*gb,va+(vb-va)*gb,.45),Pq(ua+(ub-ua)*gb,va+(vb-va)*gb,2.45),Pq(ua+(ub-ua)*ga,va+(vb-va)*ga,2.45),C.glass,n);
+        // the lower level, where the ground falls away
+        if(g0<-2.4){q4(Pq(ua+(ub-ua)*.12,va+(vb-va)*.12,Math.max(g0+.7,-3.2)),Pq(ua+(ub-ua)*.88,va+(vb-va)*.88,Math.max(g0+.7,-3.2)),Pq(ua+(ub-ua)*.88,va+(vb-va)*.88,-1.1),Pq(ua+(ub-ua)*.12,va+(vb-va)*.12,-1.1),C.glass2,n);
+          if(!inDeck(um+(n[0]*ca-n[2]*sa)*1.5,vm+(n[0]*sa+n[2]*ca)*1.5))balc.push([ua,va,ub,vb,n]);}}}}
+  // white slab line between the floors where the lower level shows
+  for(const[ua,va,ub,vb,n]of balc){const d=1.5,nu=n[0]*ca-n[2]*sa,nv=n[0]*sa+n[2]*ca,o2=(u,v)=>[u+nu*d,v+nv*d];const A2=o2(ua,va),B2=o2(ub,vb);
+    // the balcony along the course side: deck, white fascia, glass rail on white posts
+    q4(P(ua,va,-.05),P(ub,vb,-.05),P(B2[0],B2[1],-.05),P(A2[0],A2[1],-.05),C.deck,UP);q4(P(A2[0],A2[1],-.45),P(B2[0],B2[1],-.45),P(B2[0],B2[1],-.05),P(A2[0],A2[1],-.05),C.trim,n);
+    q4(P(A2[0],A2[1],.05),P(B2[0],B2[1],.05),P(B2[0],B2[1],1.05),P(A2[0],A2[1],1.05),hexc('#9fb4bd'),n);q4(P(A2[0],A2[1],1.0),P(B2[0],B2[1],1.0),P(B2[0],B2[1],1.12),P(A2[0],A2[1],1.12),C.trim,n);
+    box(A2[0],A2[1],.55,.06,.55,.06,C.trim);}
+  // roofs: a lighter skirt round the eaves, a dark glazed step, then the main hip in darker standing-seam metal
+  for(const B of M.blocks){const[,u0,u1,v0,v1,e,p,cap]=B;if(!(p>0)){q4(P(u0,v0,e),P(u1,v0,e),P(u1,v1,e),P(u0,v1,e),C.roof,UP);band(u0,u1,v0,v1,e-.35,e,C.trim);continue;}
+    const s=1.5,r=hip(u0,u1,v0,v1,e,p,cap,C.skirt,true,s);band(u0,u1,v0,v1,e-.22,e,C.trim);
+    const[U0,U1,V0,V1,ht]=r;band(U0+.05,U1-.05,V0+.05,V1-.05,ht,ht+.38,C.band);hip(U0+.05,U1-.05,V0+.05,V1-.05,ht+.38,p,cap+.15,C.roof,false);}
+  // the lantern cupola over the dining room: white walls with a ring of windows, a hipped cap
+  {const[u0,u1,v0,v1,wt,top]=M.cup,i=.45;band(u0+i,u1-i,v0+i,v1-i,5.6,wt,C.wall);const n=4;
+    for(let k=0;k<n;k++)for(const sd of[0,1,2,3]){const t=(k+.5)/n;let A,Bp,nn;const w=.32/n;
+      if(sd<2){const v=sd?v1-i+.04:v0+i-.04,uu=u0+i+(u1-u0-2*i)*t,hw=(u1-u0-2*i)*w*1.3;A=[uu-hw,v];Bp=[uu+hw,v];nn=nV(sd?1:-1);}else{const u=sd===3?u1-i+.04:u0+i-.04,vv=v0+i+(v1-v0-2*i)*t,hw=(v1-v0-2*i)*w*1.3;A=[u,vv-hw];Bp=[u,vv+hw];nn=nU(sd===3?1:-1);}
+      q4(P(A[0],A[1],wt-1.55),P(Bp[0],Bp[1],wt-1.55),P(Bp[0],Bp[1],wt-.35),P(A[0],A[1],wt-.35),C.glass,nn);}
+    band(u0,u1,v0,v1,wt-.18,wt,C.trim);hip(u0,u1,v0,v1,wt,(top-wt)/Math.min((u1-u0)/2,(v1-v0)/2),top,C.roof,false);box((u0+u1)/2,(v0+v1)/2,top+.35,.08,.35,.08,C.dark);}
+  // the white chimney on the west wing
+  {const[u0,u1,v0,v1,top]=M.chim;box((u0+u1)/2,(v0+v1)/2,(top+4)/2,(u1-u0)/2,(top-4)/2,(v1-v0)/2,C.wall);box((u0+u1)/2,(v0+v1)/2,top+.08,(u1-u0)/2+.12,.1,(v1-v0)/2+.12,C.dark);}
+  // the deck at the west end: on the main floor over the lawn, white columns, white rail, tables under white umbrellas
+  {const[u0,u1,v0,v1]=M.deck;q4(P(u0,v0,-.02),P(u1,v0,-.02),P(u1,v1,-.02),P(u0,v1,-.02),hexc('#a99f8f'),UP);band(u0,u1,v0,v1,-.5,-.02,C.trim);
+    for(let u=u0+.5;u<=u1;u+=6.4)for(const v of[v1-.5,v0+(v1-v0)*.45]){const g=gAt(u,v)-F;if(g<-.6){box(u,v,(g-.5)/2,.22,(-.5-g)/2+.3,.22,C.trim);box(u,v,g+.45,.34,.6,.34,hexc('#a59a86'));}}
+    // the open colonnade under it: a paved patio where the carts stage
+    {const n=6;for(let i=0;i<n;i++)for(let j=0;j<n;j++){const a0=u0+(u1-u0)*i/n,a1=u0+(u1-u0)*(i+1)/n,b0=v0+(v1-v0)*j/n,b1=v0+(v1-v0)*(j+1)/n;
+      q4(P(a0,b0,gAt(a0,b0)-F+.06),P(a1,b0,gAt(a1,b0)-F+.06),P(a1,b1,gAt(a1,b1)-F+.06),P(a0,b1,gAt(a0,b1)-F+.06),C.pave,UP);}}
+    const rail=(a0,b0,a1,b1,n)=>{q4(P(a0,b0,.05),P(a1,b1,.05),P(a1,b1,1.0),P(a0,b0,1.0),hexc('#a9bec6'),n);q4(P(a0,b0,1.0),P(a1,b1,1.0),P(a1,b1,1.12),P(a0,b0,1.12),C.trim,n);
+      const L=hyp(a1-a0,b1-b0),m=Math.max(1,Math.round(L/2.2));for(let k=0;k<=m;k++){const t=k/m;box(a0+(a1-a0)*t,b0+(b1-b0)*t,.56,.05,.56,.05,C.trim);}};
+    rail(u0,v1,u1,v1,nV(1));rail(u0,v0,u0,v1,nU(-1));rail(u1,v0+3,u1,v1,nU(1));
+    for(let i=0;i<3;i++)for(let j=0;j<4;j++){const u=u0+2.6+j*((u1-u0-5.2)/3),v=v0+2+i*((v1-v0-4)/2);box(u,v,.42,.5,.03,.5,C.dark);box(u,v,1.1,.04,1.1,.04,C.trim);
+      const cy=2.2,r=1.35;for(let k=0;k<8;k++){const a1=k/8*TAU,a2=(k+1)/8*TAU,A1=P(u+Math.cos(a1)*r,v+Math.sin(a1)*r,cy-.35),A2=P(u+Math.cos(a2)*r,v+Math.sin(a2)*r,cy-.35),T=P(u,v,cy+.15);triO(out,A1,A2,T,C.trim,UP);}}}
+  // the walled service yard north-west (the white-walled square in the photos)
+  if(M.yard){const[u0,u1,v0,v1]=M.yard,cs=[[u0,v1],[u1,v1],[u1,v0],[u0,v0]],ns=[nV(1),nU(1),nV(-1),nU(-1)];
+    for(let k=0;k<4;k++){const[a0,b0]=cs[k],[a1,b1]=cs[(k+1)%4],m=Math.max(1,Math.round(hyp(a1-a0,b1-b0)/2));for(let j=0;j<m;j++){const t0=j/m,t1=(j+1)/m,A=[a0+(a1-a0)*t0,b0+(b1-b0)*t0],B=[a0+(a1-a0)*t1,b0+(b1-b0)*t1],ga=gAt(...A)-F,gb=gAt(...B)-F;
+      q4(P(A[0],A[1],ga-.3),P(B[0],B[1],gb-.3),P(B[0],B[1],gb+2.3),P(A[0],A[1],ga+2.3),C.wall,ns[k]);q4(P(A[0],A[1],ga+2.3),P(B[0],B[1],gb+2.3),P(B[0],B[1],gb+2.42),P(A[0],A[1],ga+2.42),C.trim,ns[k]);}}}
+  // the square annex by the deck: white walls under a dark green pyramid roof (2025 aerial)
+  if(M.annex){const A=M.annex,pts=A.p.map(q=>[q[0]-T0[0],q[1]-T0[1]]),n=pts.length,gs=pts.map(q=>hAtH(h,q[0],q[1])),g0=Math.min(...gs)-.3,et=Math.max(...gs)+A.e,cx=pts.reduce((s,q)=>s+q[0],0)/n,cz=pts.reduce((s,q)=>s+q[1],0)/n;
+    for(let k=0;k<n;k++){const q=pts[k],r=pts[(k+1)%n],nn=nrm([r[1]-q[1],0,-(r[0]-q[0])]),o=[(q[0]+r[0])/2-cx,(q[1]+r[1])/2-cz],sg=o[0]*nn[0]+o[1]*nn[2]>0?1:-1,N=[nn[0]*sg,0,nn[2]*sg];
+      quadO(out,[q[0],g0,q[1]],[r[0],g0,r[1]],[r[0],et,r[1]],[q[0],et,q[1]],C.wall,N);
+      const L=hyp(r[0]-q[0],r[1]-q[1]),m=Math.max(1,Math.round(L/3.5));for(let j=0;j<m;j++){const t=(j+.5)/m,x=q[0]+(r[0]-q[0])*t+N[0]*.04,z=q[1]+(r[1]-q[1])*t+N[2]*.04,gh=hAtH(h,x,z);boxO(out,x,Math.max(gh+1.2,et-1.6),z,.55,.6,.03,Math.atan2(r[1]-q[1],r[0]-q[0]),C.glass);}
+      const ov=.6,Q=[q[0]+(q[0]-cx)/hyp(q[0]-cx,q[1]-cz)*ov,q[1]+(q[1]-cz)/hyp(q[0]-cx,q[1]-cz)*ov],Rr=[r[0]+(r[0]-cx)/hyp(r[0]-cx,r[1]-cz)*ov,r[1]+(r[1]-cz)/hyp(r[0]-cx,r[1]-cz)*ov];
+      triO(out,[Q[0],et-.25,Q[1]],[Rr[0],et-.25,Rr[1]],[cx,et+A.r,cz],hexc('#3f5a4c'),nrm([N[0],1.4,N[2]]));}}
+  // fire-pit circles on the lawn below: pavers, a dark stone ring, Adirondack chairs
+  for(const[u,v,r]of M.pits||[]){const g=gAt(u,v)-F+.06,n=20;for(let k=0;k<n;k++){const a1=k/n*TAU,a2=(k+1)/n*TAU;triO(out,P(u,v,g),P(u+Math.cos(a1)*r,v+Math.sin(a1)*r,g),P(u+Math.cos(a2)*r,v+Math.sin(a2)*r,g),C.pave,UP);}
+    for(let k=0;k<10;k++){const a1=k/10*TAU;box(u+Math.cos(a1)*.65,v+Math.sin(a1)*.65,g+.2,.18,.2,.18,hexc('#5a5550'));}
+    for(let k=0;k<5;k++){const an=k/5*TAU+.3,cu=u+Math.cos(an)*(r-.7),cv=v+Math.sin(an)*(r-.7),ch=hexc('#ece8de');box(cu,cv,g+.2,.24,.04,.24,ch);box(cu+Math.cos(an)*.24,cv+Math.sin(an)*.24,g+.42,.2,.24,.2,ch);}}
+  // golf carts lined up below the deck facing the putting green, and yellow mums along the front (the putting-green photo)
+  {const d=M.deck;for(let k=0;k<8;k++){const u=d[0]+1.5+k*2.1,v=d[3]+2.6,g=gAt(u,v)-F,cc=hexc('#f0efea'),dk=hexc('#2b2b2b');box(u,v,g+.5,.55,.3,.85,cc);box(u,v,g+1.75,.62,.05,.95,cc);
+      for(const s2 of[-1,1])box(u,v+s2*.8,g+1.15,.04,.6,.04,dk);box(u,v-.2,g+.9,.45,.12,.35,dk);}
+    for(const B of M.blocks)if(B[0]==='SB'||B[0]==='EH')for(let u=B[1]+M.ov+1.2;u<B[2]-M.ov-1;u+=3){const v=B[4]-M.ov+.9,g=gAt(u,v)-F;box(u,v,g+.18,1.05,.2,.35,hexc('#e9c21f'));}}
+}
 function courseFeelPre(h){const F=CFEEL[CUR.id]||{};if(!F.tw&&!F.barn&&!F.farm&&!F.mill)return;const A=lmAnchors(),T0=h.T0;
   if(F.tw){const big=(h.buildings||[]).filter(q=>!q.club&&q.area>1400&&q.area<=(F.twMax||1e9)).sort((a,b)=>b.area-a.area)[0];if(big){if(!F.twBlock)big.rec=[F.tw,0,0,null,big.rec&&big.rec[4]];else big.lmHide=1;big.lmTower=1;}}
   for(const o of A.list)if(o.k==='barn'||o.k==='silo'||o.k==='windmill'||o.k==='mill'){const x=o.x-T0[0],y=o.y-T0[1];for(const q of h.buildings||[])if(!q.club&&x>q.bb[0]-9&&x<q.bb[2]+9&&y>q.bb[1]-9&&y<q.bb[3]+9){q.lmHide=1;
@@ -2801,6 +2897,7 @@ function buildStructures(h,out){const ST=STYLE[CUR.scen]||STYLE.prairie,R=rng(42
     for(const[i0,i1]of spans){const a=Math.max(0,i0-4),b=Math.min(pts.length-1,i1+4);if(b-a<3)continue;const FB=(CFEEL[CUR.id]||{}).br,BC=FB==='stone'?['#a8a294','#8c8679']:FB==='white'?['#8a7d6a','#f1efe8']:FB==='grey'?['#8e8a80','#77736b']:FB==='truss'?['#7a6a58','#6e4430']:['#7a5a3c','#5c4330'];const bp=pts.slice(a,b+1);deck(out,bp,2.7,hexc(BC[0]),hexc(BC[1]),false);(h._bridges||(h._bridges=[])).push(bp);}}
   try{courseFeel(h,out);}catch(e){}
   try{courseFeel2(h,out);}catch(e){console.warn('feel2',e);}
+  try{clubModel(h,out);}catch(e){console.warn('clubModel',e);}
   // road bridges from the map (overpasses)
   if(CUR.surr)for(const r of CUR.surr.bridges||[]){const pts=r.slice(2).map(q=>[q[0]-h.T0[0],q[1]-h.T0[1]]);const b=h.bounds;if(!pts.some(q=>q[0]>b[0]-900&&q[0]<b[2]+900&&q[1]>b[1]-900&&q[1]<b[3]+900))continue;
     const L=pts.length>1?hyp(pts[1][0]-pts[0][0],pts[1][1]-pts[0][1]):0;if(L<8)continue;const ext=[[pts[0][0]-(pts[1][0]-pts[0][0])/L*6,pts[0][1]-(pts[1][1]-pts[0][1])/L*6]];
@@ -8074,6 +8171,10 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-23-royal",date:"Oct 23, 2026",title:"The Royal Club’s clubhouse, rebuilt",link:{href:"clubhouses/#royal",label:"See the Royal clubhouse before and after"},items:[
+    "The clubhouse at the Royal Golf Club was a plain box. It’s now measured from the state’s lidar survey and a 2025 aerial photo, so every wing and hip roof has its real shape, height and pitch.",
+    "From the photos: white walls under two-tier grey-green metal roofs, a band of glass round the main floor, the big lantern cupola, the white chimney, and the walkout lower level with its glass-railed balcony facing the putting green.",
+    "The deck at the west end has its white umbrellas, with the carts lined up below it, fire pits on the lawn, and the small green-roofed building beside it."]},
   {id:"2026-10-23-rossbridge",date:"Oct 23, 2026",title:"Ross Bridge landmarks",link:{href:"landmarks/#rossbridge_hotel",label:"See Ross Bridge before and after"},items:[
     "The Renaissance Ross Bridge hotel on the hill now looks like the castle it is, with round corner turrets, tall slate spires and steep stone gables.",
     "The old honey-stone mill house stands at the head of the creek with the water pouring out from under it and tumbling down the stones, and pink azaleas line the ponds and creek banks.",
