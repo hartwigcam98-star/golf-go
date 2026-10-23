@@ -2583,30 +2583,34 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
 /* ---------- course landmarks, second set (Oct 2026): steel truss, boardwalk and covered bridges, farm windmill/silo/barns,
    flower beds, rock outcrops and ledges, waterfalls, gazebos, hotel towers, hay bales, a dead snag and entrance boulders.
    Placed by rules from the course map (photos give what, not exactly where), anchored in course yards so they show from every hole. */
-const CFEEL2={northfork:{br:'truss'},willingers:{br:'truss'},rossbridge:{br:'truss',pe:'ledge',wf:2,flw:{bridge:'#e57aa8'}},
-  slmh:{br:'grey'},slbm:{br:'grey'},legends:{br:'grey'},windsong:{br:'grey',farm:[['windmill',4],['silo',7]]},maddens:{br:'grey',cov:1,gz:'pavilion'},
-  mystic:{wf:2,gz:'gazebo',tw:46},wilderness:{tw:20,rock:'granite',snag:1,stone:1},quarry:{rock:'granite',stone:1},
-  troy:{pe:'ledge',wf:1,barn:{c:'#3d3b38',par3:1}},stoneridge:{barn:{c:'#f1efe8',small:1}},lehman:{wf:1},
-  legend:{flw:{tee:'#c8242c'}},pines:{flw:{green:'#d02a2e'}},wyboo:{flw:{bridge:'#e57aa8'}},farmlinks:{hay:1,marble:1}};
+const CFEEL2={northfork:{spans:[[-306,170,-320,220,'truss',5.2]]},rossbridge:{br:'truss',pe:'ledge',wf:[[180,32],[559,38]],flw:{bridge:'#e57aa8'}},
+  slmh:{br:'grey'},slbm:{br:'grey'},legends:{br:'grey'},windsong:{br:'grey',farm:[['silo',-580,400]],spans:[[-375,513,-288,472,'grey',0]]},maddens:{br:'grey',cov:[121,-219],gz:'pavilion'},
+  mystic:{wf:['auto',[-529,476]],gz:'gazebo',tw:40,twMax:15000},wilderness:{tw:20,rock:'granite',snag:[561,-547],stone:1},quarry:{rock:'taconite',stone:1},
+  troy:{pe:'ledge',barn:{c:'#3d3b38',at:[-542,-569],L:5,W:4.5,eh:3.2}},stoneridge:{barn:{c:'#f1efe8',at:[15,359],fit:1}},
+  legend:{flw:{tee:'#c8242c'}},pines:{flw:{green:'#d02a2e'}},farmlinks:{marble:5}};
 function lmAnchors(){if(CUR._lm&&CUR._lm.id===CUR.id)return CUR._lm;const F=CFEEL[CUR.id]||{},C=COURSE,A={id:CUR.id,list:[]};CUR._lm=A;if(!C||!C.holes)return A;
-  const P=C.polys,mk=k=>(P[k]||[]).map(p=>mkPoly(p,k)),W=mk('water'),G=mk('green'),blocked=(x,y)=>['water','green','fairway','bunker','tee'].some(k=>(P[k]||[]).some(q=>{const Q=q._mp||(q._mp=mkPoly(q,k));return polyDist(Q,x,y,12)<6;}));
-  const spot=(x,y,dx,dy)=>{for(const d of[30,40,24,52])for(const s of[0,1,-1,2,-2]){const a=Math.atan2(dy,dx)+s*.6,px=x+Math.cos(a)*d,py=y+Math.sin(a)*d;if(!blocked(px,py))return[px,py,a];}return null;};
-  const greenOf=i=>{const pin=C.holes[i].pin;return G.slice().sort((a,b)=>hyp(a.x-pin[0],a.y-pin[1])-hyp(b.x-pin[0],b.y-pin[1]))[0];};
-  for(const[k,hn]of F.farm||[]){const h=C.holes[hn-1];if(!h)continue;const L=h.line,e=L[L.length-1],q=L[L.length-2];const s=spot(e[0],e[1],e[0]-q[0]+(k==='silo'?15:-15),e[1]-q[1]);if(s)A.list.push({k,x:s[0],y:s[1],a:s[2]});}
-  if(F.barn){let best=null;C.holes.forEach((h,i)=>{if(F.barn.par3&&h.par!==3)return;const t=h.line[0],g=h.pin;for(const w of W){if(F.barn.small&&(w.area<150||w.area>8000))continue;const d=F.barn.par3?hyp(w.x-g[0],w.y-g[1]):hyp(w.x-t[0],w.y-t[1]);if(d>(F.barn.small?260:140))continue;if(!best||d<best.d)best={d,w,ref:F.barn.par3?g:t};}});
-    if(best){const w=best.w,dx=w.x-best.ref[0],dy=w.y-best.ref[1],l=hyp(dx,dy)||1;let bx=w.x+dx/l*(Math.sqrt(w.area)*.6+14),by=w.y+dy/l*(Math.sqrt(w.area)*.6+14);const s=blocked(bx,by)?spot(w.x,w.y,dx,dy):[bx,by,Math.atan2(dy,dx)];if(s)A.list.push({k:'barn',x:s[0],y:s[1],a:s[2]+Math.PI/2,c:F.barn.c});}}
-  // waterfalls: the pond banks closest to greens, one per green
-  if(F.wf){const used=new Set(),c=[];for(const w of W){const p=w.pts;for(let i=0;i<p.length;i+=2){for(const g of G){const d=polyDist(g,p[i][0],p[i][1],40);if(d<26)c.push({d,g,w,x:p[i][0],y:p[i][1]});}}}
-    c.sort((a,b)=>a.d-b.d);for(const o of c){if(A.list.filter(q=>q.k==='wf').length>=F.wf)break;if(used.has(o.g)||used.has(o.w))continue;used.add(o.g);used.add(o.w);A.list.push({k:'wf',x:o.x,y:o.y,a:Math.atan2(o.w.y-o.y,o.w.x-o.x)});}}
+  const P=C.polys,W=(P.water||[]).map(p=>p._mw||(p._mw=mkPoly(p,'water'))),G=(P.green||[]).map(p=>p._mg||(p._mg=mkPoly(p,'green')));
+  const wet=(x,y)=>W.some(w=>inPoly(w,x,y));
+  // which way the water lies from a bank point: the average of the directions that reach water within 5 yd
+  const intoWater=(x,y)=>{let sx=0,sy=0;for(let k=0;k<24;k++){const a=k/24*TAU;if(wet(x+Math.cos(a)*5,y+Math.sin(a)*5)){sx+=Math.cos(a);sy+=Math.sin(a);}}return Math.atan2(sy,sx);};
+  const mown=(x,y,r)=>['fairway','green','tee'].some(k=>(P[k]||[]).some(q=>{const Q=q._mp||(q._mp=mkPoly(q,k));return polyDist(Q,x,y,r+2)<r;}));
+  for(const[k,x,y]of F.farm||[]){const g=G.slice().sort((a,b)=>hyp(a.x-x,a.y-y)-hyp(b.x-x,b.y-y))[0];A.list.push({k,x,y,a:g?Math.atan2(g.y-y,g.x-x):0});}
+  if(F.barn&&F.barn.at){const[x,y]=F.barn.at,g=G.slice().sort((a,b)=>hyp(a.x-x,a.y-y)-hyp(b.x-x,b.y-y))[0];A.list.push({k:'barn',x,y,a:g?Math.atan2(g.y-y,g.x-x)+Math.PI/2:0,c:F.barn.c,L:F.barn.L,W:F.barn.W,eh:F.barn.eh,fit:F.barn.fit});}
+  // waterfalls: given bank spots, or 'auto' = the bank nearest a green with no mown grass within 5 yd
+  if(F.wf){const used=new Set();for(const spec of F.wf){let x,y;if(spec==='auto'){let best=null;for(const w of W){const p=w.pts;for(let i=0;i<p.length;i+=2){const[px,py]=p[i];if(mown(px,py,5))continue;for(const g of G){if(used.has(g))continue;const d=polyDist(g,px,py,40);if(d<26&&(!best||d<best.d))best={d,g,x:px,y:py};}}}if(!best)continue;used.add(best.g);x=best.x;y=best.y;}else[x,y]=spec;
+      A.list.push({k:'wf',x,y,a:intoWater(x,y)});}}
   // a gazebo or pavilion on the bank of a pond behind a green
-  if(F.gz){let best=null;for(const w of W){if(w.area<800)continue;for(const g of G){const p=w.pts;for(let i=0;i<p.length;i+=3){const d=polyDist(g,p[i][0],p[i][1],60);if(d>10&&d<45&&(!best||w.area>best.w.area*1.2||(w.area>best.w.area*.8&&d<best.d)))best={d,w,x:p[i][0],y:p[i][1]};}}}
-    if(best)A.list.push({k:F.gz,x:best.x,y:best.y,a:Math.atan2(best.w.y-best.y,best.w.x-best.x)});}
-  // a dead white snag by a pond-side green
-  if(F.snag){outer:for(const g of G)for(const w of W){if(polyDist(w,g.x,g.y,60)<26){const p=w.pts;let bi=0,bd=1e9;for(let i=0;i<p.length;i++){const d=hyp(p[i][0]-g.x,p[i][1]-g.y);if(d<bd){bd=d;bi=i;}}const dx=g.x-p[bi][0],dy=g.y-p[bi][1],l=hyp(dx,dy)||1;A.list.push({k:'snag',x:p[bi][0]+dx/l*4-dy/l*6,y:p[bi][1]+dy/l*4+dx/l*6});break outer;}}}
+  if(F.gz){let best=null;for(const w of W){if(w.area<800)continue;for(const g of G){const p=w.pts;for(let i=0;i<p.length;i+=3){const d=polyDist(g,p[i][0],p[i][1],60);if(d>10&&d<45&&!mown(p[i][0],p[i][1],6)&&(!best||w.area>best.w.area*1.2||(w.area>best.w.area*.8&&d<best.d)))best={d,w,x:p[i][0],y:p[i][1]};}}}
+    if(best)A.list.push({k:F.gz,x:best.x,y:best.y,a:intoWater(best.x,best.y)});}
+  if(F.snag)A.list.push({k:'snag',x:F.snag[0],y:F.snag[1]});
+  if(F.cov)A.list.push({k:'cov',x:F.cov[0],y:F.cov[1]});
+  for(const sp of F.spans||[])A.list.push({k:'span',x:(sp[0]+sp[2])/2,y:(sp[1]+sp[3])/2,sp});
   return A;}
 function courseFeelPre(h){const F=CFEEL[CUR.id]||{};if(!F.tw&&!F.barn&&!F.farm)return;const A=lmAnchors(),T0=h.T0;
-  if(F.tw){const big=(h.buildings||[]).filter(q=>!q.club&&q.area>1400).sort((a,b)=>b.area-a.area)[0];if(big){big.rec=[F.tw,0,0,null,big.rec&&big.rec[4]];big.lmTower=1;}}
-  for(const o of A.list)if(o.k==='barn'||o.k==='silo'||o.k==='windmill'){const x=o.x-T0[0],y=o.y-T0[1];for(const q of h.buildings||[])if(!q.club&&x>q.bb[0]-9&&x<q.bb[2]+9&&y>q.bb[1]-9&&y<q.bb[3]+9)q.lmHide=1;}}
+  if(F.tw){const big=(h.buildings||[]).filter(q=>!q.club&&q.area>1400&&q.area<=(F.twMax||1e9)).sort((a,b)=>b.area-a.area)[0];if(big){big.rec=[F.tw,0,0,null,big.rec&&big.rec[4]];big.lmTower=1;}}
+  for(const o of A.list)if(o.k==='barn'||o.k==='silo'||o.k==='windmill'){const x=o.x-T0[0],y=o.y-T0[1];for(const q of h.buildings||[])if(!q.club&&x>q.bb[0]-9&&x<q.bb[2]+9&&y>q.bb[1]-9&&y<q.bb[3]+9){q.lmHide=1;
+      // the barn takes the mapped building's own size and orientation
+      if(o.fit&&!o.fitD&&x>q.bb[0]-1&&x<q.bb[2]+1&&y>q.bb[1]-1&&y<q.bb[3]+1){const ob=bldOBB(q.pts,null);o.fitD=[(ob.u1-ob.u0)/2,(ob.v1-ob.v0)/2,ob.t];}}}}
 function courseFeel2(h,out){const F=CFEEL[CUR.id]||{},b=h.bounds,T0=h.T0,R=rng(((T0[0]*7)|0)^((T0[1]*11)|0)^5531),A=lmAnchors();
   const inB=(x,y,m)=>x>b[0]-m&&x<b[2]+m&&y>b[1]-m&&y<b[3]+m;
   const cyl=(x,y0,z,r,ht,n,col,top)=>{for(let k=0;k<n;k++){const a1=k/n*TAU,a2=(k+1)/n*TAU,A1=[x+Math.cos(a1)*r,y0,z+Math.sin(a1)*r],A2=[x+Math.cos(a2)*r,y0,z+Math.sin(a2)*r],B1=[A1[0],y0+ht,A1[2]],B2=[A2[0],y0+ht,A2[2]],nn=[Math.cos((a1+a2)/2),0,Math.sin((a1+a2)/2)];quadO(out,A1,A2,B2,B1,mul(col,.9+.1*nn[0]),nn);if(top)triO(out,B1,B2,[x,y0+ht,z],col,[0,1,0]);}};
@@ -2614,7 +2618,7 @@ function courseFeel2(h,out){const F=CFEEL[CUR.id]||{},b=h.bounds,T0=h.T0,R=rng((
   const rock=(x,y,z,s,col,flat)=>{const sx=s*(.9+R()*.6),sy=s*(flat?.35:.6+R()*.35),sz=s*(.8+R()*.5),ra=R()*TAU,ca=Math.cos(ra),sa=Math.sin(ra),sd=R()*100;
     const P=q=>{const k=1+.2*Math.sin(q[0]*5.1+sd)*Math.sin(q[2]*4.3+sd*.7)+.12*Math.sin(q[1]*6.7+sd*1.3),lx=q[0]*sx*k,ly=q[1]*sy*k,lz=q[2]*sz*k;return[x+lx*ca-lz*sa,y+ly+sy*.2,z+lx*sa+lz*ca];};
     const c=mul(col,.85+R()*.3);for(const[a,b2,c2]of ICO0){if(a[1]+b2[1]+c2[1]<-1.2)continue;pushTri(out,P(a),P(b2),P(c2),c);}};
-  const bed=(x,z,col,n,spread)=>{for(let k=0;k<n;k++){const px=x+(R()-.5)*spread,pz=z+(R()-.5)*spread,gy=hAtH(h,px,pz);rock(px,gy-.05,pz,.22+R()*.14,R()<.25?[.2,.36,.16]:hexc(col),false);}};
+  const bed=(x,z,col,n,spread)=>{n*=2;spread*=1.5;for(let k=0;k<n;k++){const px=x+(R()-.5)*spread,pz=z+(R()-.5)*spread,gy=hAtH(h,px,pz),lc=lieCodeAt(h,px,pz);if(lc>1||lc<0)continue;rock(px,gy-.05,pz,.3+R()*.2,R()<.25?[.2,.36,.16]:hexc(col),false);}};
   // bridges: truss sides, a roof over the longest one, azaleas at the ends
   const BR=h._bridges||[];
   if(F.br==='truss')for(const pts of BR){const n=pts.length,e0=hAtH(h,pts[0][0],pts[0][1]),e1=hAtH(h,pts[n-1][0],pts[n-1][1]),Y=i=>{const t=i/(n-1);return(e0*(1-t)+e1*t)+.35+.6*Math.sin(Math.PI*t);},col=hexc('#6e4430');
@@ -2623,15 +2627,34 @@ function courseFeel2(h,out){const F=CFEEL[CUR.id]||{},b=h.bounds,T0=h.T0,R=rng((
         quadO(out,[ax,ya+H0-.12,az],[bx,yb+H1-.12,bz],[bx,yb+H1+.08,bz],[ax,ya+H0+.08,az],col,nn);quadO(out,[ax,ya+H0-.12,az],[bx,yb+H1-.12,bz],[bx,yb+H1+.08,bz],[ax,ya+H0+.08,az],mul(col,.8),mul(nn,-1));
         if(i%2===0){boxO(out,ax,ya+H0/2,az,.06,H0/2,.06,0,col);const m=[(ax+bx)/2,0,(az+bz)/2];quadO(out,[ax,ya,az],[ax+(bx-ax)*.15,ya,az+(bz-az)*.15],[bx,yb+H1,bz],[bx-(bx-ax)*.15,yb+H1,bz-(bz-az)*.15],mul(col,.9),nn);}}}
     const a=pts[0],c=pts[n-1];for(const[q,yy]of[[a,e0],[c,e1]])boxO(out,q[0],yy-.4,q[1],1.9,.8,1.2,Math.atan2(c[1]-a[1],c[0]-a[0]),hexc('#9a958a'));}
-  if(F.cov&&BR.length){const pts=BR.slice().sort((p,q)=>q.length-p.length)[0],n=pts.length,e0=hAtH(h,pts[0][0],pts[0][1]),e1=hAtH(h,pts[n-1][0],pts[n-1][1]),Y=i=>{const t=i/(n-1);return(e0*(1-t)+e1*t)+.35+.6*Math.sin(Math.PI*t);},rc=hexc('#5b4636'),wc=hexc('#8a6a4c');
+  if(F.cov&&BR.length){const CV=A.list.find(o=>o.k==='cov'),pts=CV&&BR.find(p=>{const m=p[p.length>>1];return hyp(m[0]+T0[0]-CV.x,m[1]+T0[1]-CV.y)<10;});if(pts){const n=pts.length,e0=hAtH(h,pts[0][0],pts[0][1]),e1=hAtH(h,pts[n-1][0],pts[n-1][1]),Y=i=>{const t=i/(n-1);return(e0*(1-t)+e1*t)+.35+.6*Math.sin(Math.PI*t);},rc=hexc('#5b4636'),wc=hexc('#8a6a4c');
     for(let i=0;i<n-1;i++){const a=pts[i],c=pts[i+1],dx=c[0]-a[0],dz=c[1]-a[1],L=hyp(dx,dz)||1,px=-dz/L*1.6,pz=dx/L*1.6,ya=Y(i)+2.6,yb=Y(i+1)+2.6;
       for(const sg of[-1,1]){const nn=nrm([px*sg,1.2,pz*sg]);quadO(out,[a[0]+px*sg,ya,a[1]+pz*sg],[c[0]+px*sg,yb,c[1]+pz*sg],[c[0],yb+1.2,c[1]],[a[0],ya+1.2,a[1]],rc,nn);
         quadO(out,[a[0]+px*sg*.95,ya-.9,a[1]+pz*sg*.95],[c[0]+px*sg*.95,yb-.9,c[1]+pz*sg*.95],[c[0]+px*sg*.95,yb,c[1]+pz*sg*.95],[a[0]+px*sg*.95,ya,a[1]+pz*sg*.95],wc,[px*sg,0,pz*sg]);
-        if(i%3===0)boxO(out,a[0]+px*sg*.95,(Y(i)+ya)/2,a[1]+pz*sg*.95,.09,(ya-Y(i))/2,.09,0,wc);}}}
+        if(i%3===0)boxO(out,a[0]+px*sg*.95,(Y(i)+ya)/2,a[1]+pz*sg*.95,.09,(ya-Y(i))/2,.09,0,wc);}}}}
   if(F.flw&&F.flw.bridge)for(const pts of BR)for(const q of[pts[0],pts[pts.length-1]])for(const sg of[-1,1]){const a=pts[1]||q,dx=a[0]-q[0],dz=a[1]-q[1],l=hyp(dx,dz)||1;bed(q[0]-dz/l*3.2*sg,q[1]+dx/l*3.2*sg,F.flw.bridge,9,3);}
+
+  for(const o of A.list){if(o.k!=='span')continue;const[x0,y0,x1,y1,st,lift]=o.sp,ax=x0-T0[0],az=y0-T0[1],bx2=x1-T0[0],bz2=y1-T0[1];if(!inB((ax+bx2)/2,(az+bz2)/2,400))continue;
+    const n=Math.max(2,Math.ceil(hyp(bx2-ax,bz2-az)/1.5)),pts=[];for(let k=0;k<=n;k++)pts.push([ax+(bx2-ax)*k/n,az+(bz2-az)*k/n]);
+    const e0=hAtH(h,ax,az),e1=hAtH(h,bx2,bz2);let wl=-1e9;for(const w of h.water||[])if(w.lvl!=null&&pts.some(p=>inPoly(w,p[0],p[1])))wl=Math.max(wl,w.lvl);
+    const Y=i=>{const t=i/n;return Math.max((e0*(1-t)+e1*t)+.35+(lift?lift*Math.sin(Math.PI*Math.min(1,Math.max(0,(t-.02)/.96))):.25*Math.sin(Math.PI*t)),wl+.45);};
+    const dc=hexc(st==='truss'?'#6f6a63':'#8e8a80'),rc=hexc(st==='truss'?'#6e4430':'#77736b'),wd=st==='truss'?1.7:1.4,ang=Math.atan2(bz2-az,bx2-ax);
+    for(let i=0;i<n;i++){const a=pts[i],c=pts[i+1],dx=c[0]-a[0],dz=c[1]-a[1],L=hyp(dx,dz)||1,px=-dz/L*wd,pz=dx/L*wd,ya=Y(i),yb=Y(i+1);
+      quadO(out,[a[0]-px,ya,a[1]-pz],[c[0]-px,yb,c[1]-pz],[c[0]+px,yb,c[1]+pz],[a[0]+px,ya,a[1]+pz],mul(dc,i%2?1:.92),[0,1,0]);
+      for(const sg of[-1,1]){const sx=a[0]+px*sg,sz=a[1]+pz*sg,ex=c[0]+px*sg,ez=c[1]+pz*sg,nn=[px*sg/wd,0,pz*sg/wd];quadO(out,[sx,ya-.4,sz],[ex,yb-.4,ez],[ex,yb,ez],[sx,ya,sz],mul(rc,.8),nn);
+        if(st==='truss'){const t0=i/n,t1=(i+1)/n,H0=1.4+1.6*Math.sin(Math.PI*t0),H1=1.4+1.6*Math.sin(Math.PI*t1);quadO(out,[sx,ya+H0-.14,sz],[ex,yb+H1-.14,ez],[ex,yb+H1+.08,ez],[sx,ya+H0+.08,sz],rc,nn);quadO(out,[sx,ya+H0-.14,sz],[ex,yb+H1-.14,ez],[ex,yb+H1+.08,ez],[sx,ya+H0+.08,sz],mul(rc,.8),mul(nn,-1));
+          if(i%2===0){boxO(out,sx,ya+H0/2,sz,.07,H0/2,.07,0,rc);quadO(out,[sx,ya+.05,sz],[sx+(ex-sx)*.2,ya+.05,sz+(ez-sz)*.2],[ex,yb+H1,ez],[ex-(ex-sx)*.2,yb+H1,ez-(ez-sz)*.2],mul(rc,.9),nn);}}
+        else{quadO(out,[sx,ya+.95,sz],[ex,yb+.95,ez],[ex,yb+1.05,ez],[sx,ya+1.05,sz],rc,[0,1,0]);if(i%2===0)boxO(out,sx,ya+.5,sz,.07,.5,.07,0,rc);}}
+      if(!lift&&i%3===0)for(const sg of[-1,1]){const gx=a[0]+px*sg*.9,gz=a[1]+pz*sg*.9,gb=Math.min(hAtH(h,gx,gz),wl)-.5;boxO(out,gx,(ya+gb)/2,gz,.09,(ya-gb)/2,.09,0,mul(rc,.9));}}
+    // stone-block abutments under a span carried over a road
+    if(lift)for(const[q,yy]of[[pts[0],Y(0)],[pts[n],Y(n)]]){const gq=hAtH(h,q[0],q[1]);boxO(out,q[0],(yy+gq-.6)/2,q[1],1.4,(yy-gq+.6)/2,wd+.6,ang,hexc('#9a958a'));}
+    (h._bridges||(h._bridges=[]));}
   // flower beds behind the tees or behind the greens
-  if(F.flw&&F.flw.tee)for(const P of h.tees||[]){if(P.syn)continue;const L0=h.line,a=L0[0],c=L0[1],dx=c[0]-a[0],dz=c[1]-a[1],l=hyp(dx,dz)||1,bx=P.x-dx/l*(Math.sqrt(P.area)*.5+2.5),bz=P.y-dz/l*(Math.sqrt(P.area)*.5+2.5);for(let k=-2;k<=2;k++)bed(bx-dz/l*k*1.6,bz+dx/l*k*1.6,F.flw.tee,5,1.4);}
-  if(F.flw&&F.flw.green)for(const P of h.greens||[]){const L0=h.line,q=L0[L0.length-2]||L0[0],dx=P.x-q[0],dz=P.y-q[1],l=hyp(dx,dz)||1,r=Math.sqrt(P.area/Math.PI)+4;for(let k=-3;k<=3;k++){const a=Math.atan2(dz,dx)+k*.16,x=P.x+Math.cos(a)*r,z=P.y+Math.sin(a)*r;if(lieCodeAt(h,x,z)>1)continue;bed(x,z,F.flw.green,5,1.5);}}
+  if(F.flw&&F.flw.tee&&h.line){const L0=h.line,a=L0[0],c=L0[1],dx=c[0]-a[0],dz=c[1]-a[1],l=hyp(dx,dz)||1,ux=dx/l,uz=dz/l,pin=L0[L0.length-1];
+    const T=(h.tees||[]).filter(P=>!P.syn&&hyp(P.x-a[0],P.y-a[1])<50&&Math.abs((P.x-a[0])*uz-(P.y-a[1])*ux)<15).sort((p,q)=>((p.x-a[0])*ux+(p.y-a[1])*uz)-((q.x-a[0])*ux+(q.y-a[1])*uz))[0];
+    if(T){let bx=T.x,bz=T.y;for(let s2=0;s2<40&&polyDist(T,bx,bz,8)>-3.5;s2++){bx-=ux;bz-=uz;}for(let s2=0;s2<80&&(polyDist(T,bx,bz,8)<3||(h.tees||[]).some(P=>polyDist(P,bx,bz,8)<3)||lieCodeAt(h,bx,bz)>1);s2++){bx-=ux;bz-=uz;}
+      for(let k=-2;k<=2;k++)bed(bx-uz*k*1.6,bz+ux*k*1.6,F.flw.tee,6,1.4);}}
+  if(F.flw&&F.flw.green)for(const P of h.greens||[]){const L0=h.line,q=L0[L0.length-2]||L0[0],dx=P.x-q[0],dz=P.y-q[1],l=hyp(dx,dz)||1,r=Math.sqrt(P.area/Math.PI)+4;for(let k=-3;k<=3;k++){const a=Math.atan2(dz,dx)+k*.16;let rr=Math.sqrt(P.area/Math.PI)*.5,x,z;for(;rr<r+18;rr+=1){x=P.x+Math.cos(a)*rr;z=P.y+Math.sin(a)*rr;if(polyDist(P,x,z,8)>3.5&&lieCodeAt(h,x,z)<=1)break;}if(rr>=r+18)continue;bed(x,z,F.flw.green,5,1.5);}}
   // anchored landmarks
   for(const o of A.list){const x=o.x-T0[0],z=o.y-T0[1];if(!inB(x,z,o.k==='windmill'||o.k==='silo'?600:350))continue;const g=hAtH(h,x,z);
     if(o.k==='windmill'){const ht=14,tc=hexc('#8f9294');for(const[dx,dz]of[[-1.6,-1.6],[1.6,-1.6],[1.6,1.6],[-1.6,1.6]]){const B=[x+dx,g,z+dz],T=[x+dx*.2,g+ht,z+dz*.2],nn=nrm([dx,0,dz]);quadO(out,[B[0]-.08,B[1],B[2]],[B[0]+.08,B[1],B[2]],[T[0]+.08,T[1],T[2]],[T[0]-.08,T[1],T[2]],tc,nn);quadO(out,[B[0],B[1],B[2]-.08],[B[0],B[1],B[2]+.08],[T[0],T[1],T[2]+.08],[T[0],T[1],T[2]-.08],tc,nn);}
@@ -2639,28 +2662,30 @@ function courseFeel2(h,out){const F=CFEEL[CUR.id]||{},b=h.bounds,T0=h.T0,R=rng((
       const hx=x+Math.cos(o.a)*.4,hz=z+Math.sin(o.a)*.4,hy=g+ht+.3,ux=Math.cos(o.a),uz=Math.sin(o.a);boxO(out,x,hy,z,.5,.35,.5,o.a,tc);
       for(let k=0;k<16;k++){const a=k/16*TAU,ca=Math.cos(a),sa=Math.sin(a),r0=.5,r1=2.6,px=-uz,pz=ux;const P=(r,da)=>[hx+ux*.6+px*Math.cos(a+da)*r,hy+Math.sin(a+da)*r,hz+uz*.6+pz*Math.cos(a+da)*r];quadO(out,P(r0,-.09),P(r0,.09),P(r1,.14),P(r1,-.14),hexc('#b9bbb8'),[ux,0,uz]);}
       quadO(out,[hx-ux*.6,hy,hz-uz*.6],[hx-ux*3.4,hy+.2,hz-uz*3.4],[hx-ux*3.4,hy+1.4,hz-uz*3.4],[hx-ux*.6,hy+.5,hz-uz*.6],hexc('#9c9e9b'),[-uz,0,ux]);}
-    else if(o.k==='silo'){cyl(x,g-.2,z,2.6,15,16,hexc('#c9c3b5'),false);for(let j=1;j<6;j++)cyl(x,g+j*2.6,z,2.64,.12,16,hexc('#9b968b'),false);dome(x,g+14.8,z,2.7,2.2,hexc('#9ea3a6'));}
-    else if(o.k==='barn'){const W2=6.5,L2=9,eh=4.2,rr=4.2,ca=Math.cos(o.a),sa=Math.sin(o.a),P=(u,v,y)=>[x+u*ca-v*sa,g+y,z+u*sa+v*ca],wc=hexc(o.c),tc=mul(wc,BLD_LUM(wc)>.6?.82:1.6);
-      boxO(out,x,g+eh/2-.3,z,L2,eh/2+.3,W2,o.a,wc);for(const sg of[-1,1]){const nn=nrm([-sa*sg,1.1,ca*sg]);quadO(out,P(-L2-.4,sg*(W2+.5),eh-.25),P(L2+.4,sg*(W2+.5),eh-.25),P(L2+.4,sg*W2*.45,eh+rr*.75),P(-L2-.4,sg*W2*.45,eh+rr*.75),hexc('#4a4744'),nn);
+    else if(o.k==='silo'){cyl(x,g-.2,z,2.6,15,16,hexc('#8f8b84'),false);for(let j=1;j<6;j++)cyl(x,g+j*2.6,z,2.64,.1,16,hexc('#7d7972'),false);dome(x,g+14.8,z,2.7,2.3,hexc('#c8ccd0'));
+      const ca=Math.cos(o.a),sa=Math.sin(o.a);boxO(out,x+ca*2.75,g+7.4,z+sa*2.75,.45,7.6,.45,o.a,hexc('#ecebe6'));}
+    else if(o.k==='barn'){const FD=o.fitD,L2=FD?Math.max(3,FD[0]-.3):(o.L||9),W2=FD?Math.max(3,FD[1]-.3):(o.W||6.5),eh=o.eh||(FD?Math.min(4.6,Math.max(3.2,W2*.6)):4.2),rr=Math.min(4.2,W2*.75),ang=FD?FD[2]:o.a,ca=Math.cos(ang),sa=Math.sin(ang),P=(u,v,y)=>[x+u*ca-v*sa,g+y,z+u*sa+v*ca],wc=hexc(o.c),tc=mul(wc,BLD_LUM(wc)>.6?.82:1.6);
+      boxO(out,x,g+eh/2-.3,z,L2,eh/2+.3,W2,ang,wc);for(const sg of[-1,1]){const nn=nrm([-sa*sg,1.1,ca*sg]);quadO(out,P(-L2-.4,sg*(W2+.5),eh-.25),P(L2+.4,sg*(W2+.5),eh-.25),P(L2+.4,sg*W2*.45,eh+rr*.75),P(-L2-.4,sg*W2*.45,eh+rr*.75),hexc('#4a4744'),nn);
         quadO(out,P(-L2-.4,sg*W2*.45,eh+rr*.75),P(L2+.4,sg*W2*.45,eh+rr*.75),P(L2+.4,0,eh+rr),P(-L2-.4,0,eh+rr),hexc('#4a4744'),nrm([-sa*sg*.4,1,ca*sg*.4]));}
       for(const su of[-1,1]){const nn=[ca*su,0,sa*su],u=su*(L2+.01);triO(out,P(u,-W2,eh),P(u,W2,eh),P(u,0,eh+rr),wc,nn);quadO(out,P(u,-W2,eh),P(u,-W2*.45,eh+rr*.75),P(u,0,eh+rr),P(u,-W2*.45,eh),wc,nn);
         const u2=su*(L2+.03);quadO(out,P(u2,-2,0),P(u2,2,0),P(u2,2,3.6),P(u2,-2,3.6),tc,nn);quadO(out,P(u2*1.001,-.08,0),P(u2*1.001,.08,0),P(u2*1.001,.08,3.6),P(u2*1.001,-.08,3.6),wc,nn);}}
-    else if(o.k==='wf'){const ux=Math.cos(o.a),uz=Math.sin(o.a),px=-uz,pz=ux,top=g+2.4,base=g-.1,stc=F.pe==='ledge'?hexc('#b59a72'):hexc('#8f8a80');
-      for(let k=0;k<14;k++){const u=(R()-.5)*7,v=-R()*3.5,yy=base+R()*2.2;rock(x+px*u+ux*v,yy,z+pz*u+uz*v,.8+R()*.8,stc,R()<.5);}
-      for(let j=0;j<3;j++){const u=(j-1)*1.3,cx=x+px*u+ux*.6,cz=z+pz*u+uz*.6;quadO(out,[cx-px*.5,top-j*.3,cz-pz*.5],[cx+px*.5,top-j*.3,cz+pz*.5],[cx+px*.6+ux*.9,base,cz+pz*.6+uz*.9],[cx-px*.6+ux*.9,base,cz-pz*.6+uz*.9],[.88,.93,.95],[ux,.3,uz]);}
+    else if(o.k==='wf'){const ux=Math.cos(o.a),uz=Math.sin(o.a),px=-uz,pz=ux,base=g-.1,stc=F.pe==='ledge'?hexc('#b59a72'):hexc('#8f8a80'),okR=(xx,zz)=>{const c=lieCodeAt(h,xx,zz);return c<2||c===6;};
+      for(let k=0;k<16;k++){const u=(R()-.5)*7,v=-.6-R()*3.4,xx=x+px*u+ux*v,zz=z+pz*u+uz*v;if(!okR(xx,zz))continue;rock(xx,base+R()*1.6,zz,.8+R()*.8,stc,R()<.5);}
+      {const lip=[x-ux*.4,base+2.3,z-uz*.4];rock(lip[0],lip[1]-.5,lip[2],1.3,stc,true);const wc=[.66,.82,.9],fw=1.1;for(let j=0;j<3;j++){const y0=base+2.25-j*.75,y1=y0-.75,v0=-.2+j*.55,v1=v0+.55;const Q=(u,v,yy)=>[x+px*u+ux*v,yy,z+pz*u+uz*v];quadO(out,Q(-fw,v0,y0),Q(fw,v0,y0),Q(fw,v1,y1+.12),Q(-fw,v1,y1+.12),mul(wc,1-j*.05),nrm([ux,.8,uz]));quadO(out,Q(-fw,v1-.02,y1+.12),Q(fw,v1-.02,y1+.12),Q(fw,v1,y1-.12),Q(-fw,v1,y1-.12),[.82,.9,.94],[ux,0,uz]);if(j<2){const sv=v1;rock(x+ux*(sv+.2)+px*(fw+.5),y1-.2,z+uz*(sv+.2)+pz*(fw+.5),.7,stc,true);rock(x+ux*(sv+.2)-px*(fw+.5),y1-.2,z+uz*(sv+.2)-pz*(fw+.5),.7,stc,true);}}}
       for(let k=0;k<10;k++){const a1=k/10*TAU,a2=(k+1)/10*TAU,cx=x+ux*2,cz=z+uz*2;quadO(out,[cx+Math.cos(a1)*.8,base+.13,cz+Math.sin(a1)*.8],[cx+Math.cos(a1)*2.2,base+.13,cz+Math.sin(a1)*2.2],[cx+Math.cos(a2)*2.2,base+.13,cz+Math.sin(a2)*2.2],[cx+Math.cos(a2)*.8,base+.13,cz+Math.sin(a2)*.8],[.85,.9,.92],[0,1,0]);}}
     else if(o.k==='gazebo'||o.k==='pavilion'){const wc=hexc(o.k==='gazebo'?'#efede6':'#7a5a3c'),rc=hexc(o.k==='gazebo'?'#3f5a4a':'#5b4636'),r=o.k==='gazebo'?3:3.6,n=o.k==='gazebo'?8:4,yb=g+.3;
       cyl(x,yb-.6,z,r+.3,.6,n,hexc('#8a6a4c'),true);for(let k=0;k<n;k++){const a=k/n*TAU+(n===4?Math.PI/4:0);boxO(out,x+Math.cos(a)*r,yb+1.4,z+Math.sin(a)*r,.12,1.4,.12,0,wc);}
       for(let k=0;k<n;k++){const a1=k/n*TAU+(n===4?Math.PI/4:0),a2=(k+1)/n*TAU+(n===4?Math.PI/4:0),A1=[x+Math.cos(a1)*(r+.6),yb+2.8,z+Math.sin(a1)*(r+.6)],A2=[x+Math.cos(a2)*(r+.6),yb+2.8,z+Math.sin(a2)*(r+.6)],T=[x,yb+4.6,z];let nn=nrm(cross(sub(A2,A1),sub(T,A1)));if(nn[1]<0)nn=mul(nn,-1);triO(out,A1,A2,T,rc,nn);triO(out,A1,A2,T,mul(wc,.7),mul(nn,-1));}}
-    else if(o.k==='snag'){const c=hexc('#d9d6cc');cyl(x,g-.2,z,.35,9,6,c,true);for(let k=0;k<5;k++){const a=k*1.3,y=g+3.5+k*1.1,l=1.6+R()*1.4;const A1=[x,y,z],B1=[x+Math.cos(a)*l,y+l*.6,z+Math.sin(a)*l];quadO(out,[A1[0]-.07,A1[1],A1[2]],[A1[0]+.07,A1[1],A1[2]],[B1[0]+.05,B1[1],B1[2]],[B1[0]-.05,B1[1],B1[2]],c,[0,0,1]);quadO(out,[A1[0],A1[1],A1[2]-.07],[A1[0],A1[1],A1[2]+.07],[B1[0],B1[1],B1[2]+.05],[B1[0],B1[1],B1[2]-.05],c,[1,0,0]);}}}
+    else if(o.k==='snag'){const c=hexc('#cfccc2');cyl(x,g-.2,z,.62,11,7,c,true);cyl(x,g+10.6,z,.38,2.2,6,c,true);for(let k=0;k<7;k++){const a=k*2.1+R()*.5,y=g+3.2+k*1.15,l=3.2+R()*2.2-k*.2;const A1=[x,y,z],B1=[x+Math.cos(a)*l,y+l*.6,z+Math.sin(a)*l];quadO(out,[A1[0]-.34,A1[1],A1[2]],[A1[0]+.34,A1[1],A1[2]],[B1[0]+.14,B1[1],B1[2]],[B1[0]-.14,B1[1],B1[2]],c,[0,0,1]);quadO(out,[A1[0],A1[1],A1[2]-.34],[A1[0],A1[1],A1[2]+.34],[B1[0],B1[1],B1[2]+.14],[B1[0],B1[1],B1[2]-.14],c,[1,0,0]);quadO(out,[A1[0]-.34,A1[1],A1[2]],[A1[0]+.34,A1[1],A1[2]],[B1[0]+.14,B1[1],B1[2]],[B1[0]-.14,B1[1],B1[2]],c,[0,0,-1]);quadO(out,[A1[0],A1[1],A1[2]-.34],[A1[0],A1[1],A1[2]+.34],[B1[0],B1[1],B1[2]+.14],[B1[0],B1[1],B1[2]-.14],c,[-1,0,0]);}}}
   // the engraved boulder at the clubhouse entrance
-  if(F.stone)for(const q of h.buildings||[])if(q.club&&q.ent){const x=q.ent[0]+q.ent[2]*12,z=q.ent[1]+q.ent[3]*12;rock(x,hAtH(h,x,z)-.2,z,1.6,[.55,.53,.5],false);}
+  if(F.stone)for(const q of h.buildings||[])if(q.club&&q.ent){const nx=q.ent[2],nz=q.ent[3],x=q.ent[0]+nx*13,z=q.ent[1]+nz*13,g=hAtH(h,x,z),ca=Math.cos(Math.atan2(nz,nx)),sa=Math.sin(Math.atan2(nz,nx));const tx=-nz,tz=nx;for(const[a2,b2,c2]of ICO1){const P=v=>{const k2=1+.12*Math.sin(v[0]*4.1+1.3)*Math.sin(v[2]*3.7);const lu=v[0]*1.6*k2,lv=v[2]*3.2*k2,ly=v[1]*1.25*k2;return[x+nx*lu+tx*lv,g+.9+ly,z+nz*lu+tz*lv];};if(a2[1]+b2[1]+c2[1]<-1.5)continue;pushTri(out,P(a2),P(b2),P(c2),[.56,.54,.5]);}
+    const fx=x+nx*1.62,fz=z+nz*1.62;quadO(out,[fx-tx*1.7,g+.55,fz-tz*1.7],[fx+tx*1.7,g+.55,fz+tz*1.7],[fx+tx*1.7,g+1.55,fz+tz*1.7],[fx-tx*1.7,g+1.55,fz-tz*1.7],[.3,.29,.27],[nx,0,nz]);}
   // rock outcrops and ledges on the steep, wild ground (the Iron Range's granite)
-  if(F.rock&&h.lg){const L=h.lg,col=F.rock==='granite'?[.6,.55,.53]:[.72,.66,.55];let n=0;
+  if(F.rock&&h.lg){const L=h.lg,col=F.rock==='granite'?[.6,.55,.53]:F.rock==='taconite'?[.44,.42,.41]:[.72,.66,.55],slab=F.rock==='taconite'?.75:.5;let n=0;
     for(let t=0;t<700&&n<38;t++){const x=b[0]+R()*(b[2]-b[0]),z=b[1]+R()*(b[3]-b[1]),i=Math.floor(x-L.x0+.5),j=Math.floor(z-L.y0+.5);if(i<1||j<1||i>=L.nx-1||j>=L.ny-1)continue;const k=j*L.nx+i;if(L.code[k]!==0||L.dmown[k]<9)continue;
-      const sl=hyp(hAtH(h,x+1.5,z)-hAtH(h,x-1.5,z),hAtH(h,x,z+1.5)-hAtH(h,x,z-1.5))/3;if(sl<.22&&R()>.12)continue;n++;if(h._feel&&!h._feel.rpos)h._feel.rpos=[x,z];const m=3+Math.floor(R()*5);for(let q=0;q<m;q++){const px=x+(R()-.5)*5,pz=z+(R()-.5)*5;rock(px,hAtH(h,px,pz)-.3,pz,.9+R()*1.6,col,sl>.3&&R()<.5);}}}
+      const sl=hyp(hAtH(h,x+1.5,z)-hAtH(h,x-1.5,z),hAtH(h,x,z+1.5)-hAtH(h,x,z-1.5))/3;if(sl<.22&&R()>.12)continue;n++;if(h._feel&&!h._feel.rpos)h._feel.rpos=[x,z];const m=3+Math.floor(R()*5);for(let q=0;q<m;q++){const px=x+(R()-.5)*5,pz=z+(R()-.5)*5;rock(px,hAtH(h,px,pz)-.3,pz,.9+R()*1.6,col,(sl>.3||F.rock==='taconite')&&R()<slab);}}}
   // the marble outcrop round a downhill par-3 tee (FarmLinks)
-  if(F.marble&&h.par===3&&h.line){const a=h.line[0],c=h.line[h.line.length-1];if(hAtH(h,a[0],a[1])-hAtH(h,c[0],c[1])>6){const dx=c[0]-a[0],dz=c[1]-a[1],l=hyp(dx,dz)||1;for(let k=0;k<16;k++){const s=k<8?-1:1,f=(k%8)/8,u=s*(7+R()*4),v=-6+f*14+(R()-.5)*2,x=a[0]+dx/l*v-dz/l*u,z=a[1]+dz/l*v+dx/l*u;if(lieCodeAt(h,x,z)===3)continue;rock(x,hAtH(h,x,z)-.4,z,1.2+R()*1.3,[.86,.85,.82],R()<.4);}}}
+  if(F.marble&&G.hi===F.marble-1&&h.line){const a=h.line[0],c=h.line[1],dx=c[0]-a[0],dz=c[1]-a[1],l=hyp(dx,dz)||1,ux=dx/l,uz=dz/l;const T=(h.tees||[]).filter(P=>!P.syn).sort((p,q)=>hyp(p.x-a[0],p.y-a[1])-hyp(q.x-a[0],q.y-a[1]))[0];if(T){const r=Math.sqrt(T.area)*.5+4,cx=T.x+ux*r*.6-uz*r,cz=T.y+uz*r*.6+ux*r;for(let k=0;k<6;k++){const x=cx+(R()-.5)*5,z=cz+(R()-.5)*5;if(lieCodeAt(h,x,z)>1)continue;rock(x,hAtH(h,x,z)-.5,z,1.3+R()*1.2,[.74,.73,.7],R()<.35);}}}
   // round hay bales on the farm fields
   if(F.hay&&CUR.surr){for(const P0 of CUR.surr.polys.farm||[]){const P=mkPoly(P0.map(q=>[q[0]-T0[0],q[1]-T0[1]]),'farm');if(P.bb[2]<b[0]-200||P.bb[0]>b[2]+200||P.bb[3]<b[1]-200||P.bb[1]>b[3]+200)continue;let n=0;
     for(let t=0;t<200&&n<26;t++){const x=P.bb[0]+R()*(P.bb[2]-P.bb[0]),z=P.bb[1]+R()*(P.bb[3]-P.bb[1]);if(!inPoly(P,x,z))continue;n++;const g=hAtH(h,x,z),a=R()*TAU,ca=Math.cos(a),sa=Math.sin(a),r=.85,w=.75,c=hexc('#b89a5a');
@@ -2713,13 +2738,6 @@ function buildStructures(h,out){const ST=STYLE[CUR.scen]||STYLE.prairie,R=rng(42
     if(pl.length)pts.push(pl[pl.length-1]);
     let run=null;const spans=[];for(let i=0;i<pts.length;i++){const w=wet(pts[i][0],pts[i][1]);if(w&&!run)run=[i,i];else if(w)run[1]=i;else if(run){spans.push(run);run=null;}}if(run)spans.push(run);
     for(const[i0,i1]of spans){const a=Math.max(0,i0-4),b=Math.min(pts.length-1,i1+4);if(b-a<3)continue;const FB=(CFEEL[CUR.id]||{}).br,BC=FB==='stone'?['#a8a294','#8c8679']:FB==='white'?['#8a7d6a','#f1efe8']:FB==='grey'?['#8e8a80','#77736b']:FB==='truss'?['#7a6a58','#6e4430']:['#7a5a3c','#5c4330'];const bp=pts.slice(a,b+1);deck(out,bp,2.7,hexc(BC[0]),hexc(BC[1]),false);(h._bridges||(h._bridges=[])).push(bp);}}
-  // cart bridges across the carries on courses whose map has no cart paths over the water there
-  try{const F0=CFEEL[CUR.id]||{};if((F0.br||(F0.flw&&F0.flw.bridge))&&!(h._bridges||[]).length&&h.line){const wetP=(x,y)=>h.water.some(w=>inPoly(w,x,y)),L=h.line;
-    for(let i=0;i<L.length-1;i++){const a=L[i],c=L[i+1],l=hyp(c[0]-a[0],c[1]-a[1]);if(l<5)continue;const ux=(c[0]-a[0])/l,uy=(c[1]-a[1])/l;let run=null;const runs=[];
-      for(let t=0;t<=l;t+=1){const w=wetP(a[0]+ux*t,a[1]+uy*t);if(w&&!run)run=[t,t];else if(w)run[1]=t;else if(run){runs.push(run);run=null;}}if(run)runs.push(run);
-      for(const[t0,t1]of runs){if(t1-t0<6||t1-t0>75)continue;for(const off of[14,-14,22,-22]){const px=-uy*off,py=ux*off,s0=[a[0]+ux*(t0-5)+px,a[1]+uy*(t0-5)+py],s1=[a[0]+ux*(t1+5)+px,a[1]+uy*(t1+5)+py];if(wetP(s0[0],s0[1])||wetP(s1[0],s1[1]))continue;
-        const pts=[];const n=Math.ceil(hyp(s1[0]-s0[0],s1[1]-s0[1]));for(let k=0;k<=n;k++)pts.push([s0[0]+(s1[0]-s0[0])*k/n,s0[1]+(s1[1]-s0[1])*k/n]);
-        const FB=F0.br,BC=FB==='stone'?['#a8a294','#8c8679']:FB==='white'?['#8a7d6a','#f1efe8']:FB==='grey'?['#8e8a80','#77736b']:FB==='truss'?['#7a6a58','#6e4430']:['#7a5a3c','#5c4330'];deck(out,pts,2.7,hexc(BC[0]),hexc(BC[1]),false);(h._bridges||(h._bridges=[])).push(pts);break;}}}}}catch(e){}
   try{courseFeel(h,out);}catch(e){}
   try{courseFeel2(h,out);}catch(e){console.warn('feel2',e);}
   // road bridges from the map (overpasses)
