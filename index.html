@@ -2585,7 +2585,7 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
    Placed by rules from the course map (photos give what, not exactly where), anchored in course yards so they show from every hole. */
 const CFEEL2={northfork:{spans:[[-306,170,-320,220,'truss',5.2]]},rossbridge:{br:'truss',pe:'ledge',wf:[[180,32],[559,38]],wfS:1.7,flw:{bridge:'#e57aa8'}},
   slmh:{br:'grey'},slbm:{br:'grey'},legends:{br:'grey'},windsong:{br:'grey',farm:[['silo',-580,400]],spans:[[-375,513,-288,472,'grey',0]]},maddens:{br:'grey',cov:[121,-219],gz:'pavilion'},
-  mystic:{wf:['auto',[-529,476]],wfS:1.3,gz:'gazebo',tw:40,twMax:15000,twBlock:1},wilderness:{tw:20,rock:'granite',snag:[561,-547],stone:1},quarry:{rock:'taconite',stone:1},
+  mystic:{wf:['auto',[-529,476]],wfS:1.3,sign:'MYSTIC LAKE',gz:'gazebo',tw:40,twMax:15000,twBlock:1},wilderness:{tw:20,rock:'granite',snag:[561,-547],stone:1},quarry:{rock:'taconite',stone:1},
   troy:{pe:'ledge',barn:{c:'#3d3b38',at:[-542,-569],L:5,W:4.5,eh:3.2}},stoneridge:{barn:{c:'#f1efe8',at:[15,359],fit:1}},
   legend:{flw:{tee:'#c8242c'}},pines:{flw:{green:'#d02a2e'}},farmlinks:{marble:5}};
 function lmAnchors(){if(CUR._lm&&CUR._lm.id===CUR.id)return CUR._lm;const F=CFEEL[CUR.id]||{},C=COURSE,A={id:CUR.id,list:[]};CUR._lm=A;if(!C||!C.holes)return A;
@@ -2685,7 +2685,8 @@ function courseFeel2(h,out){const F=CFEEL[CUR.id]||{},b=h.bounds,T0=h.T0,R=rng((
   // raising the whole footprint made a 160 yd wall)
   if(F.twBlock)for(const q of h.buildings||[])if(q.lmTower){const ob=bldOBB(q.pts,null),cu=(ob.u0+ob.u1)/2,cv=(ob.v0+ob.v1)/2,cx=cu*ob.ux-cv*ob.uy,cz=cu*ob.uy+cv*ob.ux,
       Lh=Math.min(30,(ob.u1-ob.u0)*.35),Wh=Math.min(11,(ob.v1-ob.v0)*.4),H=F.tw,g=hAtH(h,cx,cz),bc=hexc('#ddd6c8'),wc=hexc('#5f6b76');
-    boxO(out,cx,g+H/2-.5,cz,Lh,H/2+.5,Wh,ob.t,bc);for(let y=6;y<H-2;y+=3.3)boxO(out,cx,g+y,cz,Lh+.06,.42,Wh+.06,ob.t,wc);boxO(out,cx,g+H+.6,cz,Lh*.5,.6,Wh*.6,ob.t,mul(bc,.85));}
+    boxO(out,cx,g+H/2-.5,cz,Lh,H/2+.5,Wh,ob.t,bc);for(let y=6;y<H-2;y+=3.3)boxO(out,cx,g+y,cz,Lh+.06,.42,Wh+.06,ob.t,wc);boxO(out,cx,g+H+.6,cz,Lh*.5,.6,Wh*.6,ob.t,mul(bc,.85));
+    if(F.sign){const sw=Math.min(1.7*Lh,36);for(const sg of[-1,1]){const nx=-Math.sin(ob.t)*sg,nz=Math.cos(ob.t)*sg;(h._signs||(h._signs=[])).push({x:cx+nx*(Wh+.15),z:cz+nz*(Wh+.15),y:g+H-sw/12-1.2,nx,nz,w:sw,text:F.sign});}}}
   // the engraved boulder at the clubhouse entrance
   if(F.stone)for(const q of h.buildings||[])if(q.club&&q.ent){const nx=q.ent[2],nz=q.ent[3],x=q.ent[0]+nx*13,z=q.ent[1]+nz*13,g=hAtH(h,x,z),ca=Math.cos(Math.atan2(nz,nx)),sa=Math.sin(Math.atan2(nz,nx));const tx=-nz,tz=nx;for(const[a2,b2,c2]of ICO1){const P=v=>{const k2=1+.12*Math.sin(v[0]*4.1+1.3)*Math.sin(v[2]*3.7);const lu=v[0]*1.6*k2,lv=v[2]*3.2*k2,ly=v[1]*1.25*k2;return[x+nx*lu+tx*lv,g+.9+ly,z+nz*lu+tz*lv];};if(a2[1]+b2[1]+c2[1]<-1.5)continue;pushTri(out,P(a2),P(b2),P(c2),[.56,.54,.5]);}
     const fx=x+nx*1.62,fz=z+nz*1.62;quadO(out,[fx-tx*1.7,g+.55,fz-tz*1.7],[fx+tx*1.7,g+.55,fz+tz*1.7],[fx+tx*1.7,g+1.55,fz+tz*1.7],[fx-tx*1.7,g+1.55,fz-tz*1.7],[.3,.29,.27],[nx,0,nz]);}
@@ -6540,7 +6541,15 @@ void main(){if(vK<.9){float a=vU.x,s=vU.y,sp=1.6+vK*1.4;
     gl_FragColor=vec4(c,clamp((.55+.35*st+.25*s)*edge*smoothstep(0.,.05,s)*(1.-vK*.4),0.,1.));}
   else{float r=vU.x,an=vU.y,ring=.5+.5*sin(r*24.-t*6.5),fz=wn(vec2(an*7.,r*5.-t*1.4));
     float foam=pow(max(0.,1.-r),1.4)*(.5+.5*fz)*(.65+.35*ring);gl_FragColor=vec4(vec3(.93,.96,.98),clamp(foam,0.,.95));}}`;
-function r3Waterfalls(h){r3Dispose(R3.wfMesh);R3.wfMesh=null;const L=h._wfs;R3.wfN=L?L.length:0;if(!L||!L.length)return;const T=THREE,P=[],U=[],K=[],I=[];
+/* lettered signs on landmark buildings (Mystic Lake's hotel tower): plain white capitals on a dark panel, a canvas texture on a plane
+   just off the wall; the building itself is in the hole's structures, courseFeel2 fills h._signs */
+function r3Signs(h){for(const m of R3.signMeshes||[]){R3.scene.remove(m);m.geometry.dispose();}R3.signMeshes=[];const L=h._signs;if(!L||!L.length)return;const T=THREE;R3.signTex=R3.signTex||{};
+  for(const sg of L){let tx=R3.signTex[sg.text];if(!tx){const c=document.createElement('canvas');c.width=1024;c.height=170;const g=c.getContext('2d');g.fillStyle='#1d2a36';g.fillRect(0,0,1024,170);
+      g.fillStyle='#ffffff';g.textAlign='center';g.textBaseline='middle';let fs=120;g.font='800 '+fs+'px "Helvetica Neue",Arial,sans-serif';while(g.measureText(sg.text).width>960&&fs>40){fs-=4;g.font='800 '+fs+'px "Helvetica Neue",Arial,sans-serif';}
+      g.fillText(sg.text,512,90);tx=new T.CanvasTexture(c);tx.colorSpace=T.SRGBColorSpace;tx.anisotropy=Math.min(8,R3.renderer.capabilities.getMaxAnisotropy());R3.signTex[sg.text]=tx;}
+    if(!R3.signMat||R3.signMat.map!==tx)R3.signMat=new T.MeshBasicMaterial({map:tx,toneMapped:true});
+    const m=new T.Mesh(new T.PlaneGeometry(sg.w,sg.w*170/1024),R3.signMat);m.position.set(sg.x,sg.y,sg.z);m.rotation.y=Math.atan2(sg.nx,sg.nz);R3.scene.add(m);R3.signMeshes.push(m);}}
+function r3Waterfalls(h){r3Dispose(R3.wfMesh);R3.wfMesh=null;const L=h._wfs;R3.wfN=(L?L.length:0)+100*((h._signs||[]).length);try{r3Signs(h);}catch(e){console.warn('sign',e);}if(!L||!L.length)return;const T=THREE,P=[],U=[],K=[],I=[];
   const vtx=(p,u,k)=>{P.push(p[0],p[1],p[2]);U.push(u[0],u[1]);K.push(k);return P.length/3-1;};
   for(const w of L){const{x,z,ux,uz,top,bot}=w,S=w.S||1,px=-uz,pz=ux;
     // two layers of the falling sheet: it leaves the lip, arcs out and drops into the pool
@@ -6897,7 +6906,7 @@ function r3Sprinklers(){const want=r3SprinkWanted();
       const d=[vx/sp,vyy/sp,vz/sp],side=nrm(cross(d,[0,1,0])),up=nrm(cross(side,d));const sz=(.05+.09*Math.min(1,age))*(.75+.5*h2);sphAt([x,y,z],sz,sz,sz*2.4,col,side,up,d);/* the jet breaks up into a widening mist */}}
   M3.spec=0;M3.water=0;
   if(want&&T-R3SPK.tick>.13){R3SPK.tick=T;try{if(!G.muted)noise(.05,.06,'highpass',2800);}catch(e){}}}
-function r3Dynamic(){const h=G.hole;if(h&&(R3.wfFor!==h||R3.wfN!==((h._wfs||[]).length))){R3.wfFor=h;try{r3Waterfalls(h);}catch(e){console.warn('wf',e);}}if(R3.wfMat)R3.wfMat.uniforms.t.value=performance.now()/1000%600;if(R3.boss){R3.boss.mesh.visible=false;R3.boss.ballAt=null;}const bx=G.ball.x,bz=G.ball.y,gB=hAt(bx,bz);
+function r3Dynamic(){const h=G.hole;if(h&&(R3.wfFor!==h||R3.wfN!==((h._wfs||[]).length+100*((h._signs||[]).length)))){R3.wfFor=h;try{r3Waterfalls(h);}catch(e){console.warn('wf',e);}}if(R3.wfMat)R3.wfMat.uniforms.t.value=performance.now()/1000%600;if(R3.boss){R3.boss.mesh.visible=false;R3.boss.ballAt=null;}const bx=G.ball.x,bz=G.ball.y,gB=hAt(bx,bz);
   const camToBall=hyp(bx-V.E[0],gB-V.E[1],bz-V.E[2]);R3.U.r3fade.value=G.overview||G.state==='intro'||G.state==='card'?0:Math.min(60,camToBall-2);
   if(R3.grass)R3.grass.visible=!G.overview&&G.state!=='intro'&&G.state!=='card';
   // cup, flagstick and flag (scaled up with distance so the pin is always readable)
