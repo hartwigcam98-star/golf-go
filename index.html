@@ -2585,7 +2585,7 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
    Placed by rules from the course map (photos give what, not exactly where), anchored in course yards so they show from every hole. */
 const CFEEL2={northfork:{spans:[[-306,170,-320,220,'truss',5.2]]},rossbridge:{br:'truss',pe:'ledge',wf:[[180,32],[559,38]],wfS:1.7,flw:{bridge:'#e57aa8'}},
   slmh:{br:'grey'},slbm:{br:'grey'},legends:{br:'grey'},windsong:{br:'grey',farm:[['silo',-580,400]],spans:[[-375,513,-288,472,'grey',0]]},maddens:{br:'grey',cov:[121,-219],gz:'pavilion'},
-  mystic:{wf:['auto',[-529,476]],wfS:1.3,sign:'MYSTIC LAKE',gz:'gazebo',tw:40,twMax:15000,twBlock:1},wilderness:{tw:20,rock:'granite',snag:[561,-547],stone:1},quarry:{rock:'taconite',stone:1},
+  mystic:{wf:['auto',[-529,476]],wfS:1.3,sign:'Mystic Lake',gz:'gazebo',tw:40,twMax:15000,twBlock:1},wilderness:{tw:20,rock:'granite',snag:[561,-547],stone:1},quarry:{rock:'taconite',stone:1},
   troy:{pe:'ledge',barn:{c:'#3d3b38',at:[-542,-569],L:5,W:4.5,eh:3.2}},stoneridge:{barn:{c:'#f1efe8',at:[15,359],fit:1}},
   legend:{flw:{tee:'#c8242c'}},pines:{flw:{green:'#d02a2e'}},farmlinks:{marble:5}};
 function lmAnchors(){if(CUR._lm&&CUR._lm.id===CUR.id)return CUR._lm;const F=CFEEL[CUR.id]||{},C=COURSE,A={id:CUR.id,list:[]};CUR._lm=A;if(!C||!C.holes)return A;
@@ -2607,7 +2607,7 @@ function lmAnchors(){if(CUR._lm&&CUR._lm.id===CUR.id)return CUR._lm;const F=CFEE
   for(const sp of F.spans||[])A.list.push({k:'span',x:(sp[0]+sp[2])/2,y:(sp[1]+sp[3])/2,sp});
   return A;}
 function courseFeelPre(h){const F=CFEEL[CUR.id]||{};if(!F.tw&&!F.barn&&!F.farm)return;const A=lmAnchors(),T0=h.T0;
-  if(F.tw){const big=(h.buildings||[]).filter(q=>!q.club&&q.area>1400&&q.area<=(F.twMax||1e9)).sort((a,b)=>b.area-a.area)[0];if(big){if(!F.twBlock)big.rec=[F.tw,0,0,null,big.rec&&big.rec[4]];big.lmTower=1;}}
+  if(F.tw){const big=(h.buildings||[]).filter(q=>!q.club&&q.area>1400&&q.area<=(F.twMax||1e9)).sort((a,b)=>b.area-a.area)[0];if(big){if(!F.twBlock)big.rec=[F.tw,0,0,null,big.rec&&big.rec[4]];else big.lmHide=1;big.lmTower=1;}}
   for(const o of A.list)if(o.k==='barn'||o.k==='silo'||o.k==='windmill'){const x=o.x-T0[0],y=o.y-T0[1];for(const q of h.buildings||[])if(!q.club&&x>q.bb[0]-9&&x<q.bb[2]+9&&y>q.bb[1]-9&&y<q.bb[3]+9){q.lmHide=1;
       // the barn takes the mapped building's own size and orientation
       if(o.fit&&!o.fitD&&x>q.bb[0]-1&&x<q.bb[2]+1&&y>q.bb[1]-1&&y<q.bb[3]+1){const ob=bldOBB(q.pts,null);o.fitD=[(ob.u1-ob.u0)/2,(ob.v1-ob.v0)/2,ob.t];}}}}
@@ -2683,10 +2683,16 @@ function courseFeel2(h,out){const F=CFEEL[CUR.id]||{},b=h.bounds,T0=h.T0,R=rng((
     else if(o.k==='snag'){const c=hexc('#cfccc2');cyl(x,g-.2,z,.62,11,7,c,true);cyl(x,g+10.6,z,.38,2.2,6,c,true);for(let k=0;k<7;k++){const a=k*2.1+R()*.5,y=g+3.2+k*1.15,l=3.2+R()*2.2-k*.2;const A1=[x,y,z],B1=[x+Math.cos(a)*l,y+l*.6,z+Math.sin(a)*l];quadO(out,[A1[0]-.34,A1[1],A1[2]],[A1[0]+.34,A1[1],A1[2]],[B1[0]+.14,B1[1],B1[2]],[B1[0]-.14,B1[1],B1[2]],c,[0,0,1]);quadO(out,[A1[0],A1[1],A1[2]-.34],[A1[0],A1[1],A1[2]+.34],[B1[0],B1[1],B1[2]+.14],[B1[0],B1[1],B1[2]-.14],c,[1,0,0]);quadO(out,[A1[0]-.34,A1[1],A1[2]],[A1[0]+.34,A1[1],A1[2]],[B1[0]+.14,B1[1],B1[2]],[B1[0]-.14,B1[1],B1[2]],c,[0,0,-1]);quadO(out,[A1[0],A1[1],A1[2]-.34],[A1[0],A1[1],A1[2]+.34],[B1[0],B1[1],B1[2]+.14],[B1[0],B1[1],B1[2]-.14],c,[-1,0,0]);}}}
   // a hotel tower: a hotel-sized block rising out of the middle of the mapped building, which keeps its measured height (Mystic Lake;
   // raising the whole footprint made a 160 yd wall)
-  if(F.twBlock)for(const q of h.buildings||[])if(q.lmTower){const ob=bldOBB(q.pts,null),cu=(ob.u0+ob.u1)/2,cv=(ob.v0+ob.v1)/2,cx=cu*ob.ux-cv*ob.uy,cz=cu*ob.uy+cv*ob.ux,
-      Lh=Math.min(30,(ob.u1-ob.u0)*.35),Wh=Math.min(11,(ob.v1-ob.v0)*.4),H=F.tw,g=hAtH(h,cx,cz),bc=hexc('#ddd6c8'),wc=hexc('#5f6b76');
-    boxO(out,cx,g+H/2-.5,cz,Lh,H/2+.5,Wh,ob.t,bc);for(let y=6;y<H-2;y+=3.3)boxO(out,cx,g+y,cz,Lh+.06,.42,Wh+.06,ob.t,wc);boxO(out,cx,g+H+.6,cz,Lh*.5,.6,Wh*.6,ob.t,mul(bc,.85));
-    if(F.sign){const sw=Math.min(1.7*Lh,36);for(const sg of[-1,1]){const nx=-Math.sin(ob.t)*sg,nz=Math.cos(ob.t)*sg;(h._signs||(h._signs=[])).push({x:cx+nx*(Wh+.15),z:cz+nz*(Wh+.15),y:g+H-sw/12-1.2,nx,nz,w:sw,text:F.sign});}}}
+  if(F.twBlock)for(const q of h.buildings||[])if(q.lmTower){const ob=bldOBB(q.pts,null),cu=(ob.u0+ob.u1)/2,cv=(ob.v0+ob.v1)/2,cx=cu*ob.ux-cv*ob.uy,cz=cu*ob.uy+cv*ob.ux,g=hAtH(h,cx,cz);
+    /* Mystic Lake's hotel from the photos: two long cream wings banded with teal ribbon windows, a taller cream centre core with a
+       teal glass block near the top, and the red "Mystic Lake" script sign on a cream panel above the core */
+    const B=(u,v,y0,y1,hu,hv,col)=>boxO(out,cx+u*ob.ux-v*ob.uy,g+(y0+y1)/2,cz+u*ob.uy+v*ob.ux,hu,(y1-y0)/2,hv,ob.t,col);
+    const cream=hexc('#e4ddcf'),teal=hexc('#5b96a3'),glass=hexc('#4a8796'),cap=hexc('#cfc7b8');
+    const Hw=Math.min(F.tw-10,33),Hc=F.tw+6,cH=10,cD=10,WL=Math.max(20,Math.min(58,(ob.u1-ob.u0)*.5-cH)),wD=Math.min(7.5,(ob.v1-ob.v0)*.3);
+    for(const sg of[-1,1]){const wu=sg*(cH+WL/2-.5);B(wu,0,-.5,Hw,WL/2,wD,cream);for(let y=4;y<Hw-1.5;y+=3.4)B(wu,0,y,y+1.7,WL/2+.05,wD+.07,teal);B(wu,0,Hw,Hw+.7,WL/2+.2,wD+.2,cap);}
+    B(0,0,-.5,Hc,cH,cD,cream);for(let y=4;y<Hc-17;y+=3.4)B(0,0,y,y+.5,cH+.05,cD+.05,mul(cream,.9));B(0,0,Hc-16,Hc-7,cH*.62,cD+.1,glass);B(0,0,Hc,Hc+.6,cH+.2,cD+.2,cap);
+    const pw=cH*1.1,ph=7.5;B(0,0,Hc+.6,Hc+.6+ph,pw,1.6,hexc('#efe8da'));
+    if(F.sign)for(const sg of[-1,1]){const nx=-ob.uy*sg,nz=ob.ux*sg;(h._signs||(h._signs=[])).push({x:cx+nx*1.68,z:cz+nz*1.68,y:g+Hc+.6+ph/2,nx,nz,w:pw*2-.6,hgt:ph-.6,text:F.sign,bg:'#efe8da',fg:'#b3212e',font:'italic 700 %px Georgia,"Times New Roman",serif'});}}
   // the engraved boulder at the clubhouse entrance
   if(F.stone)for(const q of h.buildings||[])if(q.club&&q.ent){const nx=q.ent[2],nz=q.ent[3],x=q.ent[0]+nx*13,z=q.ent[1]+nz*13,g=hAtH(h,x,z),ca=Math.cos(Math.atan2(nz,nx)),sa=Math.sin(Math.atan2(nz,nx));const tx=-nz,tz=nx;for(const[a2,b2,c2]of ICO1){const P=v=>{const k2=1+.12*Math.sin(v[0]*4.1+1.3)*Math.sin(v[2]*3.7);const lu=v[0]*1.6*k2,lv=v[2]*3.2*k2,ly=v[1]*1.25*k2;return[x+nx*lu+tx*lv,g+.9+ly,z+nz*lu+tz*lv];};if(a2[1]+b2[1]+c2[1]<-1.5)continue;pushTri(out,P(a2),P(b2),P(c2),[.56,.54,.5]);}
     const fx=x+nx*1.62,fz=z+nz*1.62;quadO(out,[fx-tx*1.7,g+.55,fz-tz*1.7],[fx+tx*1.7,g+.55,fz+tz*1.7],[fx+tx*1.7,g+1.55,fz+tz*1.7],[fx-tx*1.7,g+1.55,fz-tz*1.7],[.3,.29,.27],[nx,0,nz]);}
@@ -6544,11 +6550,11 @@ void main(){if(vK<.9){float a=vU.x,s=vU.y,sp=1.6+vK*1.4;
 /* lettered signs on landmark buildings (Mystic Lake's hotel tower): plain white capitals on a dark panel, a canvas texture on a plane
    just off the wall; the building itself is in the hole's structures, courseFeel2 fills h._signs */
 function r3Signs(h){for(const m of R3.signMeshes||[]){R3.scene.remove(m);m.geometry.dispose();}R3.signMeshes=[];const L=h._signs;if(!L||!L.length)return;const T=THREE;R3.signTex=R3.signTex||{};
-  for(const sg of L){let tx=R3.signTex[sg.text];if(!tx){const c=document.createElement('canvas');c.width=1024;c.height=170;const g=c.getContext('2d');g.fillStyle='#1d2a36';g.fillRect(0,0,1024,170);
-      g.fillStyle='#ffffff';g.textAlign='center';g.textBaseline='middle';let fs=120;g.font='800 '+fs+'px "Helvetica Neue",Arial,sans-serif';while(g.measureText(sg.text).width>960&&fs>40){fs-=4;g.font='800 '+fs+'px "Helvetica Neue",Arial,sans-serif';}
-      g.fillText(sg.text,512,90);tx=new T.CanvasTexture(c);tx.colorSpace=T.SRGBColorSpace;tx.anisotropy=Math.min(8,R3.renderer.capabilities.getMaxAnisotropy());R3.signTex[sg.text]=tx;}
-    if(!R3.signMat||R3.signMat.map!==tx)R3.signMat=new T.MeshBasicMaterial({map:tx,toneMapped:true});
-    const m=new T.Mesh(new T.PlaneGeometry(sg.w,sg.w*170/1024),R3.signMat);m.position.set(sg.x,sg.y,sg.z);m.rotation.y=Math.atan2(sg.nx,sg.nz);R3.scene.add(m);R3.signMeshes.push(m);}}
+  for(const sg of L){const ch=Math.round(1024*(sg.hgt||sg.w*170/1024)/sg.w),key=sg.text+'|'+(sg.bg||'')+'|'+(sg.fg||'')+'|'+ch;let tx=R3.signTex[key];if(!tx){const c=document.createElement('canvas');c.width=1024;c.height=ch;const g=c.getContext('2d');g.fillStyle=sg.bg||'#1d2a36';g.fillRect(0,0,1024,ch);
+      const FN=sg.font||'800 %px "Helvetica Neue",Arial,sans-serif',fnt=n=>FN.replace('%',n);g.fillStyle=sg.fg||'#ffffff';g.textAlign='center';g.textBaseline='middle';let fs=Math.round(ch*.72);g.font=fnt(fs);while(g.measureText(sg.text).width>940&&fs>40){fs-=4;g.font=fnt(fs);}
+      g.fillText(sg.text,512,ch*.53);tx=new T.CanvasTexture(c);tx.colorSpace=T.SRGBColorSpace;tx.anisotropy=Math.min(8,R3.renderer.capabilities.getMaxAnisotropy());R3.signTex[key]=tx;}
+    R3.signMats=R3.signMats||{};const mat=R3.signMats[key]||(R3.signMats[key]=new T.MeshBasicMaterial({map:tx,toneMapped:true}));
+    const m=new T.Mesh(new T.PlaneGeometry(sg.w,sg.hgt||sg.w*170/1024),mat);m.position.set(sg.x,sg.y,sg.z);m.rotation.y=Math.atan2(sg.nx,sg.nz);R3.scene.add(m);R3.signMeshes.push(m);}}
 function r3Waterfalls(h){r3Dispose(R3.wfMesh);R3.wfMesh=null;const L=h._wfs;R3.wfN=(L?L.length:0)+100*((h._signs||[]).length);try{r3Signs(h);}catch(e){console.warn('sign',e);}if(!L||!L.length)return;const T=THREE,P=[],U=[],K=[],I=[];
   const vtx=(p,u,k)=>{P.push(p[0],p[1],p[2]);U.push(u[0],u[1]);K.push(k);return P.length/3-1;};
   for(const w of L){const{x,z,ux,uz,top,bot}=w,S=w.S||1,px=-uz,pz=ux;
