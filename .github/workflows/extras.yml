@@ -1,0 +1,41 @@
+name: course-extras
+# Clubhouse lidar and photo sets for a new course (pipeline/clubs/extras_job.py). Started by the nightly course build with
+#   gh api -X POST repos/<owner>/<repo>/actions/workflows/extras.yml/dispatches -f ref=main -f "inputs[req]=<json>"
+# Results go to branch extras-data (replaced on every run).
+on:
+  workflow_dispatch:
+    inputs:
+      req:
+        description: 'extras_req.json content (see pipeline/clubs/extras_job.py)'
+        required: true
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: pd
+          create-args: -c conda-forge python=3.11 pdal python-pdal numpy requests pyproj shapely pillow beautifulsoup4
+          init-shell: bash
+      - name: fetch
+        shell: bash -el {0}
+        env:
+          REQ: ${{ github.event.inputs.req }}
+        run: |
+          printf '%s' "$REQ" > extras_req.json
+          python pipeline/clubs/extras_job.py 2>&1 | tee run.log
+      - name: save
+        if: always()
+        run: |
+          mkdir -p /tmp/o
+          cp -r out/. /tmp/o/ || true
+          cp run.log extras_req.json /tmp/o/ || true
+          cd /tmp/o
+          git init -q -b extras-data
+          git add -A
+          git -c user.name=extras-bot -c user.email=extras-bot@users.noreply.github.com commit -qm "course extras run $GITHUB_RUN_ID"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" extras-data
