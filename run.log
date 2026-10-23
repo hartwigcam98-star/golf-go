@@ -1,0 +1,86 @@
+resources 2283
+(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directorycaledonia USGS_LPC_SC_Georgetown_2016_LAS_2019 184098 pts 5.7 /m2
+troy WI_StWide_4_StCroix_2021 99106 pts 3.0 /m2
+done troy {'epsg': 32615, 'cands': ['WI_StWide_4_StCroix_2021', 'USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016', 'MN_FullState'], 'src': 'WI_StWide_4_StCroix_2021', 'dens': 2.991969568892646, 'gps': [301333684.78157675, 301333688.6429577], 'classes': {1: 12013, 2: 87060, 7: 14, 18: 19}}
+stoneridge MN_CentralMissRiver_5_B22 494450 pts 15.3 /m2
+done stoneridge {'epsg': 32615, 'cands': ['MN_CentralMissRiver_5_B22', 'USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_5_B22', 'dens': 15.260802469135802, 'gps': [337015701.8791332, 337016093.1633647], 'classes': {1: 85034, 2: 409305, 7: 48, 18: 63}}
+done caledonia {'epsg': 32617, 'cands': ['USGS_LPC_SC_Georgetown_2016_LAS_2019'], 'src': 'USGS_LPC_SC_Georgetown_2016_LAS_2019', 'dens': 5.682037037037037, 'gps': [167257129.06372356, 167258474.87805796], 'classes': {1: 122322, 2: 61502, 7: 4, 9: 230, 10: 40}}
+trueblue USGS_LPC_SC_Georgetown_2016_LAS_2019 96511 pts 3.0 /m2
+done trueblue {'epsg': 32617, 'cands': ['USGS_LPC_SC_Georgetown_2016_LAS_2019'], 'src': 'USGS_LPC_SC_Georgetown_2016_LAS_2019', 'dens': 2.9787345679012347, 'gps': [167257106.0867386, 167257112.64847994], 'classes': {1: 51750, 2: 44382, 7: 12, 9: 336, 10: 31}}
+legislator USGS_LPC_AL_25Co_B4_2017 92438 pts 2.9 /m2
+rossbridge AL_11County_2_B23 939363 pts 15.3 /m2
+sandvalley WI_Adams_2019 254720 pts 5.5 /m2
+done rossbridge {'epsg': 32616, 'cands': ['AL_11County_2_B23', 'USGS_LPC_AL_JeffersonCo_2013_LAS_2015'], 'src': 'AL_11County_2_B23', 'dens': 15.273201742976067, 'gps': [395359088.87687266, 395359605.9304269], 'classes': {1: 400395, 2: 537598, 7: 1308, 18: 62}}
+done legislator {'epsg': 32616, 'cands': ['USGS_LPC_AL_25Co_B4_2017', 'USGS_LPC_AL_Autauga_2010_LAS_2016'], 'src': 'USGS_LPC_AL_25Co_B4_2017', 'dens': 2.8530246913580246, 'gps': [172155993.377537, 172155997.81274724], 'classes': {1: 37499, 2: 54930, 7: 9}}
+lido WI_Adams_2019 222788 pts 6.9 /m2
+done sandvalley {'epsg': 32616, 'cands': ['WI_Adams_2019'], 'src': 'WI_Adams_2019', 'dens': 5.459533607681756, 'gps': [240085331.06688356, 240085836.81294537], 'classes': {1: 9106, 2: 225179, 5: 4711, 6: 15683, 7: 41}}
+done lido {'epsg': 32616, 'cands': ['WI_Adams_2019'], 'src': 'WI_Adams_2019', 'dens': 6.8761728395061725, 'gps': [240083657.16941023, 240085351.88189387], 'classes': {1: 7153, 2: 100742, 5: 114883, 7: 10}}
+sedge WI_Adams_2019 95642 pts 3.0 /m2
+done sedge {'epsg': 32616, 'cands': ['WI_Adams_2019'], 'src': 'WI_Adams_2019', 'dens': 2.9519135802469134, 'gps': [240085833.153116, 240085835.7772596], 'classes': {1: 12866, 2: 79416, 5: 3320, 7: 40}}
+wilderness MN_FullState 26583 pts 0.8 /m2
+done wilderness {'epsg': 32615, 'cands': ['MN_FullState', 'USGS_LPC_MN_Arrowhead_B5_2011_LAS_2016', 'USGS_LPC_MN_Arrowhead_B2_2011_LAS_2016'], 'src': 'MN_FullState', 'dens': 0.820462962962963, 'gps': [-10308170.921065927, -10308168.386101961], 'classes': {1: 4, 2: 17898, 3: 1755, 4: 711, 5: 4338, 6: 988, 7: 5, 8: 884}}
+quarry MN_LakeSuperior_2_2021 767327 pts 23.7 /m2
+crsc USGS_LPC_AL_25Co_B6_2017 89773 pts 2.8 /m2
+done quarry {'epsg': 32615, 'cands': ['MN_LakeSuperior_2_2021', 'USGS_LPC_MN_Arrowhead_B5_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_LakeSuperior_2_2021', 'dens': 23.68293209876543, 'gps': [304014997.81315637, 304018584.92499423], 'classes': {1: 335008, 2: 430307, 7: 20, 9: 1107, 18: 1, 20: 884}}
+legend MN_RainyLake_1_2020 843523 pts 19.1 /m2
+done legend {'epsg': 32615, 'cands': ['MN_RainyLake_1_2020', 'MN_LakeSuperior_2_2021', 'USGS_LPC_MN_Arrowhead_B5_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_RainyLake_1_2020', 'dens': 19.12750566893424, 'gps': [302634061.1144835, 302635248.37285626], 'classes': {1: 268034, 2: 574684, 7: 801, 18: 4}}
+done crsc {'epsg': 32616, 'cands': ['USGS_LPC_AL_25Co_B6_2017'], 'src': 'USGS_LPC_AL_25Co_B6_2017', 'dens': 2.770771604938272, 'gps': [198889077.64869022, 198889081.82504368], 'classes': {1: 39654, 2: 49860, 7: 259}}
+lehman MN_UpperMissRiver_6_B22 505126 pts 13.1 /m2
+deacon MN_UpperMissRiver_6_B22 607805 pts 18.8 /m2
+done deacon {'epsg': 32615, 'cands': ['MN_UpperMissRiver_6_B22', 'MN_FullState'], 'src': 'MN_UpperMissRiver_6_B22', 'dens': 18.759413580246914, 'gps': [339702481.6762878, 339702484.736675], 'classes': {1: 423461, 2: 177328, 7: 1453, 18: 5563}}
+done lehman {'epsg': 32615, 'cands': ['MN_UpperMissRiver_6_B22', 'USGS_LPC_MN_CentralLakes_Block1_2012_LAS_2016', 'MN_FullState'], 'src': 'MN_UpperMissRiver_6_B22', 'dens': 13.148844231570179, 'gps': [338312673.542497, 338312676.3222525], 'classes': {1: 223035, 2: 280298, 7: 429, 17: 537, 18: 827}}
+maddens MN_UpperMissRiver_6_B22 521294 pts 16.1 /m2
+done maddens {'epsg': 32615, 'cands': ['MN_UpperMissRiver_6_B22', 'USGS_LPC_MN_CentralLakes_Block1_2012_LAS_2016', 'MN_FullState'], 'src': 'MN_UpperMissRiver_6_B22', 'dens': 16.08932098765432, 'gps': [338309779.63530576, 338309782.1738352], 'classes': {1: 335052, 2: 184822, 7: 882, 18: 538}}
+pines MN_UpperMissRiver_6_B22 705483 pts 21.8 /m2
+orangeburg USGS_LPC_SC_East_Central_2017_LAS_2019 185447 pts 5.7 /m2
+preserve MN_UpperMissRiver_6_B22 560804 pts 17.3 /m2
+done pines {'epsg': 32615, 'cands': ['MN_UpperMissRiver_6_B22', 'USGS_LPC_MN_CentralLakes_Block1_2012_LAS_2016', 'MN_FullState'], 'src': 'MN_UpperMissRiver_6_B22', 'dens': 21.774166666666666, 'gps': [338567637.87380546, 338567641.1166514], 'classes': {1: 429351, 2: 274478, 7: 114, 18: 1540}}
+done preserve {'epsg': 32615, 'cands': ['MN_UpperMissRiver_6_B22', 'MN_FullState'], 'src': 'MN_UpperMissRiver_6_B22', 'dens': 17.308765432098767, 'gps': [339511889.86760545, 339511892.95669925], 'classes': {1: 294776, 2: 265172, 7: 87, 18: 769}}
+done orangeburg {'epsg': 32617, 'cands': ['USGS_LPC_SC_East_Central_2017_LAS_2019', 'SC_OrangeburgCo_2008'], 'src': 'USGS_LPC_SC_East_Central_2017_LAS_2019', 'dens': 5.723672839506173, 'gps': [207704868.73820734, 207706041.28571987], 'classes': {1: 102777, 2: 79012, 7: 72, 9: 3576, 20: 10}}
+santee USGS_LPC_SC_East_Central_2017_LAS_2019 247484 pts 7.6 /m2
+done santee {'epsg': 32617, 'cands': ['USGS_LPC_SC_East_Central_2017_LAS_2019', 'SC_OrangeburgCo_2008'], 'src': 'USGS_LPC_SC_East_Central_2017_LAS_2019', 'dens': 7.638395061728395, 'gps': [207447174.17849708, 207448114.1904137], 'classes': {1: 138324, 2: 109132, 7: 28}}
+wyboo USGS_LPC_SC_East_Central_2017_LAS_2019 170146 pts 5.3 /m2
+done wyboo {'epsg': 32617, 'cands': ['USGS_LPC_SC_East_Central_2017_LAS_2019', 'SC_ClarendonCo_2008'], 'src': 'USGS_LPC_SC_East_Central_2017_LAS_2019', 'dens': 5.25141975308642, 'gps': [207589905.37611794, 207590887.0882609], 'classes': {1: 89046, 2: 81100}}
+valley AL_11County_2_B23 345280 pts 10.7 /m2
+done valley {'epsg': 32616, 'cands': ['AL_11County_2_B23', 'USGS_LPC_AL_JeffersonCo_2013_LAS_2015'], 'src': 'AL_11County_2_B23', 'dens': 10.65679012345679, 'gps': [395359623.4407013, 395359639.37078], 'classes': {1: 103002, 2: 242015, 7: 133, 18: 130}}
+gnlinks GA_Central_2_2018 93027 pts 2.9 /m2
+done gnlinks {'epsg': 32616, 'cands': ['GA_Central_2_2018'], 'src': 'GA_Central_2_2018', 'dens': 2.8712037037037037, 'gps': [264100949.59419975, 264100952.40278974], 'classes': {1: 1652, 2: 66728, 3: 1612, 4: 3769, 5: 14530, 6: 4662, 7: 74}}
+lookout AZ_MaricopaPinal_1_2020 560515 pts 17.3 /m2
+done lookout {'epsg': 32612, 'cands': ['AZ_MaricopaPinal_1_2020'], 'src': 'AZ_MaricopaPinal_1_2020', 'dens': 17.299845679012346, 'gps': [290572384.0, 290573632.0], 'classes': {1: 220414, 2: 327418, 7: 12683}}
+dove AZ_MaricopaPinal_1_2020 805222 pts 24.9 /m2
+wigwam AZ_MaricopaPinal_1_2020 970257 pts 17.1 /m2
+done wigwam {'epsg': 32612, 'cands': ['AZ_MaricopaPinal_1_2020'], 'src': 'AZ_MaricopaPinal_1_2020', 'dens': 17.12903396652779, 'gps': [290397856.0, 290400960.0], 'classes': {1: 388426, 2: 575921, 7: 5740, 17: 128, 18: 25, 20: 17}}
+done dove {'epsg': 32612, 'cands': ['AZ_MaricopaPinal_1_2020'], 'src': 'AZ_MaricopaPinal_1_2020', 'dens': 24.85253086419753, 'gps': [290595712.0, 290598240.0], 'classes': {1: 462609, 2: 334965, 7: 7648}}
+interlachen MN_CentralMissRiver_4_B22 1583498 pts 48.9 /m2
+done interlachen {'epsg': 32615, 'cands': ['MN_CentralMissRiver_4_B22', 'USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_4_B22', 'dens': 48.873395061728395, 'gps': [336665335.752278, 336666412.0904803], 'classes': {1: 355608, 2: 1227488, 7: 245, 18: 157}}
+hazeltine MN_CentralMissRiver_6_B22 751734 pts 13.3 /m2
+slmh AL_17Co_2_2020 108075 pts 3.3 /m2
+windsong MN_CentralMissRiver_4_B22 2051125 pts 63.3 /m2
+done windsong {'epsg': 32615, 'cands': ['MN_CentralMissRiver_4_B22', 'USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_4_B22', 'dens': 63.30632716049383, 'gps': [336231715.9554547, 336232548.734276], 'classes': {1: 270166, 2: 1780809, 7: 75, 18: 75}}
+done hazeltine {'epsg': 32615, 'cands': ['MN_CentralMissRiver_6_B22', 'USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_6_B22', 'dens': 13.271202598686534, 'gps': [336752363.7054356, 336752367.6218832], 'classes': {1: 130844, 2: 620734, 7: 99, 18: 57}}
+done slmh {'epsg': 32616, 'cands': ['AL_17Co_2_2020', 'AL_TriCounty_2010'], 'src': 'AL_17Co_2_2020', 'dens': 3.3356481481481484, 'gps': [293132137.2253315, 293132140.86311674], 'classes': {1: 14363, 2: 87446, 7: 10, 9: 5272, 17: 139, 20: 845}}
+mystic MN_CentralMissRiver_6_B22 357567 pts 11.0 /m2
+done mystic {'epsg': 32615, 'cands': ['MN_CentralMissRiver_6_B22', 'USGS_LPC_MN_Phase4_Metro_G_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_6_B22', 'dens': 11.03601851851852, 'gps': [336838112.6576373, 336838119.7926774], 'classes': {1: 138052, 2: 217048, 7: 312, 9: 960, 17: 218, 18: 256, 20: 721}}
+legends MN_CentralMissRiver_6_B22 536410 pts 16.6 /m2
+done legends {'epsg': 32615, 'cands': ['MN_CentralMissRiver_6_B22', 'USGS_LPC_MN_Phase4_Metro_G_2011_LAS_2016', 'USGS_LPC_MN_Phase4_Metro_Dakota_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_6_B22', 'dens': 16.555864197530862, 'gps': [336843165.4034586, 336844916.6755995], 'classes': {1: 124070, 2: 410770, 7: 37, 9: 458, 17: 706, 18: 76, 20: 293}}
+chaska MN_CentralMissRiver_6_B22 658776 pts 20.3 /m2
+prestwick MN_CentralMissRiver_5_B22 416667 pts 12.9 /m2
+done chaska {'epsg': 32615, 'cands': ['MN_CentralMissRiver_6_B22', 'USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_6_B22', 'dens': 20.332592592592594, 'gps': [336752321.5693122, 336752724.7885655], 'classes': {1: 209182, 2: 449446, 7: 54, 9: 17, 18: 62, 20: 15}}
+done prestwick {'epsg': 32615, 'cands': ['MN_CentralMissRiver_5_B22', 'USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_5_B22', 'dens': 12.860092592592592, 'gps': [337019756.4941828, 337019762.6997998], 'classes': {1: 130138, 2: 286469, 7: 33, 18: 27}}
+royal MN_CentralMissRiver_5_B22 391477 pts 12.1 /m2
+farmlinks AL_17Co_2_2020 182375 pts 5.6 /m2
+done royal {'epsg': 32615, 'cands': ['MN_CentralMissRiver_5_B22', 'USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_5_B22', 'dens': 12.082623456790124, 'gps': [337014791.6501347, 337014796.4247195], 'classes': {1: 92485, 2: 298877, 7: 40, 18: 75}}
+done farmlinks {'epsg': 32616, 'cands': ['AL_17Co_2_2020', 'AL_TriCounty_2010'], 'src': 'AL_17Co_2_2020', 'dens': 5.628858024691358, 'gps': [291657318.38673675, 291657323.19987744], 'classes': {1: 67947, 2: 114423, 7: 5}}
+desertcanyon AZ_MaricopaPinal_1_2020 520606 pts 16.1 /m2
+jewel MN_SEDriftless_2_2021 274451 pts 8.5 /m2
+done desertcanyon {'epsg': 32612, 'cands': ['AZ_MaricopaPinal_1_2020'], 'src': 'AZ_MaricopaPinal_1_2020', 'dens': 16.068086419753087, 'gps': [290411776.0, 290571456.0], 'classes': {1: 171225, 2: 343381, 7: 6000}}
+done jewel {'epsg': 32615, 'cands': ['MN_SEDriftless_2_2021', 'MN_GoodhueCo_1_2020', 'USGS_LPC_MN_Phase4_Metro_H_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_SEDriftless_2_2021', 'dens': 8.47070987654321, 'gps': [303924048.9963058, 303924068.69971156], 'classes': {1: 78425, 2: 195982, 7: 44}}
+ridges MN_CentralMissRiver_6_B22 371571 pts 11.5 /m2
+done ridges {'epsg': 32615, 'cands': ['MN_CentralMissRiver_6_B22', 'USGS_LPC_MN_Phase4_Metro_G_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_6_B22', 'dens': 11.468240740740741, 'gps': [336586099.2120978, 336586101.7405307], 'classes': {1: 60856, 2: 310652, 7: 28, 18: 35}}
+willingers MN_SEDriftless_1_2021 303446 pts 9.4 /m2
+edinburgh MN_CentralMissRiver_4_B22 1626147 pts 44.1 /m2
+done edinburgh {'epsg': 32615, 'cands': ['MN_CentralMissRiver_4_B22', 'USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_4_B22', 'dens': 44.112060546875, 'gps': [336749796.1353968, 336749799.864401], 'classes': {1: 317197, 2: 1308600, 7: 54, 18: 296}}
+done willingers {'epsg': 32615, 'cands': ['MN_SEDriftless_1_2021', 'USGS_LPC_MN_Phase4_Metro_Dakota_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_SEDriftless_1_2021', 'dens': 9.365617283950618, 'gps': [307550062.0400428, 307550081.7431175], 'classes': {1: 114907, 2: 188291, 7: 248}}
+northfork MN_CentralMissRiver_4_B22 1838080 pts 56.7 /m2
+done northfork {'epsg': 32615, 'cands': ['MN_CentralMissRiver_4_B22', 'MN_CentralMissRiver_5_B22', 'USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_4_B22', 'dens': 56.73086419753086, 'gps': [336497256.0206109, 336499142.1421654], 'classes': {1: 127893, 2: 1709935, 7: 149, 18: 103}}
+all done
