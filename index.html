@@ -2233,6 +2233,12 @@ function lidOf(q,h){const L=typeof CLUBLID!=='undefined'&&(CLUBLID[CUR.id]||(CUR
    flag o = open underneath (porch, veranda, porte-cochere: posts, no walls), d = deck (railing). Overlapping blocks make the real
    roof: the highest surface shows everywhere, so valleys and hips come from the union. Walls in the clubhouse's own materials
    (CLUBLOOK colours), windows per storey, gable ends that follow the roof; bldDraw keeps the doors, entry, patio and flag. */
+// the main eave of a lidar clubhouse in world height: the area-weighted median eave of its closed blocks (towers, porches and decks aside)
+function lidEave(h,L){const a=L.a*Math.PI/180,X=L.o[0]-h.T0[0]+L.ref[0]*Math.cos(a)+L.ref[1]*Math.sin(a),Z=L.o[1]-h.T0[1]-L.ref[0]*Math.sin(a)+L.ref[1]*Math.cos(a),F=hAtH(h,X,Z);
+  const E=[],R=[];for(const b of(L.blocks||[]).concat(...(L.parts||[]).map(p=>p.blocks)))if(b[0]!=='T'&&!/[od]/.test(b[8]||'')){const w=(b[2]-b[1])*(b[4]-b[3]);
+    E.push([b[0]==='SU'||b[0]==='SV'?Math.min(b[5],b[7]):b[5],w]);R.push([Math.max(b[5],b[7]),w]);}
+  const med=A=>{A.sort((x,y)=>x[0]-y[0]);const tot=A.reduce((s,e)=>s+e[1],0);let acc=0;for(const e of A){acc+=e[1];if(acc>=tot/2)return e[0];}return 4;};
+  const e=F+med(E);lidEave.top=Math.max(e,F+med(R));return e;}
 function blockMass(h,q,out,L,C){
   // wings set at their own angle (a Y- or V-plan) come as parts, each with its own frame; heights stay on the main reference ground
   if(L.parts){const a0=L.a*Math.PI/180,F0=hAtH(h,L.o[0]-h.T0[0]+L.ref[0]*Math.cos(a0)+L.ref[1]*Math.sin(a0),L.o[1]-h.T0[1]-L.ref[0]*Math.sin(a0)+L.ref[1]*Math.cos(a0));let ev=[];
@@ -2900,11 +2906,12 @@ function courseFeel2(h,out){const F=CFEEL[CUR.id]||{},b=h.bounds,T0=h.T0,R=rng((
     else if(o.k==='snag'){const c=hexc('#cfccc2');cyl(x,g-.2,z,.62,11,7,c,true);cyl(x,g+10.6,z,.38,2.2,6,c,true);for(let k=0;k<7;k++){const a=k*2.1+R()*.5,y=g+3.2+k*1.15,l=3.2+R()*2.2-k*.2;const A1=[x,y,z],B1=[x+Math.cos(a)*l,y+l*.6,z+Math.sin(a)*l];quadO(out,[A1[0]-.34,A1[1],A1[2]],[A1[0]+.34,A1[1],A1[2]],[B1[0]+.14,B1[1],B1[2]],[B1[0]-.14,B1[1],B1[2]],c,[0,0,1]);quadO(out,[A1[0],A1[1],A1[2]-.34],[A1[0],A1[1],A1[2]+.34],[B1[0],B1[1],B1[2]+.14],[B1[0],B1[1],B1[2]-.14],c,[1,0,0]);quadO(out,[A1[0]-.34,A1[1],A1[2]],[A1[0]+.34,A1[1],A1[2]],[B1[0]+.14,B1[1],B1[2]],[B1[0]-.14,B1[1],B1[2]],c,[0,0,-1]);quadO(out,[A1[0],A1[1],A1[2]-.34],[A1[0],A1[1],A1[2]+.34],[B1[0],B1[1],B1[2]+.14],[B1[0],B1[1],B1[2]-.14],c,[-1,0,0]);}}}
   // a chateau's skyline on the club building (the Renaissance Ross Bridge hotel): round corner turrets with tall slate spires and steep
   // stone gables along the long walls, above the measured walls and roof
-  if(F.chateau)for(const q of h.buildings||[])if(q.club&&q.rec&&!lidOf(q,h)){const p=bldSimplify(q.pts.slice(),2.5),n=p.length,gh=(q.gh||0)-.2,eave=gh+Math.max(2.4,+q.rec[0]||0)+.2,stc=hexc('#e2d6b8'),sl=hexc('#3f4652');
+  if(F.chateau)for(const q of h.buildings||[])if(q.club&&q.rec){const LD=lidOf(q,h),p=bldSimplify(q.pts.slice(),2.5),n=p.length,gh=(q.gh||0)-.2,eave=LD?lidEave(h,LD):gh+Math.max(2.4,+q.rec[0]||0)+.2,stc=hexc('#e2d6b8'),sl=hexc('#3f4652');
     let ar=0;for(let i=0;i<n;i++){const a=p[i],b=p[(i+1)%n];ar+=a[0]*b[1]-b[0]*a[1];}const cw=ar<0?1:-1;let tc=0;
     for(let i=0;i<n&&tc<9;i++){const a=p[(i+n-1)%n],b=p[i],c=p[(i+1)%n],d1=[b[0]-a[0],b[1]-a[1]],d2=[c[0]-b[0],c[1]-b[1]],l1=hyp(d1[0],d1[1]),l2=hyp(d2[0],d2[1]);if(l1<6||l2<6)continue;
-      const crs=(d1[0]*d2[1]-d1[1]*d2[0])*cw;if(crs>0)continue;tc++;const r=2.4,top=eave+3.5;cyl(b[0],gh,b[1],r,top-gh,12,stc,false);for(let k=0;k<12;k++){const a1=k/12*TAU,a2=(k+1)/12*TAU,A1=[b[0]+Math.cos(a1)*(r+.3),top,b[1]+Math.sin(a1)*(r+.3)],A2=[b[0]+Math.cos(a2)*(r+.3),top,b[1]+Math.sin(a2)*(r+.3)],T=[b[0],top+8.5,b[1]];triO(out,A1,A2,T,sl,nrm([Math.cos((a1+a2)/2),.45,Math.sin((a1+a2)/2)]));}}
-    for(let i=0;i<n;i++){const a=p[i],b=p[(i+1)%n],dx=b[0]-a[0],dz=b[1]-a[1],L=hyp(dx,dz);if(L<18)continue;const ux=dx/L,uz=dz/L,nx=-uz*cw*-1,nz=ux*cw*-1,m=Math.floor(L/15);
+      const crs=(d1[0]*d2[1]-d1[1]*d2[0])*cw;if(crs>0)continue;tc++;const r=2.4,top=LD?Math.max(eave+3.5,lidEave.top+1):eave+3.5;cyl(b[0],gh,b[1],r,top-gh,12,stc,false);for(let k=0;k<12;k++){const a1=k/12*TAU,a2=(k+1)/12*TAU,A1=[b[0]+Math.cos(a1)*(r+.3),top,b[1]+Math.sin(a1)*(r+.3)],A2=[b[0]+Math.cos(a2)*(r+.3),top,b[1]+Math.sin(a2)*(r+.3)],T=[b[0],top+8.5,b[1]];triO(out,A1,A2,T,sl,nrm([Math.cos((a1+a2)/2),.45,Math.sin((a1+a2)/2)]));}}
+    // the stone wall gables: the lidar model already carries the measured cross gables, so only the hand-sized building gets them
+    if(!LD)for(let i=0;i<n;i++){const a=p[i],b=p[(i+1)%n],dx=b[0]-a[0],dz=b[1]-a[1],L=hyp(dx,dz);if(L<18)continue;const ux=dx/L,uz=dz/L,nx=-uz*cw*-1,nz=ux*cw*-1,m=Math.floor(L/15);
       for(let k=0;k<m;k++){const t=(k+.5)/m*L,cx=a[0]+ux*t+nx*.2,cz=a[1]+uz*t+nz*.2,hw=3.2,gt=6.8,B1=[cx-ux*hw,eave-.2,cz-uz*hw],B2=[cx+ux*hw,eave-.2,cz+uz*hw],T=[cx,eave+gt,cz];
         triO(out,B1,B2,T,stc,[nx,0,nz]);const bx=cx-nx*5,bz=cz-nz*5;for(const sg of[-1,1]){const E=[cx+ux*hw*sg,eave-.2,cz+uz*hw*sg];quadO(out,E,T,[T[0]-nx*5,T[1],T[2]-nz*5],[E[0]-nx*5,E[1],E[2]-nz*5],sl,nrm([ux*sg,.8,uz*sg]));}
         boxO(out,cx+nx*.05,eave+1.6,cz+nz*.05,.8,1.1,.06,Math.atan2(uz,ux),hexc('#2f3a44'));}}}
