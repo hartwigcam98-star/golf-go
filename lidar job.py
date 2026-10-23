@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw
 from urllib.parse import urljoin, urlparse
-OUT = 'out/courseimg'; os.makedirs(OUT, exist_ok=True)
+OUT = 'out/royal'; os.makedirs(OUT, exist_ok=True)
 SITES = json.load(open('club_sites.json'))
 S = requests.Session(); S.headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36'
 GOOD = re.compile(r'club ?house|lodge|exterior|building|patio|veranda|porch|pub|grill|aerial|facility|facilities|venue|wedding|event|dining|restaurant|pro.?shop|entrance|about|gallery|photo|front', re.I)
@@ -100,10 +100,10 @@ def site(key, cfg):
     must = cfg.get('must', re.escape(cfg['name'].split()[0]))
     web = []
     for qq in ([] if cfg.get('nodefault') else [cfg['name'] + ' ' + cfg.get('town', '') + ' golf clubhouse']) + cfg.get('qs', []):
-        got1 = bing(qq, must, 14)
+        got1 = bing(qq, must, 20)
         dd = [c for c in ddg(qq, 30) if re.search(must, c[1], re.I)]
         print(key, qq, 'bing', len(got1), 'ddg', len(dd), flush=True)
-        web += got1 + dd[:10]
+        web += got1 + dd[:14]
         time.sleep(2)
     print(key, 'search', len(web), flush=True)
     cand = web + [c for c in cand if re.search(r'club ?house|lodge|exterior|building|patio', c[0] + c[1], re.I)] + cand
@@ -111,14 +111,14 @@ def site(key, cfg):
     seen = set(); scored = []
     for u, t in cand:
         if u in seen or not u.startswith('http') or BAD.search(u + ' ' + t) or re.search(r'\.(svg|gif)(\?|$)', u, re.I): continue
-        seen.add(u); s = (3 if re.search(r'pond|lake|water|fountain|bridge|hole', u + t, re.I) else 0) + (2 if re.search(r'fountain|bridge', t, re.I) and t.startswith(('ddg', 'bing')) else 0) + (1 if GOOD.search(u + ' ' + t) else 0) + (1 if t.startswith('og') else 0) + (6 if t.startswith(('ddg', 'bing')) else 0)
+        seen.add(u); s = (3 if re.search(r'club ?house|arnie|patio|deck|venue|wedding|exterior|aerial|building|entrance|tartan', u + t, re.I) else 0) + (1 if GOOD.search(u + ' ' + t) else 0) + (1 if t.startswith('og') else 0) + (6 if t.startswith(('ddg', 'bing')) else 0)
         scored.append((s, u, t))
     scored.sort(key=lambda x: -x[0]); got = []   # stable: search results keep their rank
     with cf.ThreadPoolExecutor(6) as ex:
-        res = list(ex.map(lambda x: (x, fetch_img(x[1])), scored[:70]))
+        res = list(ex.map(lambda x: (x, fetch_img(x[1])), scored[:110]))
     for (s, u, t), im in res:
         if im is not None: got.append((s, u, t, im))
-        if len(got) >= 28: break
+        if len(got) >= 44: break
     if not got: return key, 0, []
     cw, ch = 480, 320; sheet = Image.new('RGB', (cw * 4, ch * ((len(got) + 3) // 4)), (30, 30, 30)); d = ImageDraw.Draw(sheet)
     for i, (s, u, t, im) in enumerate(got):
