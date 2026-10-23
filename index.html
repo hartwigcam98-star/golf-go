@@ -3936,6 +3936,14 @@ async function dailyOwed(){const K=DAILY.save+'-owed';let o=null;
 const DAILY_RESET=[['2026-10-09','p5sa6c8gmmuvyzitv','cam'],['2026-10-09','p5sa6c8gmmuvyzitv','cam','b'],['2026-10-09','p5sa6c8gmmuvyzitv','cam','c'],['2026-10-09','p5sa6c8gmmuvyzitv','cam','d'],['2026-10-09','p5sa6c8gmmuvyzitv','cam','e'],['2026-10-10','pmzu252dumv05u3u4','pappa','p'],['2026-10-11','pmzu252dumv05u3u4','pappa','p'],['2026-10-14','pncjngq2rmuqets13','ogtwig','r']];
 (function(){try{const d=dailyLoad();if(!d)return;const pid=localStorage.getItem('golf-pid')||'',nm=String(localStorage.getItem('golf-name')||'').trim().toLowerCase();
   for(const[day,id,name,tag]of DAILY_RESET){const f='golf-daily-reset-'+day+(tag||'');if(d.day===day&&(pid===id||nm===name)&&!localStorage.getItem(f)){localStorage.removeItem(DAILY.save);localStorage.setItem(f,'1');return;}}}catch(e){}})();
+/* one-off take-backs of the last shot in a player's daily round (day, player id or name, hole index, tag): on that phone, once, if the
+   saved round is mid-hole on that hole, the ball goes back to where the last shot was hit from, the stroke comes off and its replay
+   is dropped. Oct 23: Cam, Wigwam hole 10 (a meter tap that didn't register). */
+const DAILY_UNDO=[['2026-10-23','p5sa6c8gmmuvyzitv','cam',9,'u1']];
+(function(){try{const d=dailyLoad();if(!d)return;const pid=localStorage.getItem('golf-pid')||'',nm=String(localStorage.getItem('golf-name')||'').trim().toLowerCase();
+  for(const[day,id,name,hi,tag]of DAILY_UNDO){const f='golf-daily-undo-'+day+tag;if(d.day!==day||!(pid===id||nm===name)||localStorage.getItem(f))continue;
+    localStorage.setItem(f,'1');if(d.done||d.hi!==hi||!d.mid||!(d.strokes>0)||!d.prev)continue;
+    d.ball={x:d.prev.x,y:d.prev.y};d.strokes-=1;d.pend=null;if(d.strokes===0)d.mid=false;if(Array.isArray(d.shots)&&d.shots.length)d.shots.pop();d.ts=Date.now();dailyStore(d);d._undone=1;}}catch(e){}})();
 function dailyHdr(h={}){const k=DAILY.key;h.apikey=k;if(!/^sb_/.test(k))h.Authorization='Bearer '+k;return h;}
 const PLAYER_MERGE=['cam','pappa','ogtwig'];   // same golfer on more than one player id (re-saved to the home screen)
 const pKey=r=>{const n=String(r.name||'').trim().toLowerCase();return PLAYER_MERGE.includes(n)?'n:'+n:r.player_id;};
