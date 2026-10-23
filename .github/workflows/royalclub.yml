@@ -1,0 +1,27 @@
+name: royal-club
+on:
+  push:
+    paths: ['club_job.py']
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: pd
+          create-args: -c conda-forge python=3.11 pdal python-pdal numpy requests pyproj
+          init-shell: bash
+      - name: fetch
+        shell: bash -el {0}
+        run: python club_job.py 2>&1 | tee run.log
+      - name: save
+        if: always()
+        run: |
+          mkdir -p /tmp/o; cp -r out/. /tmp/o/ || true; cp run.log /tmp/o/ || true
+          cd /tmp/o; git init -q -b royal-club-data; git add -A
+          git -c user.name=lidar-bot -c user.email=lidar-bot@users.noreply.github.com commit -qm "royal club run $GITHUB_RUN_ID"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" royal-club-data
