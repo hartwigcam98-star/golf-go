@@ -7400,7 +7400,7 @@ function pstatFlush(keep){if(typeof PSTAT==='undefined'||!PSTAT||!PSTAT.all.leng
     gfx:String((typeof R3!=='undefined'&&R3.q)||'').slice(0,8),perf:(typeof R3!=='undefined'&&R3.perf)||0,
     device:{ua:navigator.userAgent.slice(0,200),scr:screen.width+'x'+screen.height,dpr:window.devicePixelRatio||1,vw:innerWidth+'x'+innerHeight,app:!!(navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches))},
     frames:A.n,fps_avg:r1(A.avg),fps_med:r1(A.med),ms_p95:r1(A.p95),ms_max:r1(A.max),stutter_pct:r1(A.st),
-    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st),extra:{cap30:!!PERF.cap,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0,dq:PERF.dT&&PERF.dT.some(v=>v)?[...PERF.dT,PERF.midNeed||4]:undefined,shc:R3.shc?R3.shc.n:null,trees:R3T.kept||null,js_med:js.length?r1(js[js.length>>1]):null,js_p95:js.length?r1(js[Math.floor(js.length*.95)]):null,dc_med:dc.length?dc[dc.length>>1]:null,hx:hxl.length?hxl.sort((a,b)=>b.ms-a.ms):undefined,ld:ldTake()}};if(R3.shc)R3.shc.n={dyn:0,cap:0,full:0};PERF.dT=[0,0,0];   /* dq: sharper-picture tries this hole [tried, kept, went back, windows needed] */
+    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st),extra:{cap30:!!PERF.cap,ho:PERF.heavyOff||0,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0,dq:PERF.dT&&PERF.dT.some(v=>v)?[...PERF.dT,PERF.midNeed||4]:undefined,shc:R3.shc?R3.shc.n:null,trees:R3T.kept||null,js_med:js.length?r1(js[js.length>>1]):null,js_p95:js.length?r1(js[Math.floor(js.length*.95)]):null,dc_med:dc.length?dc[dc.length>>1]:null,hx:hxl.length?hxl.sort((a,b)=>b.ms-a.ms):undefined,ld:ldTake()}};if(R3.shc)R3.shc.n={dyn:0,cap:0,full:0};PERF.dT=[0,0,0];   /* dq: sharper-picture tries this hole [tried, kept, went back, windows needed] */
   try{fetch(DAILY.url+'/rest/v1/perf_stats',{method:'POST',keepalive:!!keep,headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(body)}).catch(()=>{});}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pstatFlush(true);});addEventListener('resize',()=>{MCLK.w=0;});   // w: the meter's width, measured once (not every frame)
 const PERF={n:0,sum:0,level:0};
@@ -7439,6 +7439,14 @@ function perfCheck(raw){PERF.level=R3.perf||0;if(R3.warmQ||(PERF.quiet&&performa
   /* v121 dynamic resolution: aim for a steady 60. When more than 1 frame in 8 misses a refresh, draw ~10% fewer pixels a side (down to 62%);
      after about 5 s of clean frames sharpen back up a step. Only once the picture is at its softest do the levels below step in. */
   const dyn=R3.dyn||1;
+  /* Oct 22: a phone held at the softest resolution (62%) for ~12 s of play while still on the heavy look (High: multisampling,
+     ambient occlusion, reflections, soft shadows) gives up the heavy look instead: one level down at the next hole, resolution back to 80%
+     and free to sharpen from there. Cam's phone sat at the floor on High in about half its holes. */
+  if(dyn<=.63&&PERF.pend==null){PERF.floorN=(PERF.floorN||0)+1;
+    if(PERF.floorN>=8&&PERF.level<R3_LMAX-1){const cur=r3Q(),pv=R3.perf;R3.perf=pv+1;const nx=r3Q();R3.perf=pv;
+      if(cur.msaa!==nx.msaa||cur.ao!==nx.ao||cur.soft!==nx.soft){PERF.floorN=0;PERF.level=pv+1;PERF.upQ=null;PERF.tryD=null;PERF.heavyOff=(PERF.heavyOff||0)+1;
+        if(perfSet(PERF.level))R3.dyn=.8;try{localStorage.setItem('golf-perf2',JSON.stringify({l:PERF.level,t:Date.now()}));}catch(e){}return;}}}
+  else if(dyn>.63)PERF.floorN=0;
   if(PERF.probe>0){PERF.probe--;if(slip>.12){PERF.probe=0;PERF.up=0;PERF.upNeed=Math.min(200,(PERF.upNeed||12)*2);PERF.level=Math.min(R3_LMAX-1,PERF.level+1);perfSet(PERF.level);
     try{localStorage.setItem('golf-perf2',JSON.stringify({l:PERF.level,t:Date.now()}));}catch(e){}return;}}
   /* Oct 2026: softening only came back with under 5% late frames, so a phone with a steady 5-12% (late frames that aren't
