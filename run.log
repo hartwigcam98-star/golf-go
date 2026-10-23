@@ -1,0 +1,74 @@
+01:54:08 troy greens 20 rms 1.4 ranges 1
+01:54:08   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+01:54:24   aerial troy 2826 x 3149 2027 KB
+01:55:20 stoneridge greens 24 rms 0.4 ranges 1
+01:55:20   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+01:55:30   aerial stoneridge 3053 x 2384 2106 KB
+01:56:22 rossbridge greens 29 rms 0.4 ranges 0
+01:56:22   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+01:56:51   aerial rossbridge 2213 x 4000 3181 KB
+01:57:45 wilderness greens 17 rms 0.6 ranges 0
+01:57:45   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+01:58:05   aerial wilderness 4000 x 2635 3292 KB
+01:58:57 quarry greens 33 rms 0.4 ranges 1
+01:58:57   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+01:58:58   naip failed https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage Expecting value: line 1 column 1 (char 0)
+02:00:28   naip failed https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPPlus/ImageServer/exportImage Expecting value: line 1 column 1 (char 0)
+02:00:28   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:00:56   aerial quarry 1679 x 4000 2728 KB
+02:01:54   overpass 504 https://overpass-api.de/api/interpreter
+02:06:01   overpass err https://overpass.private.coffee/api/interpreter HTTPSConnectionPool(host='overpass.private.coffee', port=443): Read timed out. (read timeout=240)
+02:08:10   overpass 504 https://overpass.kumi.systems/api/interpreter
+02:09:19   overpass 504 https://maps.mail.ru/osm/tools/overpass/api/interpreter
+02:10:33 legend greens 33 rms 0.4 ranges 1
+02:10:33   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:11:00   aerial legend 1679 x 3999 2727 KB
+02:11:59 lehman greens 14 rms 0.8 ranges 2
+02:11:59   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:11:59   naip failed https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage Expecting value: line 1 column 1 (char 0)
+02:13:29   naip failed https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPPlus/ImageServer/exportImage Expecting value: line 1 column 1 (char 0)
+02:13:29   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:13:58   aerial lehman 4000 x 3825 4444 KB
+02:14:48 maddens greens 19 rms 0.4 ranges 2
+02:14:48   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:15:02   aerial maddens 2265 x 2581 1544 KB
+02:15:49   overpass 504 https://overpass-api.de/api/interpreter
+02:17:45   overpass 504 https://overpass.private.coffee/api/interpreter
+02:21:57   overpass err https://overpass.kumi.systems/api/interpreter HTTPSConnectionPool(host='overpass.kumi.systems', port=443): Read timed out. (read timeout=240)
+02:22:16   overpass 504 https://maps.mail.ru/osm/tools/overpass/api/interpreter
+02:23:36 pines greens 20 rms 0.2 ranges 1
+02:23:36   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:23:59   aerial pines 3294 x 2986 2722 KB
+02:25:01   geocode err HTTPSConnectionPool(host='nominatim.openstreetmap.org', port=443): Read timed out. (read timeout=60)
+02:26:02 wyboo only 0 greens line up {'greens': 0, 'ranges': 0}
+02:26:02   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:26:22   aerial wyboo 3466 x 3466 3023 KB
+02:27:20 windsong greens 19 rms 0.4 ranges 1
+02:27:20   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:27:38   aerial windsong 2650 x 2329 1478 KB
+02:28:19 slmh not found: Silver Lakes Golf Course, Glencoe, Alabama
+02:28:58 slbm not found: Silver Lakes Golf Course, Glencoe, Alabama
+02:29:45 mystic greens 19 rms 0.5 ranges 2
+02:29:45   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:29:59   aerial mystic 2221 x 2600 1527 KB
+02:30:03   overpass 502 https://overpass-api.de/api/interpreter
+02:34:09   overpass err https://overpass.private.coffee/api/interpreter HTTPSConnectionPool(host='overpass.private.coffee', port=443): Read timed out. (read timeout=240)
+02:36:42   overpass 504 https://overpass.kumi.systems/api/interpreter
+02:37:01   overpass 504 https://maps.mail.ru/osm/tools/overpass/api/interpreter
+02:40:40 legends greens 19 rms 0.2 ranges 0
+02:40:40   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:40:55   aerial legends 3181 x 2600 2084 KB
+02:41:57   geocode err HTTPSConnectionPool(host='nominatim.openstreetmap.org', port=443): Read timed out. (read timeout=60)
+02:42:51 farmlinks greens 18 rms 0.3 ranges 0
+02:42:51   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:43:12   aerial farmlinks 3133 x 3720 3579 KB
+02:44:01 willingers greens 19 rms 0.3 ranges 0
+02:44:01   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:44:18   aerial willingers 2638 x 2667 1422 KB
+02:45:14 northfork greens 22 rms 0.2 ranges 1
+02:45:14   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:46:44   naip failed https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage Expecting value: line 1 column 1 (char 0)
+02:48:14   naip failed https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPPlus/ImageServer/exportImage Expecting value: line 1 column 1 (char 0)
+02:48:14   naip failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+02:48:26   aerial northfork 2578 x 4000 2858 KB
+02:48:28 done 10 courses with a range of 18
