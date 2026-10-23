@@ -1,0 +1,1224 @@
+<?xml version='1.0' encoding="UTF-8"?>
+<!DOCTYPE WMT_MS_Capabilities SYSTEM "http://schemas.opengis.net/wms/1.1.1/capabilities_1_1_1.dtd"
+><WMT_MS_Capabilities version="1.1.1">
+ <Service>
+  <Name>OGC:WMS</Name>
+  <Title>MnGeo WMS service (aerial photography)</Title>
+  <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://imageserver.gisdata.mn.gov/"/>
+ </Service>
+ <Capability>
+  <Request>
+   <GetCapabilities>
+    <Format>application/vnd.ogc.wms_xml</Format>
+    <DCPType>
+     <HTTP>
+      <Get>
+       <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://imageserver.gisdata.mn.gov/cgi-bin/wms"/>
+      </Get>
+     </HTTP>
+    </DCPType>
+   </GetCapabilities>
+   <GetMap>
+    <Format>image/jpeg</Format>
+    <DCPType>
+     <HTTP>
+      <Get>
+       <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://imageserver.gisdata.mn.gov/cgi-bin/wms"/>
+      </Get>
+     </HTTP>
+    </DCPType>
+   </GetMap>
+  </Request>
+  <Exception>
+   <Format>application/vnd.ogc.se_xml</Format>
+  </Exception>
+  <Layer>
+   <Title>MnGeo WMS service (aerial photography)</Title>
+   <SRS>EPSG:26915</SRS>
+   <Style>
+    <Name>default</Name>
+    <Title>Normal</Title>
+    <Abstract>Colors as in original imagery</Abstract>
+   </Style>
+   <Style>
+    <Name>stretch</Name>
+    <Title>Contrast Stretch</Title>
+    <Abstract>Two standard deviation contrast stretch</Abstract>
+   </Style>
+   <Layer>
+   <Title> MNDOT</Title>
+   <Layer queryable="0" opaque="1">
+    <Name>mndot_d01</Name>
+    <Title>District 1</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.97" miny="46.07" maxx="-89.54" maxy="48.61"/>
+    <BoundingBox SRS="EPSG:26915" minx="428174.239" miny="5107312.670512" maxx="755159.3348" maxy="5384656.555392" resx="0.0762" resy="0.076198"/>
+   <ScaleHint min="0.03" max="10900"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>mndot_d02</Name>
+    <Title>District 2</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.20" miny="46.78" maxx="-93.78" maxy="48.89"/>
+    <BoundingBox SRS="EPSG:26915" minx="191858.312517" miny="5189165.640929" maxx="440446.410717" maxy="5415204.635129" resx="0.0762" resy="0.0762"/>
+   <ScaleHint min="0.03" max="8286"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>mndot_d03</Name>
+    <Title>District 3</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-95.70" miny="45.01" maxx="-93.08" maxy="47.21"/>
+    <BoundingBox SRS="EPSG:26915" minx="295484.90626" miny="4986859.235868" maxx="493674.09586" maxy="5228468.938068" resx="0.0762" resy="0.0762"/>
+   <ScaleHint min="0.03" max="8054"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>mndot_d04</Name>
+    <Title>District 4</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.82" miny="45.28" maxx="-95.07" maxy="47.20"/>
+    <BoundingBox SRS="EPSG:26915" minx="210649.375063" miny="5020477.652593" maxx="337959.229663" maxy="5230090.517593" resx="0.0762" resy="0.0762"/>
+   <ScaleHint min="0.03" max="6987"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>mndot_d06</Name>
+    <Title>District 6</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.11" miny="43.48" maxx="-91.24" maxy="44.66"/>
+    <BoundingBox SRS="EPSG:26915" minx="412130.915689" miny="4815968.795904" maxx="639405.340489" maxy="4946224.542504" resx="0.0762" resy="0.0762"/>
+   <ScaleHint min="0.03" max="7576"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>mndot_d07</Name>
+    <Title>District 7</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.31" miny="43.45" maxx="-93.09" maxy="44.57"/>
+    <BoundingBox SRS="EPSG:26915" minx="237174.941159" miny="4816197.580937" maxx="492447.455759" maxy="4935024.241937" resx="0.0762" resy="0.0762"/>
+   <ScaleHint min="0.03" max="8509"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>mndot_d08</Name>
+    <Title>District 8</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.47" miny="43.96" maxx="-94.13" maxy="45.35"/>
+    <BoundingBox SRS="EPSG:26915" minx="228294.4978" miny="4872785.795336" maxx="409150.1686" maxy="5022253.133872" resx="0.0762" resy="0.076198"/>
+   <ScaleHint min="0.03" max="6029"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>mndot_met</Name>
+    <Title>Metro District</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.87" miny="44.50" maxx="-92.70" maxy="45.73"/>
+    <BoundingBox SRS="EPSG:26915" minx="431972.336586" miny="4927808.477466" maxx="523539.590586" maxy="5064291.745266" resx="0.0762" resy="0.0762"/>
+   <ScaleHint min="0.03" max="4549"/>
+   </Layer>
+   </Layer>
+   <Layer>
+   <Title> Regional</Title>
+   <Layer queryable="0" opaque="1">
+    <Name>lyon1938</Name>
+    <Title>1938 bw Lyon</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.13" miny="44.17" maxx="-95.54" maxy="44.66"/>
+    <BoundingBox SRS="EPSG:26915" minx="251498.061393" miny="4895763.938092" maxx="297216.391249" maxy="4948068.871724" resx="0.952923" resy="0.952923"/>
+   <ScaleHint min="0.38" max="1743"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>rr2009</Name>
+    <Title>2008-9 color Red River</Title>
+    <Abstract>This data set is the result of private and government entities working together under the guidance of the International Water Institute (IWI) regarding the Red River Basin Mapping Initiative (RRBMI).  The USACE St Louis District was one of the major contributors in this funding effort.  The Red River Basin Mapping Initiative 2008-2010 project acquired 1.4-meter Lidar data for the US portion of the Red River Basin. Additionally, imagery was collected for the main corridor of the basin. Information about the full initiative (IWI Red River Basin Mapping 2008-2010 - LiDAR) can be referenced at  http://www.mngeo.state.mn.us/chouse/metadata/iwi_rrbmi_08_10_lidar.html</Abstract>
+    <SRS>EPSG:26914</SRS>
+    <LatLonBoundingBox minx="-97.80" miny="45.44" maxx="-95.91" maxy="49.05"/>
+    <BoundingBox SRS="EPSG:26914" minx="594000" miny="5035920" maxx="726096" maxy="5434000" resx="0.5" resy="0.5"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/iwi_rrbmi_08_10_imagery.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.20" max="13269"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>neir2009</Name>
+    <Title>2009 cir Arrowhead</Title>
+    <Abstract>This dataset contains 4 Band (RGBI) digital orthophoto imagery of Cook, Lake, St. Louis and Carlton counties in northern Minnesota.  The orthophotos are 0.5 meter ground sample distance (GSD) and are in UTM Zone 15, NAD83 (meters). The tiling format of the imagery is based on a 3.75' x 3.75' quarter quadrangle with a 150 meter buffer on all four sides. This dataset includes 969 digital orthophoto quarter quadrangles (DOQQs) in GeoTiff format with an associated world file, and this metadata file. The data is available online as a web mapping service (WMS).  All imagery was collected by Keystone Aerial Surveys Inc with a Vexcel UltraCamX camera from an altitude of approximately 24,000 feet. All imagery was processed by Keystone using the camera manufacturer's software, Inpho's photogrammetry suite and Keystone-created software.  Funding for this data was provided by the Minnesota Natural Heritage Fund, the Minnesota Clean Water Legacy Act, The Environmental and Natural Resources Trust Fund, St. Louis County, the Coastal Zone Management Program, and the National Geospatial Intelligence Agency.</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.13" miny="46.57" maxx="-89.39" maxy="48.69"/>
+    <BoundingBox SRS="EPSG:26915" minx="490342.25" miny="5163314.75" maxx="765986.25" maxy="5392901.75" resx="0.5" resy="0.5"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/ne2009_doqq_50cm.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.20" max="9188"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>dulir09</Name>
+    <Title>2009 cir Duluth</Title>
+    <Abstract>This dataset contains 4 Band (RGBI) digital orthophoto imagery of the Big Fork and Little Fork watersheds (most of Koochiching county, northern Itasca county, the middle portion of St. Louis county), and southeast St. Louis County (Duluth-Superior) in northern Minnesota.  The orthophotos are 0.3 meter ground sample distance (GSD) and are in UTM Zone 15, NAD83 (meters). The tiling format of the imagery is based on a 3.75' x 3.75' quarter quadrangle with a 150 meter buffer on all four sides. The dataset includes 614 digital orthophoto quarter quadrangles (DOQQs) in GeoTiff format with an associated world file, and this metadata file.  The data is available online as a web mapping service (WMS).  All imagery was collected by Keystone Aerial Surveys Inc with a Vexcel UltraCamX camera from an altitude of approximately 15,500 feet. All imagery was processed by Keystone using the camera manufacturer's software, Inpho's photogrammetry suite and Keystone-created software.  Funding for this data was provided by the Minnesota Natural Heritage Fund, the Minnesota Clean Water Legacy Act, The Environmental and Natural Resources Trust Fund, St. Louis County, the Coastal Zone Management Program, and the National Geospatial Intelligence Agency.</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-92.45" miny="46.62" maxx="-91.74" maxy="47.26"/>
+    <BoundingBox SRS="EPSG:26915" minx="542462.7" miny="5163473.7" maxx="595449.6" maxy="5233922.4" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/ne2009_doqq_30cm.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="2348"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>ncir09</Name>
+    <Title>2009 cir NCentral</Title>
+    <Abstract>This dataset contains 4 Band (RGBI) digital orthophoto imagery of the Big Fork and Little Fork watersheds (most of Koochiching county, northern Itasca county, the middle portion of St. Louis county), and southeast St. Louis County (Duluth-Superior) in northern Minnesota.  The orthophotos are 0.3 meter ground sample distance (GSD) and are in UTM Zone 15, NAD83 (meters). The tiling format of the imagery is based on a 3.75' x 3.75' quarter quadrangle with a 150 meter buffer on all four sides. The dataset includes 614 digital orthophoto quarter quadrangles (DOQQs) in GeoTiff format with an associated world file, and this metadata file.  The data is available online as a web mapping service (WMS).  All imagery was collected by Keystone Aerial Surveys Inc with a Vexcel UltraCamX camera from an altitude of approximately 15,500 feet. All imagery was processed by Keystone using the camera manufacturer's software, Inpho's photogrammetry suite and Keystone-created software.  Funding for this data was provided by the Minnesota Natural Heritage Fund, the Minnesota Clean Water Legacy Act, The Environmental and Natural Resources Trust Fund, St. Louis County, the Coastal Zone Management Program, and the National Geospatial Intelligence Agency.</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.40" miny="47.36" maxx="-91.79" maxy="48.69"/>
+    <BoundingBox SRS="EPSG:26915" minx="396646.65" miny="5246612.25" maxx="589300.65" maxy="5393715.75" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/ne2009_doqq_30cm.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="6422"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>neclr2009</Name>
+    <Title>2009 color Arrowhead</Title>
+    <Abstract>This dataset contains 4 Band (RGBI) digital orthophoto imagery of Cook, Lake, St. Louis and Carlton counties in northern Minnesota.  The orthophotos are 0.5 meter ground sample distance (GSD) and are in UTM Zone 15, NAD83 (meters). The tiling format of the imagery is based on a 3.75' x 3.75' quarter quadrangle with a 150 meter buffer on all four sides. This dataset includes 969 digital orthophoto quarter quadrangles (DOQQs) in GeoTiff format with an associated world file, and this metadata file. The data is available online as a web mapping service (WMS).  All imagery was collected by Keystone Aerial Surveys Inc with a Vexcel UltraCamX camera from an altitude of approximately 24,000 feet. All imagery was processed by Keystone using the camera manufacturer's software, Inpho's photogrammetry suite and Keystone-created software.  Funding for this data was provided by the Minnesota Natural Heritage Fund, the Minnesota Clean Water Legacy Act, The Environmental and Natural Resources Trust Fund, St. Louis County, the Coastal Zone Management Program, and the National Geospatial Intelligence Agency.</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.13" miny="46.57" maxx="-89.39" maxy="48.69"/>
+    <BoundingBox SRS="EPSG:26915" minx="490342.25" miny="5163314.75" maxx="765986.25" maxy="5392901.75" resx="0.5" resy="0.5"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/ne2009_doqq_50cm.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.20" max="9188"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>bwca09</Name>
+    <Title>2009 color BWCA border</Title>
+    <Abstract>An orthoimage (DOQ) is remotely sensed image data in which displacement of features in the image caused by terrain relief and sensor orientation have been mathematically removed. Orthoimagery combines the image characteristics of a photograph with the geometric qualities of a map. For this dataset, the natural color orthoimages were produced at 0.3-meter pixel resolution (approximately 1-foot). The design accuracy is estimated not to exceed 6 meter horizontal RMSE for locations within the United States. Each orthoimage provides imagery for a 1500-meter by 1500-meter block on the ground. The projected coordinate system is UTM with a NAD83 datum, spheroid GRS80. There is no image overlap between adjacent files. The naming convention is based on the U.S. National Grid (USNG), taking the coordinates of the SW corner of the orthoimage.  --------------------------- Note: This metadata record was created by the Minnesota Geospatial Information Office (MnGeo) based on the metadata provided by 3001, Inc. for individual Zone 15 tiles.  It describes the layers that MnGeo created for its WMS service from the tiled dataset. ---------------------------</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-92.21" miny="47.57" maxx="-89.94" maxy="48.52"/>
+    <BoundingBox SRS="EPSG:26915" minx="559500" miny="5272497.6" maxx="726043.2" maxy="5374528.8" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/doq_nwborder09_z15.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="5551"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>dulclr09</Name>
+    <Title>2009 color Duluth</Title>
+    <Abstract>This dataset contains 4 Band (RGBI) digital orthophoto imagery of the Big Fork and Little Fork watersheds (most of Koochiching county, northern Itasca county, the middle portion of St. Louis county), and southeast St. Louis County (Duluth-Superior) in northern Minnesota.  The orthophotos are 0.3 meter ground sample distance (GSD) and are in UTM Zone 15, NAD83 (meters). The tiling format of the imagery is based on a 3.75' x 3.75' quarter quadrangle with a 150 meter buffer on all four sides. The dataset includes 614 digital orthophoto quarter quadrangles (DOQQs) in GeoTiff format with an associated world file, and this metadata file.  The data is available online as a web mapping service (WMS).  All imagery was collected by Keystone Aerial Surveys Inc with a Vexcel UltraCamX camera from an altitude of approximately 15,500 feet. All imagery was processed by Keystone using the camera manufacturer's software, Inpho's photogrammetry suite and Keystone-created software.  Funding for this data was provided by the Minnesota Natural Heritage Fund, the Minnesota Clean Water Legacy Act, The Environmental and Natural Resources Trust Fund, St. Louis County, the Coastal Zone Management Program, and the National Geospatial Intelligence Agency.</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-92.45" miny="46.62" maxx="-91.74" maxy="47.26"/>
+    <BoundingBox SRS="EPSG:26915" minx="542462.7" miny="5163473.7" maxx="595449.6" maxy="5233922.4" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/ne2009_doqq_30cm.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="2348"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>dul09</Name>
+    <Title>2009 color Duluth shore</Title>
+    <Abstract>An orthoimage (DOQ) is remotely sensed image data in which displacement of features in the image caused by terrain relief and sensor orientation have been mathematically removed. Orthoimagery combines the image characteristics of a photograph with the geometric qualities of a map. For this dataset, the natural color orthoimages were produced at 0.3-meter pixel resolution (approximately 1-foot). The design accuracy is estimated not to exceed 6 meter horizontal RMSE for locations within the United States. Each orthoimage provides imagery for a 1500-meter by 1500-meter block on the ground. The projected coordinate system is UTM with a NAD83 datum, spheroid GRS80. There is no image overlap between adjacent files. The naming convention is based on the U.S. National Grid (USNG), taking the coordinates of the SW corner of the orthoimage.  --------------------------- Note: This metadata record was created by the Minnesota Geospatial Information Office (MnGeo) based on the metadata provided by 3001, Inc. for individual Zone 15 tiles.  It describes the layers that MnGeo created for its WMS service from the tiled dataset. ---------------------------</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-92.36" miny="46.50" maxx="-91.64" maxy="47.15"/>
+    <BoundingBox SRS="EPSG:26915" minx="549000" miny="5150930.4" maxx="603031.2" maxy="5221550.4" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/doq_nwborder09_z15.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="2354"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>iroy09</Name>
+    <Title>2009 color Isle Royale</Title>
+    <Abstract>An orthoimage (DOQ) is remotely sensed image data in which displacement of features in the image caused by terrain relief and sensor orientation have been mathematically removed. Orthoimagery combines the image characteristics of a photograph with the geometric qualities of a map. For this dataset, the natural color orthoimages were produced at 0.3-meter pixel resolution (approximately 1-foot). The design accuracy is estimated not to exceed 6 meter horizontal RMSE for locations within the United States. Each orthoimage provides imagery for a 1500-meter by 1500-meter block on the ground. The projected coordinate system is UTM with a NAD83 datum, spheroid GRS80. There is no image overlap between adjacent files. The naming convention is based on the U.S. National Grid (USNG), taking the coordinates of the SW corner of the orthoimage.  --------------------------- Note: This metadata record was created by the Minnesota Geospatial Information Office (MnGeo) based on the metadata provided by 3001, Inc. for individual Zone 15 tiles.  It describes the layers that MnGeo created for its WMS service from the tiled dataset. ---------------------------</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-90.05" miny="47.66" maxx="-88.21" maxy="48.50"/>
+    <BoundingBox SRS="EPSG:26915" minx="721449.91691" miny="5288891.906431" maxx="854008.81691" maxy="5376753.206431" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/doq_nwborder09_z15.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="4419"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>ncclr09</Name>
+    <Title>2009 color NCentral</Title>
+    <Abstract>This dataset contains 4 Band (RGBI) digital orthophoto imagery of the Big Fork and Little Fork watersheds (most of Koochiching county, northern Itasca county, the middle portion of St. Louis county), and southeast St. Louis County (Duluth-Superior) in northern Minnesota.  The orthophotos are 0.3 meter ground sample distance (GSD) and are in UTM Zone 15, NAD83 (meters). The tiling format of the imagery is based on a 3.75' x 3.75' quarter quadrangle with a 150 meter buffer on all four sides. The dataset includes 614 digital orthophoto quarter quadrangles (DOQQs) in GeoTiff format with an associated world file, and this metadata file.  The data is available online as a web mapping service (WMS).  All imagery was collected by Keystone Aerial Surveys Inc with a Vexcel UltraCamX camera from an altitude of approximately 15,500 feet. All imagery was processed by Keystone using the camera manufacturer's software, Inpho's photogrammetry suite and Keystone-created software.  Funding for this data was provided by the Minnesota Natural Heritage Fund, the Minnesota Clean Water Legacy Act, The Environmental and Natural Resources Trust Fund, St. Louis County, the Coastal Zone Management Program, and the National Geospatial Intelligence Agency.</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.40" miny="47.36" maxx="-91.79" maxy="48.69"/>
+    <BoundingBox SRS="EPSG:26915" minx="396646.65" miny="5246612.25" maxx="589300.65" maxy="5393715.75" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/ne2009_doqq_30cm.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="6422"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>bord15</Name>
+    <Title>2009 color NCentral border</Title>
+    <Abstract>An orthoimage (DOQ) is remotely sensed image data in which displacement of features in the image caused by terrain relief and sensor orientation have been mathematically removed. Orthoimagery combines the image characteristics of a photograph with the geometric qualities of a map. For this dataset, the natural color orthoimages were produced at 0.3-meter pixel resolution (approximately 1-foot). The design accuracy is estimated not to exceed 6 meter horizontal RMSE for locations within the United States. Each orthoimage provides imagery for a 1500-meter by 1500-meter block on the ground. The projected coordinate system is UTM with a NAD83 datum, spheroid GRS80. There is no image overlap between adjacent files. The naming convention is based on the U.S. National Grid (USNG), taking the coordinates of the SW corner of the orthoimage.  --------------------------- Note: This metadata record was created by the Minnesota Geospatial Information Office (MnGeo) based on the metadata provided by 3001, Inc. for individual Zone 15 tiles.  It describes the layers that MnGeo created for its WMS service from the tiled dataset. ---------------------------</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.07" miny="47.74" maxx="-92.18" maxy="49.56"/>
+    <BoundingBox SRS="EPSG:26915" minx="277500" miny="5291932.8" maxx="559627.2" maxy="5490000" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/doq_nwborder09_z15.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="9404"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>sbay09</Name>
+    <Title>2009 color north shore</Title>
+    <Abstract>An orthoimage (DOQ) is remotely sensed image data in which displacement of features in the image caused by terrain relief and sensor orientation have been mathematically removed. Orthoimagery combines the image characteristics of a photograph with the geometric qualities of a map. For this dataset, the natural color orthoimages were produced at 0.3-meter pixel resolution (approximately 1-foot). The design accuracy is estimated not to exceed 6 meter horizontal RMSE for locations within the United States. Each orthoimage provides imagery for a 1500-meter by 1500-meter block on the ground. The projected coordinate system is UTM with a NAD83 datum, spheroid GRS80. There is no image overlap between adjacent files. The naming convention is based on the U.S. National Grid (USNG), taking the coordinates of the SW corner of the orthoimage.  --------------------------- Note: This metadata record was created by the Minnesota Geospatial Information Office (MnGeo) based on the metadata provided by 3001, Inc. for individual Zone 15 tiles.  It describes the layers that MnGeo created for its WMS service from the tiled dataset. ---------------------------</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-91.76" miny="46.97" maxx="-90.61" maxy="47.71"/>
+    <BoundingBox SRS="EPSG:26915" minx="594000" miny="5204988" maxx="679519.2" maxy="5284516.8" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/doq_nwborder09_z15.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="2851"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>wisc09</Name>
+    <Title>2009 color south shore (WI)</Title>
+    <Abstract>An orthoimage (DOQ) is remotely sensed image data in which displacement of features in the image caused by terrain relief and sensor orientation have been mathematically removed. Orthoimagery combines the image characteristics of a photograph with the geometric qualities of a map. For this dataset, the natural color orthoimages were produced at 0.3-meter pixel resolution (approximately 1-foot). The design accuracy is estimated not to exceed 6 meter horizontal RMSE for locations within the United States. Each orthoimage provides imagery for a 1500-meter by 1500-meter block on the ground. The projected coordinate system is UTM with a NAD83 datum, spheroid GRS80. There is no image overlap between adjacent files. The naming convention is based on the U.S. National Grid (USNG), taking the coordinates of the SW corner of the orthoimage.  --------------------------- Note: This metadata record was created by the Minnesota Geospatial Information Office (MnGeo) based on the metadata provided by 3001, Inc. for individual Zone 15 tiles.  It describes the layers that MnGeo created for its WMS service from the tiled dataset. ---------------------------</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-91.66" miny="46.41" maxx="-89.96" maxy="47.15"/>
+    <BoundingBox SRS="EPSG:26915" minx="602935.2" miny="5143471.2" maxx="730540.8" maxy="5223000" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/doq_nwborder09_z15.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="4254"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>south11ir</Name>
+    <Title>2011 cir south MN</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.88" miny="43.38" maxx="-91.12" maxy="45.68"/>
+    <BoundingBox SRS="EPSG:26915" minx="197570" miny="4809309.5" maxx="646554.5" maxy="5059687.5" resx="0.5" resy="0.5"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/southmn2011_doqq_50cm.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.20" max="14966"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>murray11</Name>
+    <Title>2011 color Murray</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.11" miny="43.82" maxx="-95.43" maxy="44.23"/>
+    <BoundingBox SRS="EPSG:26915" minx="251222.674635" miny="4856212.175716" maxx="304934.374635" maxy="4900016.675716" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="1790"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>south11</Name>
+    <Title>2011 color south MN</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.88" miny="43.38" maxx="-91.12" maxy="45.68"/>
+    <BoundingBox SRS="EPSG:26915" minx="197570" miny="4809309.5" maxx="646554.5" maxy="5059687.5" resx="0.5" resy="0.5"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/southmn2011_doqq_50cm.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.20" max="14966"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fallcir11</Name>
+    <Title>2011 fall cir EC,SE</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.41" miny="43.49" maxx="-91.07" maxy="47.06"/>
+    <BoundingBox SRS="EPSG:26915" minx="393027.375" miny="4816440" maxx="646549.875" maxy="5212424.5" resx="0.5" resy="0.5"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/dnr_fall_doq2011.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.20" max="13199"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fall11</Name>
+    <Title>2011 fall color EC,SE</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.41" miny="43.49" maxx="-91.07" maxy="47.06"/>
+    <BoundingBox SRS="EPSG:26915" minx="393027.375" miny="4816440" maxx="646549.875" maxy="5212424.5" resx="0.5" resy="0.5"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/dnr_fall_doq2011.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.20" max="13199"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fallcir12</Name>
+    <Title>2012 fall cir Central</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.10" miny="46.03" maxx="-93.73" maxy="47.65"/>
+    <BoundingBox SRS="EPSG:26915" minx="267398.25" miny="5101518.75" maxx="443629.25" maxy="5278207.75" resx="0.5" resy="0.5"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/dnr_fall_doq2012.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.20" max="5890"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fall12</Name>
+    <Title>2012 fall color Central</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.10" miny="46.03" maxx="-93.73" maxy="47.65"/>
+    <BoundingBox SRS="EPSG:26915" minx="267398.25" miny="5101518.75" maxx="443629.25" maxy="5278207.75" resx="0.5" resy="0.5"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/dnr_fall_doq2012.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.20" max="5890"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>nc13ftcir</Name>
+    <Title>2013 cir North 1 ft</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.95" miny="45.44" maxx="-92.22" maxy="47.94"/>
+    <BoundingBox SRS="EPSG:26915" minx="204744.9" miny="5038242" maxx="557987.1" maxy="5309983.8" resx="0.3" resy="0.3"/>
+   <ScaleHint min="0.12" max="11775"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>nc13hmcir</Name>
+    <Title>2013 cir NW 50 cm</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.30" miny="46.05" maxx="-92.19" maxy="49.46"/>
+    <BoundingBox SRS="EPSG:26915" minx="187678" miny="5107624" maxx="558339" maxy="5478693" resx="0.5" resy="0.5"/>
+   <ScaleHint min="0.20" max="12369"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>meek13</Name>
+    <Title>2013 color Meeker</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.83" miny="44.87" maxx="-94.24" maxy="45.45"/>
+    <BoundingBox SRS="EPSG:26915" minx="356680" miny="4969931" maxx="402373" maxy="5033247.5" resx="0.5" resy="0.5"/>
+   <ScaleHint min="0.20" max="2111"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>nc13ft</Name>
+    <Title>2013 color North 1 ft</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.95" miny="45.44" maxx="-92.22" maxy="47.94"/>
+    <BoundingBox SRS="EPSG:26915" minx="204744.9" miny="5038242" maxx="557987.1" maxy="5309983.8" resx="0.3" resy="0.3"/>
+   <ScaleHint min="0.12" max="11775"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>nc13hm</Name>
+    <Title>2013 color NW 50 cm</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.30" miny="46.05" maxx="-92.19" maxy="49.46"/>
+    <BoundingBox SRS="EPSG:26915" minx="187678" miny="5107624" maxx="558339" maxy="5478693" resx="0.5" resy="0.5"/>
+   <ScaleHint min="0.20" max="12369"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>nw14cir</Name>
+    <Title>2014 cir NW 50 cm</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.14" miny="45.25" maxx="-92.21" maxy="48.20"/>
+    <BoundingBox SRS="EPSG:26915" minx="191983" miny="5018102" maxx="558336" maxy="5338727" resx="0.5" resy="0.5"/>
+   <ScaleHint min="0.20" max="12212"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>polkcir</Name>
+    <Title>2014 cir Polk Beltrami 1 ft</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.23" miny="47.31" maxx="-94.28" maxy="48.59"/>
+    <BoundingBox SRS="EPSG:26915" minx="187629" miny="5247426" maxx="403172.7" maxy="5382480.9" resx="0.3" resy="0.3"/>
+   <ScaleHint min="0.12" max="7185"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>mc14</Name>
+    <Title>2014 color McLeod</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.52" miny="44.62" maxx="-93.99" maxy="45.00"/>
+    <BoundingBox SRS="EPSG:26915" minx="380142" miny="4941464.15" maxx="421516.65" maxy="4983069.2" resx="0.15" resy="0.15"/>
+   <ScaleHint min="0.06" max="1387"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>nw14</Name>
+    <Title>2014 color NW 50 cm</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.14" miny="45.25" maxx="-92.21" maxy="48.20"/>
+    <BoundingBox SRS="EPSG:26915" minx="191983" miny="5018102" maxx="558336" maxy="5338727" resx="0.5" resy="0.5"/>
+   <ScaleHint min="0.20" max="12212"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>polk</Name>
+    <Title>2014 color Polk Beltrami 1 ft</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.23" miny="47.31" maxx="-94.28" maxy="48.59"/>
+    <BoundingBox SRS="EPSG:26915" minx="187660.8" miny="5247374.1" maxx="403127.7" maxy="5382501.6" resx="0.3" resy="0.3"/>
+   <ScaleHint min="0.12" max="7182"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>carl15_9</Name>
+    <Title>2015 color Carlton 9 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.08" miny="46.41" maxx="-92.28" maxy="46.78"/>
+    <BoundingBox SRS="EPSG:26915" minx="493740.027613" miny="5140019.571337" maxx="555347.689646" maxy="5180572.859092" resx="0.228598" resy="0.228598"/>
+   <ScaleHint min="0.09" max="2054"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>doug16</Name>
+    <Title>2016 color Douglas 3 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-95.79" miny="45.74" maxx="-95.11" maxy="46.13"/>
+    <BoundingBox SRS="EPSG:26915" minx="284283.93473" miny="5068378.057549" maxx="336223.75973" maxy="5110895.904949" resx="0.0762" resy="0.0762"/>
+   <ScaleHint min="0.03" max="1731"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>itas18cir</Name>
+    <Title>2018 cir Itasca 1 ft</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.45" miny="46.99" maxx="-93.02" maxy="47.92"/>
+    <BoundingBox SRS="EPSG:26915" minx="391552.306695" miny="5204803.371845" maxx="498338.986695" maxy="5306986.352645" resx="0.3048" resy="0.3048"/>
+   <ScaleHint min="0.12" max="3560"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>itas18</Name>
+    <Title>2018 color Itasca 1 ft</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.45" miny="46.99" maxx="-93.02" maxy="47.92"/>
+    <BoundingBox SRS="EPSG:26915" minx="391552.306695" miny="5204803.371845" maxx="498338.986695" maxy="5306986.352645" resx="0.3048" resy="0.3048"/>
+   <ScaleHint min="0.12" max="3560"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>mcle18</Name>
+    <Title>2018 color McLeod 4 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.51" miny="44.62" maxx="-94.00" maxy="44.99"/>
+    <BoundingBox SRS="EPSG:26915" minx="380613.26383" miny="4941972.838607" maxx="420719.067478" maxy="4982026.689102" resx="0.101471" resy="0.101471"/>
+   <ScaleHint min="0.04" max="1337"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>carl19cir</Name>
+    <Title>2019 cir Carlton 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.07" miny="46.41" maxx="-92.29" maxy="46.77"/>
+    <BoundingBox SRS="EPSG:26915" minx="494478.4" miny="5139946.4" maxx="554500" maxy="5180000" resx="0.15" resy="0.15"/>
+   <ScaleHint min="0.06" max="2001"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>carl19</Name>
+    <Title>2019 color Carlton 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.07" miny="46.41" maxx="-92.29" maxy="46.77"/>
+    <BoundingBox SRS="EPSG:26915" minx="494500" miny="5139946.4" maxx="554521.6" maxy="5180000" resx="0.15" resy="0.15"/>
+   <ScaleHint min="0.06" max="2001"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>lake19</Name>
+    <Title>2019 color Lake 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-91.84" miny="46.91" maxx="-90.98" maxy="48.21"/>
+    <BoundingBox SRS="EPSG:26915" minx="588080" miny="5197582.912" maxx="650419.456" maxy="5340120" resx="0.152" resy="0.152"/>
+   <ScaleHint min="0.06" max="4751"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>steele19</Name>
+    <Title>2019 color Steele 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.42" miny="43.84" maxx="-93.03" maxy="44.20"/>
+    <BoundingBox SRS="EPSG:26915" minx="466674.742131" miny="4854210.206728" maxx="497583.664092" maxy="4894595.957617" resx="0.152341" resy="0.152341"/>
+   <ScaleHint min="0.06" max="1346"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>belt20cir</Name>
+    <Title>2020 cir Beltrami 9 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-95.65" miny="47.35" maxx="-94.35" maxy="48.59"/>
+    <BoundingBox SRS="EPSG:26915" minx="304358.519159" miny="5247268.015821" maxx="398453.250959" maxy="5382583.213821" resx="0.2286" resy="0.2286"/>
+   <ScaleHint min="0.09" max="4511"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>belt20</Name>
+    <Title>2020 color Beltrami 9 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-95.65" miny="47.35" maxx="-94.35" maxy="48.59"/>
+    <BoundingBox SRS="EPSG:26915" minx="304358.519159" miny="5247268.015821" maxx="398453.250959" maxy="5382583.213821" resx="0.2286" resy="0.2286"/>
+   <ScaleHint min="0.09" max="4511"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>kooc20</Name>
+    <Title>2020 color Koochiching 1 ft</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.46" miny="47.82" maxx="-93.06" maxy="48.73"/>
+    <BoundingBox SRS="EPSG:26915" minx="392614.16561" miny="5297673.581769" maxx="495768.456866" maxy="5397707.765506" resx="0.304698" resy="0.304698"/>
+   <ScaleHint min="0.12" max="3438"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>lyon20</Name>
+    <Title>2020 color Lyon 3 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.12" miny="44.18" maxx="-95.57" maxy="44.65"/>
+    <BoundingBox SRS="EPSG:26915" minx="252531.708566" miny="4896284.365476" maxx="294756.455804" maxy="4947601.018763" resx="0.076213" resy="0.076213"/>
+   <ScaleHint min="0.03" max="1711"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>carlton21</Name>
+    <Title>2021 color Carlton 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.07" miny="46.41" maxx="-92.29" maxy="46.77"/>
+    <BoundingBox SRS="EPSG:26915" minx="494777.652198" miny="5140308.6568" maxx="554466.811515" maxy="5180031.356212" resx="0.152332" resy="0.152332"/>
+   <ScaleHint min="0.06" max="1990"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>lesueur21</Name>
+    <Title>2021 color Le Sueur 3 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.03" miny="44.19" maxx="-93.52" maxy="44.55"/>
+    <BoundingBox SRS="EPSG:26915" minx="417963.747445" miny="4893620.79395" maxx="458538.593962" maxy="4932785.413324" resx="0.076171" resy="0.076171"/>
+   <ScaleHint min="0.03" max="1352"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>rice21</Name>
+    <Title>2021 color Rice 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.53" miny="44.19" maxx="-93.03" maxy="44.55"/>
+    <BoundingBox SRS="EPSG:26915" minx="457943.025156" miny="4893658.42491" maxx="497473.090967" maxy="4933188.490721" resx="0.152334" resy="0.152334"/>
+   <ScaleHint min="0.06" max="1318"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>doug22</Name>
+    <Title>2022 color Douglas 2 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-95.78" miny="45.74" maxx="-95.12" maxy="46.13"/>
+    <BoundingBox SRS="EPSG:26915" minx="285152.565237" miny="5069142.062587" maxx="335014.340037" maxy="5110472.688587" resx="0.0508" resy="0.0508"/>
+   <ScaleHint min="0.02" max="1662"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>mcle22</Name>
+    <Title>2022 color McLeod 4 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.51" miny="44.62" maxx="-94.00" maxy="44.99"/>
+    <BoundingBox SRS="EPSG:26915" minx="380594.578106" miny="4941973.453925" maxx="420724.871318" maxy="4982000.777793" resx="0.100556" resy="0.100556"/>
+   <ScaleHint min="0.04" max="1338"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>steele22</Name>
+    <Title>2022 color Steele 3 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.41" miny="43.85" maxx="-93.04" maxy="44.20"/>
+    <BoundingBox SRS="EPSG:26915" minx="467232.669964" miny="4854926.900599" maxx="497056.6113" maxy="4894383.098959" resx="0.076166" resy="0.076166"/>
+   <ScaleHint min="0.03" max="1315"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>belt23</Name>
+    <Title>2023 color Beltrami 9 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-95.65" miny="47.35" maxx="-94.34" maxy="48.59"/>
+    <BoundingBox SRS="EPSG:26915" minx="304387.811683" miny="5247189.58667" maxx="398529.666052" maxy="5382639.376784" resx="0.228554" resy="0.228554"/>
+   <ScaleHint min="0.09" max="4515"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>rice23</Name>
+    <Title>2023 color Rice 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.53" miny="44.19" maxx="-93.03" maxy="44.55"/>
+    <BoundingBox SRS="EPSG:26915" minx="457943.025156" miny="4893658.42491" maxx="497473.090967" maxy="4933188.490721" resx="0.152334" resy="0.152334"/>
+   <ScaleHint min="0.06" max="1318"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>lake24</Name>
+    <Title>2024 color Lake 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-91.84" miny="46.91" maxx="-90.97" maxy="48.21"/>
+    <BoundingBox SRS="EPSG:26915" minx="588000" miny="5197477.2" maxx="651034.8" maxy="5340000" resx="0.15" resy="0.15"/>
+   <ScaleHint min="0.06" max="4751"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>lyon24</Name>
+    <Title>2024 color Lyon 3 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-96.11" miny="44.18" maxx="-95.57" maxy="44.65"/>
+    <BoundingBox SRS="EPSG:26915" minx="253407.729632" miny="4895950.247217" maxx="294466.078539" maxy="4947252.698524" resx="0.076221" resy="0.076221"/>
+   <ScaleHint min="0.03" max="1710"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>wab25</Name>
+    <Title>2025 color Wabasha 2 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-92.56" miny="44.09" maxx="-91.84" maxy="44.46"/>
+    <BoundingBox SRS="EPSG:26915" minx="535194.005588" miny="4883039.922579" maxx="591947.766588" maxy="4923069.510779" resx="0.0508" resy="0.0508"/>
+   <ScaleHint min="0.02" max="1892"/>
+   </Layer>
+   </Layer>
+   <Layer>
+   <Title> Twin Cities metro</Title>
+   <Layer queryable="0" opaque="1">
+    <Name>bw1997</Name>
+    <Title>1997 bw 7-county</Title>
+    <Abstract>This dataset contains 265 digital, black and white orthophoto quarter-quadrangles (DOQs), 3.75' x 3.75', covering the 7 county Twin Cities (Minneapolis and St. Paul) Metropolitan Area in Minnesota.  Each CD-ROM contains up to 4 quarter-quadrangles of a USGS 7.5 minute quadrangle, where a quarter-quadrangle is included IF it's coverage includes any portion of the Twin cities 7 county area.  The orthophotos are in UTM, Zone 15, NAD83 projection.  Each image is approximately 120 Mb, with a .6 meter image pixel, and available in TIFF format.  There are a total of 76 CD-ROMs plus one CD-ROM that contains one metadata record for the dataset and a header file (.hdr) for each image.  These DOQs were produced using the USGS DOQ specifications except for the scan resolution (pixel size is .6m rather than 1 meter) and the file format.  The original imagery was collected at 20,000 ft and centered on USGS quarter-quads.  This dataset is available for direct use via the MnGeo Image Server.  More information at  http://www.mngeo.state.mn.us/chouse/wms/wms_image_server_layers.html</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.08" miny="44.43" maxx="-92.68" maxy="45.44"/>
+    <BoundingBox SRS="EPSG:26915" minx="415490.1" miny="4920146.7" maxx="525138.3" maxy="5032061.7" resx="0.6" resy="0.6"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.datafinder.org/metadata/orthos1997.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.24" max="3730"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>bw2000</Name>
+    <Title>2000 bw 7-county</Title>
+    <Abstract>This dataset contains 267 black and white digital orthophoto quarter-quadrangles (DOQs), 3.75' x 3.75', covering the 7 county Twin Cities (Minneapolis and St. Paul) Metropolitan Area in Minnesota.  Each CD-ROM contains up to 4 quarter-quadrangles of a USGS 7.5 minute quadrangle, where a quarter-quadrangle is included IF it's coverage includes any portion of the Twin cities 7 county area.  The orthophotos are in UTM, Zone 15, NAD83 projection.  Each image is approximately 115 Mb, with a .6 meter image pixel, and available in TIFF format.  There are a total of 78 CD-ROMs.  These orthophotos were produced using the USGS DOQ specifications except for the file format and the scan resolution (pixel size is .6m rather than 1 meter).  The original imagery was collected at 20,000 ft. and centered on USGS quarter-quads.  This dataset is available for direct use via the MnGeo Image Server.  More information at  http://www.mngeo.state.mn.us/chouse/wms/wms_image_server_layers.html</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.08" miny="44.43" maxx="-92.68" maxy="45.44"/>
+    <BoundingBox SRS="EPSG:26915" minx="415485.3" miny="4920156.3" maxx="525129.9" maxy="5032059.9" resx="0.6" resy="0.6"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.datafinder.org/metadata/orthos2000.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.24" max="3730"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>metro</Name>
+    <Title>2004 color MSP</Title>
+    <Abstract>An orthoimage is remotely sensed image data in which displacement of features in the image caused by terrain relief and sensor orientation have been mathematically removed. Orthoimagery combines the image characteristics of a photograph with the geometric qualities of a map. For this dataset, the natural color orthoimages were produced at 0.3-meter pixel resolution (approximately 1-foot). The design accuracy is estimated not to exceed 3-meter diagonal RMSE (2.12m RMSE in X or Y). Each orthoimage provides imagery for a 1500-meter by 1500-meter block on the ground. The projected coordinate system is UTM with a NAD83 datum. There is no image overlap between adjacent files. The naming convention for the original tiles is based on the U.S. National Grid (USNG), taking the coordinates of the SW corner of the orthoimage.  [Note: this metadata record was reformatted at the Minnesota Land Management Information Center from the record originally posted on the USGS Seamless Server - several of the fields including the Bounding Coordinates, Transfer Format Name, and Lineage fields were changed to reflect LMIC's data delivery option.]</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.52" miny="44.74" maxx="-92.74" maxy="45.26"/>
+    <BoundingBox SRS="EPSG:26915" minx="458964" miny="4954473.6" maxx="520521.6" maxy="5011500" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/doq_msp04.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="2052"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>msp2006</Name>
+    <Title>2006 color 7-county (partial)</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.80" miny="44.62" maxx="-92.87" maxy="45.38"/>
+    <BoundingBox SRS="EPSG:26915" minx="437573.25" miny="4940955.75" maxx="510022.95" maxy="5025035.25" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/doq_msp06.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="2803"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>stp2006</Name>
+    <Title>2006 color Ramsey</Title>
+    <Abstract>The National Elevation Dataset (NED) is the primary elevation data product produced and distributed by the USGS. The NED provides the best available public domain raster elevation data of the conterminous United States, Alaska, Hawaii, and territorial islands in a seamless format.  The NED is derived from diverse source data, processed to a common coordinate system and unit of vertical measure.  All NED data are distributed in geographic coordinates in units of decimal degrees, and in conformance with the North American Datum of 1983 (NAD 83).  All elevation values are provided in units of meters, and are referenced to the North American Vertical Datum of 1988 (NAVD 88) over the conterminous United States.  The vertical reference will vary in other areas.  NED data are available nationally at resolutions of 1 arc-second (approx. 30 meters) and 1/3 arc-second (approx. 10 meters), and in limited areas at 1/9 arc-second (approx. 3 meters).  At present, the bulk of Alaska is only available at a 2 arc-second (approx. 60 meters) resolution, owing to a lack of higher resolution source data, though some areas are available at resolutions of 1 and 1/3 arc-second with plans for significant upgrades of the state over the next five years.  The NED is updated on a nominal two month cycle to integrate newly available, improved elevation source data.</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.23" miny="44.81" maxx="-92.96" maxy="45.14"/>
+    <BoundingBox SRS="EPSG:26915" minx="481567.955" miny="4961820.115" maxx="502989.905" maxy="4998410.065" resx="0.15" resy="0.15"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/doq_ramsey06.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.06" max="1220"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>met10cir</Name>
+    <Title>2010 cir 7-county</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.08" miny="44.43" maxx="-92.68" maxy="45.44"/>
+    <BoundingBox SRS="EPSG:26915" minx="415485" miny="4920156.9" maxx="525110.1" maxy="5032056.3" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/ecmn2010_doqq_1ft.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="3730"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>smet10cir</Name>
+    <Title>2010 cir north counties</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.34" miny="44.93" maxx="-92.62" maxy="45.75"/>
+    <BoundingBox SRS="EPSG:26915" minx="396105" miny="4976200.5" maxx="529744" maxy="5066721.5" resx="0.5" resy="0.5"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/ecmn2010_doqq_50cm.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.20" max="4455"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>met10</Name>
+    <Title>2010 color 7-county</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.08" miny="44.43" maxx="-92.68" maxy="45.44"/>
+    <BoundingBox SRS="EPSG:26915" minx="415485" miny="4920156.9" maxx="525110.1" maxy="5032056.3" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/ecmn2010_doqq_1ft.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="3730"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>dak10</Name>
+    <Title>2010 color Dakota</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.36" miny="44.46" maxx="-92.72" maxy="44.93"/>
+    <BoundingBox SRS="EPSG:26915" minx="471859.2" miny="4922572.8" maxx="522240" maxy="4975449.6" resx="0.15" resy="0.15"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.06" max="1763"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>smet10</Name>
+    <Title>2010 color north counties</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.34" miny="44.93" maxx="-92.62" maxy="45.75"/>
+    <BoundingBox SRS="EPSG:26915" minx="396105" miny="4976200.5" maxx="529744" maxy="5066721.5" resx="0.5" resy="0.5"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/ecmn2010_doqq_50cm.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.20" max="4455"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>scott10</Name>
+    <Title>2010 color Scott</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.93" miny="44.53" maxx="-93.26" maxy="44.82"/>
+    <BoundingBox SRS="EPSG:26915" minx="426388.86296" miny="4931131.288773" maxx="479236.71296" maxy="4963166.338773" resx="0.15" resy="0.15"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.06" max="1762"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>rice11</Name>
+    <Title>2011 color Rice</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.53" miny="44.19" maxx="-93.04" maxy="44.55"/>
+    <BoundingBox SRS="EPSG:26915" minx="457927.010844" miny="4893665.791428" maxx="496920.410844" maxy="4932434.941428" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="1300"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>nga2012</Name>
+    <Title>2012 color Twin Cities</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.77" miny="44.62" maxx="-92.85" maxy="45.38"/>
+    <BoundingBox SRS="EPSG:26915" minx="439500" miny="4940990.4" maxx="511502.4" maxy="5025050.4" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/doq_msp12.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="2802"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>carv13</Name>
+    <Title>2013 color Carver</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.02" miny="44.63" maxx="-93.51" maxy="44.98"/>
+    <BoundingBox SRS="EPSG:26915" minx="419934.075" miny="4942096.725" maxx="459700.875" maxy="4981116.525" resx="0.15" resy="0.15"/>
+   <ScaleHint min="0.06" max="1326"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>dak13</Name>
+    <Title>2013 color Dakota</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.34" miny="44.47" maxx="-92.73" maxy="44.93"/>
+    <BoundingBox SRS="EPSG:26915" minx="473034.675" miny="4924043.925" maxx="521482.275" maxy="4975496.925" resx="0.15" resy="0.15"/>
+   <ScaleHint min="0.06" max="1715"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>scott13</Name>
+    <Title>2013 color Scott</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.94" miny="44.51" maxx="-93.26" maxy="44.82"/>
+    <BoundingBox SRS="EPSG:26915" minx="425979.075" miny="4929044.325" maxx="479676.075" maxy="4963121.925" resx="0.15" resy="0.15"/>
+   <ScaleHint min="0.06" max="1790"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>wash13</Name>
+    <Title>2013 Washington</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.05" miny="44.73" maxx="-92.72" maxy="45.30"/>
+    <BoundingBox SRS="EPSG:26915" minx="496310.697581" miny="4952949.694795" maxx="522203.547581" maxy="5016107.794795" resx="0.15" resy="0.15"/>
+   <ScaleHint min="0.06" max="2105"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>met16cir</Name>
+    <Title>2016 cir 7-county</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.08" miny="44.43" maxx="-92.68" maxy="45.44"/>
+    <BoundingBox SRS="EPSG:26915" minx="415485.3" miny="4920156.9" maxx="525109.8" maxy="5032056.3" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="ftp://ftp.gisdata.mn.gov/pub/gdrs/data/pub/us_mn_state_metc/base_metro_orthos_2016/metadata/metadata.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="3730"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>met16</Name>
+    <Title>2016 color 7-county</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.08" miny="44.43" maxx="-92.68" maxy="45.44"/>
+    <BoundingBox SRS="EPSG:26915" minx="415471.8" miny="4920133.5" maxx="525149.1" maxy="5032002.6" resx="0.3" resy="0.3"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="ftp://ftp.gisdata.mn.gov/pub/gdrs/data/pub/us_mn_state_metc/base_metro_orthos_2016/metadata/metadata.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.12" max="3729"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>hen18</Name>
+    <Title>2018 color Hennepin 3 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.78" miny="44.78" maxx="-93.17" maxy="45.25"/>
+    <BoundingBox SRS="EPSG:26915" minx="438547.526601" miny="4958308.62387" maxx="486855.585017" maxy="5011231.887709" resx="0.0762" resy="0.0762"/>
+   <ScaleHint min="0.03" max="1764"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>dak19cir</Name>
+    <Title>2019 cir Dakota 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.34" miny="44.47" maxx="-92.73" maxy="44.94"/>
+    <BoundingBox SRS="EPSG:26915" minx="473025.103844" miny="4924027.722208" maxx="521494.704644" maxy="4975813.547008" resx="0.1524" resy="0.1524"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://resources.gisdata.mn.gov/pub/gdrs/data/pub/us_mn_co_dakota/base_aerialphotography_2019_sprg/metadata/metadata.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.06" max="1726"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>dak19</Name>
+    <Title>2019 color Dakota 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.34" miny="44.47" maxx="-92.73" maxy="44.94"/>
+    <BoundingBox SRS="EPSG:26915" minx="473025.103844" miny="4924027.722208" maxx="521494.704644" maxy="4975813.547008" resx="0.1524" resy="0.1524"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://resources.gisdata.mn.gov/pub/gdrs/data/pub/us_mn_co_dakota/base_aerialphotography_2019_sprg/metadata/metadata.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.06" max="1726"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>met20cir</Name>
+    <Title>2020 cir 7-county</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.08" miny="44.43" maxx="-92.68" maxy="45.44"/>
+    <BoundingBox SRS="EPSG:26915" minx="415470" miny="4920088.5" maxx="525112.5" maxy="5032007.1" resx="0.3" resy="0.3"/>
+   <ScaleHint min="0.12" max="3731"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>rams20cir</Name>
+    <Title>2020 cir Ramsey 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.23" miny="44.88" maxx="-92.96" maxy="45.14"/>
+    <BoundingBox SRS="EPSG:26915" minx="481566.481547" miny="4969335.252266" maxx="502994.378747" maxy="4998409.971866" resx="0.1524" resy="0.1524"/>
+   <ScaleHint min="0.06" max="969"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>met20</Name>
+    <Title>2020 color 7-county</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.08" miny="44.43" maxx="-92.68" maxy="45.44"/>
+    <BoundingBox SRS="EPSG:26915" minx="415470" miny="4920088.5" maxx="525112.5" maxy="5032007.1" resx="0.3" resy="0.3"/>
+   <ScaleHint min="0.12" max="3731"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>rams20</Name>
+    <Title>2020 color Ramsey 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.23" miny="44.88" maxx="-92.96" maxy="45.14"/>
+    <BoundingBox SRS="EPSG:26915" minx="481566.481547" miny="4969335.252266" maxx="502994.378747" maxy="4998409.971866" resx="0.1524" resy="0.1524"/>
+   <ScaleHint min="0.06" max="969"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>dak21</Name>
+    <Title>2021 color Dakota 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.34" miny="44.46" maxx="-92.72" maxy="44.93"/>
+    <BoundingBox SRS="EPSG:26915" minx="473286.043685" miny="4923146.581078" maxx="522304.284485" maxy="4975136.164678" resx="0.1524" resy="0.1524"/>
+   <ScaleHint min="0.06" max="1733"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>hen21</Name>
+    <Title>2021 color Hennepin 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.77" miny="44.78" maxx="-93.18" maxy="45.25"/>
+    <BoundingBox SRS="EPSG:26915" minx="439317.200936" miny="4959153.595689" maxx="486036.487736" maxy="5010504.623289" resx="0.1524" resy="0.1524"/>
+   <ScaleHint min="0.06" max="1712"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>hen22</Name>
+    <Title>2022 color Hennepin 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.77" miny="44.78" maxx="-93.18" maxy="45.25"/>
+    <BoundingBox SRS="EPSG:26915" minx="439354.1124" miny="4959132.8808" maxx="486056.7876" maxy="5010478.2696" resx="0.1524" resy="0.1524"/>
+   <ScaleHint min="0.06" max="1712"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>dak23</Name>
+    <Title>2023 color Dakota 6 in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.35" miny="44.46" maxx="-92.71" maxy="44.93"/>
+    <BoundingBox SRS="EPSG:26915" minx="472555.730486" miny="4922902.8288" maxx="522581.949793" maxy="4975753.9296" resx="0.1524" resy="0.1524"/>
+   <ScaleHint min="0.06" max="1762"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>met25cir</Name>
+    <Title>2025 cir 7-county</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.08" miny="44.43" maxx="-92.68" maxy="45.44"/>
+    <BoundingBox SRS="EPSG:26915" minx="415738.5" miny="4920422.4" maxx="524845.5" maxy="5031724.8" resx="0.3" resy="0.3"/>
+   <ScaleHint min="0.12" max="3710"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>met25</Name>
+    <Title>2025 color 7-county</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-94.08" miny="44.43" maxx="-92.68" maxy="45.44"/>
+    <BoundingBox SRS="EPSG:26915" minx="415738.5" miny="4920422.4" maxx="524845.5" maxy="5031724.8" resx="0.3" resy="0.3"/>
+   <ScaleHint min="0.12" max="3710"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>dak26</Name>
+    <Title>2026 color Dakota 6in</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-93.35" miny="44.46" maxx="-92.71" maxy="44.94"/>
+    <BoundingBox SRS="EPSG:26915" minx="472595.7528" miny="4922872.806" maxx="522582.9528" maxy="4975786.086" resx="0.1524" resy="0.1524"/>
+   <ScaleHint min="0.06" max="1764"/>
+   </Layer>
+   </Layer>
+   <Layer>
+   <Title>Statewide</Title>
+   <Layer queryable="0" opaque="1">
+    <Name>hillshd</Name>
+    <Title>Hillshade (LIDAR)</Title>
+    <Abstract>Hill shades derived from 1 m. lidar</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.54" miny="43.40" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="170240" miny="4812800" maxx="766464" maxy="5478912" resx="1" resy="1"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/lidar_hillshade_mn.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.40" max="22204"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>doq</Name>
+    <Title>1991 bw USGS</Title>
+    <Abstract>A digital orthophoto is a raster image of remotely sensed data in which displacement in the image due to sensor orientation and terrain relief have been removed. Orthophotos combine the image characteristics of a photograph with the geometric qualities of a map. The primary digital orthophotoquad (DOQ) is a 1-meter ground resolution, quarter-quadrangle (3.75-minutes of latitude by 3.75-minutes of longitude) image cast on the Universal Transverse Mercator Projection (UTM) on the North American Datum of 1983 (NAD83). The geographic extent of the DOQ is equivalent to a quarter-quad plus overedge. The overedge ranges a minimum of 50 meters to a maximum of 300 meters beyond the extremes of the primary and secondary corner points. The overedge is included to facilitate tonal matching for mosaicking and for the placement of the NAD83 and secondary datum corner ticks. The normal orientation of data is by lines (rows) and samples (columns). Each line contains a series of pixels ordered from west to east with the order of the lines from north to south. The standard, archived digital orthophoto is formatted as four ASCII header records, followed by a series of 8-bit binary image data records. The radiometric image brightness values are stored as 256 gray levels ranging from 0 to 255. The metadata provided in the digital orthophoto contain a wide range of descriptive information including format source information, production instrumentation and dates, and data to assist with displaying and georeferencing the image. The standard distribution format of DOQs will be JPEG compressed images on CD by counties or special regions. The reconstituted image from the CD will exhibit some radiometric differences when compared to its uncompressed original but will retain the geometry of the uncompressed DOQ.</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.54" miny="43.42" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="170240" miny="4815872" maxx="766464" maxy="5478912" resx="1" resy="1"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/doq.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.40" max="22101"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>landsat</Name>
+    <Title>2002-04 Landsat</Title>
+    <Abstract>This data set contains 3-band natural color imagery from the National Agricultural Imagery Program (NAIP). NAIP acquires digital ortho imagery during the agricultural growing seasons in the continental U.S. A primary goal of the NAIP program is to enable availability of ortho imagery within one year of acquisition.  The source files are 1 meter ground sample distance (GSD) ortho imagery rectified to a horizontal accuracy of within +/- 5 meters of reference digital ortho quarter quads (DOQQ's) from the National Digital Ortho Program (NDOP) or from NAIP. The tiling format of NAIP imagery is based on a 3.75' x 3.75' quarter quadrangle with a 300 meter buffer on all four sides. NAIP imagery is formatted to the UTM coordinate system using NAD83. NAIP imagery may contain as much as 10% cloud cover per tile.  This file was generated by compressing NAIP imagery that cover the county extent. MrSID compression was used. Target values for the compression ratio are (15:1).  (Note: The Minnesota Geospatial Information Office (MnGeo) has created this metadata record to describe the entire NAIP2009 dataset, using information from Farm Service Agency metadata. Each county file is accompanied by the original FSA metadata for that county.)</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-102.05" miny="40.46" maxx="-85.90" maxy="51.37"/>
+    <BoundingBox SRS="EPSG:26915" minx="-131108.45" miny="4505093.25" maxx="994071.55" maxy="5715117.75" resx="28.5" resy="28.5"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/naip09.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="11.40" max="40334"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa</Name>
+    <Title>2003 color FSA</Title>
+    <Abstract>This data set contains photographic information obtained for the National Agricultural Imagery Program (NAIP) and is comprised of scanned photographs that were acquired on color positive film.  Acquisition was leaf-on with mature crops prior to harvest.  Images have been orthorectified.  NAIP imagery is quarter-quadrangle centered to provide consistent and repeatable coverage. The quarter-quad photos have been mosaicked into MrSID format county files.  (Note that the Farm Services Agency provided one metadata record per MrSID county file; the Land Management Information Center created this metadata record to describe the whole data set. For information that FSA did not provide, the metadata for Minnesota's NAIP 2002 imagery can serve as a general guide to the NAIP program procedure -- some of the specific processing steps or accuracy assessments may differ from the 2003 program:   http://www.lmic.state.mn.us/chouse/metadata/naip02.html )</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.30" miny="43.37" maxx="-89.46" maxy="49.35"/>
+    <BoundingBox SRS="EPSG:26915" minx="187392" miny="4808960" maxx="756992" maxy="5472000" resx="1" resy="1"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/naip03.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.40" max="22101"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>usgs2006</Name>
+    <Title>2006 color 40 county</Title>
+    <Abstract>Natural-color one-meter resolution digital orthophotography was acquired over 40 Minnesota counties in Summer and Fall 2006. Some areas are leaf-on; other areas are leaf-off.  The U.S. Geological Survey procured the imagery from the vendor in order to make it publicly available. The imagery is currently accessible via a WMS service from the Minnesota Land Management Information Center (LMIC).  LMIC created this metadata record based on information provided by MDA.</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.27" miny="43.37" maxx="-91.00" maxy="49.04"/>
+    <BoundingBox SRS="EPSG:26915" minx="187904" miny="4808960" maxx="646144" maxy="5433600" resx="1" resy="1"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/doq06mda.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.40" max="20821"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>cir2008</Name>
+    <Title>2008 cir FSA</Title>
+    <Abstract>This data set contains 4-band (natural color plus infrared) imagery from the National Agricultural Imagery Program (NAIP). NAIP acquires digital ortho imagery during the agricultural growing seasons in the continental U.S. A primary goal of the NAIP program is to enable availability of ortho imagery within one year of acquisition.  The source files are 1 meter ground sample distance (GSD) ortho imagery rectified to a horizontal accuracy of within +/- 5 meters of reference digital ortho quarter quads (DOQQ's) from the National Digital Ortho Program (NDOP) or from NAIP. The tiling format of NAIP imagery is based on a 3.75' x 3.75' quarter quadrangle with a 300 meter buffer on all four sides. NAIP quarter quads are formatted to the UTM coordinate system using NAD83. NAIP imagery may contain as much as 10% cloud cover per tile.  This file was generated by compressing NAIP quarter quadrangle tiles that cover a county. JPEG2000 compression was used. Target values for the compression ratio are (15:1).  (Note: The Land Management Information Center has created this metadata record to describe the entire NAIP2008 dataset, using information from Farm Service Agency metadata. Each county file is accompanied by the original FSA metadata for that county.)</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.39" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="181760" miny="4808960" maxx="766208" maxy="5478912" resx="1" resy="1"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/naip08.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.40" max="22332"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2008</Name>
+    <Title>2008 color FSA</Title>
+    <Abstract>This data set contains 4-band (natural color plus infrared) imagery from the National Agricultural Imagery Program (NAIP). NAIP acquires digital ortho imagery during the agricultural growing seasons in the continental U.S. A primary goal of the NAIP program is to enable availability of ortho imagery within one year of acquisition.  The source files are 1 meter ground sample distance (GSD) ortho imagery rectified to a horizontal accuracy of within +/- 5 meters of reference digital ortho quarter quads (DOQQ's) from the National Digital Ortho Program (NDOP) or from NAIP. The tiling format of NAIP imagery is based on a 3.75' x 3.75' quarter quadrangle with a 300 meter buffer on all four sides. NAIP quarter quads are formatted to the UTM coordinate system using NAD83. NAIP imagery may contain as much as 10% cloud cover per tile.  This file was generated by compressing NAIP quarter quadrangle tiles that cover a county. JPEG2000 compression was used. Target values for the compression ratio are (15:1).  (Note: The Land Management Information Center has created this metadata record to describe the entire NAIP2008 dataset, using information from Farm Service Agency metadata. Each county file is accompanied by the original FSA metadata for that county.)</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.39" miny="42.39" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="181760" miny="4700000" maxx="766208" maxy="5478912" resx="1" resy="1"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/naip08.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.40" max="25964"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2009</Name>
+    <Title>2009 color FSA</Title>
+    <Abstract>This data set contains 3-band natural color imagery from the National Agricultural Imagery Program (NAIP). NAIP acquires digital ortho imagery during the agricultural growing seasons in the continental U.S. A primary goal of the NAIP program is to enable availability of ortho imagery within one year of acquisition.  The source files are 1 meter ground sample distance (GSD) ortho imagery rectified to a horizontal accuracy of within +/- 5 meters of reference digital ortho quarter quads (DOQQ's) from the National Digital Ortho Program (NDOP) or from NAIP. The tiling format of NAIP imagery is based on a 3.75' x 3.75' quarter quadrangle with a 300 meter buffer on all four sides. NAIP imagery is formatted to the UTM coordinate system using NAD83. NAIP imagery may contain as much as 10% cloud cover per tile.  This file was generated by compressing NAIP imagery that cover the county extent. MrSID compression was used. Target values for the compression ratio are (15:1).  (Note: The Minnesota Geospatial Information Office (MnGeo) has created this metadata record to describe the entire NAIP2009 dataset, using information from Farm Service Agency metadata. Each county file is accompanied by the original FSA metadata for that county.)</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.39" miny="43.37" maxx="-89.33" maxy="49.41"/>
+    <BoundingBox SRS="EPSG:26915" minx="181760" miny="4808960" maxx="766464" maxy="5479168" resx="1" resy="1"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/naip09.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.40" max="22340"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2010</Name>
+    <Title>2010 color FSA</Title>
+    <Abstract>This data set contains 3-band natural color imagery from the National Agricultural Imagery Program (NAIP). NAIP acquires digital ortho imagery during the agricultural growing seasons in the continental U.S. A primary goal of the NAIP program is to enable availability of ortho imagery within one year of acquisition.  The source files are 1 meter ground sample distance (GSD) ortho imagery rectified to a horizontal accuracy of within +/- 5 meters of reference digital ortho quarter quads (DOQQ's) from the National Digital Ortho Program (NDOP) or from NAIP. The tiling format of NAIP imagery is based on a 3.75' x 3.75' quarter quadrangle with a 300 meter buffer on all four sides. NAIP imagery is formatted to the UTM coordinate system using NAD83. NAIP imagery may contain as much as 10% cloud cover per tile.  This file was generated by compressing NAIP imagery that cover the county extent. MrSID compression was used. Target values for the compression ratio are (15:1).  (Note: The Minnesota Geospatial Information Office (MnGeo) has created this metadata record to describe the entire NAIP2010 dataset, using information from Farm Service Agency metadata. Each county file is accompanied by the original FSA metadata for that county.)</Abstract>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.39" miny="43.37" maxx="-89.33" maxy="49.41"/>
+    <BoundingBox SRS="EPSG:26915" minx="181760" miny="4808960" maxx="766464" maxy="5479168" resx="1" resy="1"/>
+    <MetadataURL type="FGDC">
+     <Format>text/html</Format>
+     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://www.mngeo.state.mn.us/chouse/metadata/naip10.html"></OnlineResource>
+    </MetadataURL>
+   <ScaleHint min="0.40" max="22340"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2013cir</Name>
+    <Title>2013 cir FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.31" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="187392" miny="4808960" maxx="766464" maxy="5478912" resx="1" resy="1"/>
+   <ScaleHint min="0.40" max="22332"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2013</Name>
+    <Title>2013 color FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.31" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="187392" miny="4808960" maxx="766464" maxy="5478912" resx="1" resy="1"/>
+   <ScaleHint min="0.40" max="22332"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2015cir</Name>
+    <Title>2015 cir FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.31" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="187392" miny="4808960" maxx="766464" maxy="5478912" resx="1" resy="1"/>
+   <ScaleHint min="0.40" max="22332"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2015</Name>
+    <Title>2015 color FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.31" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="187392" miny="4808960" maxx="766464" maxy="5478912" resx="1" resy="1"/>
+   <ScaleHint min="0.40" max="22332"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2017cir</Name>
+    <Title>2017 cir FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.31" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="187392" miny="4808960" maxx="766464" maxy="5478912" resx="1" resy="1"/>
+   <ScaleHint min="0.40" max="22332"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2017</Name>
+    <Title>2017 color FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.31" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="187392" miny="4808960" maxx="766464" maxy="5478912" resx="1" resy="1"/>
+   <ScaleHint min="0.40" max="22332"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2019cir</Name>
+    <Title>2019 cir FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.31" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="187501.2" miny="4809153" maxx="766341.6" maxy="5478747" resx="0.6" resy="0.6"/>
+   <ScaleHint min="0.24" max="22320"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2019</Name>
+    <Title>2019 color FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.31" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="187501.2" miny="4809153" maxx="766341.6" maxy="5478747" resx="0.6" resy="0.6"/>
+   <ScaleHint min="0.24" max="22320"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2021cir</Name>
+    <Title>2021 cir FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.31" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="187500" miny="4809153.6" maxx="766339.8" maxy="5478747.6" resx="0.6" resy="0.6"/>
+   <ScaleHint min="0.24" max="22320"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2021</Name>
+    <Title>2021 color FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.38" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="182026.8" miny="4809032.4" maxx="766186.8" maxy="5478747.6" resx="0.6" resy="0.6"/>
+   <ScaleHint min="0.24" max="22324"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2023cir</Name>
+    <Title>2023 cir FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.31" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="187463.4" miny="4809076.8" maxx="766338" maxy="5478693.3" resx="0.3" resy="0.3"/>
+   <ScaleHint min="0.12" max="22321"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2023</Name>
+    <Title>2023 color FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.31" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="187463.4" miny="4809076.8" maxx="766338" maxy="5478693.3" resx="0.3" resy="0.3"/>
+   <ScaleHint min="0.12" max="22321"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2025cir</Name>
+    <Title>2025 cir FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.38" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="182228.804772" miny="4809288.588642" maxx="766072.604772" maxy="5478533.988642" resx="0.6" resy="0.6"/>
+   <ScaleHint min="0.24" max="22308"/>
+   </Layer>
+   <Layer queryable="0" opaque="1">
+    <Name>fsa2025</Name>
+    <Title>2025 color FSA</Title>
+    <SRS>EPSG:26915</SRS>
+    <LatLonBoundingBox minx="-97.38" miny="43.37" maxx="-89.33" maxy="49.40"/>
+    <BoundingBox SRS="EPSG:26915" minx="182228.804772" miny="4809288.588642" maxx="766072.604772" maxy="5478533.988642" resx="0.6" resy="0.6"/>
+   <ScaleHint min="0.24" max="22308"/>
+   </Layer>
+   </Layer>
+   </Layer>
+ </Capability>
+</WMT_MS_Capabilities>

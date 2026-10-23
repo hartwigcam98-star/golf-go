@@ -1,0 +1,93 @@
+http 502 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+</body>
+</html>
+
+http 502 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+</body>
+</html>
+
+http 502 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+</body>
+</html>
+
+mn layers 119 [('mndot_d01', 'District 1'), ('mndot_d02', 'District 2'), ('mndot_d03', 'District 3'), ('mndot_d04', 'District 4'), ('mndot_d06', 'District 6'), ('mndot_d07', 'District 7'), ('mndot_d08', 'District 8'), ('mndot_met', 'Metro District'), ('lyon1938', '1938 bw Lyon'), ('rr2009', '2008-9 color Red River'), ('neir2009', '2009 cir Arrowhead'), ('dulir09', '2009 cir Duluth'), ('ncir09', '2009 cir NCentral'), ('neclr2009', '2009 color Arrowhead'), ('bwca09', '2009 color BWCA border'), ('dulclr09', '2009 color Duluth'), ('dul09', '2009 color Duluth shore'), ('iroy09', '2009 color Isle Royale'), ('ncclr09', '2009 color NCentral'), ('bord15', '2009 color NCentral border'), ('sbay09', '2009 color north shore'), ('wisc09', '2009 color south shore (WI)'), ('south11ir', '2011 cir south MN'), ('murray11', '2011 color Murray'), ('south11', '2011 color south MN'), ('fallcir11', '2011 fall cir EC,SE'), ('fall11', '2011 fall color EC,SE'), ('fallcir12', '2012 fall cir Central'), ('fall12', '2012 fall color Central'), ('nc13ftcir', '2013 cir North 1 ft'), ('nc13hmcir', '2013 cir NW 50 cm'), ('meek13', '2013 color Meeker'), ('nc13ft', '2013 color North 1 ft'), ('nc13hm', '2013 color NW 50 cm'), ('nw14cir', '2014 cir NW 50 cm'), ('polkcir', '2014 cir Polk Beltrami 1 ft'), ('mc14', '2014 color McLeod'), ('nw14', '2014 color NW 50 cm'), ('polk', '2014 color Polk Beltrami 1 ft'), ('carl15_9', '2015 color Carlton 9 in'), ('doug16', '2016 color Douglas 3 in'), ('itas18cir', '2018 cir Itasca 1 ft'), ('itas18', '2018 color Itasca 1 ft'), ('mcle18', '2018 color McLeod 4 in'), ('carl19cir', '2019 cir Carlton 6 in'), ('carl19', '2019 color Carlton 6 in'), ('lake19', '2019 color Lake 6 in'), ('steele19', '2019 color Steele 6 in'), ('belt20cir', '2020 cir Beltrami 9 in'), ('belt20', '2020 color Beltrami 9 in'), ('kooc20', '2020 color Koochiching 1 ft'), ('lyon20', '2020 color Lyon 3 in'), ('carlton21', '2021 color Carlton 6 in'), ('lesueur21', '2021 color Le Sueur 3 in'), ('rice21', '2021 color Rice 6 in'), ('doug22', '2022 color Douglas 2 in'), ('mcle22', '2022 color McLeod 4 in'), ('steele22', '2022 color Steele 3 in'), ('belt23', '2023 color Beltrami 9 in'), ('rice23', '2023 color Rice 6 in'), ('lake24', '2024 color Lake 6 in'), ('lyon24', '2024 color Lyon 3 in'), ('wab25', '2025 color Wabasha 2 in'), ('bw1997', '1997 bw 7-county'), ('bw2000', '2000 bw 7-county'), ('metro', '2004 color MSP'), ('msp2006', '2006 color 7-county (partial)'), ('stp2006', '2006 color Ramsey'), ('met10cir', '2010 cir 7-county'), ('smet10cir', '2010 cir north counties'), ('met10', '2010 color 7-county'), ('dak10', '2010 color Dakota'), ('smet10', '2010 color north counties'), ('scott10', '2010 color Scott'), ('rice11', '2011 color Rice'), ('nga2012', '2012 color Twin Cities'), ('carv13', '2013 color Carver'), ('dak13', '2013 color Dakota'), ('scott13', '2013 color Scott'), ('wash13', '2013 Washington')]
+mn mndot_met Metro District 40627
+mn itas18cir 2018 cir Itasca 1 ft 40627
+mn itas18 2018 color Itasca 1 ft 40627
+mn mcle18 2018 color McLeod 4 in 40627
+mn carl19cir 2019 cir Carlton 6 in 40627
+mn carl19 2019 color Carlton 6 in 40627
+mn lake19 2019 color Lake 6 in 40627
+mn steele19 2019 color Steele 6 in 40627
+mn belt20cir 2020 cir Beltrami 9 in 40627
+mn belt20 2020 color Beltrami 9 in 40627
+mn kooc20 2020 color Koochiching 1 ft 40627
+mn lyon20 2020 color Lyon 3 in 40627
+mn carlton21 2021 color Carlton 6 in 40627
+mn lesueur21 2021 color Le Sueur 3 in 40627
+mn rice21 2021 color Rice 6 in 40627
+mn doug22 2022 color Douglas 2 in 40627
+mn mcle22 2022 color McLeod 4 in 40627
+mn steele22 2022 color Steele 3 in 40627
+mn belt23 2023 color Beltrami 9 in 40627
+mn rice23 2023 color Rice 6 in 40627
+mn lake24 2024 color Lake 6 in 40627
+mn lyon24 2024 color Lyon 3 in 40627
+mn wab25 2025 color Wabasha 2 in 40627
+mn metro 2004 color MSP 219923
+mn met10cir 2010 cir 7-county 135694
+mn smet10cir 2010 cir north counties 40627
+mn met10 2010 color 7-county 140607
+mn smet10 2010 color north counties 40627
+mn wash13 2013 Washington 271912
+mn met16cir 2016 cir 7-county 151638
+mn met16 2016 color 7-county 152669
+mn hen18 2018 color Hennepin 3 in 40627
+mn dak19cir 2019 cir Dakota 6 in 40627
+mn dak19 2019 color Dakota 6 in 40627
+mn met20cir 2020 cir 7-county 224070
+mn rams20cir 2020 cir Ramsey 6 in 40627
+mn met20 2020 color 7-county 234795
+mn rams20 2020 color Ramsey 6 in 40627
+mn dak21 2021 color Dakota 6 in 40627
+mn hen21 2021 color Hennepin 6 in 40627
+mn hen22 2022 color Hennepin 6 in 40627
+mn dak23 2023 color Dakota 6 in 40627
+mn met25cir 2025 cir 7-county 198027
+mn met25 2025 color 7-county 203783
+mn dak26 2026 color Dakota 6in 40627
+mn fsa 2003 color FSA 145565
+mn cir2008 2008 cir FSA 137937
+mn fsa2008 2008 color FSA 138359
+mn fsa2009 2009 color FSA 127592
+mn fsa2010 2010 color FSA 193792
+mn fsa2013cir 2013 cir FSA 137540
+mn fsa2013 2013 color FSA 134745
+mn fsa2015cir 2015 cir FSA 147004
+mn fsa2015 2015 color FSA 143975
+mn fsa2017cir 2017 cir FSA 132767
+mn fsa2017 2017 color FSA 136097
+mn fsa2019cir 2019 cir FSA 126057
+mn fsa2019 2019 color FSA 128361
+mn fsa2021cir 2021 cir FSA 152326
+mn fsa2021 2021 color FSA 133259
+mn fsa2023cir 2023 cir FSA 159193
+mn fsa2023 2023 color FSA 165011
+mn fsa2025cir 2025 cir FSA 144162
+mn fsa2025 2025 color FSA 155483
+(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directoryMN_CentralMissRiver_5_B22 gps 337014791.3448928 337014796.8340798
+MN_CentralMissRiver_5_B22 points 577336 dims ('Classification', 'EdgeOfFlightLine', 'GpsTime', 'Intensity', 'KeyPoint', 'NumberOfReturns', 'Overlap', 'PointSourceId', 'ReturnNumber', 'ScanAngleRank', 'ScanChannel', 'ScanDirectionFlag', 'Synthetic', 'UserData', 'Withheld', 'X', 'Y', 'Z')
+MN_FullState gps 8217755.528590798 8217759.230070353
+MN_FullState points 34868 dims ('Classification', 'EdgeOfFlightLine', 'GpsTime', 'Intensity', 'KeyPoint', 'NumberOfReturns', 'OriginId', 'Overlap', 'PointSourceId', 'ReturnNumber', 'ScanAngleRank', 'ScanDirectionFlag', 'Synthetic', 'UserData', 'Withheld', 'X', 'Y', 'Z')
+USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016 gps 8217755.528590798 8217759.230070353
+USGS_LPC_MN_Phase4_Metro_F_2011_LAS_2016 points 34867 dims ('Classification', 'EdgeOfFlightLine', 'GpsTime', 'Intensity', 'KeyPoint', 'NumberOfReturns', 'OriginId', 'Overlap', 'PointSourceId', 'ReturnNumber', 'ScanAngleRank', 'ScanDirectionFlag', 'Synthetic', 'UserData', 'Withheld', 'X', 'Y', 'Z')
+done
