@@ -1,6 +1,6 @@
 import json,sys
 # tidy fit.json -> final.json: set ridge to the height the roof really reaches (no shape change)
-A='/tmp/claude-0/-home-claude/6ab24462-1809-5f44-97e3-eeb8e80b9130/scratchpad/allclub/work/'
+A='/home/claude/golf/clubs/work/'
 cid=sys.argv[1];src=sys.argv[2] if len(sys.argv)>2 else 'fit.json'
 d=json.load(open(A+cid+'/'+src))
 def cap(b):

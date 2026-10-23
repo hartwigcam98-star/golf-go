@@ -1,6 +1,6 @@
 # residual map, 1 char per step: '.' |r|<.4 ; '+' model high .4-1.5 ; '#' high >1.5 ; '-' model low ; '=' low >1.5 ; ' ' outside roi
 import sys,json,numpy as np,cv2
-sys.path.insert(0,'/tmp/claude-0/-home-claude/6ab24462-1809-5f44-97e3-eeb8e80b9130/scratchpad/allclub')
+sys.path.insert(0,'/home/claude/golf/clubs')
 from bk import load,env,env_spec
 cid=sys.argv[1];f=sys.argv[2];st=float(sys.argv[3]) if len(sys.argv)>3 else 1
 W,U,V,H,G,K=load(cid);S=json.load(open(f))

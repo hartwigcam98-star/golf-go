@@ -1,7 +1,7 @@
 # seg.py cid axis(v|u) a b step lo hi : for each line (v=const if axis v) print runs of similar height
 import sys,numpy as np
 cid,ax=sys.argv[1],sys.argv[2];a,b,st,lo,hi=map(float,sys.argv[3:8]);tol=float(sys.argv[8]) if len(sys.argv)>8 else .4
-z=np.load(f'/tmp/claude-0/-home-claude/6ab24462-1809-5f44-97e3-eeb8e80b9130/scratchpad/allclub/work/{cid}/frame.npz');U,V,H,G=z['U'],z['V'],z['H'],z['G'];px=U[0,1]-U[0,0]
+z=np.load(f'/home/claude/golf/clubs/work/{cid}/frame.npz');U,V,H,G=z['U'],z['V'],z['H'],z['G'];px=U[0,1]-U[0,0]
 import os,math
 PT=os.environ.get('PT')
 def h(u,v):

@@ -1,0 +1,30 @@
+pawplant - 35 blocks
+1 GU  main one-and-a-half-storey range, ridge along u (west wing to east cross wing)
+2 GU  raised central block under the cupola, ridge along u, a little higher than the range
+3 GV  north entrance portico at the end of the north wing (open, posts)
+4 GV  north (entrance-side) central wing, ridge along v
+5 GV  south (course-side) central columned portico with pediment (open, posts)
+6 GV  back of the south portico gable where it runs into the main roof
+7 GV  west cross wing, gable ends facing course and car park
+8 GV  east cross wing, gable ends facing course and car park
+9 SV  low-pitch link roof east of the east cross wing, north slope
+10 SV low-pitch link roof, south slope (east part)
+11 SV low-pitch link roof, south slope (west part, beside the notch)
+12 SV low north annex roof behind the link
+13 GV  east building (tall hall) main gable, ridge along v
+14 H  east building north lean-to roof, hipped at the corners
+15 H  east building south lean-to roof, hipped at the corners
+16 GU east building cross gable, ridge along u
+17 GU east end small gable
+18 H  west lean-to roof south of the west cross wing junction (hipped)
+19 H  east building east hipped end
+20 SU west cross wing lower west slope extension (north part)
+21 SV north annex slope east of the north wing
+22 GU far west wing gable (deck side), ridge along u
+23-28 GV six course-side dormers on the main range (three each side of the portico)
+29-32 GV four entrance-side dormers on the main range
+33 T  central cupola (widened to 2.7 yd so the renderer does not draw it as a chimney)
+34 T  west chimney beside the cupola
+35 T  east chimney beside the cupola
+Fit: median 0.05 yd, rms 0.85, 4.3% >1yd - the rest is trees round the ends and the one-pixel eave outline.
+Doubts: the tall east building (blocks 13-19, ridge 11 yd, higher than the clubhouse proper) is joined to the clubhouse by the low link roof in the lidar but is not visible in any course-side photo; it may be a separate function hall or service building. Its lean-tos are modelled as hips that run under the main gable to get the hipped corners. The north entrance portico depth (block 3) is a guess from the photo; the lidar shows one continuous ridge. A 1-yd strip at u -60 (about 5 yd high) at the far west end was left out (fence, pergola or trees by the deck). Wooden deck at the west end not modelled (game adds patios).

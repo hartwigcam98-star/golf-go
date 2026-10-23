@@ -1,6 +1,6 @@
 # coordinate-descent refiner with parts: refine.py cid in.json out.json [span=2] [passes=3] [partpose=0/1]
 import sys,json,math,numpy as np,cv2
-sys.path.insert(0,'/tmp/claude-0/-home-claude/6ab24462-1809-5f44-97e3-eeb8e80b9130/scratchpad/allclub')
+sys.path.insert(0,'/home/claude/golf/clubs')
 from bk import load,env,pcoords,env_spec
 from scipy.optimize import minimize_scalar
 cid,fi,fo=sys.argv[1:4];span=float(sys.argv[4]) if len(sys.argv)>4 else 2;passes=int(sys.argv[5]) if len(sys.argv)>5 else 3

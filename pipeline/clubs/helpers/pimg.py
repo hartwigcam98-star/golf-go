@@ -1,6 +1,6 @@
 # pimg.py cid du dv da out.jpg [half=30]: lidar resampled into a part frame, dsm-style with grid + aspect overlay side by side
 import sys,math,numpy as np,cv2
-sys.path.insert(0,'/tmp/claude-0/-home-claude/6ab24462-1809-5f44-97e3-eeb8e80b9130/scratchpad/allclub')
+sys.path.insert(0,'/home/claude/golf/clubs')
 from bk import load,img,grid
 cid=sys.argv[1];du,dv,da=map(float,sys.argv[2:5]);out=sys.argv[5];half=float(sys.argv[6]) if len(sys.argv)>6 else 30
 W,U,V,H,G,K=load(cid);px=U[0,1]-U[0,0]

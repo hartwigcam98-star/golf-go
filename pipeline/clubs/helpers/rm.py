@@ -1,8 +1,8 @@
 # residual char map: data - model ; '.' |r|<0.5, lowercase a..: model too low by 1,2.. ; uppercase: model too high
 import sys,json,numpy as np
-sys.path.insert(0,'/tmp/claude-0/-home-claude/6ab24462-1809-5f44-97e3-eeb8e80b9130/scratchpad/allclub')
+sys.path.insert(0,'/home/claude/golf/clubs')
 import bk
-A='/tmp/claude-0/-home-claude/6ab24462-1809-5f44-97e3-eeb8e80b9130/scratchpad/allclub/work/'
+A='/home/claude/golf/clubs/work/'
 cid=sys.argv[1];f=sys.argv[2];u0,u1,v0,v1,st=map(float,sys.argv[3:8])
 z=np.load(A+cid+'/frame.npz');U,V,H,G=z['U'],z['V'],z['H'],z['G']
 B=json.load(open(f))['blocks'];M=np.maximum(bk.env(B,U,V),G)

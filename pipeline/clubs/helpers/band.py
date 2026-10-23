@@ -3,7 +3,7 @@ band(cid, pts, w, e, p, cap, strips) ; strips = list of (mode, a, b) with mode '
 Pixels are assigned to the strip containing them, restricted to those whose nearest ridge point is in that strip's mode
 region (angle test), and to |dist to ridge| <= w+0.5 and K mask & H>hmin."""
 import numpy as np, math, json
-def band(cid,pts,w,e,p,cap,strips,hmin=8.0,base='/tmp/claude-0/-home-claude/6ab24462-1809-5f44-97e3-eeb8e80b9130/scratchpad/allclub',extra_mask=None,sym_tol=1.5,minpix=30):
+def band(cid,pts,w,e,p,cap,strips,hmin=8.0,base='/home/claude/golf/clubs',extra_mask=None,sym_tol=1.5,minpix=30):
     z=np.load(f'{base}/work/{cid}/frame.npz');U,V,H,K=z['U'],z['V'],z['H'],z['K']
     P=np.array(pts,float);seg=np.diff(P,axis=0);sl=np.hypot(*seg.T);s=np.r_[0,np.cumsum(sl)]
     ss=np.linspace(0,s[-1],int(s[-1]*8)+2);R=np.c_[np.interp(ss,s,P[:,0]),np.interp(ss,s,P[:,1])]

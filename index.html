@@ -933,7 +933,7 @@ td.won{background:rgba(255,201,60,.38)}
 </div>
 
 <script src="greens.js?v=220df6ab8c"></script>
-<script src="ground.js?v=9866692be7"></script>
+<script src="ground.js?v=76f581e4f4"></script>
 <script src="trees.js?v=9d9df988af"></script>
 <script>/* three.js r170 (MIT) */
 (function(){
@@ -2254,9 +2254,9 @@ function blockMass(h,q,out,L,C){
   const rh=(b,u,v)=>{const[t,u0,u1,v0,v1,e,p,cap]=b;if(u<u0-1e-6||u>u1+1e-6||v<v0-1e-6||v>v1+1e-6)return -1e9;const du=Math.min(u-u0,u1-u),dv=Math.min(v-v0,v1-v);
     let y=t==='H'?e+p*Math.min(du,dv):t==='GU'?e+p*dv:t==='GV'?e+p*du:t==='SU'?e+p*(u-u0):t==='SV'?e+p*(v-v0):t==='T'?Math.min(cap,Math.max(e,cap-(cap-e)*(1-Math.min(du,dv)/Math.max(.01,Math.min(u1-u0,v1-v0)/2)))):e;
     return t==='SU'||t==='SV'?Math.min(Math.max(y,Math.min(e,cap)),Math.max(e,cap)):Math.min(y,Math.max(cap,e));};
-  // a tower block too slim for a room is a chimney: a flat-capped stack in the chimney colour, standing at most ~1.6 yd over the roof
+  // a tower block too slim for a room (under 2.6 x 4.5 yd, unless flagged k for a cupola) is a chimney: a flat-capped stack in the chimney colour, standing at most ~1.6 yd over the roof
   // around it (a stray flagpole or tree point can lift the survey's top)
-  const B=B0.map(b=>{if(b[0]!=='T'||Math.min(b[2]-b[1],b[4]-b[3])>=2.6)return b;const uc=(b[1]+b[2])/2,vc=(b[3]+b[4])/2;
+  const B=B0.map(b=>{if(b[0]!=='T'||(b[8]||'').includes('k')||Math.min(b[2]-b[1],b[4]-b[3])>=2.6||Math.max(b[2]-b[1],b[4]-b[3])>4.5)return b;const uc=(b[1]+b[2])/2,vc=(b[3]+b[4])/2;
     let r=-1e9;for(const o of B0)if(o!==b&&o[0]!=='T')r=Math.max(r,rh(o,uc,vc));const top=r>-1e8?Math.min(Math.max(b[5],b[7]),r+1.6):Math.max(b[5],b[7]);
     return['C',b[1],b[2],b[3],b[4],top,0,top,b[8]];});
   const inBlk=(u,v,me)=>B.some(b=>b!==me&&!(b[8]||'').includes('o')&&u>b[1]+ov(b)&&u<b[2]-ov(b)&&v>b[3]+ov(b)&&v<b[4]-ov(b));
@@ -8289,8 +8289,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
-  {id:"2026-10-23-clubs-lidar",date:"Oct 23, 2026",title:"39 more clubhouses, rebuilt from survey data",link:{href:"clubhouses/",label:"See every clubhouse before and now"},items:[
-    "Like the Royal Club’s last night, 39 more clubhouses are now built from the USGS lidar survey of each course. Every wing, roof, gable, porch, tower, cupola and chimney has the real building’s shape, height and pitch.",
+  {id:"2026-10-23-clubs-lidar",date:"Oct 23, 2026",title:"41 more clubhouses, rebuilt from survey data",link:{href:"clubhouses/",label:"See every clubhouse before and now"},items:[
+    "Like the Royal Club’s last night, 41 more clubhouses are now built from the USGS lidar survey of each course. Every wing, roof, gable, porch, tower, cupola and chimney has the real building’s shape, height and pitch.",
     "Wings set at an angle are drawn that way: The Pines’ Y-shaped plan, The Legend’s curved lodge, Lehman’s angled wings, Interlachen’s glazed wing and Mystic’s octagon.",
     "The looks from the photos stay: wall colours and materials, roof colours, patios and umbrellas. Clock towers keep their clocks, Edinburgh’s clock is back on its course-side gable, and Ross Bridge keeps its turrets and spires.",
     "Sedge Valley and The Lido keep their clubhouses as they were: the survey was flown before they were built."]},

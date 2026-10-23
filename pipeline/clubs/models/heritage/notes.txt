@@ -1,0 +1,13 @@
+heritage - 10 blocks
+1 H   main two-storey hip roof of the antebellum house (ridge along u)
+2 GV  front-to-back cross gable through the main house (same ridge height as the hip)
+3 GV  front (south, +v) two-storey columned portico with pediment (open, posts)
+4 GV  rear (north, -v) two-storey columned portico / gallery with pediment (open, posts)
+5 GV  west single-storey wing, gable ends facing front and back
+6 GU  west connector between the wing and the house
+7 GV  east single-storey wing, gable ends facing front and back
+8 GU  east connector between the wing and the house
+9 T   west end chimney on the main hip
+10 T  east end chimney on the main hip
+Fit: median 0.04 yd, rms 1.19, 4.5% >1yd - the rms/share is the live-oak canopy north-west and north-east of the house and the one-pixel eave outline; no residual areas on the roof itself.
+Doubts: which portico is the main entrance is not certain (photos show a pedimented columned portico on two faces, so both are modelled open). The low flat strips at about 1-2 yd beside the wings (v +8/-9) and in front of the portico are raised brick terraces/steps, left to the game's patios. The wings may be hipped at their outer ends in reality; the lidar reads them as gables.

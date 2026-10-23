@@ -1,6 +1,6 @@
 import sys,numpy as np
 # usage: prof.py cid u|v at lo hi [step]  -> heights along a line (median of +-0.5 yd band)
-A='/tmp/claude-0/-home-claude/6ab24462-1809-5f44-97e3-eeb8e80b9130/scratchpad/allclub/work/'
+A='/home/claude/golf/clubs/work/'
 cid,ax,at,lo,hi=sys.argv[1],sys.argv[2],float(sys.argv[3]),float(sys.argv[4]),float(sys.argv[5]);st=float(sys.argv[6]) if len(sys.argv)>6 else 1
 z=np.load(A+cid+'/frame.npz');U,V,H,G=z['U'],z['V'],z['H'],z['G']
 u=U[0];v=V[:,0];out=[]

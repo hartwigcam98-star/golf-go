@@ -13,8 +13,9 @@ blocks.json: {"blocks":[[type,u0,u1,v0,v1,eave,pitch,ridge,(flags)],...]}
   type H  hip roof (slopes on all four sides, flat top if ridge < where they meet)
        GU gable, ridge along u (slopes face +v/-v, gable ends at u0/u1)
        GV gable, ridge along v
-       SU shed sloping along u: height = eave + pitch*(u-u0) (negative pitch: high side at u0... use eave at the low side)
-       SV shed sloping along v
+       SU shed sloping along u: height = eave + pitch*(u-u0), clamped between eave and ridge. eave is the height at u0;
+          with a negative pitch u0 is the high side (eave > ridge), e.g. ['SU',0,4,0,9, 6.0,-0.5,4.0] falls from 6 at u0 to 4 at u1
+       SV shed sloping along v (same, with v0)
        F  flat roof at height eave (pitch 0, ridge = eave)
        T  tower/cupola/chimney: box walls to eave with a hip cap to ridge (pitch ignored)
   flags (optional string): 'o' open underneath (porch/veranda/deck/porte-cochere: posts, no walls),
