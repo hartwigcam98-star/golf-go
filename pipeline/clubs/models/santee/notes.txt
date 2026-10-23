@@ -1,0 +1,15 @@
+Santee National - one-storey white clubhouse, main gable along v with gable-fronted end wings to the east, west front porch.
+1  GV  main gable roof, north/centre section (ridge 8.2)
+2  GV  main gable roof, south section (lower ridge 6.9, ridge shifted ~2 yd east)
+3  SU  small west lean-to along the south section
+4  SU  west front porch roof (lower-pitch continuation of the main west slope), open on columns
+5  GU  front gable over the porch entry (ridge 5.9), open
+6  GU  north end wing, gable end facing east (ridge 7.0)
+7  GU  south end wing, gable end facing east (ridge 7.0)
+8  F   flat-roofed section between the two end wings on the east side (3.7)
+9  T   cupola on the main ridge (top ~11.2)
+10 T   chimney (north)
+11 T   chimney (south)
+Fit: median 0.16 yd, rms 1.73 yd, 23% > 1 yd (almost all the woods crowding the north end and the eaves' edge pixels).
+Doubts: the north side of the north wing is under trees (assumed symmetric); which of the three ridge bumps is the cupola vs the two chimneys
+is a guess from height (tallest = cupola); a small shrub/tree-like lump at the south-east corner left out.

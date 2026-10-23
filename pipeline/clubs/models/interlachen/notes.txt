@@ -1,0 +1,33 @@
+Interlachen - large Tudor clubhouse, 23 main blocks + 2 angled parts (7 blocks)
+Main frame blocks:
+0  F   north flat-roof service block (4.8 yd)
+1  F   central flat-roof core behind the gables (5.3 yd)
+2  T   long narrow raised skylight/ridge strip on the flat roof (7 yd)
+3  GU  small north gable (ridge along u, 7.6 yd)
+4  F   raised flat section west of the east gable (6.7 yd)
+5  GV  east steep gable wing, ridge N-S (9.8 yd)
+6  T   white chimney (to 14.5 yd)
+7  GU  north cross gable, ridge E-W (11.6 yd)
+8  GV  long steep N-S gable, northern part (10.25 yd)
+9  T   small tower/dormer bump on the west slope (10.5 yd)
+10 GU  west cross gable (10.6 yd)
+11 GU  main south hall: two parallel ridges with flat top (12.65 yd), gable ends east
+12 GV  long N-S gable, southern part (12.6 yd)
+13 GV  north-side cross gable (front gable with glass, 11.5 yd)
+14 GV  south-side cross gable (11.6 yd)
+15 F   south flat-roof wing over the brick arcade (5.4 yd)
+16 F   south-east brick-walled terrace (deck, 1.3 yd)
+17 F   east terrace with umbrellas (deck, 1.45 yd)
+18 GV  small west gable pavilion (8.2 yd)
+19 F   west flat link (5.4 yd)
+20 F   low west entry porch (open, 4.0 yd)
+21 F   west flat wing (5.2 yd)
+22 F   covered porch at the east end of the north cross gable (open, 3.8 yd)
+Part 1 (da -27.5, origin -20.75,-9.75): the long glazed wing running NE-SW
+   F flat wing (5.2 yd); F lower SW end (4.5); F raised NE end (7.2); GU diagonal cross gable (9.9);
+   GV small dormer gable on its north side (9.4); F lower lean-to strip along the NW side (4.5)
+Part 2 (da 46.5, origin -17.5,-3.25): GU short steep gable facing SW (9.3 yd)
+Fit: median 0.15 yd, rms 1.87, >1yd 20.3%
+Doubts: rms is mostly the big tree NE of the building, the separate building to the north (not modelled) and umbrellas
+on the east terrace. The east ends of the main hall are very steep (near-vertical hipped ends) and come out as plain gables.
+Edges were placed with a coordinate-descent edge search (incl. part angle/origin), then confirmed with bk.py fit.

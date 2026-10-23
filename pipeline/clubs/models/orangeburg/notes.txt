@@ -1,0 +1,17 @@
+Country Club of Orangeburg - large one-storey clubhouse, low-pitched (~0.33) metal roofs, main ridge along v with cross wings both sides.
+1  GV  main roof, long gable along v (ridge 8.7), gable ends abut the north wing and the south porte-cochere
+2  SU  west aisle: lower-pitch (0.16) lean-to continuing the main west slope out to u=-19.5
+3  GU  north-west cross gable on the west aisle (ridge 6.4, gable end facing west)
+4  GU  south-west cross gable on the west aisle (ridge 6.0, gable end facing west)
+5  GU  big west cross wing (ridge 7.0, gable end at u=-27.5)
+6  GU  east cross wing (steeper, ridge 7.1, gable end at u=28.5)
+7  T   square lantern cupola at the ridge crossing (top 11.4)
+8  H   north wing, hip roof (ridge 6.1) along u
+9  F   flat-roofed service section north-west (4.4, rooftop HVAC)
+10 GU  small east gable (north), on the east eave - likely one of the two course-side gables with big windows
+11 GU  small east gable (south), same
+12 GV  porte-cochere at the south end, gabled, open on columns
+13 F   flat-roofed entry section beside the porte-cochere (3.2)
+Fit: median 0.08 yd, rms 1.12 yd, 12.7% > 1 yd (eave edge pixels, trees at the south-west corner).
+Doubts: the description puts the two broad course-side gables on one side - the two west aisle gables (3,4) could be them instead of 10/11;
+a low ~2.2-yd structure west of the south-west gable (u -25..-21, v 11..21) is probably the pergola terrace and is left out; small roof vents ignored.

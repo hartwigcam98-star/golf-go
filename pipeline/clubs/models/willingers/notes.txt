@@ -1,0 +1,10 @@
+willingers - 6 blocks (final.json)
+1  H   main north-south hip block (ridge 7.1)
+2  H   lower hipped north end (ridge 6.0)
+3  SU  east (course-side) shallow lean-to off the main hip: glazed upper floor / walkout side
+4  H   south-west hip wing, highest roof (ridge 7.5)
+5  F   small west bay / porch roof
+6  H   small hipped entry portico on posts, free-standing ~4 yd south of the building (open)
+Fit: median 0.05 yd, rms 1.55, 16% off >1 yd (large trees hug the west side).
+Doubts: block 6 is detached from the house in the lidar (ground in between); kept as the described white-columned entry portico,
+drop it if it is a separate shelter. Small gables over windows not modelled. Low railing/deck strips SE ignored.

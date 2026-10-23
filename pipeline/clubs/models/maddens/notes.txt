@@ -1,0 +1,10 @@
+The Classic (Madden's, Brainerd, MN) - one-storey lodge under a big hip roof crossed by a central cedar-shingled gable, with small gable dormers.
+Block 1   H   main hip roof (36.8 x 17 yd, eave 3.45 incl. the deep covered-walk eave, ridge 9.0)
+Block 2   GV  central cross gable (ridge 7.0) running through the building, projecting north (to v -18.6) and slightly south (arched-window/truss gable end)
+Block 3   GV  small gable projection at the NE corner (ridge 6.0)
+Blocks 4-7 GV small gable dormers, two on each long slope (ridge 7.1)
+Block 8   GU  small dormer/gablet on the east hip end
+Block 9   GU  small dormer/gablet on the west hip end
+Block 10  T   fieldstone chimney at the ridge (top 10.6)
+Fit: median 0.06 yd, rms 1.27 yd, 11.4% of pixels off >1 yd (trees at the NW and W edges, wall edges).
+Doubts: the hip ends are a bit steeper (~0.8) than the long slopes (~0.67); a single-pitch H leaves small residuals on the end facets. Trees overhang the NW corner.

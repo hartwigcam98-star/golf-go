@@ -1,0 +1,10 @@
+Windsong Farm - long farm-style clubhouse, 6 blocks
+0 GU  main long cedar-shake gable, ridge E-W (ridge ~9.85 yd)
+1 GV  north cross gable wing, ridge N-S (~9 yd)
+2 F   low flat/metal-roofed annex in the NW corner beside the cross wing (3.7 yd)
+3 F   low lean-to along the west gable end (3.4 yd)
+4 SV  long screened porch with low metal roof along the course (south) side, sloping outward
+5 T   metal-capped chimney on the south slope
+Fit: median 0.06 yd, rms 1.99, >1yd 25.1% (rms from trees)
+Doubts: the yellow band east and north-east of the building (u 5-29) is a row of trees, not modelled; tree at the NW corner ignored.
+The description puts the chimney "at one end"; the lidar shows it on the south slope at u 4-6, which is what is modelled.

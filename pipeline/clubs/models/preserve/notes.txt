@@ -1,0 +1,13 @@
+The Preserve (Grand View Lodge) - long log clubhouse, main gable roof along u (ridge at v=-1.1), green metal roof.
+1 SV  main roof, north slope (v -9.3..-1.1, eave 3.7 -> ridge 9.0)
+2 SV  main roof, south slope (ridge 9.1 at v=-1.1 down to 2.6 at v=8.6; south side is the longer slope, so the main roof is modelled as two sheds sharing the ridge)
+3 GU  east section, lower gable (ridge 8.0) with gable end at u=16.6
+4 GV  west cross gable over the main roof (ridge 7.9, crosses the whole roof at u -20..-13)
+5 GV  north gabled wing (ridge 6.8, gable end at v=-13.6)
+6 T   chimney on the south slope
+7 H   screened porch off the east gable end, roof ~5.2 on posts (ground drops ~2.5 yd there)
+8 F   raised deck east/south-east of the building (deck, open below)
+Fit: median 0.09 yd, rms 2.06 yd (rms from the trees crowding the north side and both ends), 24.5% > 1 yd (almost all trees / ground outside the walls).
+Doubts: north eave of the east section and of the west end are hidden by trees (assumed symmetric / same plane); the veranda along the course side
+is not separable in the lidar (the south roof slope runs continuously down to 2.6 yd), so it is part of block 2; deck height (1.5) is inflated by
+umbrellas/railings, the real floor may be lower; the screened porch outline is partly under trees.

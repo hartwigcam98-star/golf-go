@@ -1,0 +1,7 @@
+trueblue - 10 blocks
+1 H   wraparound veranda roof, low-pitch hip round the whole house (open, posts)
+2 GV  main steep two-storey roof, ridge along v with steep gable ends north and south
+3-8 GU three dormers each side of the main roof (the "arched gabled dormers")
+9-10 T tall white chimneys at either gable end
+Fit: median 0.09 yd, rms 1.15, 15% >1yd - nearly all of it is the one-pixel outline at the eaves (mixed edge pixels).
+Doubts: the description mentions three dormers (one face); the lidar shows three on each side, so six were modelled. Veranda is screened in reality (modelled open).

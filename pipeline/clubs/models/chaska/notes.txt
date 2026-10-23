@@ -1,0 +1,12 @@
+chaska - 7 blocks (final.json)
+1 GU  main centre gable, steep tall roof (ridge 12.3 yd, pitch ~53 deg)
+2 GU  west wing, lower gable (ridge 9.9)
+3 GU  east wing, lower gable (ridge 9.5)
+4 SV  north (v-) shed-roofed covered walk along the centre block, open on posts
+5 F   flat porch roof at the west end, open
+6 GV  small south-side entry gable / wide dormer on the centre roof
+7 SV  north covered walk along the west wing, open on posts
+Fit: median 0.10 yd, rms 1.65, 16% off >1 yd (rms dominated by trees over the south eaves and the north side).
+Doubts: description says hipped roofs but lidar shows vertical (gable) ends on the wing ends; modelled as gables.
+Trees cover the south eave of the centre block; south covered walk (if any) not visible in the lidar.
+Pergola/lattice east of the east wing and the sunken stair well north-east ignored.

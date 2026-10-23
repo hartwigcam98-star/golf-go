@@ -1,0 +1,15 @@
+The Legends Club - two-storey walk-out clubhouse, L-plan: west wing on the frame axes + north wing turned ~14 degrees. 3 main blocks + 1 part (5 blocks)
+Main frame:
+0 H   west wing, long hip roof ridge E-W (~10 yd)
+1 GV  small gabled porch projecting from the south side of the west wing
+2 F   east stone patio/terrace at the upper entrance level, above the walk-out ground (deck, 0.5 yd)
+Part (da -14, origin 5,-9.75): north wing
+  GV  north wing main roof, ridge along the wing (~8 yd)
+  H   hipped north pavilion section with its own cross ridge (~9 yd)
+  GU  central cross hip / projecting bay across the wing (~9.7 yd)
+  T   central arched dormer + louvred cupola (to ~12 yd)
+  T   clock tower with pyramid roof at the north-east end (to ~10.7 yd)
+Fit: median 0.09 yd, rms 1.15, >1yd 13.5%
+Doubts: the north wing's roof has several intersecting hips (diagonal valleys in the lidar) that are simplified into one gable,
+one hip pavilion and one cross hip; the centre crossing is ~0.8 yd low in the model. A low strip north of the clock tower
+(u 6-15, v -34..-31, ~4 yd) is probably trees/canopy and was left out. Trees west and south ignored. The patio deck height/extent is approximate.

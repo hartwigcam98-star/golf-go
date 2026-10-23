@@ -1,0 +1,24 @@
+The Lehman 18 (Cragun's Legacy clubhouse, Brainerd, MN) - long mostly one-storey lodge: a long N-S gable range broken by a pyramid-roofed clock tower, crossed at its south end by a taller gable wing (frame -23 deg) with a 45-deg gable wing toward the course. 28 blocks.
+Main frame:
+  GV  north range main gable (u -10..16, v -52..-18, ridge 9.9)
+  GV  lower connector roof between the north range and the south range, beside the tower (ridge 8.0)
+  GV  south range main gable (ridge 10.5)
+  T   clock tower with pyramid roof (top ~15.3)
+  GU  small gabled porch on posts on the west/lot side (flag o)
+  T   tall fieldstone chimney at the junction of the wings (top ~14.1)
+  T x7  fieldstone chimney masses on the main range roof (tops 8.9-10.1)
+  T x3  dormer/chimney boxes on the SW wing and cross wing roofs (axis-aligned approximations)
+Part 1 (da -23, origin -27.3,5.4):
+  GU  cross wing main gable (ridge 11.8), east gable end at the course side
+  SV  north lean-to below the cross wing (west half)
+  SV  south porch roof along the patio (flag o)
+  GU  low one-storey west wing (ridge 5.7)
+  SV  north porch roof along the patio, east half (flag o)
+Part 2 (da 45, origin 0.6,19.6):
+  GU  SW wing main gable (ridge 10.4)
+  SV  SW wing's wider south eave strip
+  GU  tall timber-framed glass gable at the SW end (ridge 13.2)
+  GU, GU, GU  low one-storey roofs around the SW end
+  SV  covered porch along the SW wing's north side (flag o)
+Fit: median 0.09 yd, rms 1.18 yd, 9.9% of pixels off >1 yd.
+Doubts: the squares on the roof are modelled as fieldstone chimney masses (they could be gabled dormers); the three on the rotated wings are axis-aligned boxes. Trees cover the west side of the south range (u -14..-9). The low roofs around the SW end are complex and only roughly modelled. The aerial for this course is misregistered and was not used.

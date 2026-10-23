@@ -1,0 +1,17 @@
+The Meadows at Mystic Lake - octagonal pavilion with two-tier roof, clerestory and lantern; flat-roofed annex to the east. 12 main blocks + 4 parts
+Lower roof tier (octagon, eave ~4.6 yd, pitch ~0.4), built as a union because blocks can only take the max:
+0  GV  E-W arm of the octagon (faces sloping east/west)
+1  GU  N-S arm of the octagon (faces sloping north/south)
+2  H   central square of the octagon (raised eave so its hips continue the arm slopes)
+parts 1-4 (da +-45, +-135 about the octagon centre): one SU each = the four diagonal faces of the octagon, sloping outward
+Upper tier:
+3  GV  clerestory/upper roof E-W arm (eave ~10 yd)
+4  GU  clerestory/upper roof N-S arm
+5  H   clerestory centre
+6  T   octagonal lantern with finial (to ~13.8 yd)
+7  F   flat-roofed annex/terrace building on the east side (4.45 yd)
+8-11   small gabled dormers on the lower tier (N, S, E, W)
+Fit: median 0.09 yd, rms 0.64, >1yd 5.8%
+Doubts: the octagon is approximated by an axis-aligned cross + centre square plus four 45-degree parts for the diagonal faces;
+the extra walls of these overlapping pieces fall inside the octagon. The four diagonal dormers are not modelled (slight
+over-height of the cross arms near the diagonals stands in for them). The raised stone terrace around it is ground, not modelled.

@@ -1,0 +1,16 @@
+The Legend (Giants Ridge Lodge, Biwabik, MN) - long curved three-storey lodge (eaves ~9.7, ridge 14.4) with gabled peaks on the outer side, a gabled porte-cochere wing on the inner side and a one-storey golf-shop annex at the south end. 27 blocks (6 in the main frame + 5 rotated parts).
+Main frame:
+  GV  south straight arm of the lodge (v 20..45.6), main gable
+  SU  outer-half filler where the south arm meets the first curved segment
+  GU  outer cross gable/peak near the south end (ridge 12.9)
+  GU  outer cross gable/peak at v~20 (ridge 12.9)
+  SU  golf-shop annex, long west slope running down to the low walkout side (ridge 6.5)
+  SU  golf-shop annex, short east slope
+Part 1 (da 73.3): curved segment 1 main gable + 2 outer-half joint fillers (SV)
+Part 2 (da 59.9): curved segment 2 main gable + 2 joint fillers + outer gabled peak (GV)
+Part 3 (da 46.6): curved segment 3 main gable + 2 joint fillers + outer gabled peak + timber deck along the outer wall (F, d)
+Part 4 (da 32):   north arm main gable (gable end at the NE) + joint filler + 2 outer gabled peaks + timber deck (F, d)
+Part 5 (da -28):  inner wing: lower gable section (ridge 9.4), narrow connector (ridge 5.4), porte-cochere gable (ridge 9.2, flag o)
+Part 6 (da -35):  inner cross gable where the wing meets the lodge (ridge 13.3)
+Fit: median 0.05 yd, rms 2.04 yd, 9.5% of pixels off >1 yd (mostly wall edges).
+Doubts: the curve is approximated by 5 straight segments (ridge within ~0.6 yd of the real arc); two small recessed notches on the inner side (roof ~7.5 at u~0,v~17 and u~16,v~-11) can't be cut out of the union and show as model-too-high; the outer "deck" strip is at entrance level over lower ground (could be a terrace on fill rather than a timber deck). Roof dormers/vents ignored.

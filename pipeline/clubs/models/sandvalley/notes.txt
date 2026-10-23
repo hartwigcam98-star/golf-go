@@ -1,0 +1,22 @@
+sandvalley (shared with mammoth) - 19 blocks; building runs along v (north-south), course side presumably east/west of the spine
+1 GV  north wing, two-storey, ridge along v
+2 SU  north wing east covered porch (open)
+3 GU  north-west cross wing, ridge along u
+4 SU  porch at the west gable end of the cross wing (open)
+5 F   low porch NW corner of the north wing (open)
+6 F   low porch SW corner of the north wing (open)
+7 T   stone chimney at the north gable
+8 H   low hipped link between north wing and first tall gable
+9 GU  first tall steep gable block (ridge 12.3), gable ends facing the course
+10 GV link between the two tall gables
+11 GU second tall steep gable block (ridge 12.3, wider; the one with the balcony)
+12 SV lower roof skirt on the south side of the second gable
+13 SU porch on the west end of the second gable (open)
+14 GV link between second gable and south wing
+15 GV long south wing, two-storey, ridge along v
+16 F  south wing west covered porch (open)
+17 SU south wing east covered porch (open)
+18 GV south annex, lower gable
+19 T  stone chimney on the south annex
+Fit: median 0.10 yd, rms 1.61, 18.7% >1yd (almost all eave/wall edge pixels).
+Doubts: the south end of the south wing is slightly hipped/clipped in the lidar (small red band in the residual) but modelled as a plain gable; which side the porches are open vs. enclosed is a guess from the low eave heights.

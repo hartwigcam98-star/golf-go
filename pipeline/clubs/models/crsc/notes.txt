@@ -1,0 +1,12 @@
+Cambrian Ridge (Greenville, AL; also used by crls) - one-storey red-brick clubhouse under a big hip roof with a deeper, taller centre section, cross gables front and back, and a cupola.
+Block 1  H   full-length lower hip (u -25..25, v -13..7.6, eave 4.4, ridge 9.65): the end wings incl. the veranda eaves round the ends
+Block 2  H   steep-ended hip core of the end wings (pitch ~1.0) giving the steeper hip ends seen in the lidar
+Block 3  H   deep centre section, hip ends (u -20..20, v -13.8..15.9)
+Block 4  GU  centre section main gable/ridge (ridge 11.6, u -16.7..16.7)
+Block 5  GV  north (entry side) pedimented cross gable over the entry porch (ridge 9.6)
+Block 6  GV  south (course side) centre cross gable (ridge 9.5)
+Block 7  T   white cupola on the ridge (top ~15)
+Block 8  T   brick chimney on the north gable ridge (top ~13, few points)
+Block 9  GV  low porch/pediment apron in front of the south gable (flag o)
+Fit: median 0.08 yd, rms 1.61 yd, 13.3% of pixels off >1 yd (big tree at the SW corner, wall edges).
+Doubts: the entry porch under the north gable is modelled as part of the solid gable wing (lidar can't tell open from enclosed); the veranda round the building is under the main eaves and not separated. The raised terrace and its retaining wall are not modelled. Two small chimney bumps on the main roof were too small to model.

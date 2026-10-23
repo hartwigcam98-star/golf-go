@@ -1,0 +1,9 @@
+The Pines (Grand View Lodge) - Y-shaped one-storey clubhouse, three hip-roofed wings meeting at one point (u~0, v~-6), eaves ~3.5 yd, ridges 8.0 yd.
+Block 1  H   south wing (main body along v), hip roof with hipped south end; its north end is hidden under the two diagonal wings
+Blocks 2-12  GU  north-west wing (ridge runs ~30 deg off the frame axis, toward u-23 v-18): stepped 2.5-yd-wide gable slices following the diagonal ridge and the hipped outer end
+Blocks 13-23 GU  north-east wing (ridge ~-30 deg off the frame axis, toward u+19 v-17), same stepped approximation; this wing is a bit wider and flatter (pitch ~0.5 vs ~0.65)
+Fit: median 0.19 yd, rms 2.04 yd (rms dominated by the trees ringing the building), 21.7% of pixels off by >1 yd (mostly trees/shrubs outside the walls).
+Doubts: the two diagonal wings are at ~30 deg to the frame and can only be approximated by stepped axis-aligned slices (sawtooth eaves, +-0.5 yd ridge ripple);
+hipped outer ends of the diagonal wings are approximated by the narrower end slices. Low lumps west of and south-west of the south wing look like shrubs/trees,
+left out (the description's deep front porch may be partly under them, but the lidar shows no clear porch roof). Small roof bumps (chimney/vents) ignored.
+Part frames (Claude): the two diagonal wings are now parts at -28 and +30 deg (hip roofs), replacing the stepped slices.

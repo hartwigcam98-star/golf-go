@@ -1,0 +1,11 @@
+caledonia - 11 blocks
+1 GV  main two-storey house, ridge along v (north-south), gable ends
+2 GU  wide cross gable (the course-facing low white gable), ridge along u, slightly higher than the main ridge
+3 GV  rear (south) wing gable
+4 SV  north veranda roof (open, posts)
+5 SU  west veranda roof (open, posts) - part of the wraparound screened veranda
+6 SU  east veranda roof (open, posts)
+7-10 GU  four shed-like dormers on the main roof (two each side)
+11 T  stucco chimney on the cross gable
+Fit: median 0.10 yd, rms 3.10, 25% >1yd - the large rms/share is almost entirely the live oaks hugging the south, west and east sides (blue blobs in the residual); the roof itself fits well.
+Doubts: trees cover the south veranda/wing ends, so the south wing length and any south veranda are uncertain; the veranda is screened in reality (modelled open with posts). The raised brick base is not a roof feature and is left to the game.

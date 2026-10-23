@@ -1,0 +1,13 @@
+Silver Lakes (slmh, also used for slbm) - single-storey clubhouse with broad shingle roof, cupola and cross gables, 9 blocks
+0 GV  tall central roof, ridge N-S (~11.5 yd), gable ends at v +-16.5
+1 GV  long west/main body roof, ridge N-S (~9.45 yd) running the full length
+2 H   east body, hipped at its north and south ends
+3 GU  cross gable E-W through the middle (white front gable on the course side, ridge 9.8 yd)
+4 T   large white cupola on the ridge (to ~16 yd)
+5 SV  north veranda roof (open, columns)
+6 SV  south veranda roof (open, columns)
+7 F   low porch/eave ledge in front of the west gable end
+8 F   low porch/eave ledge in front of the east gable end
+Fit: median 0.06 yd, rms 0.96, >1yd 9.8%
+Doubts: the veranda ends are hipped in reality (small red corners in the residual); brick chimneys are too small to show in the lidar
+and are not modelled; low blue patches round the base are shrubs/patio furniture.

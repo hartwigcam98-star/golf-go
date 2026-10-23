@@ -1,0 +1,31 @@
+edinburgh - 30 blocks (final.json)
+1  H   central great-hall block: steep slate mansard/hip, flat top at 13.3
+2  SV  north-west bay of the central block (slope pushed 2.5 yd further north)
+3  SV  south-west bay of the central block
+4  GU  west stone cross gable on the central block (entry front, ridge 13.7)
+5  GU  east stone cross gable on the central block (course side, ridge 13.7)
+6-8 T  chimney stacks on the central flat top
+9  H   north wing, steep hip with flat top (9.2)
+10 GU  north wing cross gable (gable ends east and west, ridge 9.2)
+11 H   north central projection (low hip)
+12 GV  north central stone gable front
+13 T   north gable parapet / clock-gable top
+14 F   small flat-roofed annex at the far north
+15 H   south wing, steep hip with flat top (9.2)
+16 GU  south wing cross gable (gable ends east and west)
+17 GV  south central stone gable front
+18 T   south gable parapet top
+19 F   north link / courtyard roofs between north wing and central block (4.5, rooftop units)
+20 SU  west lean-to along the north link
+21 F   east raised strip in the north link (5.3)
+22 F   small flat structure in the NE court (3.3)
+23 F   flat-roofed corridor along the west side (4.3)
+24 F   south link roofs between central block and south wing (4.9)
+25 F   covered walk / canopy off the SW (open)
+26 F   west entry canopy / porte-cochere (open)
+27 F   east (course-side) flat-roofed single-storey wing (4.3), umbrella terrace beyond
+28-29 F small low bays on the east wing
+30 F   low flat roof at the NW corner of the north wing
+Fit: median 0.07 yd, rms 1.69, 14% off >1 yd (rooftop units in the link courts, trees NW and S, eave edges).
+Doubts: north/south link roofs are cluttered with equipment and courtyards; modelled as single flat blocks.
+The two central gable fronts' clock/parapet tops approximated by thin T blocks.

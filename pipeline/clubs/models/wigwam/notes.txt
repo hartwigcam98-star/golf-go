@@ -1,0 +1,23 @@
+The Wigwam (Gold) - low flat-parapet pueblo-revival clubhouse, 20 blocks
+0  F   north wing (flat parapet, 4.6 yd)
+1  F   west low wing beside north wing (3.5 yd)
+2  F   small low west annex / ramada (3.1 yd)
+3  F   NW main hall, highest flat roof (5.3 yd)
+4  F   lower strip between north wing and NW hall (3.8 yd)
+5  F   raised block at the south-east corner of the NW hall (5.5 yd)
+6  F   central block (4.3 yd)
+7  SU  west covered patio, shed rising toward the central block (open)
+8  SU  low covered walk on the east side of the central block (open)
+9  F   east wing (4.1 yd)
+10 SV  north awning/portal along the east wing (open)
+11 GV  small clerestory gable ridge on the east wing (to 7 yd)
+12 F   raised flat section of the east wing (5.9 yd)
+13 F   low south strip linking central block and SE block (3.6 yd)
+14 F   SE block (4.9 yd)
+15 F   south wing (3.1 yd)
+16 F   south tail wing (3.0 yd)
+17 SU  east-end awning on the east wing (open)
+18 F   south-west corner of north wing (4.65 yd)
+19 F   low covered porch north of the central block (open, 2.9 yd)
+Fit: median 0.20 yd, rms 3.98 (rms dominated by trees), >1yd 23.4%
+Doubts: row of palms along the east side (u 38-42) and trees on the south patio (u -30..0, v 15..25) leave blue residual; these are vegetation, not modelled. Block edges were positioned by a coordinate-descent edge search (bk fit cannot move step edges), then confirmed by bk.py fit.

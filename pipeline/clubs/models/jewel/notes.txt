@@ -1,0 +1,9 @@
+jewel - 5 blocks (final.json)
+1  H   main low-pitched hip, flat-topped (eave 3.8, top 7.1)
+2  H   long cross wing running through the main block, hipped west end (eave 5.3, ridge 7.6)
+3  H   east course-side (walkout, two-storey) hipped projection over the veranda (ridge 7.4); article mentions a low centre gable here but lidar shows a hip
+4  H   north hipped wing / porte-cochere roof on the entry side (ridge 5.6)
+5  F   low flat canopy west of the north wing (2.5, open)
+Fit: median 0.05 yd, rms 1.44, 14% off >1 yd (residual is only along the eave edges).
+Doubts: aerial is coarse and misregistered so not used. Not clear from lidar whether block 4 is the open
+porte-cochere or an enclosed entry wing (left closed). The course-side veranda/arcade is under the main roof and not separately visible.

@@ -1,0 +1,32 @@
+rossbridge (Renaissance Ross Bridge hotel; golf shop inside) - 31 blocks
+The roofs are steep (pitch ~1.2) slate "mansard" perimeters that rise from the eaves to a 23-26 yd crest and then drop to hidden flat roofs (19.8 yd on the main wings, 16.4 yd on the NE wing). Each perimeter side is a shed (SU/SV) with its high side inward, over a flat block.
+1 SV  north perimeter roof of the cross block (west part)
+2 F   flat roof of the west end of the cross block
+3 T   tall square bell tower with spire (top ~35 yd)
+4 F   flat roof well of the middle wing / cross block (19.8)
+5 SU  middle wing west perimeter roof
+6 SU  middle wing east perimeter roof
+7 GU  big stone-verged gable dormer on the middle wing west side
+8 F   low covered arcade/walk along the middle wing west wall (open)
+9 F   tall block linking the middle and south wings (flat at 25)
+10 GU east cross gable at the link
+11 F  south wing flat roof well (19.8)
+12 SU south wing west perimeter roof
+13 SU south wing east perimeter roof
+14-16 GU steep cross gables on the south wing (west and east at v~50, west at v~66)
+17 GU east projecting gable wing near the south end
+18 SV south end perimeter roof
+19 T  conical turret at the SW corner
+20-21 F NE wing flat roof (16.4; two pieces)
+22 SU NE wing west perimeter roof
+23 SU NE wing east perimeter roof
+24 SV NE wing north perimeter roof
+25 SV NE wing south perimeter roof
+26 GU east projecting gable on the NE wing
+27 T  conical turret at the NE wing NE corner
+28 F  one-storey annex north of the NE wing (porte-cochere/entry block, 6 yd)
+29 F  one-storey block north of the cross block
+30 GV small steep gable building on it
+31 F  raised pool terrace east of the south wing (deck, 1.2 yd above reference; ground there ~7 yd lower)
+Fit: median 0.20 yd overall, on the roof itself median abs 0.14 yd but rms 4.5 and ~34-38% >1yd. The large share comes from (a) the steep 1.2-pitch perimeter strips, where a fraction of a yard of misplacement or the many small dormers/turrets give >1 yd errors along every wall, (b) the walkout ground (lidar ground 3-7 yd below the reference, poorly matched by the terrain model), and (c) the separate flat-roofed building/parking deck to the west and trees. Interior of the roofs is clean.
+Doubts: many small dormers, chimneys and gables are not modelled; the low-level blocks (8, 28, 29) are guesses at use; the west neighbour (large flat roof, u<-36) is treated as a separate building and left out.

@@ -1,0 +1,18 @@
+prestwick - 15 blocks (final.json)
+1  GV  east main wing, steep gable along v (ridge 10.4), course-side gable at south end
+2  GV  west main wing, steep gable (ridge 10.4)
+3  GU  west cross gable off the west wing (ridge 7.8)
+4  GU  east cross gable off the east wing (ridge 8.1)
+5  GU  central cross gable linking the two wings at the north (ridge 8.5, lower pitch)
+6  GV  north entry gable (ridge 6.9)
+7  GV  steep gabled entry canopy on posts at the north tip (open)
+8  GV  low north-east gable extension of the east wing (ridge 6.1)
+9  F   central flat roof between the wings (rooftop units, h 4.3)
+10 F   flat roof south of the west wing (h 4.8)
+11 GV  south (course-side) middle gable (ridge 7.7)
+12 GV  south-west gable (ridge 6.8)
+13 F   flat roof between the two south gables (h 6.2)
+14 F   raised course-side terrace in front of the east gable (deck)
+15 GU  small low west gable / bay (ridge 5.0)
+Fit: median 0.07 yd, rms 1.22, 14% off >1 yd (mostly eaves edges and trees on the NW).
+Doubts: rooftop mechanical units on the central flat roof not modelled; trees over the NW corner of the west wing.

@@ -1,0 +1,10 @@
+Wyboo Golf Club - one-storey cross-plan clubhouse: a gable along u crossing a longer roof along v, with gable-fronted wings.
+1 GU  cross-wing gable along u (ridge 8.6, gable ends east and west at u=-11.6 / 12.8)
+2 H   main roof along v (ridge 8.1), hipped north end
+3 GV  south wing, lower-pitch gable (ridge 7.9) with its gable end facing south (v=11.5)
+4 T   small cupola at the ridge crossing (top 11.1)
+5 F   north-west raised deck/porch floor (~1 yd above entrance level, ground falls ~2 yd to the north), open below with railing
+6 F   north-east raised deck/porch floor, same
+Fit: median 0.08 yd, rms 1.33 yd, 17% > 1 yd (wall/eave edge pixels and railings round the decks).
+Doubts: the two corner floors read as open decks (no roof over them in the lidar); if they are the white-columned porch, their roofs
+are not visible. A low strip just south of the south gable (v~12, h 2-4) may be steps or a stoop - left out.

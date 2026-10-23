@@ -1,0 +1,17 @@
+desertcanyon - 15 blocks (final.json)
+1-2  SU  north-west wing: very low-slope membrane roof behind parapets, crown at u=-10 (two shed halves, 3.9-4.6 yd)
+3-4  SU  south-west wing, same low crowned roof (two shed halves)
+5    F   north-east flat-roofed block (3.9)
+6    F   central/east flat-roofed block (3.9)
+7    F   east flat-roofed strip (4.0)
+8    F   long course-side dining patio roof on posts along the south (4.2, open)
+9    F   raised roof piece at the west end of the patio roof (4.9; probably the timber canopy / higher sloped section)
+10   F   raised roof piece at the east end of the patio roof (4.4)
+11   F   low covered walk / overhang along the south of the west wing (2.9, open)
+12   SU  small lean-to on the north between the NW wing and the courtyard
+13   F   low roof in the north courtyard notch (3.2; partly trees)
+14   F   south-west extension of the NW wing (3.75)
+15   F   north extension of the NE block (3.8)
+Fit: median 0.06 yd, rms 0.91, 9% off >1 yd.
+Doubts: no aerial; the course-side patio roof is described as rust-brown sloped but the lidar shows it nearly flat (4.2-5.0) -- modelled flat.
+The north courtyard notch (u 0..5, v -11..-2) is mixed with trees; its low roof is a guess. Rooftop HVAC bumps ignored.

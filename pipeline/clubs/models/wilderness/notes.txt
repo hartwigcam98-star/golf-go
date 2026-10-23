@@ -1,0 +1,6 @@
+The Wilderness (Tower, MN) - one-storey clubhouse under a broad pyramidal hip roof with two lower hip wings (L/T plan).
+Block 1  H  main square pyramid hip roof (~26x26 yd, eave 4.25, peak 9.6) incl. the covered walk under its eaves
+Block 2  H  south wing hip (eave 3.2, ridge 6.8)
+Block 3  H  east wing hip (eave 3.7, ridge 6.5)
+Fit: median 0.05 yd, rms 0.76 yd, 11.6% of pixels off >1 yd (wall edges / speckle).
+Doubts: lidar sparse (<1 pt/m2). The wood-clad chimney box at the peak is not in the lidar (it shows a small low spot at the peak instead), so left out; the two eyebrow dormers are tiny bumps, left out.

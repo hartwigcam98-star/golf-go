@@ -1,0 +1,12 @@
+farmlinks - 10 blocks (final.json)
+1  GU  main block upper gable (ridge 8.6), ridge along u
+2  SV  north (entry side) lower lean-to roof continuing the main roof at a shallower pitch
+3  SV  south full-width glazed sunroom porch, shallow shed off the main roof (course side)
+4  GU  west lower side wing (ridge 6.9)
+5  GU  east lower side wing (ridge 7.0)
+6-8 GV three gabled dormers on the south slope
+9  T   stone chimney at the east end of the main ridge
+10 F   (part, rotated 22 deg) low flat-roofed structure / covered walk running off the NE corner (h 3.9)
+Fit: median 0.10 yd, rms 2.47, 31% off >1 yd -- the large rms/share comes from trees around the building (big blobs W, E and NE), not the house.
+Doubts: no aerial; the NE low structure sits ~20-30 deg off the frame (covered walk or shed?); modelled as a rotated part, angle only roughly determined (da 18-32 fit equally).
+Smooth-looking blobs east (u 15-25) and west (u -23..-17) judged to be trees (they dip to ground inside); if one is a hipped pavilion it is missing.

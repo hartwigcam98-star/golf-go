@@ -1,0 +1,14 @@
+ridges - 10 blocks (final.json)
+1  GV  main two-storey gable along v (ridge 6.9)
+2  GU  north cross gable, full width, big gable ends (ridge 6.8)
+3  GV  south lower gable wing (ridge 5.9)
+4  SU  course-side (east) full-length upper deck with its pergola/roof cover on posts, shallow slope (open)
+5  T   square cupola on the main ridge
+6  F   west shed dormer (north)
+7  F   west shed dormer (south)
+8  GU  small west cross gable (middle)
+9  GU  small west cross gable (south)
+10 GU  small north-west gable by the north cross wing
+Fit: median 0.04 yd, rms 1.04, 10% off >1 yd.
+Doubts: lidar over the east deck is at ~3-3.7 yd (pergola/roof level), so block 4 is the cover; the deck floor itself
+(upper entrance level, open below to the walkout) is not a separate block. Separate building south of v=31 ignored.

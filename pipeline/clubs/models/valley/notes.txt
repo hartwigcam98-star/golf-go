@@ -1,0 +1,17 @@
+Oxmoor Valley (Valley and Ridge share it) - large two-level clubhouse, cross plan: tall main gable along u crossed by a gable along v, low-pitched veranda roofs round it, open terraces at both ends.
+1  GU  main two-storey gable along u (ridge 14.0), gable ends at u=+-16.8
+2  GV  central cross gable along v (ridge 13.2) - the big front gables (fanlight gables) on the entry and course sides
+3  H   veranda roof wrapping the cross-gable ends (low pitch, flat top ~8.3)
+4  H   west wing / veranda roof, outer part (low hip, flat top 8.4)
+5  H   west veranda roof, inner part along the main gable end
+6  H   east wing / veranda roof, outer part
+7  H   east veranda roof, inner part
+8  F   west terrace on the brick ground storey (3.1), deck with railing
+9  F   east terrace (3.1), deck with railing
+10 T   white cupola on the ridge crossing (top ~17)
+11 T   chimney on the north slope
+12 T   tall brick chimney at the east end
+Fit: median 0.09 yd, rms 1.68 yd, 19% > 1 yd (blue ring of stairs, low garden walls and terraces round the building; eave edge pixels).
+Doubts: the 3.1 terraces may be partly roofed porch over the brick walk-out storey rather than open decks (lidar shows furniture-like dots on them, so modelled as decks);
+the low walls / double stair north of the building (u -12..10, v -30..-20, ~3 yd) and the steps south are left out; the wrap-around veranda is the low 0.35-0.5-pitch roof band
+(blocks 3-7), its posts are not separately modelled.

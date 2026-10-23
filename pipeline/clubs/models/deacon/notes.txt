@@ -1,0 +1,10 @@
+Deacon's Lodge (Breezy Point, MN) - one-storey lodge, long steep gable with a crossing central gable, wide shed-style dormers and a low skirt roof.
+Block 1  GU  main roof, full length (u -23..23), steep pitch ~0.97, ridge 8.1 (both end wings are its exposed gable ends)
+Block 2  GU  west wide dormer section (pitch 0.39, top 8.3) on both slopes
+Block 3  GU  east wide dormer section (same)
+Block 4  GU  low skirt/eave roof along both long sides of the middle section (eave ~3.5, top 4.6)
+Block 5  GV  central cross gable (steep entry gable), ridge 8.2, runs v -11..9.5
+Block 6  GV  low entry porch roof on stone piers (flag o), ~4.4
+Block 7  T   stone chimney (~14 yd top, lidar sees only a couple of points)
+Fit: median 0.10 yd, rms 2.61 yd (trees at the SE and W corners), 13.9% of pixels off >1 yd.
+Doubts: description says a hipped roof but the lidar shows gable ends at both ends; the shed dormers are modelled as a shallow gable layer over the steep main roof. Chimney height from very few points.

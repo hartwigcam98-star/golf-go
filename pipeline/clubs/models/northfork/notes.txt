@@ -1,0 +1,13 @@
+northfork - 10 blocks (final.json)
+1  GV  main big gable along v (ridge 8.25), dark green shingle roof
+2  GU  east cross gable running to the course side (ridge 8.2), gable end at the east
+3  F   flat-roofed strip north of the east cross wing (3.8)
+4  F   flat-roofed strip south of the east cross wing (3.7)
+5-7 GU three small cross gables on the west (entry) slope
+8  T   octagonal stucco tower body at the NW corner (approximated as a square)
+9  T   lantern + copper dome on the tower
+10 F   stepped flat-parapet stucco block at the south end (8.9)
+Fit: median 0.06 yd, rms 1.03, 11% off >1 yd.
+Doubts: tower is octagonal, modelled as square T blocks; its body reads only ~4.3-5.9 yd in the lidar.
+Description says three course-side gables but lidar shows one broad east cross gable flanked by two low flat roofs.
+Ground-level diagonal ramp/wall NE of the building ignored.

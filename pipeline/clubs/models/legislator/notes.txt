@@ -1,0 +1,18 @@
+legislator (Capitol Hill clubhouse, shared by judge/senator) - 15 blocks
+1 H   main hip roof over the long central block (ridge 16.5)
+2 GV  west front wing, gable end facing the front (south, +v)
+3 GV  east front wing, gable end facing the front
+4 H   north (rear) centre projection, hipped
+5 T   white cupola on the main ridge
+6 T   chimney on the front slope
+7 GU  west-end cross gable over the west wing
+8 GU  east-end cross gable over the east wing
+9 SV  front veranda roof running the full front (open, white columns)
+10 F  flat porch roof between the front wings (open)
+11 SV rear veranda roof along the north side (open)
+12 H  hipped rear veranda round the north projection (open)
+13 H  west-end hipped porch wing (open)
+14 H  east-end hipped porch wing (open)
+15 F  raised front terrace (deck, 1.8 yd above the reference ground)
+Fit: median 0.13 yd, rms 1.69, 18% >1yd (edges, trees to the NW, the terrace steps).
+Doubts: the end porch wings (13, 14) and the rear verandas are low-pitch hips at ~6-7 yd; they may be partly enclosed rooms rather than open porches. The "larger centre gable" of the description is not obvious in the lidar - the centre front is a flat porch roof between the two front gable wings. Terrace 15 may be solid fill rather than a deck.

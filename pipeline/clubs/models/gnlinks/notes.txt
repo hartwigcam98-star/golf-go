@@ -1,0 +1,18 @@
+Grand National (Links and Lake share it) - same RTJ-Trail template as Oxmoor Valley: two-storey cross-plan clubhouse with low veranda roofs round it and terraces at both ends.
+1  GU  main two-storey gable along u (ridge 15.0), gable ends at u=+-16.8
+2  GV  central cross gable along v (ridge 14.0) - the big rosette-window gables, ends at v=-16.6 / 16.9
+3  H   veranda roof wrapping the cross-gable ends (low pitch, flat top ~9.3)
+4  H   west wing / veranda roof, outer part (low hip, flat top 9.4)
+5  H   west veranda roof, inner part along the main gable end
+6  H   east wing / veranda roof, outer part
+7  H   east veranda roof, inner part
+8  F   west terrace on the brick ground storey (4.1), deck with railing
+9  F   east terrace (4.1), deck with railing
+10 T   cupola on the ridge crossing (top ~18)
+11 T   tall chimney at the east end of the main ridge (top 17.6)
+12 T   small chimney on the west wing
+13 T   small chimney / vent on the south-east slope
+14 H   small low structure at the south-east inner corner (stair/entry roof, ~5 yd)
+Fit: median 0.11 yd, rms 1.46 yd, 15% > 1 yd (stairs, garden walls and edge pixels round the building).
+Doubts: as at Valley, the 4.1 terraces could be partly roofed porch rather than open decks; block 14 is a guess (stair or entry canopy);
+the stair/walk north of the building (u~0, v -26..-20) is left out.
