@@ -2583,9 +2583,9 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
 /* ---------- course landmarks, second set (Oct 2026): steel truss, boardwalk and covered bridges, farm windmill/silo/barns,
    flower beds, rock outcrops and ledges, waterfalls, gazebos, hotel towers, hay bales, a dead snag and entrance boulders.
    Placed by rules from the course map (photos give what, not exactly where), anchored in course yards so they show from every hole. */
-const CFEEL2={northfork:{spans:[[-306,170,-320,220,'truss',5.2]]},rossbridge:{br:'truss',pe:'ledge',wf:[[180,32],[559,38]],flw:{bridge:'#e57aa8'}},
+const CFEEL2={northfork:{spans:[[-306,170,-320,220,'truss',5.2]]},rossbridge:{br:'truss',pe:'ledge',wf:[[180,32],[559,38]],wfS:1.7,flw:{bridge:'#e57aa8'}},
   slmh:{br:'grey'},slbm:{br:'grey'},legends:{br:'grey'},windsong:{br:'grey',farm:[['silo',-580,400]],spans:[[-375,513,-288,472,'grey',0]]},maddens:{br:'grey',cov:[121,-219],gz:'pavilion'},
-  mystic:{wf:['auto',[-529,476]],gz:'gazebo',tw:40,twMax:15000,twBlock:1},wilderness:{tw:20,rock:'granite',snag:[561,-547],stone:1},quarry:{rock:'taconite',stone:1},
+  mystic:{wf:['auto',[-529,476]],wfS:1.3,gz:'gazebo',tw:40,twMax:15000,twBlock:1},wilderness:{tw:20,rock:'granite',snag:[561,-547],stone:1},quarry:{rock:'taconite',stone:1},
   troy:{pe:'ledge',barn:{c:'#3d3b38',at:[-542,-569],L:5,W:4.5,eh:3.2}},stoneridge:{barn:{c:'#f1efe8',at:[15,359],fit:1}},
   legend:{flw:{tee:'#c8242c'}},pines:{flw:{green:'#d02a2e'}},farmlinks:{marble:5}};
 function lmAnchors(){if(CUR._lm&&CUR._lm.id===CUR.id)return CUR._lm;const F=CFEEL[CUR.id]||{},C=COURSE,A={id:CUR.id,list:[]};CUR._lm=A;if(!C||!C.holes)return A;
@@ -2670,9 +2670,13 @@ function courseFeel2(h,out){const F=CFEEL[CUR.id]||{},b=h.bounds,T0=h.T0,R=rng((
       for(const su of[-1,1]){const nn=[ca*su,0,sa*su],u=su*(L2+.01);triO(out,P(u,-W2,eh),P(u,W2,eh),P(u,0,eh+rr),wc,nn);quadO(out,P(u,-W2,eh),P(u,-W2*.45,eh+rr*.75),P(u,0,eh+rr),P(u,-W2*.45,eh),wc,nn);
         const u2=su*(L2+.03);quadO(out,P(u2,-2,0),P(u2,2,0),P(u2,2,3.6),P(u2,-2,3.6),tc,nn);quadO(out,P(u2*1.001,-.08,0),P(u2*1.001,.08,0),P(u2*1.001,.08,3.6),P(u2*1.001,-.08,3.6),wc,nn);}}
     else if(o.k==='wf'){const ux=Math.cos(o.a),uz=Math.sin(o.a),px=-uz,pz=ux,base=g-.1,stc=F.pe==='ledge'?hexc('#b59a72'):hexc('#8f8a80'),okR=(xx,zz)=>{const c=lieCodeAt(h,xx,zz);return c<2||c===6;};
+      const S=F.wfS||1;let wl=null;for(const w of h.water||[])if(w.lvl!=null&&inPoly(w,x+ux*2*S,z+uz*2*S))wl=w.lvl;const bot=wl!=null?Math.min(base-.2,wl):base-.4,top=Math.max(base+2.3*S,bot+2.2*S);
       for(let k=0;k<16;k++){const u=(R()-.5)*7,v=-.6-R()*3.4,xx=x+px*u+ux*v,zz=z+pz*u+uz*v;if(!okR(xx,zz))continue;rock(xx,base+R()*1.6,zz,.8+R()*.8,stc,R()<.5);}
-      {const lip=[x-ux*.4,base+2.3,z-uz*.4];rock(lip[0],lip[1]-.5,lip[2],1.3,stc,true);const wc=[.66,.82,.9],fw=1.1;for(let j=0;j<3;j++){const y0=base+2.25-j*.75,y1=y0-.75,v0=-.2+j*.55,v1=v0+.55;const Q=(u,v,yy)=>[x+px*u+ux*v,yy,z+pz*u+uz*v];quadO(out,Q(-fw,v0,y0),Q(fw,v0,y0),Q(fw,v1,y1+.12),Q(-fw,v1,y1+.12),mul(wc,1-j*.05),nrm([ux,.8,uz]));quadO(out,Q(-fw,v1-.02,y1+.12),Q(fw,v1-.02,y1+.12),Q(fw,v1,y1-.12),Q(-fw,v1,y1-.12),[.82,.9,.94],[ux,0,uz]);if(j<2){const sv=v1;rock(x+ux*(sv+.2)+px*(fw+.5),y1-.2,z+uz*(sv+.2)+pz*(fw+.5),.7,stc,true);rock(x+ux*(sv+.2)-px*(fw+.5),y1-.2,z+uz*(sv+.2)-pz*(fw+.5),.7,stc,true);}}}
-      for(let k=0;k<10;k++){const a1=k/10*TAU,a2=(k+1)/10*TAU,cx=x+ux*2,cz=z+uz*2;quadO(out,[cx+Math.cos(a1)*.8,base+.13,cz+Math.sin(a1)*.8],[cx+Math.cos(a1)*2.2,base+.13,cz+Math.sin(a1)*2.2],[cx+Math.cos(a2)*2.2,base+.13,cz+Math.sin(a2)*2.2],[cx+Math.cos(a2)*.8,base+.13,cz+Math.sin(a2)*.8],[.85,.9,.92],[0,1,0]);}}
+      // the rock face behind the falling water: a lip, the ledges it drops over, and boulders either side
+      rock(x-ux*.9*S,top-.6*S,z-uz*.9*S,1.3*S,stc,true);for(let j=0;j<3;j++){const sj=(j+.5)/3,vv=(-.3+2.1*Math.pow(sj,.8)-.5)*S,yy=top-(top-bot)*Math.pow(sj,1.5)-.5*S;rock(x+ux*vv,yy,z+uz*vv,.8*S,mul(stc,.8),true);
+        for(const sg of[-1,1])rock(x+ux*(vv+.2)+px*sg*(1.5+sj*.4)*S,yy+.2,z+uz*(vv+.2)+pz*sg*(1.5+sj*.4)*S,.75*S,stc,true);}
+      // the moving water (sheet and foam pool) is its own animated mesh: r3Waterfalls
+      (h._wfs||(h._wfs=[])).push({x,z,ux,uz,top,bot,S});}
     else if(o.k==='gazebo'||o.k==='pavilion'){const wc=hexc(o.k==='gazebo'?'#efede6':'#7a5a3c'),rc=hexc(o.k==='gazebo'?'#3f5a4a':'#5b4636'),r=o.k==='gazebo'?3:3.6,n=o.k==='gazebo'?8:4,yb=g+.3;
       cyl(x,yb-.6,z,r+.3,.6,n,hexc('#8a6a4c'),true);for(let k=0;k<n;k++){const a=k/n*TAU+(n===4?Math.PI/4:0);boxO(out,x+Math.cos(a)*r,yb+1.4,z+Math.sin(a)*r,.12,1.4,.12,0,wc);}
       for(let k=0;k<n;k++){const a1=k/n*TAU+(n===4?Math.PI/4:0),a2=(k+1)/n*TAU+(n===4?Math.PI/4:0),A1=[x+Math.cos(a1)*(r+.6),yb+2.8,z+Math.sin(a1)*(r+.6)],A2=[x+Math.cos(a2)*(r+.6),yb+2.8,z+Math.sin(a2)*(r+.6)],T=[x,yb+4.6,z];let nn=nrm(cross(sub(A2,A1),sub(T,A1)));if(nn[1]<0)nn=mul(nn,-1);triO(out,A1,A2,T,rc,nn);triO(out,A1,A2,T,mul(wc,.7),mul(nn,-1));}}
@@ -6515,6 +6519,34 @@ function r3LiteShadows(){const q=r3Q(),on=q.liteSh!==false;for(const g of (R3T.g
 /* ---- per-hole scene content ---- */
 function r3Dispose(o){if(!o)return;R3.scene.remove(o);if(o.geometry)o.geometry.dispose();}
 function r3Add(geo,mat,{cast=false,recv=true,order=0,depth=null}={}){const m=new THREE.Mesh(geo,mat);m.castShadow=cast;m.receiveShadow=recv;m.renderOrder=order;if(depth)m.customDepthMaterial=depth;R3.scene.add(m);return m;}
+/* ---- waterfalls (Oct 23): the falling sheet and the foam pool are a separate mesh with a moving-water shader (streaks run down the
+   sheet, foam rings spread across the pool); the rocks they fall over are in the hole's structures. courseFeel2 fills h._wfs. ---- */
+const R3_WF_VS=`attribute vec2 wuv;attribute float wk;varying vec2 vU;varying float vK;void main(){vU=wuv;vK=wk;gl_Position=projectionMatrix*viewMatrix*modelMatrix*vec4(position,1.);}`;
+const R3_WF_FS=`uniform float t;varying vec2 vU;varying float vK;
+float wh(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float wn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(wh(i),wh(i+vec2(1.,0.)),f.x),mix(wh(i+vec2(0.,1.)),wh(i+vec2(1.,1.)),f.x),f.y);}
+void main(){if(vK<.9){float a=vU.x,s=vU.y,sp=1.6+vK*1.4;
+    float f1=wn(vec2(a*9.+vK*7.,s*4.-t*sp*1.9)),f2=wn(vec2(a*21.+3.,s*10.-t*sp*3.)),st=smoothstep(.38,.92,f1*.62+f2*.38);
+    vec3 c=mix(vec3(.36,.52,.6),vec3(.95,.97,1.),clamp(.2+st*.8+s*s*.55,0.,1.));
+    float edge=smoothstep(0.,.2,a)*smoothstep(1.,.8,a)*(.75+.25*wn(vec2(a*5.,s*3.-t*2.)));
+    gl_FragColor=vec4(c,clamp((.55+.35*st+.25*s)*edge*smoothstep(0.,.05,s)*(1.-vK*.4),0.,1.));}
+  else{float r=vU.x,an=vU.y,ring=.5+.5*sin(r*24.-t*6.5),fz=wn(vec2(an*7.,r*5.-t*1.4));
+    float foam=pow(max(0.,1.-r),1.4)*(.5+.5*fz)*(.65+.35*ring);gl_FragColor=vec4(vec3(.93,.96,.98),clamp(foam,0.,.95));}}`;
+function r3Waterfalls(h){r3Dispose(R3.wfMesh);R3.wfMesh=null;const L=h._wfs;R3.wfN=L?L.length:0;if(!L||!L.length)return;const T=THREE,P=[],U=[],K=[],I=[];
+  const vtx=(p,u,k)=>{P.push(p[0],p[1],p[2]);U.push(u[0],u[1]);K.push(k);return P.length/3-1;};
+  for(const w of L){const{x,z,ux,uz,top,bot}=w,S=w.S||1,px=-uz,pz=ux;
+    // two layers of the falling sheet: it leaves the lip, arcs out and drops into the pool
+    for(const k of[0,.4]){const SN=14,AN=6,o=k?.12:0,base=P.length/3;
+      for(let i=0;i<=SN;i++){const sv=i/SN,v=(-.35+2.15*Math.pow(sv,.8))*S+o,y=top-(top-bot)*Math.pow(sv,1.5),fw=(1.05+.45*sv)*(k?.82:1)*S;
+        for(let j=0;j<=AN;j++){const a=j/AN,u=(a-.5)*2*fw;vtx([x+px*u+ux*v,y+(k?.04:0),z+pz*u+uz*v],[a,sv],k);}}
+      for(let i=0;i<SN;i++)for(let j=0;j<AN;j++){const q=base+i*(AN+1)+j;I.push(q,q+1,q+AN+2,q,q+AN+2,q+AN+1);}}
+    // the foam pool where it lands
+    {const cx=x+ux*1.9*S,cz=z+uz*1.9*S,RN=6,AN=20,base=P.length/3;
+      for(let i=0;i<=RN;i++){const r=i/RN,rr=(.25+2.6*r)*S;for(let j=0;j<=AN;j++){const an=j/AN*TAU;vtx([cx+Math.cos(an)*rr*1.1,bot+.05,cz+Math.sin(an)*rr*.9],[r,j/AN],1);}}
+      for(let i=0;i<RN;i++)for(let j=0;j<AN;j++){const q=base+i*(AN+1)+j;I.push(q,q+1,q+AN+2,q,q+AN+2,q+AN+1);}}}
+  const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(P,3));geo.setAttribute('wuv',new T.Float32BufferAttribute(U,2));geo.setAttribute('wk',new T.Float32BufferAttribute(K,1));geo.setIndex(I);geo.computeBoundingSphere();
+  if(!R3.wfMat)R3.wfMat=new T.ShaderMaterial({uniforms:{t:{value:0}},vertexShader:R3_WF_VS,fragmentShader:R3_WF_FS,transparent:true,depthWrite:false,side:T.DoubleSide});
+  const m=new T.Mesh(geo,R3.wfMat);m.renderOrder=7;m.frustumCulled=true;R3.scene.add(m);R3.wfMesh=m;}
 function r3SetHole(h,canvas){const T=THREE,GU=R3.GU;
   if(GU.gTex.value)GU.gTex.value.dispose();GU.gTex.value=r3CanvasTex(canvas);
   const b=h.bounds;GU.gB.value.set(b[0],b[1],b[2]-b[0],b[3]-b[1]);
@@ -6541,7 +6573,7 @@ function r3SetHole(h,canvas){const T=THREE,GU=R3.GU;
   r3Surround(h);
   // green slope map
   buildSlopeTex(h);
-  r3Water(h);r3FlagSet(CUR&&CUR.id);r3Warm();if(!R3.warmQ&&!R3.warmDone)setTimeout(r3WarmStart,400);}
+  r3Water(h);try{r3Waterfalls(h);R3.wfFor=h;}catch(e){console.warn('wf',e);}r3FlagSet(CUR&&CUR.id);r3Warm();if(!R3.warmQ&&!R3.warmDone)setTimeout(r3WarmStart,400);}
 function r3Warm(){try{const vis=[];R3.scene.traverse(o=>{if(!o.visible&&(o.isMesh||o.isSkinnedMesh)){vis.push(o);o.visible=true;}});
   if(R3G.lods)for(const l of R3G.lods)l.geo.instanceCount=Math.max(1,l.geo.instanceCount);
   R3.renderer.compile(R3.scene,R3.cam);
@@ -6857,7 +6889,7 @@ function r3Sprinklers(){const want=r3SprinkWanted();
       const d=[vx/sp,vyy/sp,vz/sp],side=nrm(cross(d,[0,1,0])),up=nrm(cross(side,d));const sz=(.05+.09*Math.min(1,age))*(.75+.5*h2);sphAt([x,y,z],sz,sz,sz*2.4,col,side,up,d);/* the jet breaks up into a widening mist */}}
   M3.spec=0;M3.water=0;
   if(want&&T-R3SPK.tick>.13){R3SPK.tick=T;try{if(!G.muted)noise(.05,.06,'highpass',2800);}catch(e){}}}
-function r3Dynamic(){const h=G.hole;if(R3.boss){R3.boss.mesh.visible=false;R3.boss.ballAt=null;}const bx=G.ball.x,bz=G.ball.y,gB=hAt(bx,bz);
+function r3Dynamic(){const h=G.hole;if(h&&(R3.wfFor!==h||R3.wfN!==((h._wfs||[]).length))){R3.wfFor=h;try{r3Waterfalls(h);}catch(e){console.warn('wf',e);}}if(R3.wfMat)R3.wfMat.uniforms.t.value=performance.now()/1000%600;if(R3.boss){R3.boss.mesh.visible=false;R3.boss.ballAt=null;}const bx=G.ball.x,bz=G.ball.y,gB=hAt(bx,bz);
   const camToBall=hyp(bx-V.E[0],gB-V.E[1],bz-V.E[2]);R3.U.r3fade.value=G.overview||G.state==='intro'||G.state==='card'?0:Math.min(60,camToBall-2);
   if(R3.grass)R3.grass.visible=!G.overview&&G.state!=='intro'&&G.state!=='card';
   // cup, flagstick and flag (scaled up with distance so the pin is always readable)
@@ -7972,6 +8004,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-23-waterfalls",date:"Oct 23, 2026",title:"Flowing waterfalls",items:[
+    "The waterfalls at Ross Bridge and Mystic Lake now flow: white water streams down over the rocks and foams out across the pond below. They\u2019re bigger too, so you can pick them out from the fairway."]},
   {id:"2026-10-23-landmarks",date:"Oct 23, 2026",title:"Course landmarks",items:[
     "Courses picked up their real landmarks from photos of each course: fountains in the ponds, stone walls, boulders and timber bulkheads round the water, and bridges in each course\u2019s own style.",
     "New on the courses: Northfork\u2019s arched truss bridge over the road by the clubhouse, Windsong\u2019s silo and the long grey boardwalk across the pond, the covered bridge and lakeside pavilion at Madden\u2019s, the barns at StoneRidge and Troy Burne, Mystic Lake\u2019s gazebo and hotel tower, waterfalls at Ross Bridge and Mystic Lake, limestone ledges at Troy Burne and Ross Bridge, begonia beds at The Legend and The Pines, and the dead snag at The Wilderness.",
