@@ -1,0 +1,316 @@
+{
+"troy": {
+"lat": 44.8966599,
+"lon": -92.7412979,
+"R": 91,
+"pref": [
+"WI_StWide_4_StCroix_2021"
+]
+},
+"stoneridge": {
+"lat": 44.9520786,
+"lon": -92.8298376,
+"R": 90,
+"pref": [
+"MN_CentralMissRiver_5_B22"
+]
+},
+"caledonia": {
+"lat": 33.4531766,
+"lon": -79.1556507,
+"R": 90,
+"pref": [
+"USGS_LPC_SC_Georgetown_2016_LAS_2019"
+]
+},
+"trueblue": {
+"lat": 33.4432176,
+"lon": -79.1463893,
+"R": 90,
+"pref": [
+"USGS_LPC_SC_Georgetown_2016_LAS_2019"
+]
+},
+"rossbridge": {
+"lat": 33.3927089,
+"lon": -86.8802031,
+"R": 124,
+"pref": [
+"AL_11County_2_B23"
+]
+},
+"legislator": {
+"lat": 32.4431646,
+"lon": -86.3948273,
+"R": 90,
+"pref": [
+"USGS_LPC_AL_25Co_B4_2017"
+]
+},
+"sandvalley": {
+"lat": 44.1750795,
+"lon": -89.8553471,
+"R": 108,
+"pref": [
+"WI_Adams_2019"
+]
+},
+"lido": {
+"lat": 44.1884946,
+"lon": -89.8480074,
+"R": 90,
+"pref": [
+"WI_Adams_2019"
+]
+},
+"sedge": {
+"lat": 44.1760173,
+"lon": -89.8636352,
+"R": 90,
+"pref": [
+"WI_Adams_2019"
+]
+},
+"wilderness": {
+"lat": 47.821534,
+"lon": -92.3463191,
+"R": 90,
+"pref": [
+"MN_FullState"
+]
+},
+"quarry": {
+"lat": 47.5402068,
+"lon": -92.2893932,
+"R": 90,
+"pref": [
+"MN_LakeSuperior_2_2021"
+]
+},
+"legend": {
+"lat": 47.5789643,
+"lon": -92.3049369,
+"R": 105,
+"pref": [
+"MN_RainyLake_1_2020"
+]
+},
+"crsc": {
+"lat": 31.8977087,
+"lon": -86.6861519,
+"R": 90,
+"pref": [
+"USGS_LPC_AL_25Co_B6_2017"
+]
+},
+"deacon": {
+"lat": 46.605371,
+"lon": -94.2069576,
+"R": 90,
+"pref": [
+"MN_UpperMissRiver_6_B22"
+]
+},
+"lehman": {
+"lat": 46.3874164,
+"lon": -94.3475644,
+"R": 98,
+"pref": [
+"MN_UpperMissRiver_6_B22"
+]
+},
+"maddens": {
+"lat": 46.3797022,
+"lon": -94.3585005,
+"R": 90,
+"pref": [
+"MN_UpperMissRiver_6_B22"
+]
+},
+"pines": {
+"lat": 46.4989879,
+"lon": -94.3158541,
+"R": 90,
+"pref": [
+"MN_UpperMissRiver_6_B22"
+]
+},
+"preserve": {
+"lat": 46.571257,
+"lon": -94.2869334,
+"R": 90,
+"pref": [
+"MN_UpperMissRiver_6_B22"
+]
+},
+"orangeburg": {
+"lat": 33.5102208,
+"lon": -80.9054951,
+"R": 90,
+"pref": [
+"USGS_LPC_SC_East_Central_2017_LAS_2019"
+]
+},
+"santee": {
+"lat": 33.4903224,
+"lon": -80.4900504,
+"R": 90,
+"pref": [
+"USGS_LPC_SC_East_Central_2017_LAS_2019"
+]
+},
+"wyboo": {
+"lat": 33.5866784,
+"lon": -80.2187058,
+"R": 90,
+"pref": [
+"USGS_LPC_SC_East_Central_2017_LAS_2019"
+]
+},
+"valley": {
+"lat": 33.4191495,
+"lon": -86.8783722,
+"R": 90,
+"pref": [
+"AL_11County_2_B23"
+]
+},
+"gnlinks": {
+"lat": 32.6747065,
+"lon": -85.4268868,
+"R": 90,
+"pref": [
+"GA_Central_2_2018"
+]
+},
+"lookout": {
+"lat": 33.602014,
+"lon": -112.0610877,
+"R": 90,
+"pref": [
+"AZ_MaricopaPinal_1_2020"
+]
+},
+"wigwam": {
+"lat": 33.4983249,
+"lon": -112.3574392,
+"R": 119,
+"pref": [
+"AZ_MaricopaPinal_1_2020"
+]
+},
+"dove": {
+"lat": 33.7908494,
+"lon": -111.9944362,
+"R": 90,
+"pref": [
+"AZ_MaricopaPinal_1_2020"
+]
+},
+"interlachen": {
+"lat": 44.915351,
+"lon": -93.3799133,
+"R": 90,
+"pref": []
+},
+"windsong": {
+"lat": 44.9847295,
+"lon": -93.7369798,
+"R": 90,
+"pref": [
+"MN_CentralMissRiver_4_B22"
+]
+},
+"hazeltine": {
+"lat": 44.8335463,
+"lon": -93.5906825,
+"R": 119,
+"pref": [
+"MN_CentralMissRiver_6_B22"
+]
+},
+"slmh": {
+"lat": 33.8836784,
+"lon": -85.9283528,
+"R": 90,
+"pref": []
+},
+"mystic": {
+"lat": 44.7307583,
+"lon": -93.4755502,
+"R": 90,
+"pref": []
+},
+"legends": {
+"lat": 44.6700695,
+"lon": -93.3434247,
+"R": 90,
+"pref": []
+},
+"chaska": {
+"lat": 44.8297928,
+"lon": -93.6315291,
+"R": 90,
+"pref": []
+},
+"prestwick": {
+"lat": 44.8976358,
+"lon": -92.9125748,
+"R": 90,
+"pref": []
+},
+"royal": {
+"lat": 44.974623,
+"lon": -92.8690478,
+"R": 90,
+"pref": [
+"MN_CentralMissRiver_5_B22"
+]
+},
+"farmlinks": {
+"lat": 33.1174622,
+"lon": -86.4196769,
+"R": 90,
+"pref": [
+"AL_17Co_2_2020"
+]
+},
+"desertcanyon": {
+"lat": 33.5821176,
+"lon": -111.7152136,
+"R": 90,
+"pref": [
+"AZ_MaricopaPinal_1_2020"
+]
+},
+"jewel": {
+"lat": 44.4402853,
+"lon": -92.2906626,
+"R": 90,
+"pref": []
+},
+"ridges": {
+"lat": 44.6340663,
+"lon": -93.6127472,
+"R": 90,
+"pref": []
+},
+"edinburgh": {
+"lat": 45.1124893,
+"lon": -93.3272089,
+"R": 96,
+"pref": []
+},
+"willingers": {
+"lat": 44.490813,
+"lon": -93.3189944,
+"R": 90,
+"pref": []
+},
+"northfork": {
+"lat": 45.2528057,
+"lon": -93.5041931,
+"R": 90,
+"pref": []
+}
+}
