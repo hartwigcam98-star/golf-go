@@ -59,7 +59,14 @@ def lidar(cid, c):
     # ground: class 2, gridded at 1 m then nearest-filled
     g = cl == 2; gs = np.full((n_ // 4, n_ // 4), np.nan, np.float32); np.fmin.at(gs, (iy[g] // 4, ix[g] // 4), Z[g].astype(np.float32))
     bc = np.zeros((n_, n_), np.uint8); np.maximum.at(bc, (iy, ix), (cl == 6).astype(np.uint8))
-    np.savez_compressed(f'{OUT}/{cid}_lidar.npz', dsm=dsm, ground=gs, bld=bc, box=np.array([X0, Y0, X1, Y1]), epsg=E, res=rs)
+    # vegetation hint: share of returns at 0.5 m that are not the last return of their pulse (canopy lets pulses through, roofs don't)
+    nm = n_ // 2; tot = np.zeros((nm, nm), np.int32); mlt = np.zeros((nm, nm), np.int32)
+    np.add.at(tot, (iy // 2, ix // 2), 1)
+    if 'ReturnNumber' in a.dtype.names and 'NumberOfReturns' in a.dtype.names:
+        m = (np.asarray(a['NumberOfReturns']) > 1) & (np.asarray(a['ReturnNumber']) < np.asarray(a['NumberOfReturns']))
+        np.add.at(mlt, (iy[m] // 2, ix[m] // 2), 1)
+    multi = (np.clip(mlt * 255 // np.maximum(tot, 1), 0, 255)).astype(np.uint8)
+    np.savez_compressed(f'{OUT}/{cid}_lidar.npz', dsm=dsm, ground=gs, bld=bc, multi=multi, box=np.array([X0, Y0, X1, Y1]), epsg=E, res=rs)
     if 'GpsTime' in a.dtype.names: info['gps'] = [float(a['GpsTime'].min()), float(a['GpsTime'].max())]
     info['classes'] = {int(k): int(v) for k, v in zip(*np.unique(cl, return_counts=True))}
     return info
@@ -82,7 +89,7 @@ def one(kv):
     cid, c = kv
     try: info = lidar(cid, c)
     except Exception as e: info = dict(err=str(e)[:200])
-    try: aerial(cid, c, info)
+    pass
     except Exception as e: info['aerr'] = str(e)[:200]
     return cid, info
 with cf.ThreadPoolExecutor(3) as ex:
