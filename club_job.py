@@ -89,8 +89,6 @@ def one(kv):
     cid, c = kv
     try: info = lidar(cid, c)
     except Exception as e: info = dict(err=str(e)[:200])
-    pass
-    except Exception as e: info['aerr'] = str(e)[:200]
     return cid, info
 with cf.ThreadPoolExecutor(3) as ex:
     for cid, info in ex.map(one, C.items()):
