@@ -933,7 +933,7 @@ td.won{background:rgba(255,201,60,.38)}
 </div>
 
 <script src="greens.js?v=220df6ab8c"></script>
-<script src="ground.js?v=0d69c0accd"></script>
+<script src="ground.js?v=9866692be7"></script>
 <script src="trees.js?v=9d9df988af"></script>
 <script>/* three.js r170 (MIT) */
 (function(){
@@ -2284,8 +2284,17 @@ function blockMass(h,q,out,L,C){
         if(fl.includes('d')){q4(P(A2[0],A2[1],e+.95),P(B2[0],B2[1],e+.95),P(B2[0],B2[1],e+1.07),P(A2[0],A2[1],e+1.07),C.trim,n);}
         else q4(P(A2[0],A2[1],e-.3),P(B2[0],B2[1],e-.3),P(B2[0],B2[1],e+(fl.includes('o')?0:.35)),P(A2[0],A2[1],e+(fl.includes('o')?0:.35)),C.trim,n);}}}
   // the clock on the clock tower (the tallest tower block wide enough for one): a face on each side below its eave
-  if(C.clk){let tb=null;for(const b of B)if(b[0]==='T'&&Math.min(b[2]-b[1],b[4]-b[3])>=2.5&&(!tb||Math.max(b[5],b[7])>Math.max(tb[5],tb[7])))tb=b;
-    if(tb){const[,u0,u1,v0,v1,e]=tb,uc=(u0+u1)/2,vc=(v0+v1)/2,r=Math.min(1.05,Math.min(u1-u0,v1-v0)*.28),yc=e-r-.45,hu=(u1-u0)/2-.1,hv=(v1-v0)/2-.1;
+  // a gable carrying a clock (flag c on a GU/GV block): a face high in each gable end that shows over the roofs in front of it
+  const face=(c,n,T,r)=>{const pt=(ang,rr,o)=>[c[0]+T[0]*Math.cos(ang)*rr+n[0]*o,c[1]+Math.sin(ang)*rr,c[2]+T[2]*Math.cos(ang)*rr+n[2]*o];
+    for(let j=0;j<12;j++){const a1=j/12*TAU,a2=(j+1)/12*TAU;triO(out,[c[0]+n[0]*.03,c[1],c[2]+n[2]*.03],pt(a1,r+.12,.025),pt(a2,r+.12,.025),C.trim,n);triO(out,[c[0]+n[0]*.05,c[1],c[2]+n[2]*.05],pt(a1,r,.05),pt(a2,r,.05),[.95,.94,.9],n);}
+    for(const[ang,len,w]of[[1.1,r*.55,.06],[2.6,r*.8,.04]]){triO(out,pt(ang+Math.PI/2,w,.07),pt(ang-Math.PI/2,w,.07),pt(ang,len,.07),[.12,.12,.12],n);}};
+  for(const b of B){if(!(b[8]||'').includes('c')||(b[0]!=='GU'&&b[0]!=='GV'))continue;const[t,u0,u1,v0,v1,e,p,cap]=b,along=t==='GU',w=along?v1-v0:u1-u0,top=Math.min(cap,e+p*w/2),r=Math.min(1.05,w*.16,(top-e)*.3);
+    if(r<.4)continue;const yc=e+(top-e)*.38;
+    for(const sg of[-1,1]){const u=along?(sg<0?u0:u1)-sg*ov(b):(u0+u1)/2,v=along?(v0+v1)/2:(sg<0?v0:v1)-sg*ov(b),n=along?nU(sg):nV(sg),T=along?DV:DU,uo=u+(along?sg*.8:0),vo=v+(along?0:sg*.8);
+      if(B.some(o=>o!==b&&rh(o,uo,vo)>yc-r-.2))continue;face(P(u,v,yc),n,T,r);}}
+  let clockB=null;
+  if(C.clk||B.some(b=>b[0]==='T'&&(b[8]||'').includes('c'))){let tb=B.find(b=>b[0]==='T'&&(b[8]||'').includes('c'))||null;if(!tb)for(const b of B)if(b[0]==='T'&&Math.min(b[2]-b[1],b[4]-b[3])>=2.5&&(!tb||Math.max(b[5],b[7])>Math.max(tb[5],tb[7])))tb=b;
+    if(tb){clockB=tb;const[,u0,u1,v0,v1,e]=tb,uc=(u0+u1)/2,vc=(v0+v1)/2,r=Math.min(1.05,Math.min(u1-u0,v1-v0)*.28),yc=e-r-.45,hu=(u1-u0)/2-.1,hv=(v1-v0)/2-.1;
       if(yc-r>gAt(uc,vc)-F+2)for(const[n,du,dv,T]of[[nU(1),hu,0,DV],[nU(-1),-hu,0,nV(-1)],[nV(1),0,hv,nU(-1)],[nV(-1),0,-hv,DU]]){const c=P(uc+du,vc+dv,yc),
         pt=(ang,rr,o)=>[c[0]+T[0]*Math.cos(ang)*rr+n[0]*o,c[1]+Math.sin(ang)*rr,c[2]+T[2]*Math.cos(ang)*rr+n[2]*o];
         for(let j=0;j<12;j++){const a1=j/12*TAU,a2=(j+1)/12*TAU;triO(out,[c[0]+n[0]*.03,c[1],c[2]+n[2]*.03],pt(a1,r+.12,.025),pt(a2,r+.12,.025),C.trim,n);triO(out,[c[0]+n[0]*.05,c[1],c[2]+n[2]*.05],pt(a1,r,.05),pt(a2,r,.05),[.95,.94,.9],n);}
@@ -2306,7 +2315,7 @@ function blockMass(h,q,out,L,C){
         const ya=rh(b,ua,va),yb=rh(b,ub,vb),ga=gAt(ua,va)-F-.3,gb=gAt(ub,vb)-F-.3;if(ya<-1e8||yb<-1e8)continue;
         q4(P(ua,va,ga),P(ub,vb,gb),P(ub,vb,yb-.03),P(ua,va,ya-.03),t==='C'?C.ch:C.wall,n);
         const um=(ua+ub)/2+(n[0]*ca-n[2]*sa)*.7,vm=(va+vb)/2+(n[0]*sa+n[2]*ca)*.7;
-        ext.push([ua,va,ub,vb,n,ga+.3,gb+.3,Math.min(ya,yb),inBlk(um,vm,b)||t==='C'?1:0,t===`T`?1:0]);}
+        ext.push([ua,va,ub,vb,n,ga+.3,gb+.3,Math.min(ya,yb),inBlk(um,vm,b)||t==='C'||b===clockB?1:0,t===`T`?1:0]);}
       // eave trim
       if(t!=='T'&&t!=='C')q4(P(a0,b0,rh(b,a0,b0)-.32),P(a1,b1,rh(b,a1,b1)-.32),P(a1,b1,rh(b,a1,b1)-.02),P(a0,b0,rh(b,a0,b0)-.02),C.trim,n);}}
   // dressing: plinth, siding courses, windows per storey on walls that face open air
@@ -8283,7 +8292,7 @@ const UPDATES=[
   {id:"2026-10-23-clubs-lidar",date:"Oct 23, 2026",title:"39 more clubhouses, rebuilt from survey data",link:{href:"clubhouses/",label:"See every clubhouse before and now"},items:[
     "Like the Royal Club’s last night, 39 more clubhouses are now built from the USGS lidar survey of each course. Every wing, roof, gable, porch, tower, cupola and chimney has the real building’s shape, height and pitch.",
     "Wings set at an angle are drawn that way: The Pines’ Y-shaped plan, The Legend’s curved lodge, Lehman’s angled wings, Interlachen’s glazed wing and Mystic’s octagon.",
-    "The looks from the photos stay: wall colours and materials, roof colours, patios and umbrellas. Clock towers keep their clocks, and Ross Bridge keeps its turrets and spires.",
+    "The looks from the photos stay: wall colours and materials, roof colours, patios and umbrellas. Clock towers keep their clocks, Edinburgh’s clock is back on its course-side gable, and Ross Bridge keeps its turrets and spires.",
     "Sedge Valley and The Lido keep their clubhouses as they were: the survey was flown before they were built."]},
   {id:"2026-10-23-royal",date:"Oct 23, 2026",title:"The Royal Club’s clubhouse, rebuilt",link:{href:"clubhouses/#royal",label:"See the Royal clubhouse before and after"},items:[
     "The clubhouse at the Royal Golf Club was a plain box. It’s now measured from the state’s lidar survey and a 2025 aerial photo, so every wing and hip roof has its real shape, height and pitch.",
