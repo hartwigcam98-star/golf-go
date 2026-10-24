@@ -25,6 +25,6 @@ jobs:
         if: always()
         run: |
           mkdir -p /tmp/o && cp -r out/. /tmp/o/ || true
-          cd /tmp/o && git init -q -b blender-club-data && git add -A
+          BR=$(cat $GITHUB_WORKSPACE/outbranch.txt 2>/dev/null || echo blender-club-data); cd /tmp/o && git init -q -b $BR && git add -A
           git -c user.name=club-bot -c user.email=club-bot@users.noreply.github.com commit -qm "blender club run $GITHUB_RUN_ID"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" blender-club-data
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" $BR

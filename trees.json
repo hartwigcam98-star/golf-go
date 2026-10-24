@@ -1,0 +1,62 @@
+{
+ "buroak|0": {
+  "trunkN": 14256,
+  "nodes": 1405,
+  "tris": 1832
+ },
+ "buroak|1": {
+  "trunkN": 17094,
+  "nodes": 1579,
+  "tris": 1974
+ },
+ "oak|0": {
+  "trunkN": 11616,
+  "nodes": 1299,
+  "tris": 1408
+ },
+ "oak|1": {
+  "trunkN": 11220,
+  "nodes": 1169,
+  "tris": 1540
+ },
+ "maple|0": {
+  "trunkN": 10494,
+  "nodes": 1121,
+  "tris": 1440
+ },
+ "maple|1": {
+  "trunkN": 7656,
+  "nodes": 1228,
+  "tris": 1192
+ },
+ "maple_fall|0": {
+  "trunkN": 9174,
+  "nodes": 1274,
+  "tris": 1286
+ },
+ "maple_fall|1": {
+  "trunkN": 7986,
+  "nodes": 899,
+  "tris": 1240
+ },
+ "cottonwood|0": {
+  "trunkN": 28644,
+  "nodes": 1393,
+  "tris": 2460
+ },
+ "cottonwood|1": {
+  "trunkN": 26730,
+  "nodes": 1604,
+  "tris": 2578
+ },
+ "birch|0": {
+  "trunkN": 990,
+  "nodes": 520,
+  "tris": 558
+ },
+ "birch|1": {
+  "trunkN": 2970,
+  "nodes": 561,
+  "tris": 612
+ }
+}
