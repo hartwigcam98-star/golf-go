@@ -72,7 +72,7 @@ def eave_low(b, ge):
 
 def mk(name, bm):
     me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
-    ob = bpy.data.objects.new(name, me); COLL.link(ob); return ob
+    ob = bpy.data.objects.new(name, me); COLL.objects.link(ob); return ob
 
 def hull(name, pts):
     seen = set(); bm = bmesh.new()
@@ -483,7 +483,7 @@ log('stats', stats)
 # ---------------------------------------------------------------- renders
 SC.view_settings.view_transform = 'Standard'
 sun = bpy.data.lights.new('sun', 'SUN'); sun.energy = SPEC.get('sun_energy', 3.6); sun.angle = math.radians(1.5); sun.color = (1, .96, .9)
-so = bpy.data.objects.new('sun', sun); COLL.link(so)
+so = bpy.data.objects.new('sun', sun); COLL.objects.link(so)
 az, el = [math.radians(x) for x in SPEC.get('sun_from', [210, 42])]   # azimuth in the u/v frame: 0 = +u, 90 = +v
 dvec = Vector((math.cos(az) * math.cos(el), -math.sin(az) * math.cos(el), math.sin(el)))  # toward the sun (Blender)
 so.rotation_euler = (-dvec).to_track_quat('-Z', 'Y').to_euler()
@@ -493,7 +493,7 @@ SC.render.resolution_x, SC.render.resolution_y = 1280, 720
 SC.render.image_settings.file_format = 'JPEG'; SC.render.image_settings.quality = 88
 for r in SPEC['renders']:
     cd = bpy.data.cameras.new(r['name']); cd.lens = r.get('lens', 35)
-    co = bpy.data.objects.new(r['name'], cd); COLL.link(co)
+    co = bpy.data.objects.new(r['name'], cd); COLL.objects.link(co)
     co.location = P(*r['eye'])
     co.rotation_euler = (P(*r['at']) - P(*r['eye'])).to_track_quat('-Z', 'Y').to_euler()
     SC.camera = co; SC.render.filepath = os.path.join(OUT, 'r_' + r['name'] + '.jpg')
