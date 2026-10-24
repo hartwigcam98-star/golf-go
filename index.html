@@ -4340,7 +4340,7 @@ function b10ClubReady(id,again){const L=typeof B10BAKE!=='undefined'&&B10BAKE.cl
 function b10ClubFor(h,q){const D=window.B10CLUBS&&B10CLUBS[CUR.id];if(!D||D.none||D.model||!q.club)return null;return Math.hypot(q.x+h.T0[0]-D.cx,q.y+h.T0[1]-D.cy)<3?D:null;}
 function b10ClubPush(h,out,D){if(!D.P){const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer);};
     D.P=dec(D.pos,Int16Array);D.C=dec(D.col,Uint8Array);D.I=dec(D.idx,D.n<65536?Uint16Array:Uint32Array);}
-  const ox=D.off[0]-h.T0[0],oy=D.off[1],oz=D.off[2]-h.T0[1],s=1/D.s,P=D.P,C=D.C,I=D.I;
+  const ox=D.off[0]-h.T0[0],oz=D.off[2]-h.T0[1],oy=hAtH(h,ox,oz),s=1/D.s,P=D.P,C=D.C,I=D.I;   // heights are relative to the ground at the clubhouse's centre, which each hole measures from its own base
   const V=k=>[ox+P[k*3]*s,oy+P[k*3+1]*s,oz+P[k*3+2]*s];
   for(let t=0;t<I.length;t+=3){const A=V(I[t]),B=V(I[t+1]),Cc=V(I[t+2]),n=nrm(cross(sub(B,A),sub(Cc,A)));
     for(const[p,k]of[[A,I[t]],[B,I[t+1]],[Cc,I[t+2]]])out.push(p[0],p[1],p[2],n[0],n[1],n[2],C[k*3]/255,C[k*3+1]/255,C[k*3+2]/255);}}
