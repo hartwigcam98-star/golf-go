@@ -18,7 +18,7 @@ git add -A matrix.json .github bake.py combine.py batch.sh packcourse.py && git 
 sleep 20
 ID=$(gh run list -R hartwigcam98-star/golf-go --branch blender-club --limit 1 --json databaseId -q '.[0].databaseId'); echo "run $ID"
 until s=$(gh run view $ID -R hartwigcam98-star/golf-go --json status,conclusion -q '.status+" "+.conclusion' 2>/dev/null) && [[ $s == completed* ]]; do sleep 30; done; echo "$s"
-gh run view $ID -R hartwigcam98-star/golf-go --json jobs -q '[.jobs[]|.conclusion]|group_by(.)|map("\(.[0]) \(length)")|join(", ")'
+gh run view $ID -R hartwigcam98-star/golf-go --json conclusion -q .conclusion || true
 cd /home/claude/data/x
 for c in "$@"; do
   mkdir -p /home/claude/golf-go/b10/light/$c; B="{"
