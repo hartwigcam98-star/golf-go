@@ -1,4 +1,3 @@
 #!/bin/bash
-B=/tmp/blender/blender
+echo "no job queued"
 mkdir -p out
-BAKE_ONLY=sky SH_SAMPLES=128 SKY_SAMPLES=64 $B -b --factory-startup -P bake.py -- hole10.npz atlas2.png out/hole10 4 2>&1 | tee out/bake.run.log | grep -E "\[bake\]|Error|Traceback|line [0-9]+" | tail -40
