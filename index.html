@@ -4323,13 +4323,14 @@ var GRDK=(()=>{try{return localStorage.getItem('golf-grid')==='1';}catch(e){retu
 const B10=(()=>{try{return /[?&]b10=1/.test(location.search);}catch(e){return false;}})();
 function b10On(){return B10&&typeof CUR!=='undefined'&&!!CUR&&CUR.id==='troy';}
 function b10Hole(){return b10On()&&typeof B10BAKE!=='undefined'&&!!B10BAKE.png&&G.hi===B10BAKE.hi;}
-function b10Load(done){const L=['b10/club.js?v=1','b10/bake.js?v=2','b10/trees.js?v=2'];let n=L.length;for(const s of L){const e=document.createElement('script');e.src=s;e.onload=e.onerror=()=>{if(--n===0)done();};document.head.appendChild(e);}}
+function b10Load(done){const L=['b10/club.js?v=1','b10/bake.js?v=3','b10/trees.js?v=3'];window.B10LEAF='b10/leaves.webp?v=1';let n=L.length;for(const s of L){const e=document.createElement('script');e.src=s;e.onload=e.onerror=()=>{if(--n===0)done();};document.head.appendChild(e);}}
 function b10Trees(P){const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer);};
   const arr=(r,st)=>{const Pp=dec(r.P,Int16Array),N=dec(r.N,Int8Array),C=dec(r.C,Uint8Array),U=r.U?dec(r.U,Int16Array):null,o=new Array(r.n*st);
     for(let i=0;i<r.n;i++){const k=i*st;o[k]=Pp[i*3]/1000;o[k+1]=Pp[i*3+1]/1000;o[k+2]=Pp[i*3+2]/1000;o[k+3]=N[i*3]/127;o[k+4]=N[i*3+1]/127;o[k+5]=N[i*3+2]/127;
       o[k+6]=C[i*3]/255;o[k+7]=C[i*3+1]/255;o[k+8]=C[i*3+2]/255;if(U){o[k+9]=U[i*2]/r.us;o[k+10]=U[i*2+1]/r.us;}}return o;};
-  const by={};for(const key in B10TREES){const[sp,v]=key.split('|'),e=B10TREES[key];(by[sp]=by[sp]||[])[+v]={bark:arr(e.bark,11),mass:arr(e.mass,9),leaf:arr(e.leaf,11),trunkN:e.trunkN};}
-  for(const sp in by)P[sp]=by[sp].filter(Boolean);}
+  const by={};for(const key in B10TREES){const[sp,v]=key.split('|'),e=B10TREES[key];(by[sp]=by[sp]||[])[+v]={bark:arr(e.bark,11),mass:arr(e.mass,9),leaf:arr(e.leaf,11),trunkN:e.trunkN,snag:e.snag};}
+  // living versions three times over and each dead snag once, so snags stay rare (a tree's version is picked from its shade value)
+  for(const sp in by){const L=by[sp].filter(Boolean),live=L.filter(g=>!g.snag),dead=L.filter(g=>g.snag);P[sp]=dead.length?[...live,...live,...live,...dead]:live;}}
 function b10Club(h,out,L,F){const D=B10CLUB;if(!D.P){const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer);};
     D.P=dec(D.pos,Int16Array);D.C=dec(D.col,Uint8Array);D.I=dec(D.idx,D.n<65536?Uint16Array:Uint32Array);}
   const a=L.a*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ox=L.o[0]-h.T0[0],oz=L.o[1]-h.T0[1],s=1/D.s,P=D.P,C=D.C,I=D.I;
@@ -6953,7 +6954,7 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   // species leaf atlas: photographed twigs and leaves (Poly Haven, CC0) and species leaf shapes, WebP with alpha
   {const im=new Image(),t=new T.Texture(im);t.flipY=false;t.colorSpace=T.SRGBColorSpace;t.generateMipmaps=true;t.minFilter=T.LinearMipmapLinearFilter;
     t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());R3.sleaf=t;
-    if(typeof R3LEAF!=='undefined'){im.onload=()=>{t.needsUpdate=true;R3.sleafOK=1;if(typeof r3tImpBake==='function')r3tImpBake();};im.src=R3LEAF;}}
+    if(typeof R3LEAF!=='undefined'){im.onload=()=>{t.needsUpdate=true;R3.sleafOK=1;if(typeof r3tImpBake==='function')r3tImpBake();};im.src=B10&&window.B10LEAF?window.B10LEAF:R3LEAF;}}   // (Blender trial: leaf sprays rendered in Blender)
   R3.mat.sleaf=r3Patch(new T.MeshStandardMaterial({vertexColors:true,map:R3.sleaf,alphaTest:.5,side:T.DoubleSide,roughness:.72,metalness:0}),{fade:true,wind:1,translucent:.5,twoSided:true,leafmip:true});
   R3.sleafDepth=new T.MeshDepthMaterial({depthPacking:T.RGBADepthPacking,map:R3.sleaf,alphaTest:.5,side:T.DoubleSide});
   // unit primitives for the golfer, flag and ball (instanced each frame)
