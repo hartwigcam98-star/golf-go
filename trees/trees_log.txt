@@ -1,0 +1,87 @@
+buroak|0 bark light mean 0.09 p10 0.00 p90 0.21
+buroak|0 mass light mean 0.13 p10 0.00 p90 0.35
+buroak|0 leaf light mean 0.35 p10 0.03 p90 0.80
+buroak|0 baked 0.7 s
+buroak|1 bark light mean 0.09 p10 0.00 p90 0.22
+buroak|1 mass light mean 0.09 p10 0.01 p90 0.21
+buroak|1 leaf light mean 0.35 p10 0.03 p90 0.80
+buroak|1 baked 0.8 s
+buroak|2 bark light mean 0.12 p10 0.00 p90 0.28
+buroak|2 mass light mean 0.14 p10 0.02 p90 0.34
+buroak|2 leaf light mean 0.40 p10 0.04 p90 0.83
+buroak|2 baked 0.6 s
+buroak|3 bark light mean 0.18 p10 0.00 p90 0.41
+buroak|3 mass light mean 0.09 p10 0.00 p90 0.21
+buroak|3 leaf light mean 0.46 p10 0.07 p90 0.88
+buroak|3 baked 0.4 s
+buroak|4 bark light mean 0.45 p10 0.01 p90 0.76
+buroak|4 baked 0.1 s
+oak|0 bark light mean 0.16 p10 0.00 p90 0.33
+oak|0 mass light mean 0.12 p10 0.02 p90 0.29
+oak|0 leaf light mean 0.49 p10 0.08 p90 0.90
+oak|0 baked 0.6 s
+oak|1 bark light mean 0.10 p10 0.00 p90 0.22
+oak|1 mass light mean 0.11 p10 0.01 p90 0.25
+oak|1 leaf light mean 0.42 p10 0.05 p90 0.82
+oak|1 baked 0.7 s
+oak|2 bark light mean 0.19 p10 0.01 p90 0.46
+oak|2 mass light mean 0.12 p10 0.01 p90 0.25
+oak|2 leaf light mean 0.53 p10 0.13 p90 0.92
+oak|2 baked 0.4 s
+oak|3 bark light mean 0.11 p10 0.00 p90 0.26
+oak|3 mass light mean 0.12 p10 0.02 p90 0.26
+oak|3 leaf light mean 0.45 p10 0.09 p90 0.86
+oak|3 baked 0.6 s
+oak|4 bark light mean 0.46 p10 0.02 p90 0.66
+oak|4 baked 0.1 s
+maple|0 bark light mean 0.10 p10 0.00 p90 0.25
+maple|0 mass light mean 0.05 p10 0.00 p90 0.15
+maple|0 leaf light mean 0.43 p10 0.03 p90 0.91
+maple|0 baked 0.6 s
+maple|1 bark light mean 0.07 p10 0.00 p90 0.18
+maple|1 mass light mean 0.10 p10 0.00 p90 0.25
+maple|1 leaf light mean 0.35 p10 0.01 p90 0.81
+maple|1 baked 0.8 s
+maple|2 bark light mean 0.15 p10 0.00 p90 0.51
+maple|2 mass light mean 0.08 p10 0.01 p90 0.20
+maple|2 leaf light mean 0.47 p10 0.04 p90 0.92
+maple|2 baked 0.4 s
+maple|3 bark light mean 0.08 p10 0.00 p90 0.21
+maple|3 mass light mean 0.05 p10 0.00 p90 0.16
+maple|3 leaf light mean 0.39 p10 0.02 p90 0.87
+maple|3 baked 0.7 s
+maple_fall|0 bark light mean 0.08 p10 0.00 p90 0.20
+maple_fall|0 mass light mean 0.06 p10 0.00 p90 0.16
+maple_fall|0 leaf light mean 0.38 p10 0.04 p90 0.81
+maple_fall|0 baked 0.8 s
+maple_fall|1 bark light mean 0.25 p10 0.03 p90 0.52
+maple_fall|1 mass light mean 0.18 p10 0.02 p90 0.43
+maple_fall|1 leaf light mean 0.50 p10 0.10 p90 0.94
+maple_fall|1 baked 0.4 s
+cottonwood|0 bark light mean 0.15 p10 0.00 p90 0.38
+cottonwood|0 mass light mean 0.10 p10 0.00 p90 0.22
+cottonwood|0 leaf light mean 0.43 p10 0.05 p90 0.86
+cottonwood|0 baked 0.7 s
+cottonwood|1 bark light mean 0.22 p10 0.00 p90 0.48
+cottonwood|1 mass light mean 0.15 p10 0.02 p90 0.34
+cottonwood|1 leaf light mean 0.50 p10 0.10 p90 0.90
+cottonwood|1 baked 0.7 s
+cottonwood|2 bark light mean 0.21 p10 0.00 p90 0.53
+cottonwood|2 mass light mean 0.13 p10 0.00 p90 0.31
+cottonwood|2 leaf light mean 0.48 p10 0.08 p90 0.91
+cottonwood|2 baked 0.5 s
+cottonwood|3 bark light mean 0.48 p10 0.09 p90 0.67
+cottonwood|3 baked 0.1 s
+birch|0 bark light mean 0.31 p10 0.06 p90 0.52
+birch|0 mass light mean 0.18 p10 0.00 p90 0.41
+birch|0 leaf light mean 0.50 p10 0.12 p90 0.92
+birch|0 baked 0.3 s
+birch|1 bark light mean 0.34 p10 0.01 p90 0.55
+birch|1 mass light mean 0.27 p10 0.06 p90 0.54
+birch|1 leaf light mean 0.57 p10 0.21 p90 0.96
+birch|1 baked 0.3 s
+birch|2 bark light mean 0.47 p10 0.25 p90 0.63
+birch|2 mass light mean 0.28 p10 0.02 p90 0.56
+birch|2 leaf light mean 0.58 p10 0.25 p90 0.99
+birch|2 baked 0.3 s
+done 12 s
