@@ -9,7 +9,7 @@ Cb = np.round(np.clip(C, 0, 1) * 255).astype(np.int32)
 u, inv = np.unique(np.concatenate([Q, Cb], 1), axis=0, return_inverse=True); inv = inv.ravel()
 b = lambda a: base64.b64encode(np.ascontiguousarray(a).tobytes()).decode()
 idx = inv.astype(np.uint16 if len(u) < 65536 else np.uint32)
-o = {'id': cid, 's': 200, 'n': len(u), 'off': [round(float(x), 3) for x in offc], 'cx': round(float(offc[0]), 3), 'cy': round(float(offc[2]), 3),
+o = {'id': cid, 'model': 1 if len(sys.argv) > 4 and sys.argv[4] == 'model' else 0, 's': 200, 'n': len(u), 'off': [round(float(x), 3) for x in offc], 'cx': round(float(offc[0]), 3), 'cy': round(float(offc[2]), 3),
      'pos': b(u[:, :3].astype(np.int16)), 'col': b(u[:, 3:].astype(np.uint8)), 'idx': b(idx)}
 js = "/* Blender trial: %s clubhouse (the game's matched design + Blender window frames, sky light baked in Cycles) */\nwindow.B10CLUBS=window.B10CLUBS||{};B10CLUBS[%s]=%s;\n" % (cid, json.dumps(cid), json.dumps(o, separators=(',', ':')))
 open(dst, 'w').write(js); print(cid, len(P) // 3, 'tris', len(u), 'verts', len(js) // 1024, 'KB')
