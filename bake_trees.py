@@ -46,7 +46,7 @@ def obj(name, A, m, uv=False):
     Nn = gb(A[:, 3:6]); Nn /= np.maximum(np.linalg.norm(Nn, axis=1, keepdims=True), 1e-6)
     me.normals_split_custom_set([tuple(v) for v in Nn])
     me.materials.append(m)
-    me.color_attributes.new('ao', 'BYTE_COLOR', 'CORNER'); me.color_attributes.active_color = me.color_attributes['ao']
+    me.color_attributes.new('ao', 'FLOAT_COLOR', 'CORNER'); me.color_attributes.active_color = me.color_attributes['ao']; me.color_attributes.active_color_index = me.color_attributes.find('ao') if hasattr(me.color_attributes, 'active_color_index') else 0
     o = bpy.data.objects.new(name, me); COLL.objects.link(o); return o
 
 # ground (bounce + occlusion from below)
@@ -57,6 +57,7 @@ gm = bpy.data.meshes.new('ground'); bm.to_mesh(gm); bm.free(); gm.materials.appe
 G = bpy.data.objects.new('ground', gm); COLL.objects.link(G)
 world = bpy.data.worlds.new('w'); SC.world = world; world.use_nodes = True
 bg = world.node_tree.nodes['Background']; bg.inputs['Color'].default_value = (1, 1, 1, 1); bg.inputs['Strength'].default_value = 1.0
+world.light_settings.distance = float(os.environ.get('AO_DIST', 4.0))
 SC.render.engine = 'CYCLES'; SC.cycles.device = 'CPU'; SC.cycles.samples = int(os.environ.get('TREE_SAMPLES', 128))
 SC.cycles.transparent_max_bounces = 32; SC.cycles.max_bounces = 3; SC.cycles.diffuse_bounces = 1
 SC.render.bake.target = 'VERTEX_COLORS'; SC.render.bake.use_pass_direct = True; SC.render.bake.use_pass_indirect = True; SC.render.bake.use_pass_color = False
@@ -64,11 +65,13 @@ SC.render.bake.target = 'VERTEX_COLORS'; SC.render.bake.use_pass_direct = True; 
 out = {}
 for key in META:
     objs = {k: obj('%s_%s' % (key, k), D['%s|%s' % (key, k)], {'bark': MB, 'mass': MM, 'leaf': ML}[k], uv=(k != 'mass')) for k in ('bark', 'mass', 'leaf') if len(D['%s|%s' % (key, k)])}
-    for o in bpy.context.view_layer.objects: o.select_set(False)
+    bpy.ops.object.select_all(action='DESELECT')
     for o in objs.values(): o.select_set(True)
     bpy.context.view_layer.objects.active = list(objs.values())[0]
     t = time.time()
-    bpy.ops.object.bake(type='DIFFUSE', pass_filter={'DIRECT', 'INDIRECT'}, target='VERTEX_COLORS')
+    MODE = os.environ.get('TREE_MODE', 'AO')
+    if MODE == 'AO': bpy.ops.object.bake(type='AO', target='VERTEX_COLORS')
+    else: bpy.ops.object.bake(type='DIFFUSE', pass_filter={'DIRECT', 'INDIRECT'}, target='VERTEX_COLORS')
     for k, o in objs.items():
         A = D['%s|%s' % (key, k)]; n = len(A)
         c = np.empty(n * 4, np.float32); o.data.color_attributes['ao'].data.foreach_get('color', c); occ = c.reshape(n, 4)[:, 0]

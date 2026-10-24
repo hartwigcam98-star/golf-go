@@ -233,7 +233,11 @@ def masses(L, S, R):
 def build(name, S, seed):
     R = np.random.default_rng(seed)
     N, par, r, tn, L = grow(S, R)
-    bark, trunkN = bark_mesh(N, par, r, S, R)
+    rmin = .16
+    while True:
+        bark, trunkN = bark_mesh(N, par, r, S, R, rmin=rmin)
+        if len(bark) // 3 <= 1000 or rmin > .6: break
+        rmin *= 1.15
     S = dict(S, _L=L)
     leaf = leaves(N, par, r, S, R)
     mass = masses(L, S, R)
