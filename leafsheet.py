@@ -61,12 +61,13 @@ def leaf_mesh(bm, kind, R, M, col_layer, col):
         return M @ Vector((x, y, z))
     faces = []
     if mode == 'side':
-        rib = [(0, t) for t in np.linspace(0, 1, len(pts))[1:-1]]
+        # strips between the midrib and the edge at the same height: robust for deep lobes, folds along the rib
         for s in (1, -1):
-            loop = [P(s * x, y) for x, y in pts] + [P(0, y) for _, y in reversed(rib)]
-            vs = [bm.verts.new(p) for p in loop]
-            try: faces.append(bm.faces.new(vs))
-            except ValueError: pass
+            rib = [bm.verts.new(P(0, y)) for x, y in pts]
+            edge = [bm.verts.new(P(s * x, y)) for x, y in pts]
+            for i in range(len(pts) - 1):
+                if pts[i][0] < 1e-4 and pts[i + 1][0] < 1e-4: continue
+                faces.append(bm.faces.new([rib[i], edge[i], edge[i + 1], rib[i + 1]]))
     else:
         cen = P(0, .42)
         vs = [bm.verts.new(P(x, y)) for x, y in pts]
