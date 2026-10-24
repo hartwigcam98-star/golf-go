@@ -38,6 +38,10 @@ jobs:
           IT="${{ matrix.item }}"
           if [ "$IT" = job ]; then bash job.sh; elif [ "${IT%%:*}" = club ]; then
             C=${IT##*:}; mkdir -p out; SAMPLES=64 /tmp/blender/blender -b --factory-startup -P club_bake.py -- clubs/$C.npz out/$C.npz 2>&1 | tee out/$C.log | grep -E "\[club\]|Error|Traceback" | tail -20
+          elif [[ "$IT" == */* ]]; then
+            H=${IT%%:*}; C=${H%%/*}; PART=${IT##*:}; mkdir -p out/$C
+            git fetch -q --depth 1 origin bakedata && git archive FETCH_HEAD holes/$C | tar x
+            PROTOS=holes/$C/protos.npz BAKE_ONLY=$PART SH_SAMPLES=96 SKY_SAMPLES=48 /tmp/blender/blender -b --factory-startup -P bake.py -- holes/$H.npz atlas2.png out/$H 4 2>&1 | tee out/$C/${H##*/}-$PART.log | grep -E "\[bake\]|Error|Traceback" | tail -20
           else
             H=${IT%%:*}; PART=${IT##*:}; mkdir -p out
             BAKE_ONLY=$PART SH_SAMPLES=128 SKY_SAMPLES=64 /tmp/blender/blender -b --factory-startup -P bake.py -- holes/$H.npz atlas2.png out/$H 4 2>&1 | tee out/$H-$PART.log | grep -E "\[bake\]|Error|Traceback" | tail -20
@@ -46,7 +50,7 @@ jobs:
         if: always()
         run: |
           IT="${{ matrix.item }}"
-          if [ "$IT" = job ]; then BR=$(cat $GITHUB_WORKSPACE/outbranch.txt 2>/dev/null || echo blender-club-data); else BR="bake-${IT/:/-}"; fi
+          if [ "$IT" = job ]; then BR=$(cat $GITHUB_WORKSPACE/outbranch.txt 2>/dev/null || echo blender-club-data); else X=${IT//\//-}; BR="bake-${X/:/-}"; fi
           mkdir -p /tmp/o && cp -r out/. /tmp/o/ || true
           cd /tmp/o && git init -q -b $BR && git add -A
           git -c user.name=club-bot -c user.email=club-bot@users.noreply.github.com commit -qm "blender run $GITHUB_RUN_ID $IT"

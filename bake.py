@@ -75,8 +75,11 @@ log('terrain', nx, ny, 'image', IW, IH, 'yd', W, H)
 atlas = bpy.data.images.load(os.path.abspath(ATLAS)); atlas.alpha_mode = 'STRAIGHT'
 mBark = mat('bark', (.18, .14, .1)); mMass = mat('mass', (.12, .16, .08)); mLeaf = mat('leaf', (.14, .2, .09), alpha_img=atlas)
 protos = []
+PD = np.load(os.environ['PROTOS']) if os.environ.get('PROTOS') else None   # course-level tree prototypes, keyed
 for i in range(int(D['nproto'][0])):
-    bk, ms, lf = D['p%d_bark' % i], D['p%d_mass' % i], D['p%d_leaf' % i]
+    if PD is not None:
+        key = str(D['proto_keys'][i]).replace('|', '~'); bk, ms, lf = PD[key + '_bark'], PD[key + '_mass'], PD[key + '_leaf']
+    else: bk, ms, lf = D['p%d_bark' % i], D['p%d_mass' % i], D['p%d_leaf' % i]
     solid = mesh_tris('ps%d' % i, np.concatenate([bk[:, :3], ms[:, :3]]))
     solid.materials.append(mBark)
     if len(lf):
