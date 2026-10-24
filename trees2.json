@@ -1,0 +1,140 @@
+{
+ "buroak|0": {
+  "trunkN": 18216,
+  "nodes": 1254,
+  "tris": 1774,
+  "snag": false
+ },
+ "buroak|1": {
+  "trunkN": 21252,
+  "nodes": 1458,
+  "tris": 2196,
+  "snag": false
+ },
+ "buroak|2": {
+  "trunkN": 17028,
+  "nodes": 1277,
+  "tris": 1640,
+  "snag": false
+ },
+ "buroak|3": {
+  "trunkN": 4356,
+  "nodes": 726,
+  "tris": 876,
+  "snag": false
+ },
+ "buroak|4": {
+  "trunkN": 15180,
+  "nodes": 1052,
+  "tris": 758,
+  "snag": true
+ },
+ "oak|0": {
+  "trunkN": 14652,
+  "nodes": 1063,
+  "tris": 1644,
+  "snag": false
+ },
+ "oak|1": {
+  "trunkN": 14916,
+  "nodes": 1161,
+  "tris": 1786,
+  "snag": false
+ },
+ "oak|2": {
+  "trunkN": 3630,
+  "nodes": 504,
+  "tris": 710,
+  "snag": false
+ },
+ "oak|3": {
+  "trunkN": 10428,
+  "nodes": 1176,
+  "tris": 1562,
+  "snag": false
+ },
+ "oak|4": {
+  "trunkN": 11484,
+  "nodes": 689,
+  "tris": 650,
+  "snag": true
+ },
+ "maple|0": {
+  "trunkN": 10230,
+  "nodes": 873,
+  "tris": 1752,
+  "snag": false
+ },
+ "maple|1": {
+  "trunkN": 7920,
+  "nodes": 1000,
+  "tris": 2164,
+  "snag": false
+ },
+ "maple|2": {
+  "trunkN": 2970,
+  "nodes": 545,
+  "tris": 580,
+  "snag": false
+ },
+ "maple|3": {
+  "trunkN": 11550,
+  "nodes": 780,
+  "tris": 1646,
+  "snag": false
+ },
+ "maple_fall|0": {
+  "trunkN": 9636,
+  "nodes": 845,
+  "tris": 1742,
+  "snag": false
+ },
+ "maple_fall|1": {
+  "trunkN": 2310,
+  "nodes": 461,
+  "tris": 504,
+  "snag": false
+ },
+ "cottonwood|0": {
+  "trunkN": 24486,
+  "nodes": 1189,
+  "tris": 1736,
+  "snag": false
+ },
+ "cottonwood|1": {
+  "trunkN": 22968,
+  "nodes": 1132,
+  "tris": 1826,
+  "snag": false
+ },
+ "cottonwood|2": {
+  "trunkN": 10560,
+  "nodes": 719,
+  "tris": 1214,
+  "snag": false
+ },
+ "cottonwood|3": {
+  "trunkN": 21252,
+  "nodes": 707,
+  "tris": 844,
+  "snag": true
+ },
+ "birch|0": {
+  "trunkN": 2970,
+  "nodes": 420,
+  "tris": 566,
+  "snag": false
+ },
+ "birch|1": {
+  "trunkN": 2970,
+  "nodes": 411,
+  "tris": 508,
+  "snag": false
+ },
+ "birch|2": {
+  "trunkN": 1056,
+  "nodes": 239,
+  "tris": 196,
+  "snag": false
+ }
+}

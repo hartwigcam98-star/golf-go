@@ -24,9 +24,12 @@ RECT = [[(i % 4) / 4 + .003, (i >> 2) / 4 + .003, (i % 4 + 1) / 4 - .003, ((i >>
 def hexc(h): return np.array([int(h[i:i + 2], 16) / 255 for i in (1, 3, 5)])
 def nrm(v): v = np.asarray(v, float); n = np.linalg.norm(v, axis=-1, keepdims=True); return v / np.maximum(n, 1e-9)
 
-def lobes(S, R):
-    """crown lobes placed like the game's own tree clusters (same silhouette family), radius rc"""
-    out = []; n = S.get('clusters', 12); sp = S['shape']
+def lobes(S, R, V=None, lean=(0, 0)):
+    """crown lobes placed like the game's own tree clusters (same silhouette family), radius rc; v2: fewer and uneven
+    (gaps in the crown), smaller toward the top, the whole crown following the trunk's lean; young trees narrower"""
+    V = V or {}
+    out = []; sp = S['shape']; young = V.get('kind') == 'young'
+    n = max(4, round(S.get('clusters', 12) * R.uniform(.6, .82) * (.7 if young else 1)))
     for i in range(n):
         a = i / n * 2 * math.pi * 1.618 * 1.618 + R.random() * .6
         ring = .55 + R.random() * .45 if sp == 'spread' else R.random() * .7 if sp == 'slim' else .25 + R.random() * .7
@@ -34,7 +37,11 @@ def lobes(S, R):
         y = S['crownY'] + (R.random() - .5) * S['H'] * (.45 if sp == 'spread' else .75)
         if sp == 'spread': y -= ring * 1.2
         if sp == 'tall': y += (R.random() - .3) * S['H'] * .25
-        out.append((np.array([x, y, z]), R.uniform(*S['rc'])))
+        rc = R.uniform(*S['rc']) * R.uniform(.72, 1.18)
+        if young: x, z, y, rc = x * .7, z * .7, y + S['H'] * .08, rc * .8
+        if y > S['crownY'] + S['H'] * .22: rc *= .78
+        h = max(0, (y - S['trunkH']) / max(S['crownY'], 1))
+        out.append((np.array([x + lean[0] * (1 + h), y, z + lean[1] * (1 + h)]), rc))
     return out
 
 def envelope(S, R, n, L):
@@ -48,9 +55,11 @@ def envelope(S, R, n, L):
         pts.extend(P[P[:, 1] > S['trunkH'] + .25].tolist())
     return np.array(pts)
 
-def grow(S, R):
+def grow(S, R, V=None):
+    V = V or {}
     nodes = [np.zeros(3)]; par = [-1]
-    lean = R.uniform(-.35, .35, 2)
+    la = R.uniform(0, 2 * math.pi); lm = R.uniform(.15, .85 if V.get('kind') != 'young' else 1.1)
+    lean = np.array([math.cos(la) * lm, math.sin(la) * lm])
     stems = S['stems']
     tops = []
     for s in range(stems):
@@ -67,7 +76,7 @@ def grow(S, R):
             nodes.append(p); par.append(prev); prev = len(nodes) - 1
         tops.append(prev)
     trunk_n = len(nodes)
-    L = lobes(S, R)
+    L = lobes(S, R, V, lean)
     A = envelope(S, R, 2600, L)
     di, dk, D = 4.0, .62, .42
     for it in range(260):
@@ -103,7 +112,7 @@ def grow(S, R):
         if r[i] == 0: r[i] = .03 ** n_
         if par[i] >= 0: r[par[i]] += r[i]
     r = r ** (1 / n_)
-    r *= S['trunkR'] / r[0]
+    r *= S['trunkR'] * (.55 if V.get('kind') == 'young' else 1) / r[0]
     r = np.maximum(r, .025)
     return N, par, r, trunk_n, L
 
@@ -173,9 +182,11 @@ def leaves(N, par, r, S, R):
     lo, base, hi = [hexc(c) for c in S['cols']]
     cc = np.array([0, S['crownY'], 0])
     cards = []
-    want = int(sum(S['dens'] * (rc / 3.3) ** 2 for _, rc in S['_L']) * 1.05)
-    # spread the cards over twig nodes, more at the very tips
-    w = np.where(nch[tips] == 0, 2.0, 1.0); w /= w.sum()
+    want = int(sum(S['dens'] * (rc / 3.3) ** 2 for _, rc in S['_L']) * 1.3)
+    # spread the cards over twig nodes, more at the very tips; some lobes thin (gaps you can see through)
+    Lc = np.array([c for c, _ in S['_L']]); thin = R.random(len(Lc)) < .35
+    near = cKDTree(Lc).query(N[tips])[1]
+    w = np.where(nch[tips] == 0, 2.0, 1.0) * np.where(thin[near], .35, 1.0); w /= w.sum()
     pick = R.choice(tips, size=want, p=w)
     ymin, ymax = N[tips, 1].min(), N[tips, 1].max()
     cell = RECT[S['cell']]
@@ -184,7 +195,7 @@ def leaves(N, par, r, S, R):
         d = nrm(R.normal(0, 1, 3) * .7 + nrm(N[i] - cc) * .8 + np.array([0, .2, 0]))
         C = N[i] + d * R.uniform(.3, 1.1)
         rc = R.uniform(*S['rc'])
-        sz = rc * (.34 + R.random() * .18)
+        sz = rc * (.26 + R.random() * .14)
         out2 = nrm(C - cc)
         nn = nrm(out2 * .65 + d * .25 + np.array([0, .25, 0]))
         t1 = np.cross(nn, [0, 1, 0]); t1 = nrm(t1) if np.linalg.norm(t1) > .1 else np.array([1., 0, 0]); t2 = np.cross(nn, t1)
@@ -219,8 +230,8 @@ def ico0():
 def masses(L, S, R):
     lo, base, hi = [hexc(c) for c in S['cols']]
     out = []
-    for c, rc in L:
-        sd = np.array([rc * .66, rc * .55, rc * .66])
+    for c, rc in sorted(L, key=lambda q: -q[1])[:4]:
+        sd = np.array([rc * .4, rc * .34, rc * .4])
         for tri in ico0():
             for v in tri:
                 P = c + v * sd * (1 + .22 * (R.random() - .5))
@@ -230,27 +241,75 @@ def masses(L, S, R):
                 out.append([*P, *n, *col])
     return np.array(out, np.float32)
 
-def build(name, S, seed):
+def shrubs(S, R):
+    """low brush around the trunk: a few leafy clumps (small-leaf atlas cell) and dark cores"""
+    cards = []; mass = []
+    lo, base, hi = [hexc(c) * .85 for c in S['cols']]
+    u0, vt, u1, vb = RECT[9]
+    for j in range(R.integers(3, 6)):
+        a = R.uniform(0, 2 * math.pi); d = R.uniform(1.4, 3.2); rr = R.uniform(.8, 1.5)
+        c = np.array([math.cos(a) * d, rr * .7, math.sin(a) * d])
+        for _ in range(int(14 * rr * rr)):
+            dd = nrm(R.normal(0, 1, 3) + np.array([0, .4, 0])); C = c + dd * rr * R.uniform(.4, 1)
+            C[1] = max(C[1], .15); sz = R.uniform(.45, .8)
+            nn = nrm(dd * .7 + np.array([0, .5, 0]))
+            t1 = np.cross(nn, [0, 1, 0]); t1 = nrm(t1) if np.linalg.norm(t1) > .1 else np.array([1., 0, 0]); t2 = np.cross(nn, t1)
+            ang = R.random() * 2 * math.pi; u = (t1 * math.cos(ang) + t2 * math.sin(ang)) * sz; v = (t1 * -math.sin(ang) + t2 * math.cos(ang)) * sz
+            k = R.random(); col = (lo + (base - lo) * k if k < .6 else base + (hi - base) * (k - .6) / .4) * R.uniform(.85, 1.1)
+            Pq = [C - u - v, C + u - v, C + u + v, C - u + v]; UV = [[u0, vb], [u1, vb], [u1, vt], [u0, vt]]
+            for q in (0, 1, 2, 0, 2, 3): cards.append([*Pq[q], *nn, *col, *UV[q]])
+        for tri in ico0():
+            for v in tri:
+                mass.append([*(c + v * np.array([rr * .55, rr * .45, rr * .55])), *nrm(v), *(lo * .6)])
+    return np.array(cards, np.float32).reshape(-1, 11), np.array(mass, np.float32).reshape(-1, 9)
+
+def build(name, S, seed, V=None):
+    V = V or {}
     R = np.random.default_rng(seed)
-    N, par, r, tn, L = grow(S, R)
-    rmin = .16
+    N, par, r, tn, L = grow(S, R, V)
+    if V.get('kind') == 'snag':
+        # dead tree: bare limbs, the top broken off, weathered grey bark
+        top = N[:, 1].max(); keep = np.ones(len(N), bool)
+        for i in range(1, len(N)):
+            keep[i] = keep[par[i]] and (N[i, 1] < top * R.uniform(.7, .85) or r[i] > .3)
+        idx = np.nonzero(keep)[0]; remap = -np.ones(len(N), int); remap[idx] = np.arange(len(idx))
+        N2 = N[idx]; par2 = np.array([remap[par[i]] if par[i] >= 0 else -1 for i in idx]); r2 = r[idx]
+        S2 = dict(S, bark='#8a8278')
+        rmin = .07
+        while True:
+            bark, trunkN = bark_mesh(N2, par2, r2, S2, R, rmin=rmin)
+            if len(bark) // 3 <= 900 or rmin > .6: break
+            rmin *= 1.15
+        return dict(bark=bark, mass=np.zeros((0, 9), np.float32), leaf=np.zeros((0, 11), np.float32), trunkN=trunkN, nodes=len(N2))
+    rmin = .1
     while True:
         bark, trunkN = bark_mesh(N, par, r, S, R, rmin=rmin)
-        if len(bark) // 3 <= 1000 or rmin > .6: break
+        if len(bark) // 3 <= 1300 or rmin > .6: break
         rmin *= 1.15
     S = dict(S, _L=L)
     leaf = leaves(N, par, r, S, R)
     mass = masses(L, S, R)
+    if V.get('shrub'):
+        sl, sm = shrubs(S, R); leaf = np.concatenate([leaf, sl]); mass = np.concatenate([mass, sm])
     return dict(bark=bark, mass=mass, leaf=leaf, trunkN=trunkN, nodes=len(N))
+
+VARIANTS = {
+    'buroak': [{}, {'shrub': 1}, {}, {'kind': 'young'}, {'kind': 'snag'}],
+    'oak': [{}, {'shrub': 1}, {'kind': 'young'}, {}, {'kind': 'snag'}],
+    'maple': [{}, {'shrub': 1}, {'kind': 'young'}, {}],
+    'maple_fall': [{}, {'kind': 'young'}],
+    'cottonwood': [{}, {'shrub': 1}, {'kind': 'young'}, {'kind': 'snag'}],
+    'birch': [{}, {}, {'kind': 'young'}],
+}
 
 if __name__ == '__main__':
     out = {}
     meta = {}
     for name, S in SP.items():
-        for v in range(2):
-            g = build(name, S, 1000 + hash(name) % 1000 * 7 + v * 131 if False else sum(map(ord, name)) * 17 + v * 131)
+        for v, VV in enumerate(VARIANTS[name]):
+            g = build(name, S, sum(map(ord, name)) * 17 + v * 131 + 7, VV)
             for k in ('bark', 'mass', 'leaf'): out['%s|%d|%s' % (name, v, k)] = g[k]
-            meta['%s|%d' % (name, v)] = dict(trunkN=g['trunkN'], nodes=g['nodes'], tris=(len(g['bark']) + len(g['mass']) + len(g['leaf'])) // 3)
+            meta['%s|%d' % (name, v)] = dict(trunkN=g['trunkN'], nodes=g['nodes'], tris=(len(g['bark']) + len(g['mass']) + len(g['leaf'])) // 3, snag=VV.get('kind') == 'snag')
             print(name, v, meta['%s|%d' % (name, v)], 'bark', len(g['bark']) // 3, 'mass', len(g['mass']) // 3, 'leaf', len(g['leaf']) // 3, flush=True)
     np.savez_compressed(sys.argv[1] if len(sys.argv) > 1 else 'trees.npz', **out)
     json.dump(meta, open((sys.argv[1] if len(sys.argv) > 1 else 'trees.npz').replace('.npz', '.json'), 'w'), indent=1)
