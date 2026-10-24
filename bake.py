@@ -56,7 +56,7 @@ ii, jj = np.meshgrid(np.arange(nx), np.arange(ny))
 gx = x0 + ii * st; gz = y0 + jj * st
 P = np.stack([gx.ravel(), HG.ravel(), gz.ravel()], 1)
 me = bpy.data.meshes.new('terrain')
-q = [(j * nx + i, j * nx + i + 1, (j + 1) * nx + i + 1, (j + 1) * nx + i) for j in range(ny - 1) for i in range(nx - 1)]
+q = [((j + 1) * nx + i, (j + 1) * nx + i + 1, j * nx + i + 1, j * nx + i) for j in range(ny - 1) for i in range(nx - 1)]   # wound so the normals face up (Blender Y = -z)
 me.from_pydata([tuple(v) for v in gb(P)], [], q); me.update()
 ul = me.uv_layers.new(name='UVMap')
 lv = np.zeros(len(me.loops), np.int32); me.loops.foreach_get('vertex_index', lv)
