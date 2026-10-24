@@ -2255,6 +2255,8 @@ function lidEave(h,L){const F=lidF(h,L);
   const med=A=>{A.sort((x,y)=>x[0]-y[0]);const tot=A.reduce((s,e)=>s+e[1],0);let acc=0;for(const e of A){acc+=e[1];if(acc>=tot/2)return e[0];}return 4;};
   const e=F+med(E);lidEave.top=Math.max(e,F+med(R));return e;}
 function blockMass(h,q,out,L,C){
+  if(b10On()&&!C.b10&&typeof B10CLUB!=='undefined'&&!L.parts&&L.o&&Math.abs(L.o[0]+802.35)<.05&&Math.abs(L.o[1]-386.72)<.05){   // Blender trial: the Blender clubhouse in place of the block model
+    const r=blockMass(h,q,[],L,Object.assign({},C,{b10:1}));b10Club(h,out,L,r.F);return r;}
   // wings set at their own angle (a Y- or V-plan) come as parts, each with its own frame; heights stay on the main reference ground
   if(L.parts){const F0=lidF(h,L);let ev=[],sh=[];
     const one=r=>{ev.push(r.eave);sh=sh.concat(r.shrubs||[]);};
@@ -4315,6 +4317,25 @@ const AUTH_REQUIRED=false;
 const swAfter=()=>SWT&&!curClub().putter;
 var TRZ=(()=>{try{const v=+localStorage.getItem('golf-trz');return v===1.3||v===1.5?v:1;}catch(e){return 1;}})();   // Flight zoom (pause menu): how close the camera frames the ball in flight
 var GRDK=(()=>{try{return localStorage.getItem('golf-grid')==='1';}catch(e){return false;}})();   // Darker grid lines on the green (pause menu), off by default
+/* Oct 2026 Blender trial (?b10=1): Troy Burne hole 10 with scenery made in Blender (files in b10/): the clubhouse modelled from the
+   survey and photos, and the hole's light baked in Cycles (soft tree and building shadows plus sky occlusion on the ground). The ball
+   physics are untouched. Without the link nothing here runs. */
+const B10=(()=>{try{return /[?&]b10=1/.test(location.search);}catch(e){return false;}})();
+function b10On(){return B10&&typeof CUR!=='undefined'&&!!CUR&&CUR.id==='troy';}
+function b10Hole(){return b10On()&&typeof B10BAKE!=='undefined'&&!!B10BAKE.png&&G.hi===B10BAKE.hi;}
+function b10Load(done){const L=['b10/club.js?v=1','b10/bake.js?v=2','b10/trees.js?v=2'];let n=L.length;for(const s of L){const e=document.createElement('script');e.src=s;e.onload=e.onerror=()=>{if(--n===0)done();};document.head.appendChild(e);}}
+function b10Trees(P){const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer);};
+  const arr=(r,st)=>{const Pp=dec(r.P,Int16Array),N=dec(r.N,Int8Array),C=dec(r.C,Uint8Array),U=r.U?dec(r.U,Int16Array):null,o=new Array(r.n*st);
+    for(let i=0;i<r.n;i++){const k=i*st;o[k]=Pp[i*3]/1000;o[k+1]=Pp[i*3+1]/1000;o[k+2]=Pp[i*3+2]/1000;o[k+3]=N[i*3]/127;o[k+4]=N[i*3+1]/127;o[k+5]=N[i*3+2]/127;
+      o[k+6]=C[i*3]/255;o[k+7]=C[i*3+1]/255;o[k+8]=C[i*3+2]/255;if(U){o[k+9]=U[i*2]/r.us;o[k+10]=U[i*2+1]/r.us;}}return o;};
+  const by={};for(const key in B10TREES){const[sp,v]=key.split('|'),e=B10TREES[key];(by[sp]=by[sp]||[])[+v]={bark:arr(e.bark,11),mass:arr(e.mass,9),leaf:arr(e.leaf,11),trunkN:e.trunkN};}
+  for(const sp in by)P[sp]=by[sp].filter(Boolean);}
+function b10Club(h,out,L,F){const D=B10CLUB;if(!D.P){const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer);};
+    D.P=dec(D.pos,Int16Array);D.C=dec(D.col,Uint8Array);D.I=dec(D.idx,D.n<65536?Uint16Array:Uint32Array);}
+  const a=L.a*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ox=L.o[0]-h.T0[0],oz=L.o[1]-h.T0[1],s=1/D.s,P=D.P,C=D.C,I=D.I;
+  const V=k=>{const u=P[k*3]*s,y=P[k*3+1]*s,v=P[k*3+2]*s;return[ox+u*ca+v*sa,F+y,oz-u*sa+v*ca];};
+  for(let t=0;t<I.length;t+=3){const A=V(I[t]),B=V(I[t+1]),Cc=V(I[t+2]),n=nrm(cross(sub(B,A),sub(Cc,A)));
+    for(const[p,k]of[[A,I[t]],[B,I[t+1]],[Cc,I[t+2]]])out.push(p[0],p[1],p[2],n[0],n[1],n[2],C[k*3]/255,C[k*3+1]/255,C[k*3+2]/255);}}
 let SWT=(()=>{try{const m=location.search.match(/[?&]swingtest=([01])/);if(m)localStorage.setItem('golf-swt',m[1]);return localStorage.getItem('golf-swt')==='1';}catch(e){return false;}})();
 const authOn=(()=>{try{const m=location.search.match(/[?&]signin=([01])/);if(m)localStorage.setItem('golf-signin',m[1]);return AUTH_REQUIRED||localStorage.getItem('golf-signin')==='1';}catch(e){return AUTH_REQUIRED;}})();
 function authLoad(){try{const a=JSON.parse(localStorage.getItem(AUTH_KEY)||'null');return a&&a.refresh_token&&a.user&&a.user.id?a:null;}catch(e){return null;}}
@@ -6468,6 +6489,7 @@ function r3tCactus(S,seed){const R=rng(seed),bark=[],col=hexc(S.bark),H=S.Ht*(.7
 function r3tProtos(){if(R3T.protos)return R3T.protos;const P={};let seed=811;
   for(const k in R3T_SP){const S=R3T_SP[k];P[k]=[0,1,2].map(v=>{const g=S.kind==='broad'?r3tBroad(S,seed+=37):S.kind==='palm'?r3tPalm(S,seed+=37):S.kind==='cactus'?r3tCactus(S,seed+=37):r3tConifer(S,seed+=37);return g;});
     if(S.fall)P[k+'_fall']=[0,1].map(()=>r3tBroad({...S,cols:S.fall},seed+=37));}
+  if(b10On()&&typeof B10TREES!=='undefined')b10Trees(P);   // Blender trial: broadleaf trees grown for the trial, light baked in Blender
   for(const k in P)for(const g of P[k]){const L=g.leaf,out=[],R=rng(9173);
     for(let c=0;c<L.length;c+=66){if(R()>.4)continue;let cx=0,cy=0,cz=0;for(let v=0;v<6;v++){cx+=L[c+v*11]/6;cy+=L[c+v*11+1]/6;cz+=L[c+v*11+2]/6;}
       for(let v=0;v<6;v++){const o=c+v*11;out.push(cx+(L[o]-cx)*1.58,cy+(L[o+1]-cy)*1.58,cz+(L[o+2]-cz)*1.58);for(let e=3;e<11;e++)out.push(L[o+e]);}}
@@ -6549,7 +6571,7 @@ function r3TreeFlush(){for(const m of R3T.meshes){R3.scene.remove(m);m.geometry.
        Same settings and patch, so the same shaders. */
     const mI=R3.mat,treeI=mI.treeI||(mI.treeI=r3Patch(mI.tree.clone(),{fade:true,translucent:true})),barkI=mI.barkI||(mI.barkI=r3Patch(mI.bark.clone(),{fade:true}));
     const set=src=>[[src.bark,11,barkI],[src.mass,9,treeI],[src.leaf,11,R3.mat.sleaf]].filter(x=>x[0].length).map(([arr,stride,mat])=>{
-      const im=new T.InstancedMesh(r3Geo(new Float32Array(arr),stride),mat,n);im.count=0;im.visible=false;im.castShadow=true;im.receiveShadow=true;im.userData.shStatic=true;
+      const im=new T.InstancedMesh(r3Geo(new Float32Array(arr),stride),mat,n);im.count=0;im.visible=false;im.castShadow=!b10Hole();im.receiveShadow=true;im.userData.shStatic=true;
       if(mat===R3.mat.sleaf)im.customDepthMaterial=R3.sleafDepth;im.setColorAt(0,new T.Color(1,1,1));R3.scene.add(im);R3T.meshes.push(im);return im;});
     R3T.groups.push({ts,M,C,full:set(v),lite:set(v.lite)});}
   R3T.list=[];r3LiteShadows();r3TreeLOD(true);}
@@ -6737,6 +6759,7 @@ function r3Patch(mat,o={}){const key='r3'+(o.golfer?'B':'')+(o.grass?'G':'')+(o.
     if(o.fade)fs=fs.replace('#include <clipping_planes_fragment>',`#include <clipping_planes_fragment>
       if(r3fade>0.){float dd=length(r3wp-E);if(dd<r3fade&&mod(floor(gl_FragCoord.x)+floor(gl_FragCoord.y),3.)<2.)discard;}`);
     if(o.ground){fs=fs.replace('#include <map_fragment>',R3_GROUND_BODY);
+
       // micro relief: the grass/sand detail becomes a bump so the sun rakes across it; greens and fairway a touch glossier than rough
       fs=fs.replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
         { float bh=r3bump*.035;vec3 dpx=dFdx(-vViewPosition),dpy=dFdy(-vViewPosition);vec3 r1=cross(dpy,normal),r2=cross(normal,dpx);float dt=dot(dpx,r1);
@@ -6744,6 +6767,11 @@ function r3Patch(mat,o={}){const key='r3'+(o.golfer?'B':'')+(o.grass?'G':'')+(o.
         if(r3nk>.001){vec3 nw0=inverseTransformDirection(normal,viewMatrix);vec3 Tt=normalize(vec3(1.,0.,0.)-nw0*nw0.x),Bb=cross(Tt,nw0);
           vec3 tn=normalize(mix(vec3(0.,0.,1.),r3nm,r3nk));vec3 nw=normalize(Tt*tn.x+Bb*tn.y+nw0*tn.z);normal=normalize((viewMatrix*vec4(nw,0.)).xyz);}`);
       fs=fs.replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\n roughnessFactor=gMode>.5?clamp(.97-.2*r3w.r-.04*r3w.g,.72,.97):.95;');}
+    // Blender trial: light baked in Cycles (r = sun, g = sky) over the hole, on the ground and the grass blades; static scenery
+    // then casts no live shadows there (r3Shadow)
+    if(o.ground||o.grass)fs=fs.replace('#include <common>','#include <common>\nuniform float bkOn;uniform sampler2D bkT;uniform vec4 bkB;uniform vec2 bkK;').replace('#include <lights_fragment_end>',`#include <lights_fragment_end>
+      if(bkOn>.5){vec2 bu=(r3wp.xz-bkB.xy)/bkB.zw;if(bu.x>0.&&bu.x<1.&&bu.y>0.&&bu.y<1.){vec4 bk=texture2D(bkT,bu);
+        reflectedLight.directDiffuse*=mix(1.,bk.r,bkK.x);reflectedLight.directSpecular*=bk.r;reflectedLight.indirectDiffuse*=mix(1.,bk.g,bkK.y);}}`);
     // alpha-tested foliage: hold the alpha up in the smaller mips so far crowns keep their coverage instead of thinning out
     if(o.leafmip)fs=fs.replace('#include <map_fragment>',`#include <map_fragment>
       { vec2 ts=vec2(textureSize(map,0))*vMapUv;vec2 qx=dFdx(ts),qy=dFdy(ts);float lod=.5*log2(max(max(dot(qx,qx),dot(qy,qy)),1e-6));diffuseColor.a*=1.+max(lod,0.)*.2; }`);
@@ -6904,7 +6932,7 @@ function r3Init(){const T=window.THREE;if(!T)return false;
     im.onload=()=>{t.needsUpdate=true;if(--pend===0){R3.pOn.value=1;if(R3.mat&&R3.mat.bark)R3.mat.bark.needsUpdate=true;if(R3.mat&&R3.mat.barkI)R3.mat.barkI.needsUpdate=true;}};im.src=R3TEX[k];}
   // materials
   R3.tK={value:new T.Vector4(1,1,1,1)};
-  R3.GU={gTex:{value:null},gSurf:{value:null},dShort:{value:R3.det.short},dRough:{value:R3.det.rough},dFes:{value:R3.det.fescue},dSand:{value:R3.det.sand},gStex:{value:null},slT:{value:null},slHt:{value:null},slMode:{value:0},slBall:{value:new T.Vector3()},
+  R3.GU={bkOn:{value:0},bkT:{value:null},bkB:{value:new T.Vector4(0,0,1,1)},bkK:{value:new T.Vector2(1,.8)},gTex:{value:null},gSurf:{value:null},dShort:{value:R3.det.short},dRough:{value:R3.det.rough},dFes:{value:R3.det.fescue},dSand:{value:R3.det.sand},gStex:{value:null},slT:{value:null},slHt:{value:null},slMode:{value:0},slBall:{value:new T.Vector3()},
     gB:{value:new T.Vector4()},gSB:{value:new T.Vector4()},rlS:{value:new T.Vector4()},rlG:{value:new T.Vector4()},gSS:{value:new T.Vector4()},SLB:{value:new T.Vector4()},slRot:{value:new T.Vector2(1,0)},gMode:{value:1},pOn:R3.pOn,pG:{value:R3.ptex.g||null},pGN:{value:R3.ptex.gn||null},pS:{value:R3.ptex.s||null},pSN:{value:R3.ptex.sn||null},slOn:{value:0},slDk:{value:typeof GRDK!=='undefined'&&GRDK?1:0},SLG:{value:1},SLPX:{value:.002},tK:R3.tK};
   const GUfar={...R3.GU,gMode:{value:0}};
   R3.WU={rfT:{value:null},rfM:{value:new T.Matrix4()},rfOn:{value:0},wT:{value:0}};
@@ -6967,7 +6995,7 @@ function r3SetQuality(name,auto){R3.q=name;if(!auto&&R3.renderer){R3.perf=0;R3.d
   document.querySelectorAll('#gfxSeg button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='high')===(name==='high')));r3Resize();}
 function r3SetPerf(level){if(typeof HTR==='object')HTR.m+='lvl'+level+' ';R3.perf=level;r3Resize();r3LiteShadows();if(R3T.groups)r3TreeLOD(true);}
 /* v121: the lightest levels leave the distant (light) trees out of the shadow pass */
-function r3LiteShadows(){const q=r3Q(),on=q.liteSh!==false;for(const g of (R3T.groups||[]))for(const im of g.lite)im.castShadow=on;}
+function r3LiteShadows(){const q=r3Q(),on=q.liteSh!==false&&!b10Hole();for(const g of (R3T.groups||[]))for(const im of g.lite)im.castShadow=on;}
 
 /* ---- per-hole scene content ---- */
 function r3Dispose(o){if(!o)return;R3.scene.remove(o);if(o.geometry)o.geometry.dispose();}
@@ -7009,6 +7037,9 @@ function r3Waterfalls(h){r3Dispose(R3.wfMesh);R3.wfMesh=null;const L=h._wfs;R3.w
   if(!R3.wfMat)R3.wfMat=new T.ShaderMaterial({uniforms:{t:{value:0}},vertexShader:R3_WF_VS,fragmentShader:R3_WF_FS,transparent:true,depthWrite:false,side:T.DoubleSide});
   const m=new T.Mesh(geo,R3.wfMat);m.renderOrder=7;m.frustumCulled=true;R3.scene.add(m);R3.wfMesh=m;}
 function r3SetHole(h,canvas){const T=THREE,GU=R3.GU;
+  GU.bkOn.value=0;if(b10Hole()){const K=B10BAKE;GU.bkB.value.set(K.b[0],K.b[1],K.b[2],K.b[3]);GU.bkK.value.set(K.k[0],K.k[1]);
+    const on=()=>{if(b10Hole()){GU.bkT.value=K.tex;GU.bkOn.value=1;}};
+    if(!K.tex){K.tex=new T.TextureLoader().load(K.png,()=>{K.ok=1;on();});K.tex.flipY=false;K.tex.colorSpace=T.NoColorSpace;K.tex.anisotropy=4;}else if(K.ok)on();}
   if(GU.gTex.value)GU.gTex.value.dispose();GU.gTex.value=r3CanvasTex(canvas);
   const b=h.bounds;GU.gB.value.set(b[0],b[1],b[2]-b[0],b[3]-b[1]);
   // the mowing frame buildTerrain paints its stripes in (canvas rotated by h.axis, a compass angle, so fairway stripes run across the hole; the green's 4-yd stripes 0.6 rad round from that)
@@ -7310,6 +7341,7 @@ function r3SetTrees(out,fo,fol,bark){r3Dispose(R3.trees);r3Dispose(R3.far);r3Dis
   if(out&&out.length)R3.trees=r3Add(r3Geo(out,9),R3.mat.tree,{cast:true,recv:true});
   if(fo&&fo.length)R3.far=r3Add(r3Geo(fo,9),R3.mat.far,{cast:false,recv:false});
   if(fol&&fol.length)R3.fol=r3Add(r3Geo(fol,11),R3.mat.leaf,{cast:true,recv:true,depth:R3.leafDepth});
+  if(b10Hole()&&B10BAKE.png)for(const m of[R3.bark,R3.trees,R3.fol])if(m)m.castShadow=false;
   if(typeof r3TreeFlush==='function')r3TreeFlush();}
 function r3SetGrass(out){r3Dispose(R3.grass);R3.grass=null;if(R3G.lods)return;if(out&&out.length)R3.grass=r3Add(r3Geo(out,9),R3.mat.grass,{cast:false,recv:true});}
 
@@ -7383,7 +7415,9 @@ function r3Camera(){const c=R3.cam,n=.3,f=30000,Kx=2*V.f/W,Ky=2*V.f/H,Kz=1-2*V.c
   c.projectionMatrix.set(Kx,0,0,0, 0,Ky,-Kz,0, 0,0,-(f+n)/(f-n),-2*f*n/(f-n), 0,0,-1,0);c.projectionMatrixInverse.copy(c.projectionMatrix).invert();
   c.near=n;c.far=f;c.aspect=W/H;c.fov=2*Math.atan((H/2)/V.f)*180/Math.PI;
   const U=R3.U;U.E.value.set(...V.E);U.R.value.set(...V.R);U.U.value.set(...V.U);U.Fw.value.set(...V.F);U.K.value.set(Kx,Ky,Kz);U.ctime.value=T;U.cloudOn.value=CLOUDS_COV;}
-function r3Shadow(){const s=R3.sun,q=r3Q();if(s.shadow.mapSize.x!==q.shadow){s.shadow.mapSize.set(q.shadow,q.shadow);if(s.shadow.map){s.shadow.map.dispose();s.shadow.map=null;}}
+function r3Shadow(){const s=R3.sun,q=r3Q();
+  if(R3.GU.bkOn.value&&R3.b10cast!==G.hole&&b10Hole()){R3.b10cast=G.hole;   // Blender trial: the baked map has the static shadows, so trees and buildings leave the live shadow map
+    for(const g of R3T.groups||[])for(const im of g.full.concat(g.lite))im.castShadow=false;for(const m of[R3.bark,R3.trees,R3.fol])if(m)m.castShadow=false;if(R3.shc)R3.shc.valid=false;}if(s.shadow.mapSize.x!==q.shadow){s.shadow.mapSize.set(q.shadow,q.shadow);if(s.shadow.map){s.shadow.map.dispose();s.shadow.map=null;}}
   R3.renderer.shadowMap.type=q.soft?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
   const wide=G.overview||G.state==='intro'||G.state==='card';let C,Rr,Dd;
   let C0,C1,C2;   // (plain numbers: this ran every frame and made a dozen small arrays)
@@ -7644,7 +7678,7 @@ const R3_GRASS_VS=`
     vec3 fc=(t<.6?mix(fb,fm,t/.6):mix(fm,ft,(t-.6)/.4))*(.86+.28*rb)*(.9+.2*cl.y);cc=mix(cc,fc,fw);}
   vGc=cc*cc;}`;
 function r3GrassInit(){const T=THREE;
-  R3.GRU={tK:R3.tK,hT:{value:null},hB:{value:new T.Vector4()},hN:{value:1},gC0:{value:new T.Vector4()},gC1:{value:new T.Vector4()},gD:{value:new T.Vector4(R3G.caps[0],0,1e5,1e5)},wV:{value:new T.Vector4()},
+  R3.GRU={bkOn:R3.GU.bkOn,bkT:R3.GU.bkT,bkB:R3.GU.bkB,bkK:R3.GU.bkK,tK:R3.tK,hT:{value:null},hB:{value:new T.Vector4()},hN:{value:1},gC0:{value:new T.Vector4()},gC1:{value:new T.Vector4()},gD:{value:new T.Vector4(R3G.caps[0],0,1e5,1e5)},wV:{value:new T.Vector4()},
     gSurf:R3.GU.gSurf,gSB:R3.GU.gSB,gTex:R3.GU.gTex,gB:R3.GU.gB};
   R3G.lods=R3G.caps.map((cap,k)=>{const geo=r3GrassGeo(cap,901+k*77);
     const mat=r3Patch(new THREE.MeshStandardMaterial({color:0xffffff,side:THREE.DoubleSide,roughness:.88,metalness:0}),{grass:true,twoSided:true,translucent:true,uniforms:{...R3.GRU,gCap:{value:cap}}});
@@ -8444,13 +8478,14 @@ function bootWait(id,then){const lm=$('loadM'),sp=lm&&lm.querySelector('span'),n
       if(lm&&!$('loadRetry')){const b=document.createElement('button');b.id='loadRetry';b.className='primary disp';b.textContent='Try again';b.onclick=go;lm.appendChild(b);}});};
   go();}
 function boot(data){
+  if(B10&&!window.__b10){window.__b10=1;b10Load(()=>boot({course:'troy',hi:9,mode:'practice'}));return;}
   {const id=bootCourse(data||{});if(!courseReady(id)){bootWait(id,()=>boot(data));return;}}
   const b0=performance.now();
   {const lm=$('loadM');if(lm)lm.remove();}
   resize();
   let ok=false;try{ok=r3Init();if(ok){document.querySelectorAll('#gfxSeg button').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();r3SetQuality(b.dataset.g==='high'?'high':'fast');}));r3SetQuality(R3.q,true);}}catch(e){console.error(e);ok=false;}
   if(!ok){const d=document.createElement('div');d.className='nogl';d.textContent='This game needs WebGL, which this browser has turned off. Try another browser or device.';$('game').appendChild(d);return;}
-  data=data||{};setCourse(bootCourse(data));buildHoleGrid();
+  data=data||{};setCourse(bootCourse(data),!B10);buildHoleGrid();
   if(Number.isInteger(data.hi)){G.mode=data.mode==='practice'?'practice':'round';if(Array.isArray(data.scores))G.scores=data.scores;startHole(clamp(data.hi,0,TB.length-1));}
   else{const sv=loadSave();if(sv)teeUse(sv.tee);G.mode='round';G.pinSeed=sv&&sv.pin||0;G.scores=sv&&Array.isArray(sv.scores)?sv.scores:[];startHole(sv?sv.hi:0);$('introM').hidden=true;openMenu(false);G.paused=false;}
   try{const nv=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];   // bs: scripts read and boot begun; sync: boot's own work; ff (on the 2nd frame): on screen, all from page open
