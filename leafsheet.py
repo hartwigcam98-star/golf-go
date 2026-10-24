@@ -25,8 +25,8 @@ def outline(kind, R):
         pts = []
         for th in np.linspace(-math.pi * .95, math.pi * .95, 160):
             # five pointed lobes, angle from the leaf axis (up)
-            lob = abs(math.cos(2.5 * th)) ** 1.6
-            r = .28 + .72 * lob
+            lob = abs(math.cos(2.5 * th)) ** .9
+            r = .45 + .55 * lob
             r *= 1 + .05 * math.sin(th * 23 + R.random())  # teeth
             if abs(th) > 2.3: r *= .55                       # short lower lobes
             pts.append((math.sin(th) * r * .5, .42 + math.cos(th) * r * .5))
@@ -61,7 +61,7 @@ def leaf_mesh(bm, kind, R, M, col_layer, col):
         return M @ Vector((x, y, z))
     faces = []
     if mode == 'side':
-        rib = [(0, t) for t in np.linspace(0, 1, len(pts))]
+        rib = [(0, t) for t in np.linspace(0, 1, len(pts))[1:-1]]
         for s in (1, -1):
             loop = [P(s * x, y) for x, y in pts] + [P(0, y) for _, y in reversed(rib)]
             vs = [bm.verts.new(p) for p in loop]
@@ -84,9 +84,9 @@ def leaf_mesh(bm, kind, R, M, col_layer, col):
 SPEC = {
     0: dict(kind='bur', n=22, size=(.44, .58), twigs=6, col=(.16, .3, .08)),
     1: dict(kind='oak', n=26, size=(.36, .48), twigs=6, col=(.18, .33, .09)),
-    2: dict(kind='maple', n=24, size=(.36, .48), twigs=6, col=(.2, .36, .08)),
-    4: dict(kind='cotton', n=30, size=(.3, .4), twigs=7, col=(.22, .36, .09)),
-    8: dict(kind='birch', n=56, size=(.18, .26), twigs=8, col=(.24, .38, .1)),
+    2: dict(kind='maple', n=30, size=(.46, .6), twigs=6, col=(.2, .36, .08)),
+    4: dict(kind='cotton', n=40, size=(.34, .44), twigs=7, col=(.22, .36, .09)),
+    8: dict(kind='birch', n=84, size=(.18, .26), twigs=8, col=(.24, .38, .1)),
 }
 
 def build_spray(cell):
@@ -123,7 +123,7 @@ def build_spray(cell):
             size = R.uniform(*S['size']) * (.75 + .25 * t)
             tilt = R.uniform(-.35, .45); roll = R.uniform(-.4, .4)
             M = Matrix.Translation(p + Vector((0, 0, R.uniform(0, .05)))) @ Matrix.Rotation(ang, 4, 'Z') @ Matrix.Rotation(tilt, 4, 'X') @ Matrix.Rotation(roll, 4, 'Y') @ Matrix.Scale(size, 4)
-            v = R.uniform(.82, 1.18); h = R.uniform(-.04, .05)
+            v = R.uniform(.7, 1.25); h = R.uniform(-.05, .07)
             c = S['col']; col = (max(0, c[0] * v + h), c[1] * v, max(0, c[2] * v - h * .5), 1)
             leaf_mesh(bm, S['kind'], R, M, cl, col)
     # a tuft at the centre
@@ -160,7 +160,7 @@ SC.render.film_transparent = True; SC.render.resolution_x = SC.render.resolution
 SC.view_settings.view_transform = 'Standard'
 SC.render.image_settings.file_format = 'PNG'; SC.render.image_settings.color_mode = 'RGBA'
 w = bpy.data.worlds.new('w'); SC.world = w; w.use_nodes = True
-w.node_tree.nodes['Background'].inputs['Color'].default_value = (.7, .8, 1, 1); w.node_tree.nodes['Background'].inputs['Strength'].default_value = .7
+w.node_tree.nodes['Background'].inputs['Color'].default_value = (.7, .8, 1, 1); w.node_tree.nodes['Background'].inputs['Strength'].default_value = .45
 sun = bpy.data.lights.new('sun', 'SUN'); sun.energy = 3.2; sun.angle = .1
 so = bpy.data.objects.new('sun', sun); SC.collection.objects.link(so); so.rotation_euler = (math.radians(35), math.radians(-20), 0)
 cam = bpy.data.cameras.new('cam'); cam.type = 'ORTHO'; cam.ortho_scale = 2.08
