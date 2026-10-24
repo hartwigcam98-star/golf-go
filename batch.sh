@@ -4,6 +4,7 @@
 set -e
 cd /home/claude/bc
 R=https://github.com/hartwigcam98-star/golf-go
+if [ -z "$RESUME" ]; then
 rm -rf /tmp/bd && mkdir -p /tmp/bd/holes && for c in "$@"; do cp -r holes/$c /tmp/bd/holes/; done
 ( cd /tmp/bd && git init -q -b bakedata && git add -A && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "bake data: $*" && git push -q -f $R bakedata )
 python3 - "$@" <<'PY'
@@ -17,6 +18,7 @@ PY
 git add -A matrix.json .github bake.py combine.py batch.sh packcourse.py && git commit -qm "Light bakes: $*" && git push -q origin blender-club
 sleep 20
 ID=$(gh run list -R hartwigcam98-star/golf-go --branch blender-club --limit 1 --json databaseId -q '.[0].databaseId'); echo "run $ID"
+else ID=$RESUME; fi
 until s=$(gh run view $ID -R hartwigcam98-star/golf-go --json status,conclusion -q '.status+" "+.conclusion' 2>/dev/null) && [[ $s == completed* ]]; do sleep 30; done; echo "$s"
 gh run view $ID -R hartwigcam98-star/golf-go --json conclusion -q .conclusion || true
 cd /home/claude/data/x
