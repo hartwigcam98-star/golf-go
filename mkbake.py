@@ -12,5 +12,6 @@ for d in sorted(glob.glob(G + '/light/*/bounds.json')):
     if hs: L.append("%s:{holes:{%s}}," % (c, ','.join(hs)))
 L.append("},")
 ids = sorted(os.path.basename(f)[:-3] for f in glob.glob(G + '/club/*.js'))
-L.append("clubs:{" + ','.join('%s:1' % i for i in ids) + "}};")
+V = json.load(open('/home/claude/bc/club_ver.json')) if os.path.exists('/home/claude/bc/club_ver.json') else {}
+L.append("clubs:{" + ','.join('%s:%d' % (i, V.get(i, 1)) for i in ids) + "}};")
 open(G + '/bake.js', 'w').write('\n'.join(L) + '\n'); print('courses', sum(1 for l in L if l.endswith('}}},')), 'clubs', len(ids))
