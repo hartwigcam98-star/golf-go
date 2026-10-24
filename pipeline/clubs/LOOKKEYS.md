@@ -33,6 +33,9 @@ Colours are '#rrggbb'. Omit a key to get the default.
   arched ground floor ≈ the `lo` height (2.6–3.2). Leave it out for buildings on grade (most).
 - `fc` foundation colour (default: `lc` when there is a brick ground storey, else the stone colour). `pf` porch floor colour.
 - `ar` 'dark' | 'glass': arched openings in the `lo` ground storey and in raised porch skirts.
+- `eb` [u0,v0,u1,v1,spring,rise,pitch] (lidar model only): an elliptical "eyebrow" arch in a porch front between two columns (model frame, from the
+  photos), with the porch roof swept up over it; spring = height of the column tops, rise = height of the crown above that,
+  pitch = the porch roof's slope. Example: caledonia.
 - `yard: 'none'` for a clubhouse that stands in sand, dune grass, prairie or desert planting; otherwise the game lays mown lawn
   16 yd round it, a mulched bed with clipped shrubs along the walls and a narrow walk.
 Survey check for `fh`: compare the photos with the ground ring (how far the ground falls round the building) and the

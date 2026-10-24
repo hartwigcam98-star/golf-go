@@ -18,6 +18,9 @@ blocks.json: {"blocks":[[type,u0,u1,v0,v1,eave,pitch,ridge,(flags)],...]}
        SV shed sloping along v (same, with v0)
        F  flat roof at height eave (pitch 0, ridge = eave)
        T  tower/cupola/chimney: box walls to eave with a hip cap to ridge (pitch ignored)
+       BU0/BU1/BV0/BV1  bay or bow front: a half-ellipse inside the rectangle, its straight side at u0/u1/v0/v1, bulging across the
+          rectangle, walls to eave and a conical roof rising to ridge at the middle of the straight side (pitch ignored); flag o = an
+          open curved porch
   flags (optional string): 'o' open underneath (porch/veranda/deck/porte-cochere: posts, no walls),
                            'd' deck (flat floor with a railing, open below)
 Heights: eave = height of the roof edge, ridge = top. Overlapping blocks are fine: the visible roof is the highest one
@@ -44,6 +47,14 @@ def env(B,U,V):
     for b in B:
         t,u0,u1,v0,v1,e,p,cap=b[:8]
         du=np.minimum(U-u0,u1-U);dv=np.minimum(V-v0,v1-V);inside=(du>=0)&(dv>=0)
+        if t[0]=='B':   # bay / bow front: a half-ellipse bulging away from its straight side (BU0 = side at u0, BU1, BV0, BV1), conical roof
+            uc,vc=(u0+u1)/2,(v0+v1)/2
+            if t=='BU0': x,y,ra,dd=V-vc,U-u0,(v1-v0)/2,u1-u0
+            elif t=='BU1': x,y,ra,dd=V-vc,u1-U,(v1-v0)/2,u1-u0
+            elif t=='BV0': x,y,ra,dd=U-uc,V-v0,(u1-u0)/2,v1-v0
+            else: x,y,ra,dd=U-uc,v1-V,(u1-u0)/2,v1-v0
+            r=np.hypot(x/max(ra,.01),y/max(dd,.01));inside=inside&(y>=0)&(r<=1);h=e+(max(cap,e)-e)*(1-r)
+            out=np.where(inside,np.maximum(out,h),out);continue
         if t=='H': h=e+p*np.minimum(du,dv)
         elif t=='GU': h=e+p*dv
         elif t=='GV': h=e+p*du

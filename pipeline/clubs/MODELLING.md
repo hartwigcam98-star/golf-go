@@ -36,6 +36,22 @@ Examples: models/pines (Y plan), models/legend (curved lodge as segments), model
   Examples: models/legends (tower), models/edinburgh (gable).
 - Verandas and porches must carry the "o" flag or they are drawn as solid walls (Oxmoor Valley's wrap-round veranda needed it).
 
+## Stairs from the photos (`st` in final.json)
+Only when the CLUBLOOK has `fh` (a raised floor). `"st": [[u, v, width, dir, kind, depth], ...]` in the model frame: the point is snapped
+to the nearest open edge of a raised porch, deck or wall; dir 0 runs straight out from the wall, 1/-1 runs along it. Without `st`
+the game puts one stair in the middle of the longest open porch edge. `kind` is a string of letters, each from what the photos show:
+- `u`/`U` two flights doubling back at a landing (second flight on the + / - side); `l`/`r` the second flight turns at the landing
+  (`l` turns away from the wall)
+- `w` white-painted timber stair, landing on posts with a railing; `s` stone treads; `b` bottom two steps in brick, a little wider
+- `t` a paved terrace `depth` yd deep, then long low steps with brick nosings (the width is not limited to the porch edge; check
+  it clears the wings); `m` a brick walk down its middle
+- `c` brick cheek walls with a pier at the top; `k` black iron handrails (one down the middle when there are cheek walls)
+- `h` sloped clipped-hedge banks either side; `e` two tall slim cypresses beside the upper flight
+Examples: gnlinks `[-22.5,-12.8,2.5,1,"lw"]` (photo: down along the wall, landing, then out), caledonia `[0.25,-20.23,2.8,0,"h"]`,
+legislator `[1,27,6,0,"ckesb"]`, pawplant `[-15.4,12.4,26,0,"tm",5]`.
+Bay or bow fronts that really curve in plan are the BU0/BU1/BV0/BV1 block types (bk.py docstring). An arched opening in a flat
+porch front is not a bay: use the CLUBLOOK `eb` key (LOOKKEYS.md), as at Caledonia.
+
 ## Reference models
 models/<course>/final.json + notes.txt for the 39 clubhouses done on Oct 23 2026 (e.g. models/quarry: 2 blocks; models/caledonia:
 11 blocks with a veranda; models/edinburgh: 30 blocks).
