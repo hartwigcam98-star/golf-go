@@ -6,9 +6,24 @@ on:
 permissions:
   contents: write
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      m: ${{ steps.p.outputs.m }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: |
+          if [ -f matrix.json ]; then echo "m=$(cat matrix.json)" >> $GITHUB_OUTPUT; else echo 'm=["job"]' >> $GITHUB_OUTPUT; fi
   build:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        item: ${{ fromJSON(needs.plan.outputs.m) }}
     steps:
       - uses: actions/checkout@v4
       - name: deps
@@ -20,11 +35,17 @@ jobs:
           /tmp/blender/blender --version | head -1
       - name: build
         run: |
-          bash job.sh
+          IT="${{ matrix.item }}"
+          if [ "$IT" = job ]; then bash job.sh; else
+            H=${IT%%:*}; PART=${IT##*:}; mkdir -p out
+            BAKE_ONLY=$PART SH_SAMPLES=128 SKY_SAMPLES=64 /tmp/blender/blender -b --factory-startup -P bake.py -- holes/$H.npz atlas2.png out/$H 4 2>&1 | tee out/$H-$PART.log | grep -E "\[bake\]|Error|Traceback" | tail -20
+          fi
       - name: save
         if: always()
         run: |
+          IT="${{ matrix.item }}"
+          if [ "$IT" = job ]; then BR=$(cat $GITHUB_WORKSPACE/outbranch.txt 2>/dev/null || echo blender-club-data); else BR="bake-${IT/:/-}"; fi
           mkdir -p /tmp/o && cp -r out/. /tmp/o/ || true
-          BR=$(cat $GITHUB_WORKSPACE/outbranch.txt 2>/dev/null || echo blender-club-data); cd /tmp/o && git init -q -b $BR && git add -A
-          git -c user.name=club-bot -c user.email=club-bot@users.noreply.github.com commit -qm "blender club run $GITHUB_RUN_ID"
+          cd /tmp/o && git init -q -b $BR && git add -A
+          git -c user.name=club-bot -c user.email=club-bot@users.noreply.github.com commit -qm "blender run $GITHUB_RUN_ID $IT"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" $BR
