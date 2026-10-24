@@ -36,7 +36,9 @@ jobs:
       - name: build
         run: |
           IT="${{ matrix.item }}"
-          if [ "$IT" = job ]; then bash job.sh; else
+          if [ "$IT" = job ]; then bash job.sh; elif [ "${IT%%:*}" = club ]; then
+            C=${IT##*:}; mkdir -p out; SAMPLES=64 /tmp/blender/blender -b --factory-startup -P club_bake.py -- clubs/$C.npz out/$C.npz 2>&1 | tee out/$C.log | grep -E "\[club\]|Error|Traceback" | tail -20
+          else
             H=${IT%%:*}; PART=${IT##*:}; mkdir -p out
             BAKE_ONLY=$PART SH_SAMPLES=128 SKY_SAMPLES=64 /tmp/blender/blender -b --factory-startup -P bake.py -- holes/$H.npz atlas2.png out/$H 4 2>&1 | tee out/$H-$PART.log | grep -E "\[bake\]|Error|Traceback" | tail -20
           fi
