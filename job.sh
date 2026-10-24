@@ -1,4 +1,4 @@
 #!/bin/bash
 B=/tmp/blender/blender
 mkdir -p out
-TREE_MODE=DIFFUSE TREE_SAMPLES=96 $B -b --factory-startup -P bake_trees.py -- trees2.npz atlas2.png out/trees 2>&1 | tee out/trees.run.log | grep -E "\[trees\]|Error|Traceback|line [0-9]+" | tail -80
+BAKE_ONLY=sun SH_SAMPLES=128 SKY_SAMPLES=64 $B -b --factory-startup -P bake.py -- hole10.npz atlas2.png out/hole10 4 2>&1 | tee out/bake.run.log | grep -E "\[bake\]|Error|Traceback|line [0-9]+" | tail -40

@@ -79,9 +79,10 @@ for i in range(int(D['nproto'][0])):
     bk, ms, lf = D['p%d_bark' % i], D['p%d_mass' % i], D['p%d_leaf' % i]
     solid = mesh_tris('ps%d' % i, np.concatenate([bk[:, :3], ms[:, :3]]))
     solid.materials.append(mBark)
-    lme = mesh_tris('pl%d' % i, lf[:, :3], uv=np.stack([lf[:, 9], 1 - lf[:, 10]], 1))
-    lme.materials.append(mLeaf)
-    protos.append((solid, lme))
+    if len(lf):
+        lme = mesh_tris('pl%d' % i, lf[:, :3], uv=np.stack([lf[:, 9], 1 - lf[:, 10]], 1)); lme.materials.append(mLeaf)
+        protos.append((solid, lme))
+    else: protos.append((solid,))
 C4 = Matrix(((1, 0, 0, 0), (0, 0, -1, 0), (0, 1, 0, 0), (0, 0, 0, 1))); C4i = C4.inverted()
 for k, (pi, m16) in enumerate(zip(D['inst_p'], D['inst_M'])):
     Mg = Matrix(np.asarray(m16, dtype=np.float64).reshape(4, 4).T.tolist())
