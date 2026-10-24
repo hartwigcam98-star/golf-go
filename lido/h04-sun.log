@@ -1,0 +1,13 @@
+[bake] terrain 326 144 image 2600 1140 yd 650.0 285.0
+[bake] trees 0 protos 0
+[bake] far trees 123
+[bake] scenery tris 9392
+Blender 4.2.23 LTS (hash d0cbe84903e8 built 2026-07-21 01:31:03)
+Fra:1 Mem:218.00M (Peak 218.69M) | Time:498015:38:08.29 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | terrain
+Fra:1 Mem:221.34M (Peak 221.34M) | Time:498015:38:08.29 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | ft
+Fra:1 Mem:222.06M (Peak 222.06M) | Time:498015:38:08.29 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | fc
+Fra:1 Mem:222.07M (Peak 222.07M) | Time:498015:38:08.29 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | scenery
+Fra:1 Mem:226.98M (Peak 227.70M) | Time:498015:38:08.30 | Mem:0.00M, Peak:0.00M | Scene | Initializing
+Fra:1 Mem:226.98M (Peak 227.70M) | Time:498015:38:08.30 | Mem:0.00M, Peak:0.00M | Scene | Updating Images | Loading bake
+Info: Baking map saved to internal image, save it externally or pack it
+[bake] shadow bake 298 s mean 0.9989361763000488
