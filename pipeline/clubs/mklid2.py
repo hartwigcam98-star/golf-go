@@ -8,6 +8,7 @@ for d in sorted(glob.glob('work/*/')):
     m=json.load(open(d+'meta.json'));b=json.load(open(f))
     R=lambda bl:[[x[0]]+[round(float(v),2) for v in x[1:8]]+([x[8]] if len(x)>8 and x[8] else []) for x in bl]
     T[cid]=dict(o=m['o'],a=m['a'],ref=m['ref'],blocks=R(b.get('blocks',[])))
+    if b.get('st'): T[cid]['st']=b['st']   # stairs from the raised porches, [u,v,width] (from photos)
     if os.path.exists(d+'frame.npz'):
         import bk;T[cid]['gr']=bk.ring(cid,b)
     if b.get('parts'):   # wings at their own angle: origin (du,dv) in the main frame, angle main+da (deg, CCW)

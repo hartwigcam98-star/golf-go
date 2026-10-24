@@ -2258,9 +2258,10 @@ function blockMass(h,q,out,L,C){
   // wings set at their own angle (a Y- or V-plan) come as parts, each with its own frame; heights stay on the main reference ground
   if(L.parts){const F0=lidF(h,L);let ev=[],sh=[];
     const one=r=>{ev.push(r.eave);sh=sh.concat(r.shrubs||[]);};
-    if(L.blocks&&L.blocks.length)one(blockMass(h,q,out,{o:L.o,a:L.a,ref:L.ref,blocks:L.blocks},Object.assign({},C,{F:F0})));
+    if(L.blocks&&L.blocks.length)one(blockMass(h,q,out,{o:L.o,a:L.a,ref:L.ref,blocks:L.blocks,st:L.st},Object.assign({},C,{F:F0})));
     for(const pt of L.parts)one(blockMass(h,q,out,{o:pt.o,a:pt.a,ref:[0,0],blocks:pt.blocks},Object.assign({},C,{F:F0,stair:0})));
     ev.sort((x,y)=>x-y);return{F:F0,eave:ev[ev.length>>1],shrubs:sh};}
+  if(L.st&&C.st==null)C=Object.assign({},C,{st:L.st});
   const a=L.a*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ox=L.o[0]-h.T0[0],oz=L.o[1]-h.T0[1],B0=L.blocks;
   const X=(u,v)=>ox+u*ca+v*sa,Z=(u,v)=>oz-u*sa+v*ca,gAt=(u,v)=>hAtH(h,X(u,v),Z(u,v)),F=C.F!=null?C.F:lidF(h,L),P=(u,v,y)=>[X(u,v),F+y,Z(u,v)];
   const DU=[ca,0,-sa],DV=[sa,0,ca],UP=[0,1,0],nU=k=>[DU[0]*k,0,DU[2]*k],nV=k=>[DV[0]*k,0,DV[2]*k];
@@ -2325,21 +2326,29 @@ function blockMass(h,q,out,L,C){
     for(let k=0;k<na;k++){const t=(k+.5)/na,u=A[0]+(B2[0]-A[0])*t,v=A[1]+(B2[1]-A[1])*t,g=g0+(g1-g0)*t,yt=top-.45-w;if(yt-g<.5)continue;const T=[(B2[0]-A[0])/L0,(B2[1]-A[1])/L0],o=.04;
       const W=(s2,y)=>{const pp=P(u+T[0]*s2,v+T[1]*s2,y);return[pp[0]+n[0]*o,pp[1],pp[2]+n[2]*o];};q4(W(-w,g+.05),W(w,g+.05),W(w,yt),W(-w,yt),arC,n);
       for(let j=0;j<6;j++){const a1=j/6*Math.PI,a2=(j+1)/6*Math.PI;triO(out,W(0,yt),W(Math.cos(a1)*w,yt+Math.sin(a1)*w),W(Math.cos(a2)*w,yt+Math.sin(a2)*w),arC,n);}}};
-  let stair=null;
-  if(C.stair!==0&&FH>=.45){let best=-1;for(const b of B){if(!floored(b))continue;const[,u0,u1,v0,v1]=b;
-      for(const[a0,b0,a1,b1,n]of[[u0,v1,u1,v1,nV(1)],[u1,v0,u0,v0,nV(-1)],[u1,v1,u1,v0,nU(1)],[u0,v0,u0,v1,nU(-1)]]){const Lr=hyp(a1-a0,b1-b0),mu=(a0+a1)/2,mv=(b0+b1)/2,on=[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca];
-        if(Lr<4||B.some(o=>o!==b&&!(o[8]||'').includes('o')&&rh(o,mu+on[0]*1.5,mv+on[1]*1.5)>-1e8))continue;if(Lr>best){best=Lr;stair={b,a0,b0,a1,b1,n,on,w:Math.min(FH>2?2.2:1.6,Lr*.18)};}}}}
-  if(stair){const{a0,b0,a1,b1,n,on,w}=stair,mu=(a0+a1)/2,mv=(b0+b1)/2,T=[(a1-a0),(b1-b0)],tl=hyp(T[0],T[1]);T[0]/=tl;T[1]/=tl;
-    let y=FH,d=0;const rise=.17,run=.3;
+  // stairs down from the raised porches: where the photos put them (CLUBLID st: [u,v,width] in the model frame, snapped to the nearest
+  // open porch edge), else one centred on the longest open edge
+  const stairs=[],sides4=b=>{const[,u0,u1,v0,v1]=b;return[[u0,v1,u1,v1,nV(1)],[u1,v0,u0,v0,nV(-1)],[u1,v1,u1,v0,nU(1)],[u0,v0,u0,v1,nU(-1)]];};
+  const openEdge=(b,a0,b0,a1,b1,n)=>{const mu=(a0+a1)/2,mv=(b0+b1)/2,on=[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca];return!B.some(o=>o!==b&&(!(o[8]||'').includes('o')||floored(o))&&rh(o,mu+on[0]*1.5,mv+on[1]*1.5)>-1e8);};
+  if(C.stair!==0&&FH>=.45){
+    if(C.st&&C.st.length)for(const[su,sv,sw]of C.st){let best=null;for(const b of B){if(!floored(b)||(b[8]||'').includes('d')&&Math.abs(b[5]-FH)>.6)continue;for(const[a0,b0,a1,b1,n]of sides4(b)){if(!openEdge(b,a0,b0,a1,b1,n))continue;
+        const L2=(a1-a0)**2+(b1-b0)**2,t=clamp(((su-a0)*(a1-a0)+(sv-b0)*(b1-b0))/L2,0,1),pu=a0+(a1-a0)*t,pv=b0+(b1-b0)*t,d=hyp(su-pu,sv-pv);if(!best||d<best.d)best={d,b,a0,b0,a1,b1,n,t};}}
+      if(best){const{b,a0,b0,a1,b1,n}=best,Lr=hyp(a1-a0,b1-b0),w=Math.min(sw/2,Lr/2-.2),t=clamp(best.t,(w+.2)/Lr,1-(w+.2)/Lr);
+        stairs.push({b,a0,b0,a1,b1,n,on:[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca],w,mu:a0+(a1-a0)*t,mv:b0+(b1-b0)*t,fh:flH(b)});}}
+    else if(!C.st){let best=-1,bs=null;for(const b of B){if(!floored(b)||(b[8]||'').includes('d'))continue;for(const[a0,b0,a1,b1,n]of sides4(b)){const Lr=hyp(a1-a0,b1-b0);
+        if(Lr<4||!openEdge(b,a0,b0,a1,b1,n))continue;if(Lr>best){best=Lr;bs={b,a0,b0,a1,b1,n,on:[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca],w:Math.min(FH>2?2.2:1.6,Lr*.18),mu:(a0+a1)/2,mv:(b0+b1)/2,fh:FH};}}}
+      if(bs)stairs.push(bs);}}
+  for(const stair of stairs){const{a0,b0,a1,b1,n,on,w,mu,mv}=stair,T=[(a1-a0),(b1-b0)],tl=hyp(T[0],T[1]);T[0]/=tl;T[1]/=tl;const top=stair.fh;
+    let y=top,d=0;const rise=.17,run=.3;
     for(let k=0;k<40&&y>-30;k++){const g=gAt(mu+on[0]*(d+run/2),mv+on[1]*(d+run/2))-F;if(y-rise<=g+.05)break;y-=rise;const cu=mu+on[0]*(d+run/2),cv=mv+on[1]*(d+run/2);
       const c=P(cu,cv,0),gb=Math.min(g,y)-.3,au=Math.abs(on[0])>.5;boxO(out,c[0],F+(gb+y)/2,c[2],au?run/2:w,(y-gb)/2,au?w:run/2,-a,mul(C.fc,1.06));d+=run;}
     stair.len=d;
     // handrails down both sides
-    for(const sg of[-1,1]){const su=mu+T[0]*(w+.05)*sg,sv=mv+T[1]*(w+.05)*sg,top=P(su,sv,FH+.9),bot=P(su+on[0]*d,sv+on[1]*d,y+.9);
-      quadO(out,[top[0],top[1]-.06,top[2]],[bot[0],bot[1]-.06,bot[2]],[bot[0],bot[1]+.03,bot[2]],[top[0],top[1]+.03,top[2]],C.trim,[T[0]*ca+T[1]*sa,0,-T[0]*sa+T[1]*ca]);
-      for(let k=0;k<=Math.ceil(d/.9);k++){const f=Math.min(1,k*.9/Math.max(.01,d)),pu=su+on[0]*d*f,pv=sv+on[1]*d*f,yy=FH+(y-FH)*f,pp=P(pu,pv,yy);boxO(out,pp[0],F+yy+.45,pp[2],.025,.45,.025,-a,C.trim);}}}
-  const inStair=(u,v)=>{if(!stair)return false;const du=u-(stair.a0+stair.a1)/2,dv=v-(stair.b0+stair.b1)/2,T=[stair.a1-stair.a0,stair.b1-stair.b0],tl=hyp(T[0],T[1]);
-    const along=(du*T[0]+dv*T[1])/tl,out_=du*stair.on[0]+dv*stair.on[1];return Math.abs(along)<stair.w+.3&&out_>-.4&&out_<(stair.len||0)+1.2;};
+    for(const sg of[-1,1]){const su=mu+T[0]*(w+.05)*sg,sv=mv+T[1]*(w+.05)*sg,tp=P(su,sv,top+.9),bot=P(su+on[0]*d,sv+on[1]*d,y+.9);
+      quadO(out,[tp[0],tp[1]-.06,tp[2]],[bot[0],bot[1]-.06,bot[2]],[bot[0],bot[1]+.03,bot[2]],[tp[0],tp[1]+.03,tp[2]],C.trim,[T[0]*ca+T[1]*sa,0,-T[0]*sa+T[1]*ca]);
+      for(let k=0;k<=Math.ceil(d/.9);k++){const f=Math.min(1,k*.9/Math.max(.01,d)),pu=su+on[0]*d*f,pv=sv+on[1]*d*f,yy=top+(y-top)*f,pp=P(pu,pv,yy);boxO(out,pp[0],F+yy+.45,pp[2],.025,.45,.025,-a,C.trim);}}}
+  const inStair=(u,v,bb)=>stairs.some(st=>{if(bb&&st.b!==bb)return false;const du=u-st.mu,dv=v-st.mv,T=[st.a1-st.a0,st.b1-st.b0],tl=hyp(T[0],T[1]);
+    const along=(du*T[0]+dv*T[1])/tl,out_=du*st.on[0]+dv*st.on[1];return Math.abs(along)<st.w+.3&&out_>-.4&&out_<(st.len||0)+1.2;});
   // walls (and posts under open roofs)
   const ext=[];
   for(const b of B){const[t,u0,u1,v0,v1,e,p,cap]=b,fl=b[8]||'',o=ov(b),U0=u0+o,U1=u1-o,V0=v0+o,V1=v1-o;
@@ -2352,7 +2361,7 @@ function blockMass(h,q,out,L,C){
           if(FH-.25>Math.min(ga,gb)+.05)q4(P(ua,va,ga-.3),P(ub,vb,gb-.3),P(ub,vb,FH-.25),P(ua,va,FH-.25),C.fc,n);
           q4(P(ua,va,FH-.25),P(ub,vb,FH-.25),P(ub,vb,FH),P(ua,va,FH),C.trim,n);
           // railing where the floor stands well above the ground, except at the stair
-          const um=(ua+ub)/2,vm=(va+vb)/2;if(!dk&&FH-Math.min(ga,gb)>.6&&!(stair&&stair.b===b&&inStair(um+on[0]*.3,vm+on[1]*.3))){const o3=.06,R_=(u,v,y)=>{const pp=P(u-on[0]*o3,v-on[1]*o3,y);return pp;};
+          const um=(ua+ub)/2,vm=(va+vb)/2;if(!dk&&FH-Math.min(ga,gb)>.6&&!inStair(um+on[0]*.3,vm+on[1]*.3,b)){const o3=.06,R_=(u,v,y)=>{const pp=P(u-on[0]*o3,v-on[1]*o3,y);return pp;};
             q4(R_(ua,va,FH+.92),R_(ub,vb,FH+.92),R_(ub,vb,FH+1.0),R_(ua,va,FH+1.0),C.trim,n);q4(R_(ua,va,FH+.1),R_(ub,vb,FH+.1),R_(ub,vb,FH+.16),R_(ua,va,FH+.16),C.trim,n);
             for(let j=0;j<3;j++){const f=(j+.5)/3,c=R_(ua+(ub-ua)*f,va+(vb-va)*f,0);boxO(out,c[0],F+FH+.53,c[2],.025,.38,.025,-a,C.trim);}}}
         if(C.ar&&FH-Math.min(gAt(a0,b0),gAt(a1,b1))+F>1.8)arches([a0,b0],[a1,b1],n,gAt(a0,b0)-F,gAt(a1,b1)-F,FH-.25,2.4);
@@ -2363,7 +2372,7 @@ function blockMass(h,q,out,L,C){
           boxO(out,X(u,v),F+(g+y)/2,Z(u,v),.11,(y-g)/2,.11,-a,fl.includes('d')?C.trim:C.post);}}
       // foundation shrubs along the porch skirt
       if(floored(b)&&C.yard!=='none')for(const[a0,b0,a1,b1,n]of[[u0,v1,u1,v1,nV(1)],[u1,v0,u0,v0,nV(-1)],[u1,v1,u1,v0,nU(1)],[u0,v0,u0,v1,nU(-1)]]){const Lr=hyp(a1-a0,b1-b0),on=[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca];
-        for(let d=1.2;d<Lr-1;d+=2.3){const u=a0+(a1-a0)*d/Lr+on[0]*.9,v=b0+(b1-b0)*d/Lr+on[1]*.9;if(inStair(u,v)||B.some(o2=>rh(o2,u,v)>-1e8))continue;shrubs.push([X(u,v),Z(u,v),Math.min(.85,.45+(flH(b)-(gAt(u,v)-F))*.18)]);}}
+        for(let d=1.2;d<Lr-1;d+=2.3){const u=a0+(a1-a0)*d/Lr+on[0]*.9,v=b0+(b1-b0)*d/Lr+on[1]*.9;if(inStair(u,v)||B.some(o2=>rh(o2,u,v)>-1e8))continue;shrubs.push([X(u,v),Z(u,v),Math.min(.85,.45+(flH(b)-(gAt(u,v)-F))*.18),n[0],n[2]]);}}
       continue;}
     for(const[a0,b0,a1,b1,n]of sides){const Lr=hyp(a1-a0,b1-b0);if(Lr<.05)continue;const ts=[0,1];const ns=Math.max(1,Math.round(Lr/2));for(let k=1;k<ns;k++)ts.push(k/ns);
       // breakpoints where the roof line kinks (gable peaks, ridge ends)
@@ -2387,7 +2396,7 @@ function blockMass(h,q,out,L,C){
     const yb=C.lo>0?Math.max(C.lo,ft):ft;if(C.lo>0&&yb>gm+.5)q4(Q(0,g0-.3),Q(1,g1-.3),Q(1,Math.max(g1,yb)),Q(0,Math.max(g0,yb)),C.lc,n);
     const lowS=C.ar&&C.lo>0&&!tw&&C.lo-gl>1.8;if(lowS)arches([ua,va],[ub,vb],n,g0,g1,C.lo,2.4);
     if(C.yard!=='none'&&!tw&&Lr>1.6)for(let d=.9;d<Lr-.6;d+=2.3){const on=[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca],u=ua+(ub-ua)*d/Lr+on[0]*.95,v=va+(vb-va)*d/Lr+on[1]*.95;
-      if(inStair(u,v)||B.some(o2=>rh(o2,u,v)>-1e8))continue;shrubs.push([X(u,v),Z(u,v),Math.min(.85,.45+Math.max(0,ft-(gAt(u,v)-F))*.2)]);}
+      if(inStair(u,v)||B.some(o2=>rh(o2,u,v)>-1e8))continue;shrubs.push([X(u,v),Z(u,v),Math.min(.85,.45+Math.max(0,ft-(gAt(u,v)-F))*.2),n[0],n[2]]);}
     if(C.lines&&yt-gl>1)for(let y=Math.max(gl,yb)+C.lines;y<yt-.4;y+=C.lines)q4(Q(0,y),Q(1,y),Q(1,y+(C.mat==='log'?.08:.04)),Q(0,y+(C.mat==='log'?.08:.04)),C.line,n);
     if((C.mat==='board'||C.mat==='tudor')&&yt-gl>1){const nb=Math.max(1,Math.round(Lr/(C.mat==='tudor'?1.4:.75))),w=(C.mat==='tudor'?.08:.04)/Lr,y0=Math.max(gl,yb),col=C.mat==='tudor'?C.tc:C.line;
       for(let k=0;k<nb;k++){const t=(k+.5)/nb;q4(Q(t-w,y0),Q(t+w,y0),Q(t+w,yt-.3),Q(t-w,yt-.3),col,n);}
@@ -2775,10 +2784,15 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
     const shrubO=(x,y,z,sz,col)=>{const sx=sz*(.9+R()*.4),sy=sz*(.7+R()*.3),sz2=sz*(.9+R()*.4),sd=R()*100;
       const Pq=v=>{const k=1+.16*Math.sin(v[0]*5.1+sd)*Math.sin(v[2]*4.3+sd*.7)+.1*Math.sin(v[1]*6.7+sd);return[x+v[0]*sx*k,y+v[1]*sy*k+sy*.6,z+v[2]*sz2*k];};
       const c=mul(col,.85+R()*.3);for(const[a1,b1,c1]of ICO0){if(a1[1]+b1[1]+c1[1]<-1.5)continue;pushTri(out,Pq(a1),Pq(b1),Pq(c1),c);}};
-    for(const[x,z,sz]of q._shr){if(hyp(x-E.mx,z-E.mz)<3.4)continue;
+    // CLUBLOOK bd (from photos): h = a continuous clipped hedge instead of single shrubs, fl = a bed of flowers in front of it
+    const BD=(CLUBLOOK[CUR.id]||(CUR.data&&CLUBLOOK[CUR.data])||{}).bd||{},FL=BD.fl?hexc(BD.fl):null;let k2=0;
+    for(const[x,z,sz,nx,nz]of q._shr){if(hyp(x-E.mx,z-E.mz)<3.4)continue;
       if(pt){const dx=x-pt[0],dz=z-pt[1],c=Math.cos(pt[4]),s2=Math.sin(pt[4]),lu=dx*c+dz*s2,lv=-dx*s2+dz*c;if(Math.abs(lu)<pt[2]+1.3&&Math.abs(lv)<pt[3]+1.3)continue;}
       const lc=lieCodeAt(h,x,z);if(lc>1||lc<0||h.water.some(w=>inPoly(w,x,z)))continue;
-      shrubO(x,hAtH(h,x,z)-.12,z,sz*(.85+R()*.3),GR[(R()*GR.length)|0]);}}
+      if(BD.h){const tx=-(nz||0),tz=nx||0;for(const o of[-.75,0,.75])shrubO(x+tx*o,hAtH(h,x+tx*o,z+tz*o)-.12,z+tz*o,.55,GR[1]);}
+      else shrubO(x,hAtH(h,x,z)-.12,z,sz*(.85+R()*.3),GR[(R()*GR.length)|0]);
+      if(FL&&nx!=null)for(let j=0;j<3;j++){const fx=x+nx*.9+(R()-.5)*1.6,fz=z+nz*.9+(R()-.5)*1.6;shrubO(fx,hAtH(h,fx,fz)-.08,fz,.2+R()*.08,R()<.2?GR[2]:FL);}
+      k2++;}}
 }
 /* ---------- course landmarks, second set (Oct 2026): steel truss, boardwalk and covered bridges, farm windmill/silo/barns,
    flower beds, rock outcrops and ledges, waterfalls, gazebos, hotel towers, hay bales, a dead snag and entrance boulders.
