@@ -59,7 +59,7 @@ def obj(name, A, m, uv=False, recv=False):
     o = bpy.data.objects.new(name, me); COLL.objects.link(o)
     if recv:
         me.color_attributes.new('ao', 'FLOAT_COLOR', 'CORNER'); me.color_attributes.active_color = me.color_attributes['ao']
-        for f in ('visible_camera', 'visible_diffuse', 'visible_glossy', 'visible_transmission', 'visible_volume_scatter', 'visible_shadow'):
+        for f in ('visible_diffuse', 'visible_glossy', 'visible_transmission', 'visible_volume_scatter', 'visible_shadow'):
             if hasattr(o, f): setattr(o, f, False)
     o['order'] = 0
     return o, order
