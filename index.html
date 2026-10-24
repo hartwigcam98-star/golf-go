@@ -2326,29 +2326,30 @@ function blockMass(h,q,out,L,C){
     for(let k=0;k<na;k++){const t=(k+.5)/na,u=A[0]+(B2[0]-A[0])*t,v=A[1]+(B2[1]-A[1])*t,g=g0+(g1-g0)*t,yt=top-.45-w;if(yt-g<.5)continue;const T=[(B2[0]-A[0])/L0,(B2[1]-A[1])/L0],o=.04;
       const W=(s2,y)=>{const pp=P(u+T[0]*s2,v+T[1]*s2,y);return[pp[0]+n[0]*o,pp[1],pp[2]+n[2]*o];};q4(W(-w,g+.05),W(w,g+.05),W(w,yt),W(-w,yt),arC,n);
       for(let j=0;j<6;j++){const a1=j/6*Math.PI,a2=(j+1)/6*Math.PI;triO(out,W(0,yt),W(Math.cos(a1)*w,yt+Math.sin(a1)*w),W(Math.cos(a2)*w,yt+Math.sin(a2)*w),arC,n);}}};
-  // stairs down from the raised porches: where the photos put them (CLUBLID st: [u,v,width] in the model frame, snapped to the nearest
-  // open porch edge), else one centred on the longest open edge
+  // stairs down from the raised floor: where the photos put them (CLUBLID st: [u,v,width,dir] in the model frame, snapped to the nearest
+  // open edge of a raised porch, deck or wall; dir 0 runs straight out, 1/-1 runs alongside the wall), else one centred on the longest open porch edge
   const stairs=[],sides4=b=>{const[,u0,u1,v0,v1]=b;return[[u0,v1,u1,v1,nV(1)],[u1,v0,u0,v0,nV(-1)],[u1,v1,u1,v0,nU(1)],[u0,v0,u0,v1,nU(-1)]];};
   const openEdge=(b,a0,b0,a1,b1,n)=>{const mu=(a0+a1)/2,mv=(b0+b1)/2,on=[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca];return!B.some(o=>o!==b&&(!(o[8]||'').includes('o')||floored(o))&&rh(o,mu+on[0]*1.5,mv+on[1]*1.5)>-1e8);};
+  const mkStair=(b,a0,b0,a1,b1,n,w,t,mode)=>{const on=[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca],Lr=hyp(a1-a0,b1-b0),T=[(a1-a0)/Lr,(b1-b0)/Lr],eu=a0+(a1-a0)*t,ev=b0+(b1-b0)*t;
+    return mode?{b,D:[T[0]*mode,T[1]*mode],A:on,w,su:eu+on[0]*(w+.05),sv:ev+on[1]*(w+.05),fh:floored(b)?flH(b):FH}:{b,D:on,A:T,w,su:eu,sv:ev,fh:floored(b)?flH(b):FH};};
   if(C.stair!==0&&FH>=.45){
-    if(C.st&&C.st.length)for(const[su,sv,sw]of C.st){let best=null;for(const b of B){if(!floored(b)||(b[8]||'').includes('d')&&Math.abs(b[5]-FH)>.6)continue;for(const[a0,b0,a1,b1,n]of sides4(b)){if(!openEdge(b,a0,b0,a1,b1,n))continue;
-        const L2=(a1-a0)**2+(b1-b0)**2,t=clamp(((su-a0)*(a1-a0)+(sv-b0)*(b1-b0))/L2,0,1),pu=a0+(a1-a0)*t,pv=b0+(b1-b0)*t,d=hyp(su-pu,sv-pv);if(!best||d<best.d)best={d,b,a0,b0,a1,b1,n,t};}}
-      if(best){const{b,a0,b0,a1,b1,n}=best,Lr=hyp(a1-a0,b1-b0),w=Math.min(sw/2,Lr/2-.2),t=clamp(best.t,(w+.2)/Lr,1-(w+.2)/Lr);
-        stairs.push({b,a0,b0,a1,b1,n,on:[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca],w,mu:a0+(a1-a0)*t,mv:b0+(b1-b0)*t,fh:flH(b)});}}
+    if(C.st&&C.st.length)for(const[su,sv,sw,md]of C.st){let best=null;for(const b of B){const op=(b[8]||'').includes('o');if(b[0]==='T'||b[0]==='C'||op&&!floored(b)||(b[8]||'').includes('d')&&Math.abs(b[5]-FH)>.6)continue;
+        for(const[a0,b0,a1,b1,n]of sides4(b)){if(!openEdge(b,a0,b0,a1,b1,n))continue;const L2=(a1-a0)**2+(b1-b0)**2,t=clamp(((su-a0)*(a1-a0)+(sv-b0)*(b1-b0))/L2,0,1),pu=a0+(a1-a0)*t,pv=b0+(b1-b0)*t,d=hyp(su-pu,sv-pv);
+          if(!best||d<best.d)best={d,b,a0,b0,a1,b1,n,t};}}
+      if(best){const{b,a0,b0,a1,b1,n}=best,Lr=hyp(a1-a0,b1-b0),w=Math.min(sw/2,Lr/2-.2),t=md?best.t:clamp(best.t,(w+.2)/Lr,1-(w+.2)/Lr);stairs.push(mkStair(b,a0,b0,a1,b1,n,w,t,md||0));}}
     else if(!C.st){let best=-1,bs=null;for(const b of B){if(!floored(b)||(b[8]||'').includes('d'))continue;for(const[a0,b0,a1,b1,n]of sides4(b)){const Lr=hyp(a1-a0,b1-b0);
-        if(Lr<4||!openEdge(b,a0,b0,a1,b1,n))continue;if(Lr>best){best=Lr;bs={b,a0,b0,a1,b1,n,on:[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca],w:Math.min(FH>2?2.2:1.6,Lr*.18),mu:(a0+a1)/2,mv:(b0+b1)/2,fh:FH};}}}
+        if(Lr<4||!openEdge(b,a0,b0,a1,b1,n))continue;if(Lr>best){best=Lr;bs=mkStair(b,a0,b0,a1,b1,n,Math.min(FH>2?2.2:1.6,Lr*.18),.5,0);}}}
       if(bs)stairs.push(bs);}}
-  for(const stair of stairs){const{a0,b0,a1,b1,n,on,w,mu,mv}=stair,T=[(a1-a0),(b1-b0)],tl=hyp(T[0],T[1]);T[0]/=tl;T[1]/=tl;const top=stair.fh;
-    let y=top,d=0;const rise=.17,run=.3;
-    for(let k=0;k<40&&y>-30;k++){const g=gAt(mu+on[0]*(d+run/2),mv+on[1]*(d+run/2))-F;if(y-rise<=g+.05)break;y-=rise;const cu=mu+on[0]*(d+run/2),cv=mv+on[1]*(d+run/2);
-      const c=P(cu,cv,0),gb=Math.min(g,y)-.3,au=Math.abs(on[0])>.5;boxO(out,c[0],F+(gb+y)/2,c[2],au?run/2:w,(y-gb)/2,au?w:run/2,-a,mul(C.fc,1.06));d+=run;}
-    stair.len=d;
+  for(const st of stairs){const{D,A,w,su,sv}=st,top=st.fh;let y=top,d=0;const rise=.17,run=.3,au=Math.abs(D[0])>.5;
+    for(let k=0;k<40&&y>-30;k++){const cu=su+D[0]*(d+run/2),cv=sv+D[1]*(d+run/2),g=gAt(cu,cv)-F;if(y-rise<=g+.05)break;y-=rise;
+      const c=P(cu,cv,0),gb=Math.min(g,y)-.3;boxO(out,c[0],F+(gb+y)/2,c[2],au?run/2:w,(y-gb)/2,au?w:run/2,-a,mul(C.fc,1.06));d+=run;}
+    st.len=d;
     // handrails down both sides
-    for(const sg of[-1,1]){const su=mu+T[0]*(w+.05)*sg,sv=mv+T[1]*(w+.05)*sg,tp=P(su,sv,top+.9),bot=P(su+on[0]*d,sv+on[1]*d,y+.9);
-      quadO(out,[tp[0],tp[1]-.06,tp[2]],[bot[0],bot[1]-.06,bot[2]],[bot[0],bot[1]+.03,bot[2]],[tp[0],tp[1]+.03,tp[2]],C.trim,[T[0]*ca+T[1]*sa,0,-T[0]*sa+T[1]*ca]);
-      for(let k=0;k<=Math.ceil(d/.9);k++){const f=Math.min(1,k*.9/Math.max(.01,d)),pu=su+on[0]*d*f,pv=sv+on[1]*d*f,yy=top+(y-top)*f,pp=P(pu,pv,yy);boxO(out,pp[0],F+yy+.45,pp[2],.025,.45,.025,-a,C.trim);}}}
-  const inStair=(u,v,bb)=>stairs.some(st=>{if(bb&&st.b!==bb)return false;const du=u-st.mu,dv=v-st.mv,T=[st.a1-st.a0,st.b1-st.b0],tl=hyp(T[0],T[1]);
-    const along=(du*T[0]+dv*T[1])/tl,out_=du*st.on[0]+dv*st.on[1];return Math.abs(along)<st.w+.3&&out_>-.4&&out_<(st.len||0)+1.2;});
+    for(const sg of[-1,1]){const ru=su+A[0]*(w+.05)*sg,rv=sv+A[1]*(w+.05)*sg,tp=P(ru,rv,top+.9),bot=P(ru+D[0]*d,rv+D[1]*d,y+.9);
+      quadO(out,[tp[0],tp[1]-.06,tp[2]],[bot[0],bot[1]-.06,bot[2]],[bot[0],bot[1]+.03,bot[2]],[tp[0],tp[1]+.03,tp[2]],C.trim,[A[0]*ca+A[1]*sa,0,-A[0]*sa+A[1]*ca]);
+      for(let k=0;k<=Math.ceil(d/.9);k++){const f=Math.min(1,k*.9/Math.max(.01,d)),pu=ru+D[0]*d*f,pv=rv+D[1]*d*f,yy=top+(y-top)*f,pp=P(pu,pv,yy);boxO(out,pp[0],F+yy+.45,pp[2],.025,.45,.025,-a,C.trim);}}}
+  const inStair=(u,v,bb)=>stairs.some(st=>{if(bb&&st.b!==bb)return false;const du=u-st.su,dv=v-st.sv,along=du*st.D[0]+dv*st.D[1],across=du*st.A[0]+dv*st.A[1];
+    return Math.abs(across)<st.w+.4&&along>-1.2&&along<(st.len||0)+1.2;});
   // walls (and posts under open roofs)
   const ext=[];
   for(const b of B){const[t,u0,u1,v0,v1,e,p,cap]=b,fl=b[8]||'',o=ov(b),U0=u0+o,U1=u1-o,V0=v0+o,V1=v1-o;
