@@ -85,6 +85,7 @@ for g in groups.values():
     if H > .6: frames += box(c, a, b, nv, W / 2, .025, 0, .03, trim)
     nwin += 1
 T2 = split(T)
+if len(T2) > 60000: T2 = split(T, maxe=6.0, depth=2)
 if frames: T2 = np.concatenate([T2, np.array(frames)])
 xs = np.arange(-R, R + 1e-6, 1.0)
 np.savez_compressed(dst, tris=T2.astype(np.float32), off=off, offc=off + np.array([d['T0'][0], 0, d['T0'][1]]), ground=(gr - g0).astype(np.float32), R=np.array([R]), xs=xs)
