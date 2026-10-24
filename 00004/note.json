@@ -1,0 +1,24 @@
+{
+ "id": 4,
+ "created_at": "2026-10-09T21:01:12.917847+00:00",
+ "player_id": "pmzu252dumv05u3u4",
+ "name": "Pappa",
+ "kind": "bug",
+ "message": "pinch to zoom should allow to get closer view than this.  this mode the camera very clunky when trying to view specific areas especially near the cup",
+ "ctx": {
+  "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6.1 Mobile/15E148 Safari/604.1",
+  "app": true,
+  "gfx": "fast",
+  "lie": "green",
+  "ver": "2026-10-09-3152",
+  "hole": 12,
+  "mode": "round",
+  "thru": 11,
+  "state": "aim",
+  "toPar": -3,
+  "course": "lookout",
+  "screen": "428x680@3",
+  "stroke": 3
+ },
+ "shot": "shot.jpg"
+}
