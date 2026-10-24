@@ -124,13 +124,21 @@ TER.select_set(True); bpy.context.view_layer.objects.active = TER
 def grab():
     a = np.empty(IW * IH * 4, np.float32); img.pixels.foreach_get(a); return a.reshape(IH, IW, 4)[:, :, 0].copy()
 
+ONLY = os.environ.get('BAKE_ONLY', '')
 SC.cycles.samples = int(os.environ.get('SH_SAMPLES', 96))
-t = time.time(); bpy.ops.object.bake(type='SHADOW', use_clear=True); SH = grab(); log('shadow bake', round(time.time() - t), 's', 'mean', float(SH.mean()))
+if ONLY != 'sky':
+    t = time.time(); bpy.ops.object.bake(type='SHADOW', use_clear=True); SH = grab(); log('shadow bake', round(time.time() - t), 's', 'mean', float(SH.mean()))
+else: SH = None
 # sky: the sun off, a white sky; diffuse light (direct + one bounce) without the albedo
 ld.energy = 0; lo.hide_render = True; bg.inputs['Strength'].default_value = 1.0
 SC.cycles.samples = int(os.environ.get('SKY_SAMPLES', 48))
 SC.render.bake.use_pass_direct = True; SC.render.bake.use_pass_indirect = True; SC.render.bake.use_pass_color = False
-t = time.time(); bpy.ops.object.bake(type='DIFFUSE', pass_filter={'DIRECT', 'INDIRECT'}, use_clear=True); SKY = grab(); log('sky bake', round(time.time() - t), 's', 'mean', float(SKY.mean()), 'p95', float(np.percentile(SKY, 95)))
+if ONLY != 'sun':
+    t = time.time(); bpy.ops.object.bake(type='DIFFUSE', pass_filter={'DIRECT', 'INDIRECT'}, use_clear=True); SKY = grab(); log('sky bake', round(time.time() - t), 's', 'mean', float(SKY.mean()), 'p95', float(np.percentile(SKY, 95)))
+else: SKY = None
+np.savez_compressed(os.path.join(OUT, 'raw_%s.npz' % (ONLY or 'both')), **({'sun': SH} if SH is not None else {}), **({'sky': SKY} if SKY is not None else {}))
+if SH is None or SKY is None:
+    open(os.path.join(OUT, 'log.txt'), 'w').write('\n'.join(LOG)); sys.exit(0)
 
 # ------------------------------------------------------------- denoise (separable blur) and write
 def blur(a, s):
