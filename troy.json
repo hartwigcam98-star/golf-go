@@ -56,7 +56,7 @@
    "GV",
    8.87,
    11.68,
-   -11.87,
+   -11.5,
    -6.99,
    4.69,
    0.52,
@@ -130,14 +130,14 @@
  "overhang": 0.45,
  "rake": 0.25,
  "colors": {
-  "siding": "#dcd3c3",
-  "trim": "#f1eee6",
-  "fascia": "#efebe3",
-  "soffit": "#e8e4da",
-  "roof": "#8a7f78",
+  "siding": "#e4d7c1",
+  "trim": "#f4f0e6",
+  "fascia": "#f1ede4",
+  "soffit": "#ece6da",
+  "roof": "#857c71",
   "stone": "#8f877c",
   "glass": "#28323c",
-  "muntin": "#eeebe4",
+  "muntin": "#f1eee6",
   "gutter": "#ebe8e0",
   "chimney": "#e3dacb",
   "flue": "#4a4642",
@@ -149,8 +149,8 @@
   "N": {
    "pair": true,
    "w": 0.95,
-   "gap": 0.3,
-   "period": 4.4,
+   "gap": 0.26,
+   "period": 3.4,
    "sill": 0.32,
    "head": 2.55,
    "cols": 2,
@@ -295,5 +295,13 @@
    ],
    "lens": 30
   }
- ]
+ ],
+ "notes": "dormer block 5 front moved from v -11.87 to -11.5 (fit put it 0.21 yd proud of the main wall, within fit error; photo 24 shows a roof dormer, not a bay)",
+ "sky": [
+  0.62,
+  0.7,
+  0.82
+ ],
+ "sky_strength": 0.75,
+ "sun_energy": 4.2
 }

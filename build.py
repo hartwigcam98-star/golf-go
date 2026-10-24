@@ -429,8 +429,8 @@ me.materials.clear(); me.materials.append(mat)
 
 SC.render.engine = 'CYCLES'; SC.cycles.device = 'CPU'
 world = bpy.data.worlds.new('w'); SC.world = world; world.use_nodes = True
-world.node_tree.nodes['Background'].inputs['Color'].default_value = (.50, .64, .85, 1)
-world.node_tree.nodes['Background'].inputs['Strength'].default_value = 1.0
+world.node_tree.nodes['Background'].inputs['Color'].default_value = tuple(SPEC.get('sky', [.50, .64, .85])) + (1,)
+world.node_tree.nodes['Background'].inputs['Strength'].default_value = SPEC.get('sky_strength', 1.0)
 world.light_settings.distance = SPEC.get('ao_dist', 3.0)
 me.color_attributes.new('ao', 'BYTE_COLOR', 'CORNER')
 me.color_attributes.active_color = me.color_attributes['ao']
