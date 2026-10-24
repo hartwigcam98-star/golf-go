@@ -26,6 +26,19 @@ Colours are '#rrggbb'. Omit a key to get the default.
 - `eg` entry cross gable (half-width yd). `v` porch: 'front' | 'wrap' | 'none'; `c` porch post / column colour (also the posts under a lidar model's open blocks).
 - `po` columned portico, `pc` porte-cochère (`pcc` post colour), `bal` second-storey iron balcony, `cbn` cart barn under a cross gable.
 
+## Foundation and grounds (always apply; from photos AND the survey, never by guess)
+- `fh` main floor height above the entrance ground (yd). Porches and verandas (open blocks) get a floor at that height with a skirt,
+  a railing where it stands more than 0.6 yd up, posts from the floor and one stair; walls show a foundation up to it. Only set it
+  when photos show the floor raised: a few steps ≈ 0.5–0.8, a half storey (4–5 ft brick base) ≈ 1.4, a full storey over a brick or
+  arched ground floor ≈ the `lo` height (2.6–3.2). Leave it out for buildings on grade (most).
+- `fc` foundation colour (default: `lc` when there is a brick ground storey, else the stone colour). `pf` porch floor colour.
+- `ar` 'dark' | 'glass': arched openings in the `lo` ground storey and in raised porch skirts.
+- `yard: 'none'` for a clubhouse that stands in sand, dune grass, prairie or desert planting; otherwise the game lays mown lawn
+  16 yd round it, a mulched bed with clipped shrubs along the walls and a narrow walk.
+Survey check for `fh`: compare the photos with the ground ring (how far the ground falls round the building) and the
+porch roof heights in the model (a porch roof ~3 yd above a raised floor): `python3 helpers/grade.py /home/claude/golf/clubs /tmp/grade.json`. Examples: gnlake (3.2, full storey), legislator (1.4),
+heritage (0.7), trueblue (0.6).
+
 ## Patio (always applies)
 - `pt` patio floor on the course side: stone | brick | paver | deck | reddeck. Omit for no patio.
 - `um` umbrella colours, comma list ('' = none). `fp` fire pits with Adirondack chairs.

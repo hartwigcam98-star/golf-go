@@ -16,6 +16,7 @@ def lid(key):
     W = f'{G}clubs/work/{key}/'; m = json.load(open(W + 'meta.json')); b = json.load(open(W + 'final.json'))
     R = lambda bl: [[x[0]] + [round(float(v), 2) for v in x[1:8]] + ([x[8]] if len(x) > 8 and x[8] else []) for x in bl]
     L = dict(o=m['o'], a=m['a'], ref=m['ref'], blocks=R(b.get('blocks', [])))
+    sys.path.insert(0, G + 'clubs'); import bk; L['gr'] = bk.ring(key, b)
     if b.get('parts'):
         A = math.radians(m['a'])
         L['parts'] = [dict(o=[round(m['o'][0] + p['du'] * math.cos(A) + p['dv'] * math.sin(A), 2), round(m['o'][1] - p['du'] * math.sin(A) + p['dv'] * math.cos(A), 2)],

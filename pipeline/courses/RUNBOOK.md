@@ -147,7 +147,8 @@ python3 test/mkharness.py work/index.html work/test/index.html && cp work/greens
    to `pipeline/courses/extras/<key>_model/`. Then `python3 clubs/extras.py lid <key>` (from golf/). If the dsm shows no building
    (the survey is older than the clubhouse) or the scan is too sparse to read, skip the model and say so in the report.
 2. **Look:** from the clubhouse photos write `"clublook"` into `pipeline/courses/extras/<key>.json` (clubs/LOOKKEYS.md: wall
-   colour and material, trim, roof colour, `lo`/`lc`, `clk`, `ch`, `c`, patio `pt`/`um`/`fp`/`rw`). No clear photo of the
+   colour and material, trim, roof colour, `lo`/`lc`, `clk`, `ch`, `c`, patio `pt`/`um`/`fp`/`rw`; `fh` only when the photos show the
+   main floor raised and the survey agrees; `yard:'none'` when it stands in sand, dune grass, prairie or desert). No clear photo of the
    clubhouse: leave clublook out (the region's default look).
 3. **Course feel and landmarks:** from the course photos write `"cfeel"` (fountains, pond edges, bridge style) and, only for
    landmarks clearly on this course, `"cfeel2"` (clubs/LANDMARKS.md).

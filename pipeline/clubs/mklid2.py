@@ -8,6 +8,8 @@ for d in sorted(glob.glob('work/*/')):
     m=json.load(open(d+'meta.json'));b=json.load(open(f))
     R=lambda bl:[[x[0]]+[round(float(v),2) for v in x[1:8]]+([x[8]] if len(x)>8 and x[8] else []) for x in bl]
     T[cid]=dict(o=m['o'],a=m['a'],ref=m['ref'],blocks=R(b.get('blocks',[])))
+    if os.path.exists(d+'frame.npz'):
+        import bk;T[cid]['gr']=bk.ring(cid,b)
     if b.get('parts'):   # wings at their own angle: origin (du,dv) in the main frame, angle main+da (deg, CCW)
         import math;A=math.radians(m['a']);T[cid]['parts']=[dict(o=[round(m['o'][0]+p['du']*math.cos(A)+p['dv']*math.sin(A),2),round(m['o'][1]-p['du']*math.sin(A)+p['dv']*math.cos(A),2)],a=round(m['a']+p['da'],2),blocks=R(p['blocks'])) for p in b['parts']]
 for a,b in alias.items():

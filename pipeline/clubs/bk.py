@@ -192,6 +192,20 @@ def cmd_fit(cid,free=False):
     spec=tospec(BB);json.dump(spec,open(W+'/fit.json','w'),indent=0)
     st=residual_img(cid,spec,W+'/fit.jpg');print('median %.2f yd  rms %.2f  share off by >1yd %.1f%%'%(st[0],st[1],st[2]*100))
     for b in BB: print(b)
+def ring(cid,spec=None,n=24):
+    """survey ground samples round the building, [u,v,ground above the reference] about 4 yd outside its closed blocks: the game sets the
+    model's height from the median offset to its own ground there (lidF), so one odd spot can't sink or lift it"""
+    W,U,V,H,G,K=load(cid);spec=spec or json.load(open(W+'/final.json'))
+    cl=lambda bl:[b for b in bl if not(len(b)>8 and set(b[8])&set('od'))]
+    sp=dict(spec,blocks=cl(spec.get('blocks',[])),parts=[dict(p,blocks=cl(p['blocks'])) for p in spec.get('parts',[])])
+    M=(env_spec(sp,U,V)>-50).astype(np.uint8);px=U[0,1]-U[0,0]
+    d=cv2.dilate(M,np.ones((int(8/px)+1,)*2,np.uint8));cs,_=cv2.findContours(d,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+    if not cs: return []
+    c=max(cs,key=len)[:,0,:];out=[]
+    for x,y in c[::max(1,len(c)//n)]:
+        g=G[y,x]
+        if np.isfinite(g): out.append([round(float(U[y,x]),2),round(float(V[y,x]),2),round(float(g),2)])
+    return out
 def cmd_show(cid,f):
     W,*_=load(cid);spec=json.load(open(f));st=residual_img(cid,spec,W+'/show.jpg');print('median %.2f yd  rms %.2f  share off by >1yd %.1f%%'%(st[0],st[1],st[2]*100))
 if __name__=='__main__':

@@ -1253,6 +1253,7 @@ function buildHole(d,idx){
   if(CUR.surr)surrForHole(h);
   bldxForHole(h);bldSanity(h);
   try{clubModelFp(h);}catch(e){console.warn('cmfp',e);}
+  try{clubLawn(h);}catch(e){console.warn('lawn',e);}
   // keep trees out of buildings and their parking/entry area
   bldTreeClear(h);
   return h;
@@ -1882,7 +1883,11 @@ function buildTerrain(h){
   try{paintCover(h,g,rng(11));}catch(e){}
   g.lineCap='round';g.lineJoin='round';
   // a paved apron round the clubhouse
-  for(const P of h.buildings||[])if(P.club){polyPath(g,P);g.lineJoin='miter';g.strokeStyle='#9c978d';g.lineWidth=8.4;g.stroke();g.strokeStyle='#b9b4a9';g.lineWidth=7.6;g.stroke();g.fillStyle='#b9b4a9';g.fill();g.lineJoin='round';}
+  // (a surveyed clubhouse on a lawn gets a mulched planting bed along its walls and a narrow walk instead)
+  {const LKg=CLUBLOOK[CUR.id]||(CUR.data&&CLUBLOOK[CUR.data])||{};
+  for(const P of h.buildings||[])if(P.club){polyPath(g,P);g.lineJoin='miter';
+    if(lidOf(P,h)&&LKg.yard!=='none'&&CUR.scen!=='desert'){g.strokeStyle='#5b4632';g.lineWidth=5.4;g.stroke();g.strokeStyle='#4d3a29';g.lineWidth=4.2;g.stroke();g.strokeStyle='#b4afa4';g.lineWidth=1.6;g.stroke();g.fillStyle='#b4afa4';g.fill();}
+    else{g.strokeStyle='#9c978d';g.lineWidth=8.4;g.stroke();g.strokeStyle='#b9b4a9';g.lineWidth=7.6;g.stroke();g.fillStyle='#b9b4a9';g.fill();}g.lineJoin='round';}}
   // cart paths
   g.strokeStyle='#a8a296';g.lineWidth=2.6;strokePl(g,h.paths);g.strokeStyle='#c9c4b8';g.lineWidth=1.9;strokePl(g,h.paths);
   // fairways: first cut, then mown stripes clipped to the real outline
@@ -2111,15 +2116,15 @@ const CLUBLOOK={
   royal:{"w":"#eeede7","m":"stucco","t":"#efede6","s":"#b9b4a8","b":0.4,"r":"#2f5a46","eh":7,"rs":4.5,"v":"none","c":"#efede6","cu":1,"cus":1.5,"ch":"#eeede7","pt":"stone","um":"#f4f2ec","ph":2.6,"rw":1,"stp":1,"ar":"glass"},
   troy:{"pt":"paver","um":"#1f2c4a,#b0282e","w":"#c9c6bb","m":"siding","t":"#efede6","s":"#a99e8c","r":"#5c5d5a","v":"front","c":"#efede6","po":1,"dm":3,"eh":4.2,"rs":4},
   stoneridge:{"wb":1,"pt":"brick","um":"#5a3d2e","w":"#d9d0b8","m":"stucco","t":"#3f3a35","s":"#7a5646","b":1.0,"r":"#4c5052","v":"front","rw":1,"c":"#d9d0b8","rs":3,"xg":1,"xgw":"win","xgt":0,"fp":1},
-  caledonia:{"ar":"dark","pt":"brick","um":"","w":"#efede6","m":"siding","t":"#f6f5f0","lo":2.6,"lc":"#7f7260","r":"#6e6555","v":"wrap","c":"#f6f5f0","ch":"#cfc8ba","stp":1,"rs":4.5,"xg":1,"xgw":"win","xgt":0,"xgc":1},
-  trueblue:{"dm":3,"pt":"paver","um":"#2f5f9e","w":"#eceeeb","m":"siding","t":"#f6f5f0","r":"#4a7cc0","v":"wrap","c":"#f6f5f0","ch":"#eceeeb","gb":1,"eh":4.2,"rs":5.8,"stp":1},
-  sandvalley:{"w":"#c8b697","m":"board","t":"#3f3e3b","s":"#8a8378","b":0.4,"r":"#4a4d51","v":"front","c":"#8c7a62","xg":2,"xgw":"win","xgt":0,"bal":1,"ch":"#b59a6e","eh":7,"rs":5,"rp":0.5,"pt":"paver","fp":1,"um":""},
-  mammoth:{"w":"#c8b697","m":"board","t":"#3f3e3b","s":"#8a8378","b":0.4,"r":"#4a4d51","v":"front","c":"#8c7a62","xg":2,"xgw":"win","xgt":0,"bal":1,"ch":"#b59a6e","eh":7,"rs":5,"rp":0.5,"pt":"paver","fp":1,"um":""},
+  caledonia:{"ar":"dark","pt":"brick","um":"","w":"#efede6","m":"siding","t":"#f6f5f0","lo":2.6,"lc":"#7f7260","r":"#6e6555","v":"wrap","c":"#f6f5f0","ch":"#cfc8ba","stp":1,"rs":4.5,"xg":1,"xgw":"win","xgt":0,"xgc":1,"fh":2.6},
+  trueblue:{"dm":3,"pt":"paver","um":"#2f5f9e","w":"#eceeeb","m":"siding","t":"#f6f5f0","r":"#4a7cc0","v":"wrap","c":"#f6f5f0","ch":"#eceeeb","gb":1,"eh":4.2,"rs":5.8,"stp":1,"fh":0.6},
+  sandvalley:{"w":"#c8b697","m":"board","t":"#3f3e3b","s":"#8a8378","b":0.4,"r":"#4a4d51","v":"front","c":"#8c7a62","xg":2,"xgw":"win","xgt":0,"bal":1,"ch":"#b59a6e","eh":7,"rs":5,"rp":0.5,"pt":"paver","fp":1,"um":"","yard":"none"},
+  mammoth:{"w":"#c8b697","m":"board","t":"#3f3e3b","s":"#8a8378","b":0.4,"r":"#4a4d51","v":"front","c":"#8c7a62","xg":2,"xgw":"win","xgt":0,"bal":1,"ch":"#b59a6e","eh":7,"rs":5,"rp":0.5,"pt":"paver","fp":1,"um":"","yard":"none"},
   wilderness:{"pt":"brick","um":"#1f1f1f","w":"#c8b98c","m":"board","t":"#7a3626","s":"#b2a48f","b":0.5,"r":"#3d5a4f","v":"wrap","c":"#b2a48f","ch":"#7a6656","dm":1,"rw":1,"ph":1},
   quarry:{"pt":"stone","um":"#b8322b","rw":1,"w":"#cdc6b6","m":"siding","t":"#3a332c","s":"#8d8880","b":1.2,"r":"#3a4641","v":"none","c":"#cdc6b6","pc":1,"pcc":"#8d8880"},
   legend:{"pt":"deck","um":"#3d3a36","rw":1,"w":"#735740","m":"siding","t":"#c4a46e","s":"#9a948a","b":0.6,"r":"#3e4a43","v":"none","c":"#c4a46e","ch":"#9a948a","gb":1,"dm":4,"pc":1,"pcc":"#b08a5a"},
-  heritage:{"pt":"brick","um":"","w":"#efede6","m":"siding","t":"#f6f5f0","r":"#3c3f42","v":"none","c":"#f6f5f0","po":1,"sh":"#2c3133","ch":"#efede6","eh":6.8},
-  pawplant:{"dm":4,"pt":"brick","um":"","w":"#efede6","m":"siding","t":"#f6f5f0","lo":2.4,"lc":"#8d6c62","r":"#d0d3d1","v":"front","c":"#f6f5f0","cu":1,"sh":"#2f3436","ch":"#efe9db","stp":1,"ph":0.6,"eh":3.8,"rs":4.6,"ga":1,"xg":1,"xgw":"win","xgt":0},
+  heritage:{"pt":"brick","um":"","w":"#efede6","m":"siding","t":"#f6f5f0","r":"#3c3f42","v":"none","c":"#f6f5f0","po":1,"sh":"#2c3133","ch":"#efede6","eh":6.8,"fh":0.7},
+  pawplant:{"dm":4,"pt":"brick","um":"","w":"#efede6","m":"siding","t":"#f6f5f0","lo":0.8,"lc":"#8d6c62","r":"#d0d3d1","v":"front","c":"#f6f5f0","cu":1,"sh":"#2f3436","ch":"#efe9db","stp":1,"ph":0.6,"eh":3.8,"rs":4.6,"ga":1,"xg":1,"xgw":"win","xgt":0,"fh":0.8},
   deacon:{"pt":"stone","um":"#2e5848","fp":1,"w":"#3d362f","m":"log","t":"#2b2722","s":"#9c8462","b":1,"r":"#3a6866","v":"front","c":"#9c8462","dm":2,"eg":4.5,"ch":"#a8a092","eh":4.2,"rs":5},
   lehman:{"w":"#d9cfbb","m":"stucco","t":"#5a4433","s":"#8f8a82","b":1.2,"r":"#6e5a4c","gb":1,"eh":4.5,"rs":5,"tw":5,"twc":"#d9cfbb","clk":1,"xg":1,"ch":"#8f8a82","pc":1,"pcc":"#5a4433","v":"front","c":"#5a4433","pt":"stone","um":"#e8e2d2","rw":1,"ph":0.8},
   maddens:{"pt":"stone","um":"#2f6b5c","w":"#7a5a3e","m":"siding","t":"#4a3626","s":"#9c968c","b":0.6,"r":"#3f5550","v":"wrap","c":"#7d5d3c","ch":"#a9a6a0","dm":2,"xg":1},
@@ -2128,29 +2133,29 @@ const CLUBLOOK={
   orangeburg:{"pc":1,"pcc":"#cfc0a0","pt":"brick","um":"","ir":1,"w":"#ddcba5","m":"stucco","t":"#efe8d6","s":"#a8916e","b":0.6,"r":"#57544f","v":"none","c":"#cfc0a0","xg":2,"xgw":"win","xgt":0,"eh":4,"rs":3.6,"rp":0.3,"cu":1},
   santee:{"pt":"brick","um":"","w":"#ecebe3","m":"siding","t":"#f6f5f0","r":"#8a9c6e","v":"front","c":"#f6f5f0","cu":1,"sh":"#2f3b3f","ch":"#a39b85","ga":1},
   wyboo:{"pt":"paver","um":"","w":"#a59d94","m":"board","t":"#f4f2ec","s":"#8a4c3a","b":0.9,"r":"#6e6a68","v":"front","c":"#f4f2ec","ga":1,"cu":1},
-  valley:{"w":"#e2d7c4","m":"siding","t":"#f4f2ec","lo":3.2,"lc":"#a46a52","ar":"dark","r":"#857a6a","v":"wrap","c":"#f4f2ec","cu":1,"ch":"#a46a52","xg":1,"xgw":"win","xgt":0,"eg":5,"pt":"paver","um":"","fp":1,"stp":1,"eh":7},
-  gnlake:{"ar":"dark","pt":"brick","um":"","w":"#a4a7a3","m":"siding","t":"#f4f2ec","lo":3.2,"lc":"#8a5444","r":"#8a8478","v":"wrap","c":"#f4f2ec","cu":1,"ch":"#8a5444","eh":6.8,"xg":1,"xgw":"win","xgt":0,"stp":1},
-  lookout:{"pt":"stone","um":"#8b5a42","w":"#c9aa83","m":"stucco","t":"#6b4f3a","s":"#9a8468","b":1,"r":"#8b5a42","v":"none","fl":1},
-  wigwam:{"aw":"#c9b088","pt":"stone","um":"#b3302b","w":"#efede6","m":"stucco","t":"#7a5a3e","b":0.3,"v":"none","fl":1,"eh":4},
-  dove:{"pt":"paver","um":"#6b4a33","w":"#c9b49a","m":"stucco","t":"#6b5440","b":0.3,"v":"none","fl":1},
+  valley:{"w":"#e2d7c4","m":"siding","t":"#f4f2ec","lo":3.2,"lc":"#a46a52","ar":"dark","r":"#857a6a","v":"wrap","c":"#f4f2ec","cu":1,"ch":"#a46a52","xg":1,"xgw":"win","xgt":0,"eg":5,"pt":"paver","um":"","fp":1,"stp":1,"eh":7,"fh":3.2},
+  gnlake:{"ar":"dark","pt":"brick","um":"","w":"#a4a7a3","m":"siding","t":"#f4f2ec","lo":3.2,"lc":"#8a5444","r":"#8a8478","v":"wrap","c":"#f4f2ec","cu":1,"ch":"#8a5444","eh":6.8,"xg":1,"xgw":"win","xgt":0,"stp":1,"fh":3.2},
+  lookout:{"pt":"stone","um":"#8b5a42","w":"#c9aa83","m":"stucco","t":"#6b4f3a","s":"#9a8468","b":1,"r":"#8b5a42","v":"none","fl":1,"yard":"none"},
+  wigwam:{"aw":"#c9b088","pt":"stone","um":"#b3302b","w":"#efede6","m":"stucco","t":"#7a5a3e","b":0.3,"v":"none","fl":1,"eh":4,"yard":"none"},
+  dove:{"pt":"paver","um":"#6b4a33","w":"#c9b49a","m":"stucco","t":"#6b5440","b":0.3,"v":"none","fl":1,"yard":"none"},
   interlachen:{"w":"#e8e0cc","m":"tudor","t":"#3e2e24","tc":"#3e2e24","s":"#94604a","b":0.6,"lo":2.8,"lc":"#94604a","ar":"dark","r":"#7a6350","gb":1,"ga":1,"eh":7.5,"rs":6,"rp":0.55,"xg":3,"xgc":1,"ch":"#e8e0cc","v":"none","pt":"stone","um":"#e9e4d6","rw":1,"ph":1.2,"stp":1},
-  windsong:{"gb":1,"pt":"stone","um":"","rw":1,"fp":1,"w":"#7a4632","m":"board","t":"#3a2a20","lo":1.2,"lc":"#8b4636","r":"#6b635b","v":"front","c":"#4a3326","ch":"#d9d6cf"},
+  windsong:{"gb":1,"pt":"stone","um":"","rw":1,"fp":1,"w":"#7a4632","m":"board","t":"#3a2a20","lo":1.2,"lc":"#8b4636","r":"#6b635b","v":"front","c":"#4a3326","ch":"#d9d6cf","yard":"none"},
   hazeltine:{"wg":{"w":"#5f6366","m":"board"},"tw":6,"twc":"#d2ccbd","clk":1,"pc":1,"pcc":"#8a6a48","pt":"stone","um":"#3d3f40","fp":1,"w":"#d2ccbd","m":"stone","t":"#6e2f2a","s":"#c4bba7","b":0.6,"r":"#5e6163","v":"front","c":"#b07a45","ch":"#d2ccbd","gb":1,"eh":7,"rs":5},
   slmh:{"pt":"brick","um":"#2f4f3a","w":"#ece4d4","m":"siding","t":"#fbfaf6","lo":1,"lc":"#9a8f80","r":"#6a5d52","v":"wrap","c":"#fbfaf6","cu":1,"cus":1.4,"ch":"#8e5a44","xg":1,"xgw":"win","xgt":0},
   legends:{"tw":5,"twc":"#efeae0","clk":1,"bal":1,"pt":"stone","um":"#2f6fae","fp":1,"rw":1,"w":"#ddd0b4","m":"siding","t":"#efeae0","lo":3,"lc":"#c4a77c","r":"#6e665f","v":"front","c":"#c4a77c","cu":1,"eh":7,"rs":4.5,"xg":1,"xgt":0},
   chaska:{"pt":"paver","um":"#5b2b2f","w":"#787a7c","m":"siding","t":"#dedcd5","s":"#8f8c86","b":0.5,"r":"#6e6a66","v":"wrap","c":"#5f6062","rs":7,"rp":0.55,"dm":1},
   prestwick:{"gb":1,"ga":1,"eh":6,"rs":5.5,"rp":0.55,"xg":3,"xgc":1,"cbn":1,"pc":1,"pcc":"#4e3a2c","ph":1.5,"stp":1,"ir":1,"pt":"stone","um":"#2f5f9e,#b3302b,#c8708e","rw":1,"w":"#ebe3cf","m":"tudor","t":"#4e3a2c","tc":"#4e3a2c","s":"#c4bfb0","b":1.6,"r":"#6b5444","v":"none","ch":"#c4bfb0"},
-  legislator:{"w":"#ebe5d8","m":"siding","t":"#f6f4ee","s":"#b8b0a2","r":"#77726a","rs":5,"v":"wrap","c":"#f6f4ee","cu":1,"cus":1.4,"ch":"#d6cfc2","eh":6.5,"ga":1,"xg":1,"xgw":"win","xgt":0,"pt":"brick","um":"#7a2f2a","stp":1},
-  judge:{"w":"#ebe5d8","m":"siding","t":"#f6f4ee","s":"#b8b0a2","r":"#77726a","rs":5,"v":"wrap","c":"#f6f4ee","cu":1,"cus":1.4,"ch":"#d6cfc2","eh":6.5,"ga":1,"xg":1,"xgw":"win","xgt":0,"pt":"brick","um":"#7a2f2a","stp":1},
-  senator:{"w":"#ebe5d8","m":"siding","t":"#f6f4ee","s":"#b8b0a2","r":"#77726a","rs":5,"v":"wrap","c":"#f6f4ee","cu":1,"cus":1.4,"ch":"#d6cfc2","eh":6.5,"ga":1,"xg":1,"xgw":"win","xgt":0,"pt":"brick","um":"#7a2f2a","stp":1},
+  legislator:{"w":"#ebe5d8","m":"siding","t":"#f6f4ee","s":"#b8b0a2","r":"#77726a","rs":5,"v":"wrap","c":"#f6f4ee","cu":1,"cus":1.4,"ch":"#d6cfc2","eh":6.5,"ga":1,"xg":1,"xgw":"win","xgt":0,"pt":"brick","um":"#7a2f2a","stp":1,"fh":1.4,"lo":1.4,"lc":"#8e4a3a","ar":"dark"},
+  judge:{"w":"#ebe5d8","m":"siding","t":"#f6f4ee","s":"#b8b0a2","r":"#77726a","rs":5,"v":"wrap","c":"#f6f4ee","cu":1,"cus":1.4,"ch":"#d6cfc2","eh":6.5,"ga":1,"xg":1,"xgw":"win","xgt":0,"pt":"brick","um":"#7a2f2a","stp":1,"fh":1.4,"lo":1.4,"lc":"#8e4a3a","ar":"dark"},
+  senator:{"w":"#ebe5d8","m":"siding","t":"#f6f4ee","s":"#b8b0a2","r":"#77726a","rs":5,"v":"wrap","c":"#f6f4ee","cu":1,"cus":1.4,"ch":"#d6cfc2","eh":6.5,"ga":1,"xg":1,"xgw":"win","xgt":0,"pt":"brick","um":"#7a2f2a","stp":1,"fh":1.4,"lo":1.4,"lc":"#8e4a3a","ar":"dark"},
   crls:{"w":"#85503f","m":"brick","t":"#f4f2ec","s":"#c9b48c","r":"#6b6760","v":"wrap","c":"#f4f2ec","cu":1,"ch":"#8a4a3a","xg":1,"xgw":"win","xgt":0,"eg":4,"pt":"stone","rw":1,"ph":2,"stp":1},
   crsc:{"w":"#85503f","m":"brick","t":"#f4f2ec","s":"#c9b48c","r":"#6b6760","v":"wrap","c":"#f4f2ec","cu":1,"ch":"#8a4a3a","xg":1,"xgw":"win","xgt":0,"eg":4,"pt":"stone","rw":1,"ph":2,"stp":1},
-  lido:{"cus":2.2,"w":"#f0eee7","m":"siding","t":"#efede6","r":"#86817b","v":"front","c":"#efede6","cu":1,"pt":"paver","um":"","b":0},
+  lido:{"cus":2.2,"w":"#f0eee7","m":"siding","t":"#efede6","r":"#86817b","v":"front","c":"#efede6","cu":1,"pt":"paver","um":"","b":0,"yard":"none"},
   mystic:{"oct":1,"cu":1,"cus":1.5,"w":"#cdbd9f","m":"stucco","s":"#86705f","b":1,"t":"#e6dfcf","r":"#4f7d70","v":"wrap","c":"#86705f","dm":1,"pt":"paver","um":"#2f5f9e","rw":1,"ph":1,"stp":1},
   rossbridge:{"m":"stone","w":"#dccfae","s":"#a69679","t":"#ece5d3","lo":3.2,"lc":"#a69679","r":"#5f6266","rs":7.5,"rp":0.6,"v":"none","dm":4,"ch":"#b9a988","xg":3,"xgw":"win","xgt":0,"eg":5,"tw":8,"twc":"#d8cba8","pt":"paver","um":"#2a96a8,#e8dfcc","fp":1,"rw":1},
-  sedge:{"w":"#a8785a","m":"brick","t":"#2b2b2b","r":"#4a4f55","gb":1,"eh":6.5,"rs":2.5,"rp":0.25,"v":"none","pt":"paver","b":0,"um":""},
+  sedge:{"w":"#a8785a","m":"brick","t":"#2b2b2b","r":"#4a4f55","gb":1,"eh":6.5,"rs":2.5,"rp":0.25,"v":"none","pt":"paver","b":0,"um":"","yard":"none"},
   northfork:{"w":"#ddcdb0","m":"stucco","t":"#ece6d6","s":"#bfae92","b":0.5,"r":"#46564d","eh":5,"rs":5,"xg":3,"xgw":"win","xgt":0,"tw":4.5,"twc":"#ddcdb0","v":"none","c":"#ece6d6","pt":"paver","um":"#26344f"},
-  desertcanyon:{"w":"#cfb196","m":"stucco","t":"#5e4433","s":"#b58b74","b":0.6,"r":"#8a5f48","fl":1,"eh":4.6,"v":"front","c":"#6e4c34","pc":1,"pcc":"#7a5638","pt":"stone","ph":1.4,"ir":1,"um":""},
+  desertcanyon:{"w":"#cfb196","m":"stucco","t":"#5e4433","s":"#b58b74","b":0.6,"r":"#8a5f48","fl":1,"eh":4.6,"v":"front","c":"#6e4c34","pc":1,"pcc":"#7a5638","pt":"stone","ph":1.4,"ir":1,"um":"","yard":"none"},
   willingers:{"w":"#a8aaa1","m":"siding","t":"#efede6","s":"#9d968a","b":0.4,"r":"#56585a","rs":4.2,"v":"none","c":"#efede6","eg":2.2,"pt":"deck","ph":2.6,"ir":1,"um":"#2f6db5"},
   ridges:{"w":"#eceae3","m":"siding","t":"#f4f3ee","s":"#b5ada0","b":0.4,"r":"#4a6d58","eh":6.8,"rs":4.2,"ga":1,"cu":1,"cus":1.3,"v":"none","c":"#f4f3ee","pt":"deck","ph":3,"um":"","stp":1},
   jewel:{"w":"#c9bfa3","m":"stucco","t":"#ddd5bd","s":"#b3a68a","b":0.5,"r":"#7f786c","eh":6.5,"rs":3.2,"rp":0.4,"xg":1,"xgw":"win","xgt":0,"v":"none","c":"#e0d8c0","pc":1,"pcc":"#e0d8c0","pt":"stone","um":"","ph":1.2,"ir":1,"stp":1},
@@ -2159,6 +2164,12 @@ CLUBLOOK.ridge=CLUBLOOK.valley;CLUBLOOK.gnlinks=CLUBLOOK.gnlake;CLUBLOOK.slbm=CL
 const STYLE={lowcountry:{wall:'#ecebe4',trim:'#3d4b3f',stone:'#b8b2a6',roof:'#5b6166'},prairie:{wall:'#9c7d5e',trim:'#4a3a2e',stone:'#8d8375',roof:'#4a4038'},links:{wall:'#d6ccb8',trim:'#5a4b3c',stone:'#9a9184',roof:'#3b4a52'}};
 /* ---- buildings with measured heights / roof shapes / roof colours (BLDX in ground.js: lidar + aerial photo) ----
    BLDX[id]={c:{clubhouseIdx:rec},b:{surrBldIdx:rec},a:[[pts(course yd),rec,kind]]}, rec=[eaveH,ridgeRise,roof 0 flat|1 gable|2 hip,ridgeDeg,roofCol] */
+// the clubhouse grounds: mown lawn (rough, not fescue) within 16 yd of a clubhouse, as photos of almost every clubhouse show; courses
+// whose clubhouse stands in sand, dune grass, prairie or desert planting say so with CLUBLOOK yard:'none'
+function clubLawn(h){const L=h.lg;if(!L)return;const LK=CLUBLOOK[CUR.id]||(CUR.data&&CLUBLOOK[CUR.data])||{};if(LK.yard==='none'||CUR.scen==='desert')return;
+  for(const q of h.buildings||[]){if(!q.club)continue;const bb=q.bb,R=16;
+    for(let j=Math.max(0,Math.floor(bb[1]-R-L.y0));j<=Math.min(L.ny-1,Math.ceil(bb[3]+R-L.y0));j++)for(let i=Math.max(0,Math.floor(bb[0]-R-L.x0));i<=Math.min(L.nx-1,Math.ceil(bb[2]+R-L.x0));i++){
+      const k=j*L.nx+i;if(L.code[k]!==0)continue;if(polyDist(q,L.x0+i,L.y0+j,R+1)<=R)L.code[k]=1;}}}
 function bldxForHole(h){if(typeof BLDX==='undefined'||!BLDX)return;const Xc=BLDX[CUR.id]||null,Xs=Xc||(CUR.data&&BLDX[CUR.data])||null;if(!Xs)return;
   if(Xs.nc){const LK=CLUBLOOK[CUR.id];for(const q of h.buildings)if(q.ci!=null){q.club=false;q.bk='building';if(LK&&LK.wb&&q.area<600){q.bk='barn';q.wbarn=1;}}}   // StoneRidge: the map's small 'clubhouse' is the white barn on 11
   for(const q of h.buildings){const r=q.ci!=null?(Xc&&Xc.c&&Xc.c[q.ci]):q.bi!=null?(Xs.b&&Xs.b[q.bi]):null;if(r&&r.length)q.rec=r;}
@@ -2234,19 +2245,24 @@ function lidOf(q,h){const L=typeof CLUBLID!=='undefined'&&(CLUBLID[CUR.id]||(CUR
    roof: the highest surface shows everywhere, so valleys and hips come from the union. Walls in the clubhouse's own materials
    (CLUBLOOK colours), windows per storey, gable ends that follow the roof; bldDraw keeps the doors, entry, patio and flag. */
 // the main eave of a lidar clubhouse in world height: the area-weighted median eave of its closed blocks (towers, porches and decks aside)
-function lidEave(h,L){const a=L.a*Math.PI/180,X=L.o[0]-h.T0[0]+L.ref[0]*Math.cos(a)+L.ref[1]*Math.sin(a),Z=L.o[1]-h.T0[1]-L.ref[0]*Math.sin(a)+L.ref[1]*Math.cos(a),F=hAtH(h,X,Z);
+// the height the model stands on: with survey ground samples round the building (gr: [u,v,ground above the reference]) the median
+// offset between the game's ground and the survey's, so one odd spot (a bunker lip, a path cut) can't sink or lift the building
+function lidF(h,L){const a=L.a*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),X=(u,v)=>L.o[0]-h.T0[0]+u*ca+v*sa,Z=(u,v)=>L.o[1]-h.T0[1]-u*sa+v*ca;
+  if(!L.gr||L.gr.length<6)return hAtH(h,X(L.ref[0],L.ref[1]),Z(L.ref[0],L.ref[1]));const d=L.gr.map(q=>hAtH(h,X(q[0],q[1]),Z(q[0],q[1]))-q[2]).sort((x,y)=>x-y);return d[d.length>>1];}
+function lidEave(h,L){const F=lidF(h,L);
   const E=[],R=[];for(const b of(L.blocks||[]).concat(...(L.parts||[]).map(p=>p.blocks)))if(b[0]!=='T'&&!/[od]/.test(b[8]||'')){const w=(b[2]-b[1])*(b[4]-b[3]);
     E.push([b[0]==='SU'||b[0]==='SV'?Math.min(b[5],b[7]):b[5],w]);R.push([Math.max(b[5],b[7]),w]);}
   const med=A=>{A.sort((x,y)=>x[0]-y[0]);const tot=A.reduce((s,e)=>s+e[1],0);let acc=0;for(const e of A){acc+=e[1];if(acc>=tot/2)return e[0];}return 4;};
   const e=F+med(E);lidEave.top=Math.max(e,F+med(R));return e;}
 function blockMass(h,q,out,L,C){
   // wings set at their own angle (a Y- or V-plan) come as parts, each with its own frame; heights stay on the main reference ground
-  if(L.parts){const a0=L.a*Math.PI/180,F0=hAtH(h,L.o[0]-h.T0[0]+L.ref[0]*Math.cos(a0)+L.ref[1]*Math.sin(a0),L.o[1]-h.T0[1]-L.ref[0]*Math.sin(a0)+L.ref[1]*Math.cos(a0));let ev=[];
-    if(L.blocks&&L.blocks.length)ev.push(blockMass(h,q,out,{o:L.o,a:L.a,ref:L.ref,blocks:L.blocks},Object.assign({},C,{F:F0})).eave);
-    for(const pt of L.parts)ev.push(blockMass(h,q,out,{o:pt.o,a:pt.a,ref:[0,0],blocks:pt.blocks},Object.assign({},C,{F:F0})).eave);
-    ev.sort((x,y)=>x-y);return{F:F0,eave:ev[ev.length>>1]};}
+  if(L.parts){const F0=lidF(h,L);let ev=[],sh=[];
+    const one=r=>{ev.push(r.eave);sh=sh.concat(r.shrubs||[]);};
+    if(L.blocks&&L.blocks.length)one(blockMass(h,q,out,{o:L.o,a:L.a,ref:L.ref,blocks:L.blocks},Object.assign({},C,{F:F0})));
+    for(const pt of L.parts)one(blockMass(h,q,out,{o:pt.o,a:pt.a,ref:[0,0],blocks:pt.blocks},Object.assign({},C,{F:F0,stair:0})));
+    ev.sort((x,y)=>x-y);return{F:F0,eave:ev[ev.length>>1],shrubs:sh};}
   const a=L.a*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),ox=L.o[0]-h.T0[0],oz=L.o[1]-h.T0[1],B0=L.blocks;
-  const X=(u,v)=>ox+u*ca+v*sa,Z=(u,v)=>oz-u*sa+v*ca,gAt=(u,v)=>hAtH(h,X(u,v),Z(u,v)),F=C.F!=null?C.F:gAt(L.ref[0],L.ref[1]),P=(u,v,y)=>[X(u,v),F+y,Z(u,v)];
+  const X=(u,v)=>ox+u*ca+v*sa,Z=(u,v)=>oz-u*sa+v*ca,gAt=(u,v)=>hAtH(h,X(u,v),Z(u,v)),F=C.F!=null?C.F:lidF(h,L),P=(u,v,y)=>[X(u,v),F+y,Z(u,v)];
   const DU=[ca,0,-sa],DV=[sa,0,ca],UP=[0,1,0],nU=k=>[DU[0]*k,0,DU[2]*k],nV=k=>[DV[0]*k,0,DV[2]*k];
   const shade=n=>.82+.18*Math.max(0,dot3(n,nrm([-.5,.6,.6]))),q4=(A,B2,C2,D,col,n)=>quadO(out,A,B2,C2,D,col,n);
   const rc=n=>mul(C.roof,shade(n)),ov=b=>b[0]==='T'?.15:b[0]==='C'?.1:b[0]==='F'?.05:Math.min(.6,(Math.min(b[2]-b[1],b[4]-b[3]))*.08);
@@ -2299,13 +2315,56 @@ function blockMass(h,q,out,L,C){
         pt=(ang,rr,o)=>[c[0]+T[0]*Math.cos(ang)*rr+n[0]*o,c[1]+Math.sin(ang)*rr,c[2]+T[2]*Math.cos(ang)*rr+n[2]*o];
         for(let j=0;j<12;j++){const a1=j/12*TAU,a2=(j+1)/12*TAU;triO(out,[c[0]+n[0]*.03,c[1],c[2]+n[2]*.03],pt(a1,r+.12,.025),pt(a2,r+.12,.025),C.trim,n);triO(out,[c[0]+n[0]*.05,c[1],c[2]+n[2]*.05],pt(a1,r,.05),pt(a2,r,.05),[.95,.94,.9],n);}
         for(const[ang,len,w]of[[1.1,r*.55,.06],[2.6,r*.8,.04]]){const A=pt(ang+Math.PI/2,w,.07),B2=pt(ang-Math.PI/2,w,.07),D=pt(ang,len,.07);triO(out,A,B2,D,[.12,.12,.12],n);}}}}
+  // porches and verandas of a clubhouse whose main floor stands above the ground (CLUBLOOK fh, from photos and the survey): a floor at that
+  // height on a skirt (brick arches when the look has them, else lattice between piers), a railing where it stands high, posts from the
+  // floor, and one stair down from the longest open side
+  const FH=C.fh||0,shrubs=[],arC=C.ar==='glass'?C.glass:hexc('#2a2522');
+  const floored=b=>(b[8]||'').includes('o')&&!(b[8]||'').includes('n')&&FH>=.45&&b[5]>FH+2||(b[8]||'').includes('d')&&FH>=.45;
+  const flH=b=>(b[8]||'').includes('d')?b[5]:FH;
+  const arches=(A,B2,n,g0,g1,top,sp)=>{const L0=hyp(B2[0]-A[0],B2[1]-A[1]);if(L0<1.6)return;const na=Math.max(1,Math.round(L0/sp)),w=Math.min(.7,L0/na*.3);
+    for(let k=0;k<na;k++){const t=(k+.5)/na,u=A[0]+(B2[0]-A[0])*t,v=A[1]+(B2[1]-A[1])*t,g=g0+(g1-g0)*t,yt=top-.45-w;if(yt-g<.5)continue;const T=[(B2[0]-A[0])/L0,(B2[1]-A[1])/L0],o=.04;
+      const W=(s2,y)=>{const pp=P(u+T[0]*s2,v+T[1]*s2,y);return[pp[0]+n[0]*o,pp[1],pp[2]+n[2]*o];};q4(W(-w,g+.05),W(w,g+.05),W(w,yt),W(-w,yt),arC,n);
+      for(let j=0;j<6;j++){const a1=j/6*Math.PI,a2=(j+1)/6*Math.PI;triO(out,W(0,yt),W(Math.cos(a1)*w,yt+Math.sin(a1)*w),W(Math.cos(a2)*w,yt+Math.sin(a2)*w),arC,n);}}};
+  let stair=null;
+  if(C.stair!==0&&FH>=.45){let best=-1;for(const b of B){if(!floored(b))continue;const[,u0,u1,v0,v1]=b;
+      for(const[a0,b0,a1,b1,n]of[[u0,v1,u1,v1,nV(1)],[u1,v0,u0,v0,nV(-1)],[u1,v1,u1,v0,nU(1)],[u0,v0,u0,v1,nU(-1)]]){const Lr=hyp(a1-a0,b1-b0),mu=(a0+a1)/2,mv=(b0+b1)/2,on=[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca];
+        if(Lr<4||B.some(o=>o!==b&&!(o[8]||'').includes('o')&&rh(o,mu+on[0]*1.5,mv+on[1]*1.5)>-1e8))continue;if(Lr>best){best=Lr;stair={b,a0,b0,a1,b1,n,on,w:Math.min(FH>2?2.2:1.6,Lr*.18)};}}}}
+  if(stair){const{a0,b0,a1,b1,n,on,w}=stair,mu=(a0+a1)/2,mv=(b0+b1)/2,T=[(a1-a0),(b1-b0)],tl=hyp(T[0],T[1]);T[0]/=tl;T[1]/=tl;
+    let y=FH,d=0;const rise=.17,run=.3;
+    for(let k=0;k<40&&y>-30;k++){const g=gAt(mu+on[0]*(d+run/2),mv+on[1]*(d+run/2))-F;if(y-rise<=g+.05)break;y-=rise;const cu=mu+on[0]*(d+run/2),cv=mv+on[1]*(d+run/2);
+      const c=P(cu,cv,0),gb=Math.min(g,y)-.3,au=Math.abs(on[0])>.5;boxO(out,c[0],F+(gb+y)/2,c[2],au?run/2:w,(y-gb)/2,au?w:run/2,-a,mul(C.fc,1.06));d+=run;}
+    stair.len=d;
+    // handrails down both sides
+    for(const sg of[-1,1]){const su=mu+T[0]*(w+.05)*sg,sv=mv+T[1]*(w+.05)*sg,top=P(su,sv,FH+.9),bot=P(su+on[0]*d,sv+on[1]*d,y+.9);
+      quadO(out,[top[0],top[1]-.06,top[2]],[bot[0],bot[1]-.06,bot[2]],[bot[0],bot[1]+.03,bot[2]],[top[0],top[1]+.03,top[2]],C.trim,[T[0]*ca+T[1]*sa,0,-T[0]*sa+T[1]*ca]);
+      for(let k=0;k<=Math.ceil(d/.9);k++){const f=Math.min(1,k*.9/Math.max(.01,d)),pu=su+on[0]*d*f,pv=sv+on[1]*d*f,yy=FH+(y-FH)*f,pp=P(pu,pv,yy);boxO(out,pp[0],F+yy+.45,pp[2],.025,.45,.025,-a,C.trim);}}}
+  const inStair=(u,v)=>{if(!stair)return false;const du=u-(stair.a0+stair.a1)/2,dv=v-(stair.b0+stair.b1)/2,T=[stair.a1-stair.a0,stair.b1-stair.b0],tl=hyp(T[0],T[1]);
+    const along=(du*T[0]+dv*T[1])/tl,out_=du*stair.on[0]+dv*stair.on[1];return Math.abs(along)<stair.w+.3&&out_>-.4&&out_<(stair.len||0)+1.2;};
   // walls (and posts under open roofs)
   const ext=[];
   for(const b of B){const[t,u0,u1,v0,v1,e,p,cap]=b,fl=b[8]||'',o=ov(b),U0=u0+o,U1=u1-o,V0=v0+o,V1=v1-o;
     const sides=[[U0,V1,U1,V1,nV(1)],[U1,V0,U0,V0,nV(-1)],[U1,V1,U1,V0,nU(1)],[U0,V0,U0,V1,nU(-1)]];
-    if(fl.includes('o')||fl.includes('d')){for(const[a0,b0,a1,b1,n]of sides){const Lr=hyp(a1-a0,b1-b0),m=Math.max(1,Math.round(Lr/3.2));
-        for(let k=0;k<=m;k++){const u=a0+(a1-a0)*k/m,v=b0+(b1-b0)*k/m;if(inBlk(u,v,b))continue;const g=gAt(u,v)-F,y=(fl.includes('d')?e:rh(b,u,v))-.3;if(y-g<.4)continue;
-          boxO(out,X(u,v),F+(g+y)/2,Z(u,v),.11,(y-g)/2,.11,-a,fl.includes('d')?C.trim:C.post);}}continue;}
+    if(floored(b)){const FH=flH(b),dk=fl.includes('d');if(!dk)q4(P(u0,v0,FH),P(u1,v0,FH),P(u1,v1,FH),P(u0,v1,FH),C.pf,UP);
+      for(const[a0,b0,a1,b1,n]of[[u0,v1,u1,v1,nV(1)],[u1,v0,u0,v0,nV(-1)],[u1,v1,u1,v0,nU(1)],[u0,v0,u0,v1,nU(-1)]]){const Lr=hyp(a1-a0,b1-b0),mu=(a0+a1)/2,mv=(b0+b1)/2,on=[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca];
+        if(Lr<.2||B.some(o2=>o2!==b&&(!(o2[8]||'').includes('o')||floored(o2))&&rh(o2,mu+on[0]*.4,mv+on[1]*.4)>-1e8))continue;   // inside the house or against the next porch
+        const m=Math.max(1,Math.round(Lr/1.2));
+        for(let k=0;k<m;k++){const t0=k/m,t1=(k+1)/m,ua=a0+(a1-a0)*t0,va=b0+(b1-b0)*t0,ub=a0+(a1-a0)*t1,vb=b0+(b1-b0)*t1,ga=gAt(ua,va)-F,gb=gAt(ub,vb)-F;
+          if(FH-.25>Math.min(ga,gb)+.05)q4(P(ua,va,ga-.3),P(ub,vb,gb-.3),P(ub,vb,FH-.25),P(ua,va,FH-.25),C.fc,n);
+          q4(P(ua,va,FH-.25),P(ub,vb,FH-.25),P(ub,vb,FH),P(ua,va,FH),C.trim,n);
+          // railing where the floor stands well above the ground, except at the stair
+          const um=(ua+ub)/2,vm=(va+vb)/2;if(!dk&&FH-Math.min(ga,gb)>.6&&!(stair&&stair.b===b&&inStair(um+on[0]*.3,vm+on[1]*.3))){const o3=.06,R_=(u,v,y)=>{const pp=P(u-on[0]*o3,v-on[1]*o3,y);return pp;};
+            q4(R_(ua,va,FH+.92),R_(ub,vb,FH+.92),R_(ub,vb,FH+1.0),R_(ua,va,FH+1.0),C.trim,n);q4(R_(ua,va,FH+.1),R_(ub,vb,FH+.1),R_(ub,vb,FH+.16),R_(ua,va,FH+.16),C.trim,n);
+            for(let j=0;j<3;j++){const f=(j+.5)/3,c=R_(ua+(ub-ua)*f,va+(vb-va)*f,0);boxO(out,c[0],F+FH+.53,c[2],.025,.38,.025,-a,C.trim);}}}
+        if(C.ar&&FH-Math.min(gAt(a0,b0),gAt(a1,b1))+F>1.8)arches([a0,b0],[a1,b1],n,gAt(a0,b0)-F,gAt(a1,b1)-F,FH-.25,2.4);
+        else if(FH>1.2){const np=Math.max(1,Math.round(Lr/2.4));for(let k=0;k<np;k++){const t0=(k+.18)/np,t1=(k+.82)/np,ua=a0+(a1-a0)*t0,va=b0+(b1-b0)*t0,ub=a0+(a1-a0)*t1,vb=b0+(b1-b0)*t1,g=Math.max(gAt(ua,va),gAt(ub,vb))-F,o4=.03;
+          if(FH-.45-g<.4)continue;const W=(u,v,y)=>{const pp=P(u,v,y);return[pp[0]+n[0]*o4,pp[1],pp[2]+n[2]*o4];};q4(W(ua,va,g+.1),W(ub,vb,g+.1),W(ub,vb,FH-.45),W(ua,va,FH-.45),mul(C.fc,.45),n);}}}}
+    if(fl.includes('o')||fl.includes('d')){const base=floored(b)?flH(b):null;if(!(floored(b)&&fl.includes('d')))for(const[a0,b0,a1,b1,n]of sides){const Lr=hyp(a1-a0,b1-b0),m=Math.max(1,Math.round(Lr/3.2));
+        for(let k=0;k<=m;k++){const u=a0+(a1-a0)*k/m,v=b0+(b1-b0)*k/m;if(inBlk(u,v,b))continue;const g=base!=null?base:gAt(u,v)-F,y=(fl.includes('d')?e:rh(b,u,v))-.3;if(y-g<.4)continue;
+          boxO(out,X(u,v),F+(g+y)/2,Z(u,v),.11,(y-g)/2,.11,-a,fl.includes('d')?C.trim:C.post);}}
+      // foundation shrubs along the porch skirt
+      if(floored(b)&&C.yard!=='none')for(const[a0,b0,a1,b1,n]of[[u0,v1,u1,v1,nV(1)],[u1,v0,u0,v0,nV(-1)],[u1,v1,u1,v0,nU(1)],[u0,v0,u0,v1,nU(-1)]]){const Lr=hyp(a1-a0,b1-b0),on=[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca];
+        for(let d=1.2;d<Lr-1;d+=2.3){const u=a0+(a1-a0)*d/Lr+on[0]*.9,v=b0+(b1-b0)*d/Lr+on[1]*.9;if(inStair(u,v)||B.some(o2=>rh(o2,u,v)>-1e8))continue;shrubs.push([X(u,v),Z(u,v),Math.min(.85,.45+(flH(b)-(gAt(u,v)-F))*.18)]);}}
+      continue;}
     for(const[a0,b0,a1,b1,n]of sides){const Lr=hyp(a1-a0,b1-b0);if(Lr<.05)continue;const ts=[0,1];const ns=Math.max(1,Math.round(Lr/2));for(let k=1;k<ns;k++)ts.push(k/ns);
       // breakpoints where the roof line kinks (gable peaks, ridge ends)
       for(const s of[(u0+u1)/2,(v0+v1)/2]){const tt=Math.abs(a1-a0)>1e-6?(s-a0)/(a1-a0):(s-b0)/(b1-b0);if(tt>0&&tt<1)ts.push(tt);}
@@ -2322,18 +2381,22 @@ function blockMass(h,q,out,L,C){
   const eaves=[];
   for(const[ua,va,ub,vb,n,g0,g1,yt,hid,tw]of ext){const Lr=hyp(ub-ua,vb-va),o=.035,Q=(t,y)=>{const p_=P(ua+(ub-ua)*t,va+(vb-va)*t,y);return[p_[0]+n[0]*o,p_[1],p_[2]+n[2]*o];};
     if(hid)continue;const gl=Math.max(g0,g1),gm=Math.min(g0,g1);if(!tw)eaves.push(yt);
-    if(C.plinth>0&&yt-gm>1.5&&!tw)q4(Q(0,g0-.3),Q(1,g1-.3),Q(1,g1+C.plinth),Q(0,g0+C.plinth),C.stone,n);
+    // the foundation shows from the ground up to the main floor (a walkout's lower storey more than 2.6 yd down is a storey, not a foundation)
+    const walk=FH-gl>2.6,ft=walk?gl+C.plinth:Math.max(gl+C.plinth,FH+.08);if(!tw&&yt-gm>1.5&&ft>gm-.1)q4(Q(0,g0-.3),Q(1,g1-.3),Q(1,Math.max(g1,ft)),Q(0,Math.max(g0,ft)),C.fc,n);
     // a brick or stone ground storey, then the wall material: lap or log courses, battens, stone coursing or tudor timbers
-    const yb=C.lo>0?C.lo:gm+C.plinth;if(C.lo>0&&yb>gm+.5)q4(Q(0,g0-.3),Q(1,g1-.3),Q(1,Math.max(g1,yb)),Q(0,Math.max(g0,yb)),C.lc,n);
+    const yb=C.lo>0?Math.max(C.lo,ft):ft;if(C.lo>0&&yb>gm+.5)q4(Q(0,g0-.3),Q(1,g1-.3),Q(1,Math.max(g1,yb)),Q(0,Math.max(g0,yb)),C.lc,n);
+    const lowS=C.ar&&C.lo>0&&!tw&&C.lo-gl>1.8;if(lowS)arches([ua,va],[ub,vb],n,g0,g1,C.lo,2.4);
+    if(C.yard!=='none'&&!tw&&Lr>1.6)for(let d=.9;d<Lr-.6;d+=2.3){const on=[n[0]*ca-n[2]*sa,n[0]*sa+n[2]*ca],u=ua+(ub-ua)*d/Lr+on[0]*.95,v=va+(vb-va)*d/Lr+on[1]*.95;
+      if(inStair(u,v)||B.some(o2=>rh(o2,u,v)>-1e8))continue;shrubs.push([X(u,v),Z(u,v),Math.min(.85,.45+Math.max(0,ft-(gAt(u,v)-F))*.2)]);}
     if(C.lines&&yt-gl>1)for(let y=Math.max(gl,yb)+C.lines;y<yt-.4;y+=C.lines)q4(Q(0,y),Q(1,y),Q(1,y+(C.mat==='log'?.08:.04)),Q(0,y+(C.mat==='log'?.08:.04)),C.line,n);
     if((C.mat==='board'||C.mat==='tudor')&&yt-gl>1){const nb=Math.max(1,Math.round(Lr/(C.mat==='tudor'?1.4:.75))),w=(C.mat==='tudor'?.08:.04)/Lr,y0=Math.max(gl,yb),col=C.mat==='tudor'?C.tc:C.line;
       for(let k=0;k<nb;k++){const t=(k+.5)/nb;q4(Q(t-w,y0),Q(t+w,y0),Q(t+w,yt-.3),Q(t-w,yt-.3),col,n);}
       if(C.mat==='tudor'){const ym=y0+(yt-y0)*.45;q4(Q(0,ym),Q(1,ym),Q(1,ym+.14),Q(0,ym+.14),col,n);q4(Q(0,y0),Q(1,y0),Q(1,y0+.16),Q(0,y0+.16),col,n);}}
     if(Lr<1.3)continue;const nw=Math.max(1,Math.floor(Lr/2.3));
-    for(let fy=tw?yt-1.6:gl+.95;fy+1.0<yt-.3;fy+=3.3){const wh=Math.min(1.5,yt-.35-fy);if(wh<.7)break;
+    for(let fy=tw?yt-1.6:lowS?C.lo+.7:walk?gl+.95:Math.max(gl+.95,FH+.9);fy+1.0<yt-.3;fy+=3.3){const wh=Math.min(1.5,yt-.35-fy);if(wh<.7)break;
       for(let k=0;k<nw;k++){const t=(k+.5)/nw,hw=Math.min(.55,Lr/nw*.3)/Lr;q4(Q(t-hw-.05/Lr,fy-.08),Q(t+hw+.05/Lr,fy-.08),Q(t+hw+.05/Lr,fy+wh+.08),Q(t-hw-.05/Lr,fy+wh+.08),C.frame,n);
         const o2=.05,R2=(tt,y)=>{const p_=P(ua+(ub-ua)*tt,va+(vb-va)*tt,y);return[p_[0]+n[0]*o2,p_[1],p_[2]+n[2]*o2];};q4(R2(t-hw,fy),R2(t+hw,fy),R2(t+hw,fy+wh),R2(t-hw,fy+wh),C.glass,n);}}}
-  eaves.sort((x,y)=>x-y);return{F,eave:F+(eaves.length?eaves[eaves.length>>1]:3)};}
+  eaves.sort((x,y)=>x-y);return{F,eave:F+(eaves.length?eaves[eaves.length>>1]:3),shrubs};}
 function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;const A=Math.abs(polyArea(p));if(A<8)return;
   const rec=q.rec||null,kind=q.bk||null,club=!!q.club,ex=!!(rec||kind),gh=(q.gh||0)-.2,hs=Math.abs(Math.round(q.x*7.3+q.y*13.1))%9973;
   let H1,rise=null,rt=2;
@@ -2392,8 +2455,9 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
   if(LD){const MM=LK&&LK.m,ln=MM==='siding'?.42:MM==='log'?.38:MM==='brick'?.5:0;
     const LK0=club?(CLUBLOOK[CUR.id]||(CUR.data&&CLUBLOOK[CUR.data])||{}):{};
     const LDr=blockMass(h,q,out,LD,{wall:MM==='stone'?mul(wall,.84):wall,roof,trim,stone,glass,frame,flat:hexc('#9d9a93'),deck:hexc('#b0a48e'),post:LK0.c?hexc(LK0.c):trim,plinth:Math.min(plinth,1.2),
-      lines:MM==='stone'?.55:ln,line:mul(wall,MM==='log'?.68:MM==='brick'?.86:MM==='stone'?.78:.83),mat:MM,tc:hexc(LK0.tc||LK0.t||'#3e2e24'),lo:LK0.lo||0,lc:hexc(LK0.lc||'#8a6a58'),clk:LK0.clk,ch:LK0.ch?hexc(LK0.ch):mul(stone,.9)});
-    H1=Math.max(2.4,LDr.eave-gh);}
+      lines:MM==='stone'?.55:ln,line:mul(wall,MM==='log'?.68:MM==='brick'?.86:MM==='stone'?.78:.83),mat:MM,tc:hexc(LK0.tc||LK0.t||'#3e2e24'),lo:LK0.lo||0,lc:hexc(LK0.lc||'#8a6a58'),clk:LK0.clk,ch:LK0.ch?hexc(LK0.ch):mul(stone,.9),
+      fh:LK0.fh||0,fc:LK0.fc?hexc(LK0.fc):LK0.lo?hexc(LK0.lc||'#8a6a58'):stone,pf:hexc(LK0.pf||'#a39c90'),ar:LK0.ar,yard:LK0.yard});
+    H1=Math.max(2.4,LDr.eave-gh);q._shr=LDr.shrubs;}
   // walls: stone plinth, siding, a trim band under the eave (or the parapet coping), rows of windows
   if(!LD)for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length],ex2=b[0]-a[0],ez=b[1]-a[1],L=hyp(ex2,ez);if(L<.2)continue;
     const n=[ez/L*s,0,-ex2/L*s];
@@ -2578,6 +2642,7 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
           // a raised deck stands on posts over a dark skirt
           for(let u=-W+.3;u<=W-.29;u+=Math.max(1.5,(2*W-.6)/Math.round((2*W-.6)/2.6)))for(let v=pv0+.3;v<=pv0+D-.29;v+=Math.max(1.5,(D-.6)/Math.round((D-.6)/2.6))){const c=R3q(u,v),g=hAtH(h,c[0],c[1]);if(ft-.3-g<.05)continue;boxO(out,c[0],(ft-.3+g-.2)/2,c[1],.13,(ft-.3-g+.2)/2,.13,P.rot,mul(fc,.75));}}
         else boxO(out,c0[0],(ft+fb)/2,c0[1],W,(ft-fb)/2,D/2,P.rot,raised&&!deck?mul(stone,.95):fc);
+        q._pat=[c0[0],c0[1],W,D/2,P.rot];
         if(raised&&!deck)boxO(out,c0[0],ft-.04,c0[1],W-.05,.05,D/2-.05,P.rot,fc);
         // a walkout level under a tall terrace: arched openings (glass arcade or dark doors) in its front wall
         if(raised&&!deck&&LK.ar&&ft-gmin>2){const na=Math.max(2,Math.floor(2*W/3)),nf=[P.nx,0,P.nz],ac=LK.ar==='glass'?mul(glass,1.35):hexc('#2a2622');
@@ -2704,6 +2769,16 @@ function bldDraw(h,q,out,ST,simple){let p=q.pts.slice();if(p.length<3)return;con
     // roll-up doors along the long wall, ribbed, with a header; a man door on the end wall
     for(let k=0;k<nd;k++){const t=(k+.5)/nd;panel(E,t,hw+.15,dh,dh+.3,trim,.07);panel(E,t,hw,plinth,dh,door,.06);for(const y of[.33,.66])panel(E,t,hw,plinth+(dh-plinth)*y-.05,plinth+(dh-plinth)*y+.05,rib,.08);}
     panel(edge(bi+1),.3,.5,plinth,Math.min(2.2,H1-.4),hexc('#5d6a72'),.06);}
+  // foundation planting round a surveyed clubhouse: clipped shrubs along the walls and porch skirts, kept off the entry walk, the patio,
+  // the stair, water and the course (photos show beds and lawn against these buildings, not native grass)
+  if(q._shr&&q._shr.length){const E=edge(bi),pt=q._pat,R=rng(hs+7),GR=['#2f4826','#3a5a2c','#284022','#44602f'].map(hexc);
+    const shrubO=(x,y,z,sz,col)=>{const sx=sz*(.9+R()*.4),sy=sz*(.7+R()*.3),sz2=sz*(.9+R()*.4),sd=R()*100;
+      const Pq=v=>{const k=1+.16*Math.sin(v[0]*5.1+sd)*Math.sin(v[2]*4.3+sd*.7)+.1*Math.sin(v[1]*6.7+sd);return[x+v[0]*sx*k,y+v[1]*sy*k+sy*.6,z+v[2]*sz2*k];};
+      const c=mul(col,.85+R()*.3);for(const[a1,b1,c1]of ICO0){if(a1[1]+b1[1]+c1[1]<-1.5)continue;pushTri(out,Pq(a1),Pq(b1),Pq(c1),c);}};
+    for(const[x,z,sz]of q._shr){if(hyp(x-E.mx,z-E.mz)<3.4)continue;
+      if(pt){const dx=x-pt[0],dz=z-pt[1],c=Math.cos(pt[4]),s2=Math.sin(pt[4]),lu=dx*c+dz*s2,lv=-dx*s2+dz*c;if(Math.abs(lu)<pt[2]+1.3&&Math.abs(lv)<pt[3]+1.3)continue;}
+      const lc=lieCodeAt(h,x,z);if(lc>1||lc<0||h.water.some(w=>inPoly(w,x,z)))continue;
+      shrubO(x,hAtH(h,x,z)-.12,z,sz*(.85+R()*.3),GR[(R()*GR.length)|0]);}}
 }
 /* ---------- course landmarks, second set (Oct 2026): steel truss, boardwalk and covered bridges, farm windmill/silo/barns,
    flower beds, rock outcrops and ledges, waterfalls, gazebos, hotel towers, hay bales, a dead snag and entrance boulders.
