@@ -21,4 +21,4 @@ courses:{troy:{holes:{
 16:{b:[-134,-46,235,551],png:'b10/light/troy/h17.png?v=1'},
 17:{b:[-89,-469,429,548],png:'b10/light/troy/h18.png?v=1'}
 }}},
-clubs:{}};
+clubs:{caledonia:1,chaska:1,crls:1,crsc:1,deacon:1,desertcanyon:1,dove:1,edinburgh:1,farmlinks:1,gnlake:1,gnlinks:1,hazeltine:1,heritage:1,interlachen:1,jewel:1,judge:1,legend:1,legends:1,legislator:1,lehman:1,lido:1,lookout:1,maddens:1,mammoth:1,mystic:1,northfork:1,orangeburg:1,pawplant:1,pines:1,preserve:1,prestwick:1,quarry:1,ridge:1,ridges:1,rossbridge:1,sandvalley:1,santee:1,sedge:1,senator:1,slbm:1,slmh:1,stoneridge:1,troy:1,trueblue:1,valley:1,wigwam:1,wilderness:1,willingers:1,windsong:1,wyboo:1}};
