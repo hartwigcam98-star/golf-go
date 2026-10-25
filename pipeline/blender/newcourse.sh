@@ -89,12 +89,12 @@ PY
     if git fetch -q --depth 1 origin bake-club-$K 2>/dev/null; then T=/tmp/bkc/$K; rm -rf $T; mkdir -p $T; git archive FETCH_HEAD | tar x -C $T
       [ -f $GG/b10/club/$K.js ] && python3 -c "
 import json,os;p='$GG/b10/club_ver.json';V=json.load(open(p)) if os.path.exists(p) else {};V['$K']=V.get('$K',1)+1;json.dump(V,open(p,'w'))"
-      python3 $P/packclub.py $T/$K.npz $GG/b10/club/$K.js $K | tail -1; git push -q origin --delete bake-club-$K 2>/dev/null || true; fi
+      python3 $P/packclub.py $T/$K.npz $GG/b10/club/$K.js $K | tail -1; rm -rf $T; git push -q origin --delete bake-club-$K 2>/dev/null || true; fi
     [ -n "$CLUBONLY" ] && { echo "$K: clubhouse $([ -f $GG/b10/club/$K.js ] && echo yes || echo no)"; continue; }
     mkdir -p $GG/b10/light/$K
     for f in $BC/holes/$K/h*.npz; do h=$(basename $f .npz); T=/tmp/bk/$K/$h; rm -rf $T; mkdir -p $T/sun $T/sky
       for p in sun sky; do git fetch -q --depth 1 origin bake-$K-$h-$p && git archive FETCH_HEAD | tar x -C $T/$p; done
-      python3 $P/combine.py $T/sun/$K/$h/raw_sun.npz $T/sky/$K/$h/raw_sky.npz $T > /dev/null && cp $T/light.webp $GG/b10/light/$K/$h.webp
+      python3 $P/combine.py $T/sun/$K/$h/raw_sun.npz $T/sky/$K/$h/raw_sky.npz $T > /dev/null && cp $T/light.webp $GG/b10/light/$K/$h.webp; rm -rf $T   # raw bakes are ~0.3 GB a hole: free the disk as we go
       git push -q origin --delete bake-$K-$h-sun bake-$K-$h-sky 2>/dev/null || true
     done
     python3 -c "
