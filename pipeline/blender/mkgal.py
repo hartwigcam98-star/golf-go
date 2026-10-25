@@ -35,8 +35,10 @@ for cid in ids:
     <figure class="now"><img src="img/%s_after.jpg?v=%s" alt="%s with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
   </div>
 </article>''' % (cid, nm, esc(e['town']), e['hole'], tg, cid, e['v'], nm, cid, e['v'], nm))
-nl = sum(1 for c in ids if c in lit)
+nl = len(lit)   # courses with baked light, out of every course with a Blender clubhouse (all of them)
+import glob
+ntot = max(len(ids), len(glob.glob(G + '/b10/club/*.js')))
 html = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gallery_tpl.html')).read()
-html = html.replace('{{N_LIT}}', str(nl)).replace('{{N}}', str(len(ids))).replace('{{ARTICLES}}', '\n'.join(arts))
+html = html.replace('{{N_LIT}}', str(nl)).replace('{{N}}', str(ntot)).replace('{{ARTICLES}}', '\n'.join(arts))
 open(OUT + '/index.html', 'w').write(html)
-print(len(ids), 'courses on the page;', nl, 'with baked light')
+print(len(ids), 'courses on the page;', nl, 'of', ntot, 'with baked light')

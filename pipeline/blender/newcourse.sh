@@ -67,7 +67,8 @@ PY
 bake)
   cd $BC && git pull -q origin blender-club
   rm -rf /tmp/bd && mkdir -p /tmp/bd/holes && for K in "$@"; do cp -r $BC/holes/$K /tmp/bd/holes/; done
-  (cd /tmp/bd && git init -q -b bakedata && git add -A && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "bake data: $*" && git push -q -f https://github.com/$REPO bakedata)
+  BD=bakedata-$1-$(date +%s); echo $BD > bakebranch.txt   # this run's own hole-data branch (runs never share one)
+  (cd /tmp/bd && git init -q -b $BD && git add -A && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "bake data: $*" && git push -q -f https://github.com/$REPO $BD)
   python3 - "$@" <<'PY'
 import json,sys,glob,os
 items=[]
@@ -77,9 +78,10 @@ for c in sys.argv[1:]:
         h=os.path.basename(f)[:-4]; items+=['%s/%s:sun'%(c,h),'%s/%s:sky'%(c,h)]
 json.dump(items,open('matrix.json','w'));print(len(items),'jobs')
 PY
-  git add -f matrix.json $(for K in "$@"; do [ -f clubs/$K.npz ] && echo clubs/$K.npz; done) && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "Blender pass: $*" && git push -q origin blender-club
-  sleep 25
-  ID=$(gh run list -R $REPO --branch blender-club --limit 1 --json databaseId -q '.[0].databaseId'); echo "run $ID"
+  git add -f matrix.json bakebranch.txt $(for K in "$@"; do [ -f clubs/$K.npz ] && echo clubs/$K.npz; done) && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "Blender pass: $*" && git push -q origin blender-club
+  SHA=$(git rev-parse HEAD); ID=""   # the run for our own commit (other pushes may start runs too)
+  for t in $(seq 40); do sleep 10; ID=$(gh run list -R $REPO --branch blender-club --limit 20 --json databaseId,headSha -q ".[] | select(.headSha==\"$SHA\") | .databaseId" | head -1); [ -n "$ID" ] && break; done
+  echo "run $ID"; [ -n "$ID" ] || { echo "no run started"; exit 1; }
   until s=$(gh run view $ID -R $REPO --json status,conclusion -q '.status+" "+.conclusion' 2>/dev/null) && [[ $s == completed* ]]; do sleep 30; done; echo "$s"
   for K in "$@"; do
     if git fetch -q --depth 1 origin bake-club-$K 2>/dev/null; then T=/tmp/bkc/$K; rm -rf $T; mkdir -p $T; git archive FETCH_HEAD | tar x -C $T
@@ -100,6 +102,7 @@ for f in sorted(glob.glob('$BC/holes/$K/h*.json')):
 json.dump(o,open('$GG/b10/light/$K/bounds.json','w'))"
     echo "$K: $(ls $GG/b10/light/$K | grep -c webp) light maps, clubhouse $([ -f $GG/b10/club/$K.js ] && echo yes || echo no)"
   done
+  git push -q origin --delete $BD 2>/dev/null || true
   (git rm -q --ignore-unmatch matrix.json && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "Idle [skip ci]" && git push -q origin blender-club) || true
   python3 $P/mkbake.py $GG
   cd $GG && v=$(grep -o "b10/bake.js?v=[0-9]*" index.html | grep -o "[0-9]*$"); sed -i "s#b10/bake.js?v=$v#b10/bake.js?v=$((v+1))#" index.html

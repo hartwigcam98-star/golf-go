@@ -243,5 +243,47 @@
 "hole": 18,
 "ord": 50,
 "v": "2610242106"
+},
+"desertcanyon": {
+"name": "Desert Canyon",
+"town": "Fountain Hills, AZ",
+"hole": 10,
+"ord": 45,
+"v": "2610242137"
+},
+"legislator": {
+"name": "Legislator",
+"town": "Capitol Hill, AL",
+"hole": 18,
+"ord": 5,
+"v": "2610242137"
+},
+"judge": {
+"name": "Judge",
+"town": "Capitol Hill, AL",
+"hole": 1,
+"ord": 6,
+"v": "2610242137"
+},
+"senator": {
+"name": "Senator",
+"town": "Capitol Hill, AL",
+"hole": 2,
+"ord": 7,
+"v": "2610242137"
+},
+"crsc": {
+"name": "Sherling/Canyon",
+"town": "Cambrian Ridge, AL",
+"hole": 9,
+"ord": 15,
+"v": "2610242137"
+},
+"crls": {
+"name": "Loblolly/Sherling",
+"town": "Cambrian Ridge, AL",
+"hole": 18,
+"ord": 16,
+"v": "2610242137"
 }
 }
