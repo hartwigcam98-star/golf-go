@@ -6,7 +6,8 @@ cd /home/claude/bc
 R=https://github.com/hartwigcam98-star/golf-go
 if [ -z "$RESUME" ]; then
 rm -rf /tmp/bd && mkdir -p /tmp/bd/holes && for c in "$@"; do cp -r holes/$c /tmp/bd/holes/; done
-( cd /tmp/bd && git init -q -b bakedata && git add -A && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "bake data: $*" && git push -q -f $R bakedata )
+BD=bakedata-$1-$(date +%s); echo $BD > bakebranch.txt   # this run's own hole data (a shared branch let one run overwrite another's)
+( cd /tmp/bd && git init -q -b $BD && git add -A && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "bake data: $*" && git push -q -f $R $BD )
 python3 - "$@" <<'PY'
 import json,sys,glob,os
 items=[]
@@ -15,9 +16,9 @@ for c in sys.argv[1:]:
         h=os.path.basename(f)[:-4]; items+=['%s/%s:sun'%(c,h),'%s/%s:sky'%(c,h)]
 json.dump(items,open('matrix.json','w'));print(len(items),'jobs')
 PY
-git add -A matrix.json .github bake.py combine.py batch.sh packcourse.py && git commit -qm "Light bakes: $*" && git push -q origin blender-club
+git add -A matrix.json bakebranch.txt .github bake.py combine.py batch.sh packcourse.py && git commit -qm "Light bakes: $*" && git push -q origin blender-club
 sleep 20
-ID=$(gh run list -R hartwigcam98-star/golf-go --branch blender-club --limit 1 --json databaseId -q '.[0].databaseId'); echo "run $ID"
+SHA=$(git rev-parse HEAD); ID=""; for t in $(seq 30); do ID=$(gh run list -R hartwigcam98-star/golf-go --branch blender-club --limit 20 --json databaseId,headSha -q ".[] | select(.headSha==\"$SHA\") | .databaseId" | head -1); [ -n "$ID" ] && break; sleep 10; done; echo "run $ID"   # the run for our own commit
 else ID=$RESUME; fi
 until s=$(gh run view $ID -R hartwigcam98-star/golf-go --json status,conclusion -q '.status+" "+.conclusion' 2>/dev/null) && [[ $s == completed* ]]; do sleep 30; done; echo "$s"
 gh run view $ID -R hartwigcam98-star/golf-go --json conclusion -q .conclusion || true
@@ -36,4 +37,5 @@ for f in sorted(glob.glob('/home/claude/bc/holes/%s/h*.json'%c)):
     h=os.path.basename(f)[:-5];b=json.load(open(f))['b'];o[int(h[1:])-1]=[b[0],b[1],b[2]-b[0],b[3]-b[1]]
 json.dump(o,open('/home/claude/golf-go/b10/light/%s/bounds.json'%c,'w'));print(c,len(o),'holes')"
 done
-cd /home/claude/bc && git rm -q matrix.json && git commit -qm "Idle" && git push -q origin blender-club
+git push -q origin --delete $(cat /home/claude/bc/bakebranch.txt) 2>/dev/null || true
+cd /home/claude/bc && git rm -q --ignore-unmatch matrix.json && git commit -qm "Idle [skip ci]" && git push -q origin blender-club
