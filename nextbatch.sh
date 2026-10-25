@@ -3,7 +3,7 @@
 Q=/home/claude/bc/queue.txt; L=$(head -1 $Q); [ -z "$L" ] && { echo "queue empty"; exit 0; }
 bash /home/claude/bc/batch.sh $L 2>&1 | grep -v "^warning\|negotiation\|fatal: expected" | tail -6
 sed -i 1d $Q
-python3 /home/claude/bc/mkbake.py
+python3 /home/claude/golf-go/pipeline/blender/mkbake.py /home/claude/golf-go
 cd /home/claude/golf-go && v=$(grep -o "b10/bake.js?v=[0-9]*" index.html | grep -o "[0-9]*$"); sed -i "s#b10/bake.js?v=$v#b10/bake.js?v=$((v+1))#" index.html
 git add -A b10 index.html && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "Blender trial: baked light for $L
 
