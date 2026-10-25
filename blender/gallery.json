@@ -4,286 +4,356 @@
 "town": "Hudson, WI",
 "hole": 10,
 "ord": 0,
-"v": "2610242106"
+"v": "2610250304"
 },
 "stoneridge": {
 "name": "StoneRidge",
 "town": "Stillwater, MN",
 "hole": 1,
 "ord": 1,
-"v": "2610242106"
+"v": "2610250304"
 },
 "caledonia": {
 "name": "Caledonia",
 "town": "Pawleys Island, SC",
 "hole": 18,
 "ord": 2,
-"v": "2610242106"
+"v": "2610250304"
 },
 "trueblue": {
 "name": "True Blue",
 "town": "Pawleys Island, SC",
 "hole": 18,
 "ord": 3,
-"v": "2610242106"
+"v": "2610250304"
 },
 "rossbridge": {
 "name": "Ross Bridge",
 "town": "Hoover, AL",
 "hole": 5,
 "ord": 4,
-"v": "2610242106"
+"v": "2610250304"
 },
 "sandvalley": {
 "name": "Sand Valley",
 "town": "Nekoosa, WI",
 "hole": 18,
 "ord": 8,
-"v": "2610242106"
+"v": "2610250304"
 },
 "mammoth": {
 "name": "Mammoth Dunes",
 "town": "Nekoosa, WI",
 "hole": 1,
 "ord": 9,
-"v": "2610242106"
+"v": "2610250304"
 },
 "lido": {
 "name": "The Lido",
 "town": "Nekoosa, WI",
 "hole": 1,
 "ord": 10,
-"v": "2610242106"
+"v": "2610250304"
 },
 "sedge": {
 "name": "Sedge Valley",
 "town": "Nekoosa, WI",
 "hole": 1,
 "ord": 11,
-"v": "2610242106"
+"v": "2610250304"
 },
 "wilderness": {
 "name": "The Wilderness",
 "town": "Tower, MN",
 "hole": 10,
 "ord": 12,
-"v": "2610242106"
+"v": "2610250304"
 },
 "quarry": {
 "name": "The Quarry",
 "town": "Biwabik, MN",
 "hole": 18,
 "ord": 13,
-"v": "2610242106"
+"v": "2610250304"
 },
 "legend": {
 "name": "The Legend",
 "town": "Biwabik, MN",
 "hole": 1,
 "ord": 14,
-"v": "2610242106"
+"v": "2610250304"
 },
 "heritage": {
 "name": "The Heritage Club",
 "town": "Pawleys Island, SC",
 "hole": 9,
 "ord": 17,
-"v": "2610242106"
+"v": "2610250304"
 },
 "pawplant": {
 "name": "Pawleys Plantation",
 "town": "Pawleys Island, SC",
 "hole": 18,
 "ord": 18,
-"v": "2610242106"
+"v": "2610250304"
 },
 "deacon": {
 "name": "Deacon's Lodge",
 "town": "Breezy Point, MN",
 "hole": 9,
 "ord": 19,
-"v": "2610242106"
+"v": "2610250304"
 },
 "lehman": {
 "name": "The Lehman 18",
 "town": "Cragun's, Brainerd, MN",
 "hole": 1,
 "ord": 20,
-"v": "2610242106"
+"v": "2610250304"
 },
 "maddens": {
 "name": "The Classic",
 "town": "Madden's, Brainerd, MN",
 "hole": 1,
 "ord": 21,
-"v": "2610242106"
+"v": "2610250304"
 },
 "pines": {
 "name": "The Pines",
 "town": "Grand View Lodge, Nisswa, MN",
 "hole": 18,
 "ord": 22,
-"v": "2610242106"
+"v": "2610250304"
 },
 "preserve": {
 "name": "The Preserve",
 "town": "Grand View Lodge, Pequot Lakes, MN",
 "hole": 10,
 "ord": 23,
-"v": "2610242106"
+"v": "2610250304"
 },
 "orangeburg": {
 "name": "Country Club of Orangeburg",
 "town": "Orangeburg, SC",
 "hole": 10,
 "ord": 24,
-"v": "2610242106"
+"v": "2610250304"
 },
 "santee": {
 "name": "Santee National",
 "town": "Santee, SC",
 "hole": 1,
 "ord": 25,
-"v": "2610242106"
+"v": "2610250304"
 },
 "wyboo": {
 "name": "Wyboo Golf Club",
 "town": "Manning, SC",
 "hole": 10,
 "ord": 26,
-"v": "2610242106"
+"v": "2610250304"
 },
 "interlachen": {
 "name": "Interlachen",
 "town": "Edina, MN",
 "hole": 10,
 "ord": 34,
-"v": "2610242106"
+"v": "2610250304"
 },
 "windsong": {
 "name": "Windsong Farm",
 "town": "Independence, MN",
 "hole": 17,
 "ord": 35,
-"v": "2610242106"
+"v": "2610250304"
 },
 "hazeltine": {
 "name": "Hazeltine National",
 "town": "Chaska, MN",
 "hole": 9,
 "ord": 36,
-"v": "2610242106"
+"v": "2610250304"
 },
 "mystic": {
 "name": "The Meadows at Mystic Lake",
 "town": "Prior Lake, MN",
 "hole": 10,
 "ord": 39,
-"v": "2610242106"
+"v": "2610250304"
 },
 "legends": {
 "name": "The Legends Club",
 "town": "Prior Lake, MN",
 "hole": 18,
 "ord": 40,
-"v": "2610242106"
+"v": "2610250304"
 },
 "chaska": {
 "name": "Chaska Town Course",
 "town": "Chaska, MN",
 "hole": 10,
 "ord": 41,
-"v": "2610242106"
+"v": "2610250304"
 },
 "prestwick": {
 "name": "Prestwick Golf Club",
 "town": "Woodbury, MN",
 "hole": 18,
 "ord": 42,
-"v": "2610242106"
+"v": "2610250304"
 },
 "royal": {
 "name": "Royal Golf Club",
 "town": "Lake Elmo, MN",
 "hole": 1,
 "ord": 43,
-"v": "2610242106"
+"v": "2610250304"
 },
 "jewel": {
 "name": "The Jewel",
 "town": "Lake City, MN",
 "hole": 9,
 "ord": 46,
-"v": "2610242106"
+"v": "2610250304"
 },
 "ridges": {
 "name": "The Ridges at Sand Creek",
 "town": "Jordan, MN",
 "hole": 18,
 "ord": 47,
-"v": "2610242106"
+"v": "2610250304"
 },
 "edinburgh": {
 "name": "Edinburgh USA",
 "town": "Brooklyn Park, MN",
 "hole": 1,
 "ord": 48,
-"v": "2610242106"
+"v": "2610250304"
 },
 "willingers": {
 "name": "Willinger's",
 "town": "Northfield, MN",
 "hole": 1,
 "ord": 49,
-"v": "2610242106"
+"v": "2610250304"
 },
 "northfork": {
 "name": "The Links at Northfork",
 "town": "Ramsey, MN",
 "hole": 18,
 "ord": 50,
-"v": "2610242106"
+"v": "2610250304"
 },
 "desertcanyon": {
 "name": "Desert Canyon",
 "town": "Fountain Hills, AZ",
 "hole": 10,
 "ord": 45,
-"v": "2610242137"
+"v": "2610250304"
 },
 "legislator": {
 "name": "Legislator",
 "town": "Capitol Hill, AL",
 "hole": 18,
 "ord": 5,
-"v": "2610242137"
+"v": "2610250304"
 },
 "judge": {
 "name": "Judge",
 "town": "Capitol Hill, AL",
 "hole": 1,
 "ord": 6,
-"v": "2610242137"
+"v": "2610250304"
 },
 "senator": {
 "name": "Senator",
 "town": "Capitol Hill, AL",
 "hole": 2,
 "ord": 7,
-"v": "2610242137"
+"v": "2610250304"
 },
 "crsc": {
 "name": "Sherling/Canyon",
 "town": "Cambrian Ridge, AL",
 "hole": 9,
 "ord": 15,
-"v": "2610242137"
+"v": "2610250304"
 },
 "crls": {
 "name": "Loblolly/Sherling",
 "town": "Cambrian Ridge, AL",
 "hole": 18,
 "ord": 16,
-"v": "2610242137"
+"v": "2610250304"
+},
+"valley": {
+"name": "Oxmoor Valley \u00b7 Valley",
+"town": "Birmingham, AL",
+"hole": 1,
+"ord": 27,
+"v": "2610250304"
+},
+"ridge": {
+"name": "Oxmoor Valley \u00b7 Ridge",
+"town": "Birmingham, AL",
+"hole": 18,
+"ord": 28,
+"v": "2610250304"
+},
+"gnlinks": {
+"name": "Grand National \u00b7 Links",
+"town": "Opelika, AL",
+"hole": 1,
+"ord": 29,
+"v": "2610250304"
+},
+"gnlake": {
+"name": "Grand National \u00b7 Lake",
+"town": "Opelika, AL",
+"hole": 18,
+"ord": 30,
+"v": "2610250304"
+},
+"lookout": {
+"name": "Lookout Mountain",
+"town": "Phoenix, AZ",
+"hole": 18,
+"ord": 31,
+"v": "2610250304"
+},
+"wigwam": {
+"name": "The Wigwam \u00b7 Gold",
+"town": "Litchfield Park, AZ",
+"hole": 1,
+"ord": 32,
+"v": "2610250304"
+},
+"dove": {
+"name": "Dove Valley Ranch",
+"town": "Cave Creek, AZ",
+"hole": 9,
+"ord": 33,
+"v": "2610250304"
+},
+"slmh": {
+"name": "Mindbreaker/Heartbreaker",
+"town": "Silver Lakes, AL",
+"hole": 1,
+"ord": 37,
+"v": "2610250304"
+},
+"slbm": {
+"name": "Backbreaker/Mindbreaker",
+"town": "Silver Lakes, AL",
+"hole": 10,
+"ord": 38,
+"v": "2610250304"
+},
+"farmlinks": {
+"name": "FarmLinks at Pursell Farms",
+"town": "Sylacauga, AL",
+"hole": 18,
+"ord": 44,
+"v": "2610250304"
 }
 }
