@@ -38,14 +38,20 @@ def corridor(nodes):
 def ylen(line): return sum(math.hypot((b[0] - a[0]) * YX, (b[1] - a[1]) * YY) for a, b in zip(line, line[1:]))
 card = json.load(open('/home/claude/golf/auto/jacks/scorecard.json'))['card']
 feats = []  # (kind, ring_px, tags)
+import os
+GF = json.load(open('/home/claude/golf/trace/greens_final.json')) if os.path.exists('/home/claude/golf/trace/greens_final.json') else {}
+BD = json.load(open('/home/claude/golf/trace/bunkers_final.json')) if os.path.exists('/home/claude/golf/trace/bunkers_final.json') else None
 tot = 0
 for ref, h in T['holes'].items():
     line = h['line']; L = ylen(line); tot += L
     c = card[int(ref) - 1]
     print(f"hole {ref:>2} par {h['par']} line {L:5.0f} card {c[2]}  {L - c[2]:+5.0f}  ({L / c[2] * 100:3.0f}%)")
     feats.append(('hole', line, {'golf': 'hole', 'ref': ref, 'par': str(h['par'])}))
-    feats.append(('green', ellipse(*h['green']), {'golf': 'green'}))
-    for b in h['bunkers']: feats.append(('bunker', ellipse(*b, n=14), {'golf': 'bunker'}))
+    feats.append(('green', [tuple(p) for p in GF[ref]] if ref in GF else ellipse(*h['green']), {'golf': 'green'}))
+    if BD is None:
+        for b in h['bunkers']: feats.append(('bunker', ellipse(*b, n=14), {'golf': 'bunker'}))
+    else:
+        for b in BD.get(ref, []): feats.append(('bunker', [tuple(p) for p in b], {'golf': 'bunker'}))
     for i, t in enumerate(h['tees']):
         a = toY(line[0]); b = toY(line[1]); dx, dy = b[0] - a[0], b[1] - a[1]; l = math.hypot(dx, dy)
         feats.append(('tee', rect(t[0], t[1], t[2], t[3], (dx / l, dy / l)), {'golf': 'tee'}))
