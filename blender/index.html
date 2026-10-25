@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Golf Go · Blender upgrade</title>
+<meta name="theme-color" content="#0f2233">
+<style>
+:root{--bg:#0f2233;--card:#16304a;--fg:#eef3f6;--muted:#a9bccb;--line:#24425f;--accent:#8ee6a8;--soon:#f1c27d;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+h1{font-size:28px;line-height:1.15;margin:0 0 6px}
+.lede{color:var(--muted);margin:0 0 20px;max-width:62ch}
+.back{display:inline-block;margin-bottom:14px;color:var(--accent);text-decoration:none;font-weight:600}
+.list{display:grid;gap:18px}
+.course{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+h2{font-size:20px;margin:0;line-height:1.2}
+.town{color:var(--muted);font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--accent)}
+.tag.soon{color:var(--soon)}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:620px){.shots{grid-template-columns:1fr}}
+figure{margin:0;display:grid;gap:4px;min-width:0}
+img{width:100%;height:auto;border-radius:8px;display:block;background:#0b1a28}
+figcaption{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.now figcaption{color:var(--accent);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="../">&larr; Back to Golf Go</a>
+<h1>The Blender upgrade</h1>
+<p class="lede">Since October 24, 2026 every course uses trees modelled in Blender with new leaf textures, and every clubhouse (porches, terraces, stairs and plantings included) is rebuilt and light-baked in Blender. Each hole's light is baked too, so soft sky shading and real tree and building shadows sit on the ground (35 of 35 courses so far). New courses get the same treatment when they're added. Each pair below is the same camera, before and now.</p>
+<div class="list">
+<article class="course" id="troy">
+  <div class="top"><h2>Troy Burne</h2><span class="town">Hudson, WI · hole 10</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/troy_before.jpg?v=2610242106" alt="Troy Burne before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/troy_after.jpg?v=2610242106" alt="Troy Burne with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="stoneridge">
+  <div class="top"><h2>StoneRidge</h2><span class="town">Stillwater, MN · hole 1</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/stoneridge_before.jpg?v=2610242106" alt="StoneRidge before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/stoneridge_after.jpg?v=2610242106" alt="StoneRidge with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="caledonia">
+  <div class="top"><h2>Caledonia</h2><span class="town">Pawleys Island, SC · hole 18</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/caledonia_before.jpg?v=2610242106" alt="Caledonia before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/caledonia_after.jpg?v=2610242106" alt="Caledonia with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="trueblue">
+  <div class="top"><h2>True Blue</h2><span class="town">Pawleys Island, SC · hole 18</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/trueblue_before.jpg?v=2610242106" alt="True Blue before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/trueblue_after.jpg?v=2610242106" alt="True Blue with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="rossbridge">
+  <div class="top"><h2>Ross Bridge</h2><span class="town">Hoover, AL · hole 5</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/rossbridge_before.jpg?v=2610242106" alt="Ross Bridge before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/rossbridge_after.jpg?v=2610242106" alt="Ross Bridge with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="sandvalley">
+  <div class="top"><h2>Sand Valley</h2><span class="town">Nekoosa, WI · hole 18</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/sandvalley_before.jpg?v=2610242106" alt="Sand Valley before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/sandvalley_after.jpg?v=2610242106" alt="Sand Valley with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="mammoth">
+  <div class="top"><h2>Mammoth Dunes</h2><span class="town">Nekoosa, WI · hole 1</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/mammoth_before.jpg?v=2610242106" alt="Mammoth Dunes before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/mammoth_after.jpg?v=2610242106" alt="Mammoth Dunes with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="lido">
+  <div class="top"><h2>The Lido</h2><span class="town">Nekoosa, WI · hole 1</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/lido_before.jpg?v=2610242106" alt="The Lido before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/lido_after.jpg?v=2610242106" alt="The Lido with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="sedge">
+  <div class="top"><h2>Sedge Valley</h2><span class="town">Nekoosa, WI · hole 1</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/sedge_before.jpg?v=2610242106" alt="Sedge Valley before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/sedge_after.jpg?v=2610242106" alt="Sedge Valley with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="wilderness">
+  <div class="top"><h2>The Wilderness</h2><span class="town">Tower, MN · hole 10</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/wilderness_before.jpg?v=2610242106" alt="The Wilderness before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/wilderness_after.jpg?v=2610242106" alt="The Wilderness with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="quarry">
+  <div class="top"><h2>The Quarry</h2><span class="town">Biwabik, MN · hole 18</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/quarry_before.jpg?v=2610242106" alt="The Quarry before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/quarry_after.jpg?v=2610242106" alt="The Quarry with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="legend">
+  <div class="top"><h2>The Legend</h2><span class="town">Biwabik, MN · hole 1</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/legend_before.jpg?v=2610242106" alt="The Legend before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/legend_after.jpg?v=2610242106" alt="The Legend with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="heritage">
+  <div class="top"><h2>The Heritage Club</h2><span class="town">Pawleys Island, SC · hole 9</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/heritage_before.jpg?v=2610242106" alt="The Heritage Club before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/heritage_after.jpg?v=2610242106" alt="The Heritage Club with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="pawplant">
+  <div class="top"><h2>Pawleys Plantation</h2><span class="town">Pawleys Island, SC · hole 18</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/pawplant_before.jpg?v=2610242106" alt="Pawleys Plantation before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/pawplant_after.jpg?v=2610242106" alt="Pawleys Plantation with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="deacon">
+  <div class="top"><h2>Deacon's Lodge</h2><span class="town">Breezy Point, MN · hole 9</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/deacon_before.jpg?v=2610242106" alt="Deacon's Lodge before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/deacon_after.jpg?v=2610242106" alt="Deacon's Lodge with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="lehman">
+  <div class="top"><h2>The Lehman 18</h2><span class="town">Cragun's, Brainerd, MN · hole 1</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/lehman_before.jpg?v=2610242106" alt="The Lehman 18 before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/lehman_after.jpg?v=2610242106" alt="The Lehman 18 with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="maddens">
+  <div class="top"><h2>The Classic</h2><span class="town">Madden's, Brainerd, MN · hole 1</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/maddens_before.jpg?v=2610242106" alt="The Classic before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/maddens_after.jpg?v=2610242106" alt="The Classic with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="pines">
+  <div class="top"><h2>The Pines</h2><span class="town">Grand View Lodge, Nisswa, MN · hole 18</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/pines_before.jpg?v=2610242106" alt="The Pines before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/pines_after.jpg?v=2610242106" alt="The Pines with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="preserve">
+  <div class="top"><h2>The Preserve</h2><span class="town">Grand View Lodge, Pequot Lakes, MN · hole 10</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/preserve_before.jpg?v=2610242106" alt="The Preserve before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/preserve_after.jpg?v=2610242106" alt="The Preserve with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="orangeburg">
+  <div class="top"><h2>Country Club of Orangeburg</h2><span class="town">Orangeburg, SC · hole 10</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/orangeburg_before.jpg?v=2610242106" alt="Country Club of Orangeburg before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/orangeburg_after.jpg?v=2610242106" alt="Country Club of Orangeburg with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="santee">
+  <div class="top"><h2>Santee National</h2><span class="town">Santee, SC · hole 1</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/santee_before.jpg?v=2610242106" alt="Santee National before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/santee_after.jpg?v=2610242106" alt="Santee National with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="wyboo">
+  <div class="top"><h2>Wyboo Golf Club</h2><span class="town">Manning, SC · hole 10</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/wyboo_before.jpg?v=2610242106" alt="Wyboo Golf Club before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/wyboo_after.jpg?v=2610242106" alt="Wyboo Golf Club with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="interlachen">
+  <div class="top"><h2>Interlachen</h2><span class="town">Edina, MN · hole 10</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/interlachen_before.jpg?v=2610242106" alt="Interlachen before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/interlachen_after.jpg?v=2610242106" alt="Interlachen with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="windsong">
+  <div class="top"><h2>Windsong Farm</h2><span class="town">Independence, MN · hole 17</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/windsong_before.jpg?v=2610242106" alt="Windsong Farm before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/windsong_after.jpg?v=2610242106" alt="Windsong Farm with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="hazeltine">
+  <div class="top"><h2>Hazeltine National</h2><span class="town">Chaska, MN · hole 9</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/hazeltine_before.jpg?v=2610242106" alt="Hazeltine National before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/hazeltine_after.jpg?v=2610242106" alt="Hazeltine National with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="mystic">
+  <div class="top"><h2>The Meadows at Mystic Lake</h2><span class="town">Prior Lake, MN · hole 10</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/mystic_before.jpg?v=2610242106" alt="The Meadows at Mystic Lake before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/mystic_after.jpg?v=2610242106" alt="The Meadows at Mystic Lake with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="legends">
+  <div class="top"><h2>The Legends Club</h2><span class="town">Prior Lake, MN · hole 18</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/legends_before.jpg?v=2610242106" alt="The Legends Club before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/legends_after.jpg?v=2610242106" alt="The Legends Club with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="chaska">
+  <div class="top"><h2>Chaska Town Course</h2><span class="town">Chaska, MN · hole 10</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/chaska_before.jpg?v=2610242106" alt="Chaska Town Course before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/chaska_after.jpg?v=2610242106" alt="Chaska Town Course with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="prestwick">
+  <div class="top"><h2>Prestwick Golf Club</h2><span class="town">Woodbury, MN · hole 18</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/prestwick_before.jpg?v=2610242106" alt="Prestwick Golf Club before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/prestwick_after.jpg?v=2610242106" alt="Prestwick Golf Club with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="royal">
+  <div class="top"><h2>Royal Golf Club</h2><span class="town">Lake Elmo, MN · hole 1</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/royal_before.jpg?v=2610242106" alt="Royal Golf Club before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/royal_after.jpg?v=2610242106" alt="Royal Golf Club with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="jewel">
+  <div class="top"><h2>The Jewel</h2><span class="town">Lake City, MN · hole 9</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/jewel_before.jpg?v=2610242106" alt="The Jewel before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/jewel_after.jpg?v=2610242106" alt="The Jewel with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="ridges">
+  <div class="top"><h2>The Ridges at Sand Creek</h2><span class="town">Jordan, MN · hole 18</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/ridges_before.jpg?v=2610242106" alt="The Ridges at Sand Creek before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/ridges_after.jpg?v=2610242106" alt="The Ridges at Sand Creek with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="edinburgh">
+  <div class="top"><h2>Edinburgh USA</h2><span class="town">Brooklyn Park, MN · hole 1</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/edinburgh_before.jpg?v=2610242106" alt="Edinburgh USA before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/edinburgh_after.jpg?v=2610242106" alt="Edinburgh USA with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="willingers">
+  <div class="top"><h2>Willinger's</h2><span class="town">Northfield, MN · hole 1</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/willingers_before.jpg?v=2610242106" alt="Willinger's before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/willingers_after.jpg?v=2610242106" alt="Willinger's with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+<article class="course" id="northfork">
+  <div class="top"><h2>The Links at Northfork</h2><span class="town">Ramsey, MN · hole 18</span></div>
+  <div class="tags"><span class="tag">Blender trees and leaves</span><span class="tag">Blender clubhouse</span><span class="tag">Baked light</span></div>
+  <div class="shots">
+    <figure><img src="img/northfork_before.jpg?v=2610242106" alt="The Links at Northfork before" loading="lazy" width="640" height="440"><figcaption>Before</figcaption></figure>
+    <figure class="now"><img src="img/northfork_after.jpg?v=2610242106" alt="The Links at Northfork with Blender" loading="lazy" width="640" height="440"><figcaption>Now</figcaption></figure>
+  </div>
+</article>
+</div>
+</div>
+</body>
+</html>
