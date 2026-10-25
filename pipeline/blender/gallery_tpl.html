@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Golf Go · Blender upgrade</title>
+<meta name="theme-color" content="#0f2233">
+<style>
+:root{--bg:#0f2233;--card:#16304a;--fg:#eef3f6;--muted:#a9bccb;--line:#24425f;--accent:#8ee6a8;--soon:#f1c27d;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+h1{font-size:28px;line-height:1.15;margin:0 0 6px}
+.lede{color:var(--muted);margin:0 0 20px;max-width:62ch}
+.back{display:inline-block;margin-bottom:14px;color:var(--accent);text-decoration:none;font-weight:600}
+.list{display:grid;gap:18px}
+.course{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:10px}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+h2{font-size:20px;margin:0;line-height:1.2}
+.town{color:var(--muted);font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:1px 9px;color:var(--accent)}
+.tag.soon{color:var(--soon)}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:620px){.shots{grid-template-columns:1fr}}
+figure{margin:0;display:grid;gap:4px;min-width:0}
+img{width:100%;height:auto;border-radius:8px;display:block;background:#0b1a28}
+figcaption{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.now figcaption{color:var(--accent);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="../">&larr; Back to Golf Go</a>
+<h1>The Blender upgrade</h1>
+<p class="lede">Since October 24, 2026 every course uses trees modelled in Blender with new leaf textures, and every clubhouse (porches, terraces, stairs and plantings included) is rebuilt and light-baked in Blender. Each hole's light is baked too, so soft sky shading and real tree and building shadows sit on the ground ({{N_LIT}} of {{N}} courses so far). New courses get the same treatment when they're added. Each pair below is the same camera, before and now.</p>
+<div class="list">
+{{ARTICLES}}
+</div>
+</div>
+</body>
+</html>

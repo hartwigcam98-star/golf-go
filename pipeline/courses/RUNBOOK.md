@@ -4,7 +4,7 @@ This folder (`pipeline/courses/` in the repo) is the whole course pipeline. Play
 "Request a course" form; each request is a feedback note (kind `course`, message `[Request] <course> — <town>`, `ctx.request`).
 The nightly task builds **at most two** courses per night (from two different players) and ships each one only if every check passes.
 Each course is made the way hand-built courses are: playable course first (steps 1–6), then its clubhouse measured from the
-lidar survey and dressed from photos, and its landmarks (steps 4c and 6b).
+lidar survey and dressed from photos, and its landmarks (steps 4c and 6b), and finally the Blender pass (step 7b).
 
 ## 0. Setup (fresh session)
 ```
@@ -183,7 +183,21 @@ Commit `index.html greens.js ground.js trees.js sw.js pipeline/courses/ pipeline
 and push. If the push is rejected, pull, re-copy base, re-inject, re-test gate 5, push again.
 For failures/skips: commit only `pipeline/courses/requests.json`.
 
+## 7b. Blender pass (after the course is live; never blocks it)
+Every course gets the Blender upgrade: its clubhouse rebuilt and light-baked in Blender, every hole's light baked (real tree
+and building shadows, soft sky light), and a before/after card on the Blender page. Follow `pipeline/blender/README.md`:
+```
+P=/home/claude/golf-go/pipeline/blender && git -C /home/claude/golf-go pull -q origin main
+bash $P/newcourse.sh setup
+bash $P/newcourse.sh export <key> [key2]      # background; Read the log lines it prints
+bash $P/newcourse.sh bake <key> [key2]        # background, one GitHub run for both courses
+bash $P/newcourse.sh cand <key> [key2]        # Read /home/claude/b10work/shots/sheet_<keys>.jpg and pick a view per course
+bash $P/newcourse.sh shoot <key>=<n> [key2=<n>]
+```
+Read the before/after pictures (README "Checks"). Commit `b10/ blender/ index.html` to main ("Blender pass: <name>") and push
+(on rejection: pull, re-run `python3 $P/mkbake.py`, bump `b10/bake.js?v=` again, push). A part that fails is left out and reported.
+
 ## 8. Report to Cam (PushNotification)
 Built: "<name> is live" (or both names) + tees/length vs card, its tee sets, where its range came from (mapped / traced / shared / placed),
-its clubhouse (measured from the survey / map outline only, and why), its look (from photos / default) and any landmarks added, anything uncertain (pars that disagree, holes short of the card, softened greens),
+its clubhouse (measured from the survey / map outline only, and why), its look (from photos / default) and any landmarks added, the Blender pass (clubhouse, baked light, before/after card, or what was left out), anything uncertain (pars that disagree, holes short of the card, softened greens),
 and "say 'remove <name>' to undo". Skipped/failed: what and why. Nothing to do: no notification.

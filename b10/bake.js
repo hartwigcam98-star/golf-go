@@ -1,5 +1,6 @@
-/* Blender trial (?b10=1): per-course data. courses[id].holes[index] = this hole's light baked in Cycles (R sun, G sky) with its
-   bounds [x0, y0, w, h]; clubs[id] = version of b10/club/<id>.js (the game's clubhouse run through Blender). k = [sun, sky strength]. */
+/* Blender upgrade: per-course data (pipeline/blender/mkbake.py). courses[id].holes[index] = this hole's light baked in Cycles
+   (R sun, G sky) with its bounds [x0, y0, w, h]; clubs[id] = version of b10/club/<id>.js (the game's clubhouse run through Blender).
+   k = [sun, sky strength]. */
 window.B10BAKE={k:[.9,.8],
 courses:{
 caledonia:{holes:{0:{b:[-59,-88,450,244],png:'b10/light/caledonia/h01.webp?v=1'},1:{b:[-90,-554,492,627],png:'b10/light/caledonia/h02.webp?v=1'},2:{b:[-90,-232,264,305],png:'b10/light/caledonia/h03.webp?v=1'},3:{b:[-448,-89,510,238],png:'b10/light/caledonia/h04.webp?v=1'},4:{b:[-458,-85,508,197],png:'b10/light/caledonia/h05.webp?v=1'},5:{b:[-110,-52,195,267],png:'b10/light/caledonia/h06.webp?v=1'},6:{b:[-41,-113,484,194],png:'b10/light/caledonia/h07.webp?v=1'},7:{b:[-555,-88,615,256],png:'b10/light/caledonia/h08.webp?v=1'},8:{b:[-90,-166,225,237],png:'b10/light/caledonia/h09.webp?v=1'},9:{b:[-46,-83,647,257],png:'b10/light/caledonia/h10.webp?v=1'},10:{b:[-81,-217,167,259],png:'b10/light/caledonia/h11.webp?v=1'},11:{b:[-90,-369,413,443],png:'b10/light/caledonia/h12.webp?v=1'},12:{b:[-390,-81,432,294],png:'b10/light/caledonia/h13.webp?v=1'},13:{b:[-471,-114,521,234],png:'b10/light/caledonia/h14.webp?v=1'},14:{b:[-53,-277,530,363],png:'b10/light/caledonia/h15.webp?v=1'},15:{b:[-438,-90,508,270],png:'b10/light/caledonia/h16.webp?v=1'},16:{b:[-86,-210,196,262],png:'b10/light/caledonia/h17.webp?v=1'},17:{b:[-191,-42,276,449],png:'b10/light/caledonia/h18.webp?v=1'}}},
