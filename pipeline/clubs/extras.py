@@ -45,7 +45,9 @@ def apply(index_f, ground_f, keys):
         E = json.load(open(f)); done = []
         if E.get('clublook'):
             a = 'const CLUBLOOK={\n'; assert s.count(a) == 1
-            if re.search(r'^  ' + key + r':\{', s, re.M): s = re.sub(r'^  ' + key + r':\{.*\},?\n', '', s, count=1, flags=re.M)
+            i0 = s.index(a) + len(a); i1 = s.index('\n};', i0)   # only inside the CLUBLOOK table (a course's COURSES line also starts '  key:{')
+            blk = re.sub(r'^  ' + key + r':\{.*\},?\n', '', s[i0:i1] + '\n', count=1, flags=re.M)[:-1]
+            s = s[:i0] + blk + s[i1:]
             s = s.replace(a, a + '  ' + key + ':' + json.dumps(E['clublook'], separators=(',', ':')) + ',\n'); done.append('CLUBLOOK')
         if E.get('cfeel'):
             m, o = jline(s, 'CFEEL'); o[key] = E['cfeel']

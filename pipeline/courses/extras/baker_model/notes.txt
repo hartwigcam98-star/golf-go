@@ -1,0 +1,7 @@
+Baker National clubhouse, modelled from MN_CentralMissRiver_4_B22 (2022, 54 pts/m2).
+GV main north-south hall, steep gable (ridge ~7.5 yd, low eaves ~2.8)
+GV narrower gable-end extensions at the north and south ends
+GU + H west cross wing (hip on the west end, toward the round terrace)
+SU east lean-to along the full length; SU west lean-tos either side of the cross wing
+fit --free: median 0.04 yd, rms 0.61, 3.8% off >1 yd; residuals only thin edge slivers.
+No clear clubhouse photo in the photo set (park-system stock images), so no CLUBLOOK: region default look.
