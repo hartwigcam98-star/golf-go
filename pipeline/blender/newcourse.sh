@@ -2,6 +2,7 @@
 # Blender pass for courses already in the game (pipeline/blender/README.md):
 #   newcourse.sh setup                    clone the blender-club branch, make the hooked local copy of the game
 #   newcourse.sh export <key> [key...]    clubhouse capture (from its home hole) + every hole's scene, for Blender
+#                                         (= club + holes; each can be re-run on its own)
 #   newcourse.sh bake   <key> [key...]    one GitHub Actions run: the clubhouse(s) and every hole's sun + sky light; then
 #                                         b10/club/<key>.js, b10/light/<key>/hNN.webp, b10/bake.js and the bake.js?v bump
 #   newcourse.sh cand   <key> [key...]    three candidate camera views per course + a contact sheet to pick from
@@ -14,14 +15,17 @@ mkdir -p $W/{clubs,scenes,shots,logs}
 cmd=$1; shift || true
 serve() {   # (re)make the hooked copy and serve it for the rest of this command
   python3 $P/mkhook.py $GG $SRV >/dev/null
-  if ! curl -s -o /dev/null localhost:$PORT/index.html; then (cd $SRV && setsid nohup python3 -m http.server $PORT >/dev/null 2>&1 &); sleep 2; fi
+  if ! curl -s -o /dev/null localhost:$PORT/index.html; then
+    (cd $SRV && setsid -f python3 -m http.server $PORT >/dev/null 2>&1 </dev/null); sleep 2
+    trap "pkill -f 'http.server $PORT' || true" EXIT   # ours: stop it when this command ends
+  fi
 }
 case "$cmd" in
 setup)
   [ -d $BC/.git ] || git clone -q --single-branch -b blender-club https://github.com/$REPO $BC
   git -C $BC pull -q origin blender-club; mkdir -p $BC/clubs $BC/holes
   python3 -c "import numpy, PIL" && node -e "require('playwright')" && echo "setup ok" ;;
-export)
+club|export)
   serve
   for K in "$@"; do
     # 1. the clubhouse, captured on the hole that runs closest to it (its terrace and stairs face that hole, as in the game)
@@ -39,6 +43,12 @@ PY
     (cd $P && PORT=$PORT Q="?b10=0" NOUI=1 timeout 900 node run.js $W/logs/club_$K.json > $W/logs/club_$K.log 2>&1) || true
     grep -h "home hole\|errors" $W/logs/club_$K.log | tr '\n' ' '; echo
     python3 $P/prep_club.py $W/clubs/$K.json $BC/clubs/$K.npz || echo "$K: no clubhouse to bake"
+  done
+  [ "$cmd" = club ] && exit 0
+  ;;&
+holes|export)
+  serve
+  for K in "$@"; do
     # 2. every hole: ground, trees (the Blender tree models), buildings - the scene the light is baked from
     D=$W/scenes/$K; mkdir -p $D
     python3 - $K $D $W <<'PY'
