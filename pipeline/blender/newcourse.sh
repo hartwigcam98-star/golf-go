@@ -3,7 +3,8 @@
 #   newcourse.sh setup                    clone the blender-club branch, make the hooked local copy of the game
 #   newcourse.sh export <key> [key...]    clubhouse capture (from its home hole) + every hole's scene, for Blender
 #                                         (= club + holes; each can be re-run on its own)
-#   newcourse.sh bake   <key> [key...]    one GitHub Actions run: the clubhouse(s) and every hole's sun + sky light; then
+#   newcourse.sh bake   <key> [key...]    one GitHub Actions run: the clubhouse(s) and every hole's sun + sky light (CLUBONLY=1:
+#                                         just the clubhouses, after a capture or prep_club.py change); then
 #                                         b10/club/<key>.js, b10/light/<key>/hNN.webp, b10/bake.js and the bake.js?v bump
 #   newcourse.sh cand   <key> [key...]    three candidate camera views per course + a contact sheet to pick from
 #   newcourse.sh shoot  <key>=<n> [...]   before (?b10=0) and after from candidate n, then add them to blender/index.html
@@ -66,7 +67,7 @@ PY
   done ;;
 bake)
   cd $BC && git pull -q origin blender-club
-  rm -rf /tmp/bd && mkdir -p /tmp/bd/holes && for K in "$@"; do cp -r $BC/holes/$K /tmp/bd/holes/; done
+  rm -rf /tmp/bd && mkdir -p /tmp/bd/holes && for K in "$@"; do [ -n "$CLUBONLY" ] || cp -r $BC/holes/$K /tmp/bd/holes/; done; touch /tmp/bd/holes/.keep
   BD=bakedata-$1-$(date +%s); echo $BD > bakebranch.txt   # this run's own hole-data branch (runs never share one)
   (cd /tmp/bd && git init -q -b $BD && git add -A && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "bake data: $*" && git push -q -f https://github.com/$REPO $BD)
   python3 - "$@" <<'PY'
@@ -74,6 +75,7 @@ import json,sys,glob,os
 items=[]
 for c in sys.argv[1:]:
     if os.path.exists('clubs/%s.npz'%c): items.append('club:'+c)
+    if os.environ.get('CLUBONLY'): continue
     for f in sorted(glob.glob('holes/%s/h*.npz'%c)):
         h=os.path.basename(f)[:-4]; items+=['%s/%s:sun'%(c,h),'%s/%s:sky'%(c,h)]
 json.dump(items,open('matrix.json','w'));print(len(items),'jobs')
@@ -88,6 +90,7 @@ PY
       [ -f $GG/b10/club/$K.js ] && python3 -c "
 import json,os;p='$GG/b10/club_ver.json';V=json.load(open(p)) if os.path.exists(p) else {};V['$K']=V.get('$K',1)+1;json.dump(V,open(p,'w'))"
       python3 $P/packclub.py $T/$K.npz $GG/b10/club/$K.js $K | tail -1; git push -q origin --delete bake-club-$K 2>/dev/null || true; fi
+    [ -n "$CLUBONLY" ] && { echo "$K: clubhouse $([ -f $GG/b10/club/$K.js ] && echo yes || echo no)"; continue; }
     mkdir -p $GG/b10/light/$K
     for f in $BC/holes/$K/h*.npz; do h=$(basename $f .npz); T=/tmp/bk/$K/$h; rm -rf $T; mkdir -p $T/sun $T/sky
       for p in sun sky; do git fetch -q --depth 1 origin bake-$K-$h-$p && git archive FETCH_HEAD | tar x -C $T/$p; done

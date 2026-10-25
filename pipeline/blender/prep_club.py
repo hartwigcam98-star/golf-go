@@ -67,7 +67,12 @@ def box(c, a, b, n, ha, hb, d0, d1, col):
             if np.dot(fn, nq) < 0: tri = (tri[0], tri[2], tri[1])
             out.append([[*v, *nq, *col] for v in tri])
     return out
-nwin = 0
+def right(t):
+    for k in range(3):
+        a, b = t[(k + 1) % 3] - t[k], t[(k + 2) % 3] - t[k]
+        if abs(np.dot(a, b)) < .06 * np.linalg.norm(a) * np.linalg.norm(b): return True
+    return False
+nwin = 0; narch = 0
 for g in groups.values():
     Q = P[g].reshape(-1, 3); nv = nn[g].mean(0); nv /= max(np.linalg.norm(nv), 1e-9)
     if abs(nv[1]) > .3: continue
@@ -75,6 +80,9 @@ for g in groups.values():
     c0 = Q.mean(0); u = (Q - c0) @ a; v = (Q - c0) @ b
     W, H = u.max() - u.min(), v.max() - v.min()
     if not (.35 < W < 4.5 and .45 < H < 4.5): continue
+    # only rectangles are windows (every triangle of a split quad has a right angle): an arched opening, whose
+    # top is a fan of 30-75-75 degree triangles, keeps its arch and gets no frame
+    if not all(right(P[i]) for i in g): narch += 1; continue
     c = c0 + a * (u.max() + u.min()) / 2 + b * (v.max() + v.min()) / 2 + nv * .01
     fw = .07
     frames += box(c + b * (H / 2), a, b, nv, W / 2 + fw, fw, 0, .05, trim)
@@ -89,4 +97,4 @@ if len(T2) > 60000: T2 = split(T, maxe=6.0, depth=2)
 if frames: T2 = np.concatenate([T2, np.array(frames)])
 xs = np.arange(-R, R + 1e-6, 1.0)
 np.savez_compressed(dst, tris=T2.astype(np.float32), off=off, offc=off + np.array([d['T0'][0], 0, d['T0'][1]]), ground=(gr - g0).astype(np.float32), R=np.array([R]), xs=xs)
-print(d['id'], 'tris', len(T), '->', len(T2), 'windows', nwin, 'R', R)
+print(d['id'], 'tris', len(T), '->', len(T2), 'windows', nwin, 'arches/odd shapes left unframed', narch, 'R', R)
