@@ -50,6 +50,7 @@ for ref, h in T['holes'].items():
         a = toY(line[0]); b = toY(line[1]); dx, dy = b[0] - a[0], b[1] - a[1]; l = math.hypot(dx, dy)
         feats.append(('tee', rect(t[0], t[1], t[2], t[3], (dx / l, dy / l)), {'golf': 'tee'}))
     if h['fairway']: feats.append(('fairway', corridor(h['fairway']), {'golf': 'fairway'}))
+    if h.get('chute'): feats.append(('fairway', corridor([[x, y, 8] for x, y in h['chute']]), {'golf': 'fairway', 'chute': 'yes'}))
 for p in T.get('ponds', []): feats.append(('pond', p, {'natural': 'water', 'golf': 'water_hazard'}))
 print('total', round(tot), 'card', sum(c[2] for c in card), f"{tot / sum(c[2] for c in card) * 100:.1f}%")
 if len(sys.argv) > 1:
