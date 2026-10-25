@@ -83,6 +83,14 @@ for k, r, t in feats:
     g = [ll(p) for p in r]
     if k != 'hole': g = g + [g[0]]
     O['elements'].append({'type': 'way', 'id': nid, 'geometry': [{'lat': round(b, 7), 'lon': round(a, 7)} for a, b in g], 'tags': t})
+# drop OSM water that isn't in the aerial (trace.json drop_water: NAIP px centres)
+def _cen(el):
+    g=el.get('geometry') or [];
+    if not g: return None
+    x=sum((q['lon']-e[0])/(e[2]-e[0])*W for q in g)/len(g);y=sum((e[3]-q['lat'])/(e[3]-e[1])*H for q in g)/len(g);return x,y
+_dw=T.get('drop_water',[]);_n0=len(O['elements'])
+O['elements']=[el for el in O['elements'] if not (el.get('type')=='way' and el.get('tags',{}).get('natural')=='water' and el.get('id',0)<9_000_000_000 and _cen(el) and any(abs(_cen(el)[0]-px_)<20 and abs(_cen(el)[1]-py_)<20 for px_,py_ in _dw))]
+print('dropped osm water', _n0-len(O['elements']))
 json.dump(O, open(dst + '/osm_jacks.json', 'w'))
 # range in course yards is written later (needs the course origin)
 json.dump({'YX': YX, 'YY': YY}, open('/home/claude/golf/trace/scale.json', 'w'))
