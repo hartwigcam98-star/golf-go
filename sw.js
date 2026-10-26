@@ -1,8 +1,8 @@
 /* Golf Go offline cache. The page is checked online first (so updates show straight away) and falls back to the copy on
    this phone; course data carries a version tag (?v=…) and is kept until it changes; leaderboards always go to the network. */
-const V='8939a5ce14',CORE='core-'+V,ASSETS='assets';
+const V='91b78f66df',CORE='core-'+V,ASSETS='assets';
 const CORE_FILES=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png'];
-const DATA=["greens.js?v=aa5407691f", "ground.js?v=295532b5f9", "trees.js?v=e677fcc71e", "char%20ch12.js?v=lg2", "char%20remy.js?v=lg2", "char%20ch01.js?v=lg2", "char_ch08.js?v=lg2", "char_ch42.js?v=lg2", "char_ch23.js?v=lg2", "char%20ch28.js?v=lg2", "char_mx_joe.js?v=lg2", "char_ch17.js?v=lg2", "char_mh_tyger.js?v=m4", "char_mh_jack.js?v=m4", "char_mh_arnie.js?v=m4", "char_mh_phil.js?v=m4", "char_mh_rory.js?v=m4", "char_mh_scotty.js?v=m4", "char_mh_seve.js?v=m4", "char_mh_barry.js?v=m4", "char_mh_hoagan.js?v=m4", "char_mh_payne.js?v=m4"];   // current versioned data files
+const DATA=["greens.js?v=f63e0c28b3", "ground.js?v=295532b5f9", "trees.js?v=b64eece8ae", "char%20ch12.js?v=lg2", "char%20remy.js?v=lg2", "char%20ch01.js?v=lg2", "char_ch08.js?v=lg2", "char_ch42.js?v=lg2", "char_ch23.js?v=lg2", "char%20ch28.js?v=lg2", "char_mx_joe.js?v=lg2", "char_ch17.js?v=lg2", "char_mh_tyger.js?v=m4", "char_mh_jack.js?v=m4", "char_mh_arnie.js?v=m4", "char_mh_phil.js?v=m4", "char_mh_rory.js?v=m4", "char_mh_scotty.js?v=m4", "char_mh_seve.js?v=m4", "char_mh_barry.js?v=m4", "char_mh_hoagan.js?v=m4", "char_mh_payne.js?v=m4"];   // current versioned data files
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CORE).then(c=>c.addAll(CORE_FILES)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil((async()=>{
   for(const k of await caches.keys())if(k.startsWith('core-')&&k!==CORE)await caches.delete(k);
