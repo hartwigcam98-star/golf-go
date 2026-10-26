@@ -12,3 +12,9 @@ Work dir was /home/claude/jk (paths in the scripts).
 5. Gates: qa/qarun.js and qa/smoke.js with `?b10=0` (startHole waits for the Blender clubhouse with b10 on).
 Physics note: a ball rests on a green only below about 2.9% (MU_GREEN at Stimp 11 x MU_REST .45 / GACC 8); other courses' greens
 have medians of 2-5%, so real greens in that range play like the rest of the game.
+
+## Green outlines drawn by Cam (Oct 26)
+Each green was sent as a 50-yd, 800 px aerial crop sampled on a course-yard grid (blank_meta.json: x0, y0, size_yd). Cam traced the
+edges in red; the red line's interior became the outline (greens_drawn_by_cam.json, course yd). build_new.py cuts bunkers out of an
+outline, grows a green's lidar patch when the new shape runs past it (13, 15), rebuilds every surface from the lidar on the new shape,
+and moves a pin that ends up within 4 yd of the edge to the nearest spot under 2% slope (13, 15).
