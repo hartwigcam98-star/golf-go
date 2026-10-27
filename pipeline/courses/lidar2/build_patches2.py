@@ -4,7 +4,7 @@ from common import *
 from grid import fit
 from build_patches import enc
 SIG=json.load(open('/home/claude/golf/lidar2/sigma.json'));PSH=json.load(open('/home/claude/golf/lidar2/ptshift.json'));RSH=json.load(open('/home/claude/golf/lidar2/regshift.json'))
-STEP={'stoneridge':.5,'rossbridge':.5,'troy':.5,'sandvalley':.5,'mammoth':.5,'quarry':.5,'legend':.5,'wilderness':1.0,'jewel':.5,'ridges':.5,'edinburgh':.5,'willingers':.5,'northfork':.5}
+STEP={'ridge':1.0,'stoneridge':.5,'rossbridge':.5,'troy':.5,'sandvalley':.5,'mammoth':.5,'quarry':.5,'legend':.5,'wilderness':1.0,'jewel':.5,'ridges':.5,'edinburgh':.5,'willingers':.5,'northfork':.5}
 M=14
 def build(name,keep=False):
     P=load_pts(name);gl=green_list(name);sig=SIG[name];st=STEP.get(name,.5);p=np.array(PSH[name]);r=np.array(RSH[name])
