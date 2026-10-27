@@ -4,5 +4,11 @@
   "key": "jacks",
   "date": "2026-10-25",
   "why": "Built by hand at Cam's request. OSM had only the boundary: holes traced from USDA NAIP with the club's routing map, routed and treed from 2022 lidar, back tees cut to card length. 6723 of 6822 yd; greens and bunkers traced from the photo, green contours from lidar."
+ },
+ "cam-2026-10-27-rushcreek": {
+  "status": "built",
+  "key": "rushcreek",
+  "date": "2026-10-27",
+  "why": "Built at Cam's request (chat, not a feedback note). OSM main outline way/1040390809 (fetch first picked the Mac 9 outline), 18 hole ways by id; greens from 2022 MN lidar (QL1, 30-85 pts/m2), 3/9/10 softened to ~3.2%. 7189 of 7306 yd."
  }
 }

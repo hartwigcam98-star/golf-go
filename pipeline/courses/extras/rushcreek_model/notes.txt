@@ -1,0 +1,23 @@
+rushcreek - Rush Creek Golf Club clubhouse, 18 blocks (final.json). Lidar MN_CentralMissRiver_4_B22 (2022, ~88 pts/m2).
+Two Tudor-style halls joined by the glazed arched entry (photos: stucco and dark timbering, fieldstone, shake roofs, cupola).
+1  SU  north hall west roof slope (steep, eave 4)
+2  F   north hall flat top at 13.1 (holds two recessed roof wells/terraces the blocks don't cut out)
+3  SU  north hall east roof slope (course side)
+4  SU  small piece of the east slope by the south cross gable
+5  SU  north end, raised strip of the east slope
+6  F   north-east low annex (5.8)
+7  SU  west shallow shed dormer on the north hall (two-storey wall, 8.6)
+8  F   north-west low annex (6.8)
+9  GU  north-east cross gable (ridge 10.7)
+10 GU  south cross gable of the north hall facing the entry court (ridge 12.6)
+11 T   chimney on the east slope
+12 T   west chimney
+13 GV  entry link with the arched glazed front (low roof ~5-6)
+14 T   cupola on the entry link (flag k)
+15 GV  south hall main gable (ridge 11.6, ridge along v)
+16 GU  south hall east cross gable (ridge 10.4)
+17 SU  south hall west shed dormer
+18 T   south hall west chimney
+Fit: median 0.05 yd, rms 0.68 (trees), 5.9% off by >1 yd. Remaining roof blobs: the two recessed wells in the north hall's
+flat top (model 1.7 yd high there) and small edges at the north-east corner (<7 sq yd each).
+Left out: the slatted pergola over the west patio of the south hall (u -10..-4.6, v 18..42; lidar speckled, open structure).
