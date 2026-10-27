@@ -1,0 +1,4 @@
+resources 2284
+rushcreek MN_CentralMissRiver_4_B22 2712202 pts 87.6 /m2
+done rushcreek {'epsg': 32615, 'cands': ['MN_CentralMissRiver_4_B22', 'USGS_LPC_MN_Phase4_Metro_MapleGrove_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_4_B22', 'dens': 87.55817407024793, 'gps': [336496529.1593346, 336497520.5221674], 'classes': {1: 700005, 2: 2011230, 7: 558, 18: 409}, 'aerial': ['met25', 'naip']}
+all done

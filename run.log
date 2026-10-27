@@ -1,0 +1,23 @@
+resources 2284
+(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directoryrushcreek MN_CentralMissRiver_4_B22 2712202 pts 87.6 /m2
+done rushcreek {'epsg': 32615, 'cands': ['MN_CentralMissRiver_4_B22', 'USGS_LPC_MN_Phase4_Metro_MapleGrove_2011_LAS_2016', 'MN_FullState'], 'src': 'MN_CentralMissRiver_4_B22', 'dens': 87.55817407024793, 'gps': [336496529.1593346, 336497520.5221674], 'classes': {1: 700005, 2: 2011230, 7: 558, 18: 409}, 'aerial': ['met25', 'naip']}
+all done
+bing http 200 297178
+rushcreek_course Rush Creek Golf Club golf course pond fountain bing 14 ddg 0
+bing http 200 295144
+rushcreek_course Rush Creek Golf Club golf course bridge bing 14 ddg 0
+bing http 200 186912
+rushcreek_club Rush Creek Golf Club Maple Grove MN golf clubhouse bing 14 ddg 0
+bing http 200 286098
+rushcreek_course Rush Creek Golf Club signature hole bing 14 ddg 0
+bing http 200 183699
+rushcreek_club Rush Creek Golf Club Maple Grove MN clubhouse bing 14 ddg 0
+bing http 200 180229
+rushcreek_course Rush Creek Golf Club golf course aerial bing 14 ddg 0
+bing http 200 288514
+rushcreek_club Rush Creek Golf Club clubhouse patio bing 14 ddg 0
+rushcreek_course search 56
+rushcreek_club search 42
+rushcreek_club 28
+rushcreek_course 20
+extras job done 0
