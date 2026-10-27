@@ -110,12 +110,14 @@ python3 lidar2/register.py <key>            # -> regshift (bunker depth should b
 python3 lidar2/reg_pts.py <key>             # best (dx,dy); ptshift = regshift - best -> write to lidar2/ptshift.json
 python3 -c "import json;f='lidar2/sigma.json';o=json.load(open(f));o['<key>']=1.3;json.dump(o,open(f,'w'))"
 python3 lidar2/build_patches2.py <key>
-python3 sc3/soften.py <key> 3.4 3.2         # medians per green; anything still >4% needs a look (auto/gview.py)
+python3 sc3/soften.py <key> 99 3.2          # REPORT ONLY (99 = touch nothing): prints each green's median slope
 python3 auto/build_wide.py <key>
 python3 auto/trees.py <key> run_<key>
 cd auto/<key> && python3 ../consts.py <key> <SUF> ../../run_<key>
 ```
-If bunkers show ~0 depth the scan predates the course: no green patches from points (use the 1 m model, soften to ~3%).
+**Greens stay real (Cam, Oct 27 2026): never soften or flatten them.** A green with a median over ~4% gets a look
+(auto/gview.py): if its outline is off the putting surface, fix the outline, not the surface. Pins must still pass gate 2.
+If bunkers show ~0 depth the scan predates the course: no green patches from points (use the 1 m model, unsoftened), and say so in the report.
 
 ### 5b. Lidar under the range (only when gate 6 says it's under 90%)
 The course grid from `build_wide.py` usually covers the range. When `qa/range.js` reports less than 90%, in the golf-go repo:
@@ -203,5 +205,5 @@ Read the before/after pictures (README "Checks"). Commit `b10/ blender/ index.ht
 
 ## 8. Report to Cam (PushNotification)
 Built: "<name> is live" (or both names) + tees/length vs card, its tee sets, where its range came from (mapped / traced / shared / placed),
-its clubhouse (measured from the survey / map outline only, and why), its look (from photos / default) and any landmarks added, the Blender pass (clubhouse, baked light, before/after card, or what was left out), anything uncertain (pars that disagree, holes short of the card, softened greens),
+its clubhouse (measured from the survey / map outline only, and why), its look (from photos / default) and any landmarks added, the Blender pass (clubhouse, baked light, before/after card, or what was left out), anything uncertain (pars that disagree, holes short of the card, greens over 4% median),
 and "say 'remove <name>' to undo". Skipped/failed: what and why. Nothing to do: no notification.
