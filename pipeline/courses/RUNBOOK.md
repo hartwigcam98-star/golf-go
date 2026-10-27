@@ -177,6 +177,10 @@ Look at the hero picture.
 cd /home/claude/golf && python3 sc3/ship.py "New course: <name>" "<name> in <town>: <one line, tees and yardage>. Requested by a player."   # two courses: "New courses: A and B" with one item each
 cd /home/claude/golf-go && git status --short
 ```
+`ship.py` finishes with `tools/stamp.py`, which sets the data files' `?v=`, the build stamp (`<meta name="gg-build">` in
+index.html and `B` in sw.js: phones on an older copy see it differ, download the new game and offer a Restart) and sw.js `V`.
+**Any other change to index.html or the data files: run `python3 tools/stamp.py` before committing** (instead of editing
+`?v=` or `V` by hand).
 Add an entry for the request to `pipeline/courses/requests.json` (`built`, key, date). Copy any changed pipeline files back
 into `pipeline/courses/` (e.g. `auto/<key>/meta.json`, `*_edits.json`, scorecard; not the big json/npz data).
 Commit `index.html greens.js ground.js trees.js sw.js pipeline/courses/ pipeline/ranges/` to main ("New course: <name> (player request)")

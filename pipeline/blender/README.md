@@ -27,7 +27,7 @@ bash $P/newcourse.sh cand <key> [key2]          # 3 candidate views per course +
 bash $P/newcourse.sh shoot <key>=<n> [key2=<n>] # before + after from that view, adds the card to blender/index.html
 ```
 Then Read `/home/claude/b10work/shots/<key>_before.png` and `<key>_after.png`, and commit
-`b10/ blender/ index.html` to main ("Blender pass: <name>") and push.
+`b10/ blender/ index.html sw.js` to main ("Blender pass: <name>") and push.
 
 ## Checks
 - `export` prints `home hole N`, `errors []` and `18 holes exported` (or the course's hole count). No clubhouse found →

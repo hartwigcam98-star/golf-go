@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="gg-build" content="690ea28184">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -8606,6 +8607,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-26-upd1",date:"Oct 26, 2026",title:"Updates reach the home-screen app",items:[
+    "When the game is updated while the app is open (or waiting in the background), it now downloads the new version and offers a Restart button, instead of carrying on with the old copy. It never interrupts a hole."]},
   {id:"2026-10-26-316c",date:"Oct 26, 2026",title:"Jack's 18 greens from the lidar survey",items:[
     "Jack's 18 greens now have the real contours measured by the 2022 lidar survey: the breaks, crowns, ridges and tiers that had been smoothed nearly flat are back on all 18. The 3rd is a two-tier green.",
     "Every green's outline redrawn by hand over the aerial photo, so each one has its real shape and size; the surfaces were rebuilt from the lidar on the new shapes. The 13th and 15th pins moved a few yards in from their new edges.",
@@ -8939,5 +8942,36 @@ if(get()!==latest)setTimeout(()=>open(true),1200);
 })();
 </script>
 <script>if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});</script>
+<script>
+/* Update check. A home-screen app can stay open (or come back from the background) for days on an old copy of the game, and
+   on a weak signal the offline copy is opened while the new one downloads. Every build stamps <meta gg-build> and sw.js B
+   with the same value (tools/stamp.py). When sw.js on the server has a different stamp, the new game is downloaded into this
+   phone's copy, then a note offers to restart into it (never in the middle of a hole). */
+(()=>{const me=(document.querySelector('meta[name=gg-build]')||{}).content;
+  if(!me||/^0+$/.test(me)||!('serviceWorker' in navigator)||!('caches' in window)||location.protocol!=='https:'&&location.hostname!=='localhost')return;
+  let last=0,busy=0,ready=0,bar=null;
+  const stampOf=t=>(String(t).slice(0,4000).match(/<meta name="gg-build" content="([0-9a-f]+)"/)||[])[1];
+  async function check(){if(ready||busy||Date.now()-last<60000||navigator.onLine===false)return;last=Date.now();busy=1;
+    try{const t=await(await fetch('sw.js?gg-check='+Date.now(),{cache:'no-store'})).text(),b=(t.match(/[ ,]B='([0-9a-f]+)'/)||[])[1];
+      if(!b||b===me)return;
+      const reg=await navigator.serviceWorker.getRegistration();if(reg)reg.update().catch(()=>{});
+      let html=null;const hit=await caches.match('index.html');
+      if(hit){const h=await hit.text();if(stampOf(h)===b)html=h;}               // already downloaded (in the background last time)
+      if(!html){const r=await fetch('index.html?gg-check='+b,{cache:'no-cache'});if(!r.ok)return;html=await r.text();if(stampOf(html)!==b)return;
+        for(const k of await caches.keys())if(k.startsWith('core-')){const c=await caches.open(k);
+          for(const key of ['index.html','./'])await c.put(key,new Response(html,{headers:{'Content-Type':'text/html; charset=utf-8'}}));}}
+      ready=1;offer();
+    }catch(e){}finally{busy=0;}}
+  function offer(){if(!ready||bar)return;if(typeof inRound==='function'&&inRound()){setTimeout(offer,5000);return;}
+    bar=document.createElement('div');bar.id='ggUpd';
+    bar.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:99999;background:rgba(12,30,46,.96);color:#fff6dc;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 6px 24px rgba(0,0,0,.45);font:600 16px "Barlow Semi Condensed",sans-serif';
+    bar.innerHTML='<div style="flex:1">Golf Go has been updated.</div><button style="flex:none;height:42px;padding:0 18px;border:0;border-radius:12px;background:#ffc93c;color:#12283b;font:22px \'Lilita One\',sans-serif">Restart</button><button aria-label="Later" style="flex:none;width:34px;height:42px;border:0;background:none;color:#fff6dc;font-size:22px">\u00d7</button>';
+    const [go,no]=bar.querySelectorAll('button');go.onclick=()=>location.reload();no.onclick=()=>{bar.remove();};
+    document.body.appendChild(bar);}
+  window.addEventListener('load',()=>setTimeout(check,15000));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(check,3000);});
+  setInterval(check,30*60000);
+})();
+</script>
 </body>
 </html>

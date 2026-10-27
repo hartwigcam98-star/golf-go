@@ -109,7 +109,8 @@ json.dump(o,open('$GG/b10/light/$K/bounds.json','w'))"
   (git rm -q --ignore-unmatch matrix.json && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "Idle [skip ci]" && git push -q origin blender-club) || true
   python3 $P/mkbake.py $GG
   cd $GG && v=$(grep -o "b10/bake.js?v=[0-9]*" index.html | grep -o "[0-9]*$"); sed -i "s#b10/bake.js?v=$v#b10/bake.js?v=$((v+1))#" index.html
-  echo "bake.js?v=$((v+1)) - commit b10/ and index.html" ;;
+  python3 $GG/tools/stamp.py $GG   # build stamp + sw.js version, so phones pick up the new bake
+  echo "bake.js?v=$((v+1)) - commit b10/, index.html and sw.js" ;;
 cand)
   serve; L=$(echo "$@" | tr ' ' ',')
   (cd $P && timeout 3000 node gal.js $PORT cand $L $W/shots) | grep -v '^$'
