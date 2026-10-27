@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="690ea28184">
+<meta name="gg-build" content="783e919a04">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -8495,6 +8495,12 @@ $('mCareer').addEventListener('click',()=>{A();if(careerBusy(1,'mCareerSub'))ret
     tm=setTimeout(()=>{tm=null;btn.dataset.rst='1';try{localStorage.removeItem(DAILY.save);}catch(e){}sfx.tick();
       try{dailyMenuLine();}catch(e){}const sb=$('mDailySub');if(sb)sb.textContent='Today’s daily round has been reset.';},2500);});
   ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,stop));}
+/* one-off resets of a player's daily round (Cam's call): [player id, day]. Clears that day's saved round on that player's
+   phone once (a round already posted to the leaderboard is left alone). */
+{const RS=[['pxrsrgti7mv8vl59k','2026-10-27']];   // OgTwig, Oct 27
+  try{const pid=localStorage.getItem('golf-pid')||'';for(const [p,day] of RS)if(p===pid&&!localStorage.getItem('golf-rst-'+day)){
+    const d=JSON.parse(localStorage.getItem(DAILY.save)||'null');if(d&&d.day===day&&!d.posted)localStorage.removeItem(DAILY.save);
+    localStorage.setItem('golf-rst-'+day,'1');try{dailyMenuLine();}catch(e){}}}catch(e){}}
 $('mDaily').addEventListener('click',e=>{if($('mDaily').dataset.rst){delete $('mDaily').dataset.rst;return;}A();sfx.tick();DAILY.calSel=dailyDay();openDailyBoard(false,dailyDay(),'cal');});   // anyone can look at the leaderboards; the name is asked for at Play
 $('dNameGo').addEventListener('click',dailyNameGo);
 $('dAuthGo').addEventListener('click',dailyAuthGo);for(const id of['dAuthEmail','dAuthCode'])$(id).addEventListener('keydown',e=>{if(e.key==='Enter')dailyAuthGo();});
