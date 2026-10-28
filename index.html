@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="5d8c89baff">
+<meta name="gg-build" content="f2d69e525c">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -338,6 +338,9 @@ td.tot,th.tot{font-weight:700;background:rgba(18,40,59,.07)}
 .relopt{display:block;width:100%;text-align:left;padding:10px 14px;border-radius:14px;border:2px solid #12283b;margin:0 0 8px;background:transparent;color:#12283b}
 .relopt b{display:block;font-size:18px}.relopt span{display:block;font-size:13px;color:#51606b;margin-top:2px;line-height:1.3}
 .relopt.best{background:#12283b;color:var(--sun)}.relopt.best span{color:#c9d3da}
+#relCv{display:block;width:100%;max-width:300px;aspect-ratio:1;margin:8px auto;border-radius:16px;touch-action:none;background:#3f7d35}
+#relSlide{display:block;width:100%;margin:4px 0 2px;accent-color:#12283b}
+.relinfo{text-align:center;font-weight:700;font-size:17px;margin:4px 0 10px;color:#12283b}
 .specbar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);display:flex;gap:10px;z-index:4}
 .specbar button{white-space:nowrap;height:46px;padding:0 20px;border-radius:14px;font-size:19px;background:var(--panel);color:#fff6dc;box-shadow:0 3px 0 rgba(0,0,0,.3)}
 .specbar #specExit{background:#ffc93c;color:#0f2233}
@@ -648,6 +651,14 @@ td.won{background:rgba(255,201,60,.38)}
       <div class="eyebrow">Penalty area · +1 stroke</div>
       <h1 class="disp">Take relief</h1>
       <div id="reliefOpts"></div>
+      <div id="reliefPick" hidden>
+        <div class="msub" id="relHelp"></div>
+        <canvas id="relCv" width="600" height="600" aria-label="Drop area"></canvas>
+        <input type="range" id="relSlide" min="0" max="1000" value="0" aria-label="How far back on the line">
+        <div class="relinfo" id="relInfo"></div>
+        <button class="primary disp" id="relGo">Drop here</button>
+        <button class="textbtn" id="relBack">Other options</button>
+      </div>
     </div>
   </div>
   <div class="modal" id="introM" hidden>
@@ -4315,9 +4326,16 @@ function dropLateral(C){const p=G.hole.pin,dC=hyp(C[0]-p[0],C[1]-p[1]);let best=
 function dropBack(C){const p=G.hole.pin;let ux=C[0]-p[0],uy=C[1]-p[1];const l=hyp(ux,uy)||1;ux/=l;uy/=l;
   for(let t=1;t<400;t+=.5){const x=C[0]+ux*t,y=C[1]+uy*t,L=lieAt(x,y);if(L==='ob')return null;if(L==='water')continue;
     const L2=lieAt(x+ux,y+uy);if(L2==='water')continue;if(L2==='ob')return null;return{x:x+ux,y:y+uy,L:L2};}return null;}
+/* Oct 28 2026 (Cam): the golfer picks the spot. Lateral: anywhere within two club-lengths (REL_R) of where it crossed, out of the
+   water and no nearer the hole (tap the map). Back on the line: as far back along the pin-to-crossing line as you like (slider),
+   wherever it's dry and in bounds. The rivals still take the best spot automatically. */
+const REL_R=2.5;
+function lineSpots(C){const p=G.hole.pin;let ux=C[0]-p[0],uy=C[1]-p[1];const l=hyp(ux,uy)||1;ux/=l;uy/=l;const ts=[];
+  for(let t=.5;t<=320;t+=.5){const x=C[0]+ux*t,y=C[1]+uy*t,L=lieAt(x,y);if(L==='ob')break;if(L!=='water'&&lieAt(x+ux*.4,y+uy*.4)!=='water'&&lieAt(x-ux*.4,y-uy*.4)!=='water')ts.push(t);}
+  return{u:[ux,uy],ts};}
 function reliefOpts(C){const o=[],p=G.hole.pin;
-  const lat=dropLateral(C);if(lat)o.push({k:'lat',name:'Drop where it crossed',sub:'Within two club-lengths, no nearer the hole',x:lat.x,y:lat.y,L:lat.L});
-  const bk=dropBack(C);if(bk&&!(lat&&hyp(bk.x-lat.x,bk.y-lat.y)<1.5))o.push({k:'line',name:'Back on the line',sub:'Keep the crossing point between you and the pin',x:bk.x,y:bk.y,L:bk.L});
+  const lat=dropLateral(C);if(lat)o.push({k:'lat',pick:1,C,name:'Lateral drop',sub:'Pick a spot within two club-lengths of where it crossed, no nearer the hole',x:lat.x,y:lat.y,L:lat.L});
+  const bk=dropBack(C);if(bk){const ls=lineSpots(C);o.push({k:'line',pick:1,C,ls,name:'Back on the line',sub:'Go back as far as you like, keeping where it crossed between you and the pin',x:bk.x,y:bk.y,L:bk.L});}
   o.push({k:'replay',name:'Replay from last spot',sub:'Stroke and distance',x:G.prev.x,y:G.prev.y,L:lieAt(G.prev.x,G.prev.y)});
   for(const q of o)q.d=hyp(q.x-p[0],q.y-p[1]);return o;}
 // the rivals (and fast-forwarded turns) take the option that leaves the easiest next shot
@@ -4327,8 +4345,45 @@ function reliefAsk(o){if(G.aiTurn||G.aiSkip||o.length===1){reliefApply(reliefBes
   const best=reliefBest(o),el=$('reliefOpts');el.innerHTML='';
   for(const q of o){const b=document.createElement('button');b.className='relopt'+(q===best?' best':'');
     b.innerHTML='<b>'+q.name+'</b><span>'+Math.round(q.d)+' yds to the pin \u00b7 '+(lieNm(q.L)||q.L)+' \u00b7 '+q.sub+'</span>';
-    b.onclick=()=>{A();reliefApply(q);};el.appendChild(b);}
-  $('reliefM').hidden=false;}
+    b.onclick=()=>{A();if(q.pick)relPick(q);else reliefApply(q);};el.appendChild(b);}
+  $('reliefPick').hidden=true;el.hidden=false;$('reliefM').hidden=false;}
+const RP={q:null,x:0,y:0,L:'',view:null};
+function relValidLat(q,x,y){const p=G.hole.pin,C=q.C,L=lieAt(x,y);return hyp(x-C[0],y-C[1])<=REL_R+1e-6&&L!=='water'&&L!=='ob'&&hyp(x-p[0],y-p[1])>=hyp(C[0]-p[0],C[1]-p[1])-.01;}
+function relSet(x,y){const p=G.hole.pin;RP.x=x;RP.y=y;RP.L=lieAt(x,y);
+  $('relInfo').textContent=Math.round(hyp(x-p[0],y-p[1]))+' yds to the pin \u00b7 '+(lieNm(RP.L)||RP.L);relDraw();}
+function relPick(q){RP.q=q;$('reliefOpts').hidden=true;$('reliefPick').hidden=false;const line=q.k==='line';$('relSlide').hidden=!line;
+  $('relHelp').textContent=line?'Slide to go further back along the line. The pin is straight up.':'Tap where to drop: inside the circle, out of the water and no nearer the hole. The pin is straight up.';
+  if(line){const T=q.ls.ts,t0=T[0],t=hyp(q.x-q.C[0],q.y-q.C[1]);$('relSlide').value=String(Math.round(Math.min(1,(t-t0)/Math.max(.5,T[T.length-1]-t0))*1000));}
+  relSet(q.x,q.y);}
+// the map: centred on the area, turned so the pin is straight up; s = pixels per yard
+function relView(){const q=RP.q,p=G.hole.pin,C=q.C;let ux=p[0]-C[0],uy=p[1]-C[1];const l=hyp(ux,uy)||1;ux/=l;uy/=l;
+  if(q.k==='lat')return{cx:C[0],cy:C[1],r:REL_R*2.2,ux,uy};
+  const t=hyp(RP.x-C[0],RP.y-C[1]),r=Math.max(8,t*.62+5);return{cx:C[0]-ux*t*.5,cy:C[1]-uy*t*.5,r,ux,uy};}
+function relDraw(){const cv=$('relCv'),g=cv.getContext('2d'),W=cv.width,q=RP.q,V=RP.view=relView(),s=W/(2*V.r),C=q.C;
+  const toC=(x,y)=>{const dx=x-V.cx,dy=y-V.cy,al=dx*V.ux+dy*V.uy,sd=dx*V.uy-dy*V.ux;return[W/2+sd*s,W/2-al*s];};
+  const N=60,cs=W/N;for(let i=0;i<N;i++)for(let j=0;j<N;j++){const sx=(i+.5)*cs-W/2,sy=W/2-(j+.5)*cs,sd=sx/s,al=sy/s,x=V.cx+V.ux*al+V.uy*sd,y=V.cy+V.uy*al-V.ux*sd,L=lieAt(x,y);
+    g.fillStyle=L==='water'?'#3d7fb8':L==='ob'?'#5b5f55':LIE_COL[L]||'#3f7d35';g.fillRect(Math.floor(i*cs),Math.floor(j*cs),Math.ceil(cs),Math.ceil(cs));}
+  const c=toC(C[0],C[1]);g.lineWidth=3;
+  if(q.k==='lat'){g.fillStyle='rgba(255,255,255,.18)';g.strokeStyle='#fff6dc';g.beginPath();g.arc(c[0],c[1],REL_R*s,0,TAU);g.fill();g.stroke();
+    // no nearer the hole: the side of the circle toward the pin is out (the line through the crossing point, square to the pin)
+    g.fillStyle='rgba(15,34,51,.35)';g.beginPath();g.arc(c[0],c[1],REL_R*s,Math.PI,TAU);g.closePath();g.fill();}
+  else{const T=q.ls.ts,a=toC(C[0]+q.ls.u[0]*T[0],C[1]+q.ls.u[1]*T[0]),b=toC(C[0]+q.ls.u[0]*T[T.length-1],C[1]+q.ls.u[1]*T[T.length-1]);
+    g.setLineDash([10,8]);g.strokeStyle='#fff6dc';g.beginPath();g.moveTo(c[0],c[1]);g.lineTo(b[0],b[1]);g.stroke();g.setLineDash([]);}
+  g.strokeStyle='#ff6a48';g.lineWidth=4;g.beginPath();g.moveTo(c[0]-9,c[1]-9);g.lineTo(c[0]+9,c[1]+9);g.moveTo(c[0]+9,c[1]-9);g.lineTo(c[0]-9,c[1]+9);g.stroke();
+  g.fillStyle='#fff6dc';g.font='700 22px "Barlow Semi Condensed",sans-serif';g.textAlign='center';g.fillText('\u25B2 pin',W/2,28);
+  const m=toC(RP.x,RP.y);g.fillStyle='#fff';g.strokeStyle='#12283b';g.lineWidth=4;g.beginPath();g.arc(m[0],m[1],11,0,TAU);g.fill();g.stroke();}
+function relTap(e){const q=RP.q,V=RP.view;if(!q||q.k!=='lat'||!V)return;const cv=$('relCv'),r=cv.getBoundingClientRect(),W=cv.width,s=W/(2*V.r);
+  const sx=(e.clientX-r.left)/r.width*W-W/2,sy=W/2-(e.clientY-r.top)/r.height*W,sd=sx/s,al=sy/s,x=V.cx+V.ux*al+V.uy*sd,y=V.cy+V.uy*al-V.ux*sd;
+  if(relValidLat(q,x,y)){relSet(x,y);return;}
+  // outside the allowed area: the nearest spot that is allowed
+  let best=null;for(let rr=0;rr<=REL_R;rr+=.1)for(let k=0;k<48;k++){const a=k/48*TAU,px=q.C[0]+Math.cos(a)*rr,py=q.C[1]+Math.sin(a)*rr;if(!relValidLat(q,px,py))continue;const d=hyp(px-x,py-y);if(!best||d<best.d)best={d,px,py};}
+  if(best)relSet(best.px,best.py);}
+function relSlideTo(v){const q=RP.q;if(!q||q.k!=='line')return;const T=q.ls.ts,t=T[0]+(T[T.length-1]-T[0])*v/1000;let bt=T[0];for(const x of T)if(Math.abs(x-t)<Math.abs(bt-t))bt=x;
+  relSet(q.C[0]+q.ls.u[0]*bt,q.C[1]+q.ls.u[1]*bt);}
+$('relCv').addEventListener('pointerdown',e=>{e.preventDefault();relTap(e);});$('relCv').addEventListener('pointermove',e=>{if(e.buttons)relTap(e);});
+$('relSlide').addEventListener('input',e=>relSlideTo(+e.target.value));
+$('relGo').addEventListener('click',()=>{A();const q=RP.q,p=G.hole.pin;if(!q)return;reliefApply({...q,x:RP.x,y:RP.y,L:RP.L,d:hyp(RP.x-p[0],RP.y-p[1])});});
+$('relBack').addEventListener('click',()=>{A();$('reliefPick').hidden=true;$('reliefOpts').hidden=false;});
 const GIMME_YD=4/3;   // 4 ft
 /* Oct 28 2026 (Cam: "even when the distance isn't matched exactly it still goes to the cup"): the cup is its real size (2.125 in
    radius; it was 2.45) and only a ball that would have stopped within CAP_YD past the hole drops when it hits the centre (it was
@@ -8787,6 +8842,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-28-drop",date:"Oct 28, 2026",title:"Choose your drop",items:[
+    "After a ball in the water you now pick the spot. Lateral drop: tap anywhere inside the two-club-length circle from where it crossed (out of the water, no nearer the hole). Back on the line: slide as far back as you like along the line from the pin through where it crossed. A small map shows the area with the pin straight up, plus the yardage and lie before you drop."]},
   {id:"2026-10-28-smooth",date:"Oct 28, 2026",title:"Smoother play",items:[
     "Fixed a cause of short stutters (about a tenth of a second) during play: the on-screen buttons were being redrawn every frame even when nothing about them changed. The wind arrow also turns without restarting its animation every frame."]},
   {id:"2026-10-28-appr",date:"Oct 28, 2026",title:"Approach shots, spin and flames",items:[
