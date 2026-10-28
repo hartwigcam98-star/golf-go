@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="1b9ba4acdf">
+<meta name="gg-build" content="91f668d31a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -6747,7 +6747,8 @@ function r3NaipApply(h){const N=r3NaipLoad(CUR.data||CUR.id);if(!N)return false;
   const near=[],far=[];
   for(let i=0;i<N.n;i++){const x=N.xy[i*2]/2-T0[0],y=N.xy[i*2+1]/2-T0[1],rb=N.r[i],cr=(rb&127)/10,con=rb>>7;
     const d=Math.max(b[0]-x,x-b[2],b[1]-y,y-b[3],0);if(d>400)continue;
-    const lie=lieCodeAt(h,x,y);if(lie>=2)continue;if(onHouse(x,y))continue;if(reedAt(x+T0[0],y+T0[1]))continue;   // a cattail bed, not a treeif(d<1&&inCorridor(x,y,cr))continue;
+    const lie=lieCodeAt(h,x,y);if(lie>=2)continue;if(onHouse(x,y))continue;if(reedAt(x+T0[0],y+T0[1]))continue;   // a cattail bed, not a tree
+    if(d<1&&inCorridor(x,y,cr))continue;
     const sh=((Math.sin(i*12.9898)*43758.5453)%1+1)%1;
     const t={x,y,r:Math.max(3.2,cr/.9),con,shade:sh,naip:1,d};
     // courses whose photo crowns crowd the fairways (Pawleys Island): no canopy hanging over mown grass
