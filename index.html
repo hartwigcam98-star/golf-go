@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="7895e3c8cf">
+<meta name="gg-build" content="68c209d45e">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1017,8 +1017,8 @@ const SG_K=1.8,mK=()=>isShort()?SG_K:1,m2p=f=>Math.pow(clamp(f,0,1),mK()),p2m=p=
 const BUNKER_T={splash:1,pick:1,blast:1},bunkerSide=()=>G.lie==='sand'&&!!G.hole&&pinDist()<=45;
 const shotOK=(t,ci)=>SHOTS[t].clubs.includes(ci);
 // green speed from the stimpmeter: the ramp releases the ball at 6 ft/s and it rolls STIMP feet on a flat green, so the rolling deceleration is v^2/(2d)
-const STIMP=11,STIMP_V=2,MU_GREEN=STIMP_V*STIMP_V/(2*STIMP/3);
-const CAPV=Math.sqrt(2*MU_GREEN*2.1);   // a ball that would have run on about 2 yards past still drops
+const STIMP=11,STIMP_V=2,MU_GREEN=STIMP_V*STIMP_V/(2*STIMP/3),CAP_YD=.85;
+const CAPV=Math.sqrt(2*MU_GREEN*CAP_YD);   // a centred ball that would have run on CAP_YD (2.5 ft) past still drops
 const MU={green:MU_GREEN,fairway:1.2,tee:1.2,cut:2.4,rough:11,sand:28,fescue:17};   // Oct 13 2026: fairway/tee/cut friction cut from 3.2/3.2/5.5 so slopes kick the ball (a full shot's roll-out on flat ground is planned from this, so it is unchanged)
 // a slow ball on a green: the grass holds it less as it dies, so it trickles on down a slope instead of parking on it.
 // Below 0.4 yd/s the green's rolling resistance eases to 45% (fully by 0.15 yd/s): a ball comes to rest only on slopes under
@@ -1039,7 +1039,7 @@ const SG_LIE={cut:{v:.03,r:1.08,chip:1.03,back:.8},rough:{v:.07,r:1.3,chip:1.12,
 const LIE_NAME={tee:'Tee box',fairway:'Fairway',cut:'First cut',rough:'Rough',sand:'Bunker',green:'Green',fescue:'Fescue',water:'Water',ob:'Out of bounds'};
 const lieNm=k=>k==='fescue'&&typeof CUR!=='undefined'&&CUR.scen==='desert'?'Desert':LIE_NAME[k];   // v108: desert courses: the native area is desert, not fescue
 const LIE_COL={tee:'#7cc257',fairway:'#6db14a',cut:'#5ea247',rough:'#3f7d35',sand:'#f4efe2',green:'#9ad873',fescue:'#c9b35f'};
-const CUP_R=.059, CUP=.068, IMPACT=.12;   // the cup is 4.25 in across (0.059 yd radius); the ball drops once its centre is just inside the rim
+const CUP_R=.059, CUP=.059, IMPACT=.12;   // the cup is 4.25 in across (0.059 yd radius); the ball drops once its centre is just inside the rim
 
 /* ---------- Troy Burne (tips) — unofficial re-creation ----------
    Per hole: par, the tip on the tee card, and the green (size, rise and tilt). The fairways, bunkers and water come from the mapped course. */
@@ -4129,7 +4129,7 @@ function stepRoll(dt){
     let sp=hyp(r.vx,r.vy);const d=hyp(b.x-p[0],b.y-p[1]);
     if(d<CUP){
       // a ball entering off-centre needs to be slower to drop; with the flagstick in, the stick soaks up pace
-      if(r.cb===undefined)r.cb=sp>1e-6?Math.abs(r.vx*(p[1]-b.y)-r.vy*(p[0]-b.x))/sp:0;const vmax=CAPV*(.35+.65*Math.sqrt(Math.max(0,1-(r.cb/CUP)**2)))*(G.flagOut?1:1.35);
+      if(r.cb===undefined)r.cb=sp>1e-6?Math.abs(r.vx*(p[1]-b.y)-r.vy*(p[0]-b.x))/sp:0;const vmax=capV(r.cb);
       if(!flagPulled()&&!r.tk&&sp>.6){r.tk=1;sfx.pin(.35);}
       if(sp<vmax){G.cupHard=sp>vmax*.6;holed();return;}
       if(!r.lip&&r.cb>CUP*.4&&sp<vmax*2.2){r.lip=true;   // caught the edge: it rides the rim a little way, then spins out (or, now and then, drops)
@@ -4312,6 +4312,10 @@ function reliefAsk(o){if(G.aiTurn||G.aiSkip||o.length===1){reliefApply(reliefBes
     b.onclick=()=>{A();reliefApply(q);};el.appendChild(b);}
   $('reliefM').hidden=false;}
 const GIMME_YD=4/3;   // 4 ft
+/* Oct 28 2026 (Cam: "even when the distance isn't matched exactly it still goes to the cup"): the cup is its real size (2.125 in
+   radius; it was 2.45) and only a ball that would have stopped within CAP_YD past the hole drops when it hits the centre (it was
+   2.1 yd, 6.3 ft); one catching the edge has to be slower still (20% of that at the very edge, was 35%) */
+function capV(cb){return CAPV*(.2+.8*Math.sqrt(Math.max(0,1-(cb/CUP)**2)))*(G.flagOut?1:1.35);}
 function holed(kind){if(G.hole&&G.hole.range){const p=G.hole.pin;G.ball={x:p[0],y:p[1]};endRec(false);G.roll=null;G.flight=null;G.hop=null;G.state='wait';G.trail=[];G.inCup=true;try{sfx.cup(false);}catch(e){}toast('IN THE HOLE!','Shame it was the range','#ffc93c');showShotStats();rangeNext();return;}   // the range: no card, the next ball comes
   const gim=kind==='Gimme';
   const p=G.hole.pin;G.ball={x:p[0],y:p[1]};endRec(true);G.roll=null;G.flight=null;G.hop=null;G.inCup=true;G.state='holed';G.trail=[];
@@ -5368,7 +5372,7 @@ function matchNext(){if(MATCH.over){endMatchMode();openCareer();return;}matchSta
 /* ---- the rival's shot: plan club, target, power and timing, then "press" the meter like a player ---- */
 function simRoll(x,y,a,D){const p=G.hole.pin,mu0=MU[lieAt(x,y)]||MU.fairway,v=Math.sqrt(2*mu0*D),dd=dirOf(a);let vx=dd[0]*v,vy=dd[1]*v;const h=1/120;
   for(let t=0;t<18;t+=h){const L=lieAt(x,y);if(L==='water'||L==='ob')return{d:99};
-    const sp=hyp(vx,vy),d=hyp(x-p[0],y-p[1]);if(d<CUP){const cb=sp>1e-6?Math.abs(vx*(p[1]-y)-vy*(p[0]-x))/sp:0;if(sp<CAPV*(.35+.65*Math.sqrt(Math.max(0,1-(cb/CUP)**2)))*(G.flagOut?1:1.35))return{d:0,holed:true};}
+    const sp=hyp(vx,vy),d=hyp(x-p[0],y-p[1]);if(d<CUP){const cb=sp>1e-6?Math.abs(vx*(p[1]-y)-vy*(p[0]-x))/sp:0;if(sp<capV(cb))return{d:0,holed:true};}
     const mu=muRoll(L,sp),[gx,gy]=gradAt(x,y),sx=-GACC*gx,sy=-GACC*gy,smag=hyp(sx,sy);let ax=sx,ay=sy;if(sp>1e-6){ax-=mu*vx/sp;ay-=mu*vy/sp;}
     vx+=ax*h;vy+=ay*h;if(hyp(vx,vy)<Math.max(.1,mu*h*1.5)&&smag<muStill(L)*.95)break;x+=vx*h;y+=vy*h;}
   return{d:hyp(x-p[0],y-p[1])};}
@@ -8739,6 +8743,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-28-cup",date:"Oct 28, 2026",title:"Speed matters on the greens",items:[
+    "The cup is now its real size (it was a little wide), and a putt has to arrive at the right pace to drop: hit it too firm and it lips out or rides over the hole, even when it's on line.",
+    "Putts hit at the flag's strength drop just as before. The flag on the putting meter still allows for uphill and downhill."]},
   {id:"2026-10-28-short",date:"Oct 28, 2026",title:"A better short game",items:[
     "Chips and pitches are now more reliable than full shots, so getting closer pays off. In the shot lab, Dex with ordinary timing now finishes a 50-yard pitch about 3 yards from the hole (it was 12) and a 30-yard chip about 2 (it was 4.6); full shots are unchanged.",
     "The short-game meter is sized to the shot, so the flag sits higher on the meter and a chip isn't a tiny, twitchy tap any more.",
