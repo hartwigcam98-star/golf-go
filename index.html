@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="840068265f">
+<meta name="gg-build" content="8d4258fc8a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -4029,15 +4029,16 @@ function stepFlight(dt){
   /* trees like real ones: the crown is mostly leaves, so the ball usually flies through it; each yard it travels inside
      a crown has a small chance of catching a branch, which knocks it down near that spot. Only the trunk sends it back. */
   if(!f.knocked){const lx=f.lx??x,ly=f.ly??y,ds=hyp(x-lx,y-ly);f.lx=x;f.ly=y;
-    for(const t of G.hole.trees){const d=hyp(x-t.x,y-t.y);if(d>t.r)continue;const ht=Y-t.gh,top=2+1.35*t.r,tr=clamp(.05*t.r+.12,.15,.5);
+    for(const t of G.hole.trees){const d=hyp(x-t.x,y-t.y);if(d>Math.max(t.r,t.cr||0))continue;const ht=Y-t.gh,top=2+1.35*t.r,tr=clamp(.05*t.r+.12,.15,.5);
+      const cw=treeCrown(t,ht),inLeaf=k=>cw===null?(ht>(k>.82?2:3)&&ht<top&&d<t.r*k):(ht>1.5&&d<cw*(k>.82?1:.92));   // the crown as drawn (0.85/0.8 x the photo radius before)
       if(t.cactus){if(ht<9.5*(t.vs||1)&&d<.62&&ds>0){const nx=(x-t.x)/(d||1),ny=(y-t.y)/(d||1),[tx,ty]=travelDir(f,u),dot=tx*nx+ty*ny,rx=tx-2*dot*nx,ry=ty-2*dot*ny,v=clamp(f.carry/f.T*.25,1.5,7);
           G.flight=null;sfx.tree();toast('OUCH!','Off a saguaro','#ff9b6a');G.bY=gnd;G.roll={vx:rx*v,vy:ry*v,t:0,lip:false};G.state='roll';return;}continue;}
       if(ht<top*.8&&d<tr+.05&&ds>0){   // the trunk: bounce off it and back the way the ball came
         const nx=(x-t.x)/(d||1),ny=(y-t.y)/(d||1),[tx,ty]=travelDir(f,u),dot=tx*nx+ty*ny,rx=tx-2*dot*nx,ry=ty-2*dot*ny,v=clamp(f.carry/f.T*.3,2,9);
         G.flight=null;sfx.tree();toast('THWACK!','Off the trunk','#ff9b6a');G.bY=gnd;G.roll={vx:rx*v,vy:ry*v,t:0,lip:false};G.state='roll';return;}
-      if(u>.04&&ht>2&&ht<top&&d<t.r*.85&&!(f.rus||(f.rus=new Set())).has(t)){f.rus.add(t);const[tx,ty]=travelDir(f,u);   // through the leaves: a rustle, a few leaves, sometimes birds
+      if(u>.04&&inLeaf(.85)&&!(f.rus||(f.rus=new Set())).has(t)){f.rus.add(t);const[tx,ty]=travelDir(f,u);   // through the leaves: a rustle, a few leaves, sometimes birds
         sfx.rustle(clamp(f.carry/200,.45,1));leafBurst(x,y,Y,tx,ty,8+((Math.random()*6)|0));if(Math.random()<.4)birdsFrom(t,x,y,2+((Math.random()*3)|0),0);}
-      if(u>.04&&ht>3&&ht<top&&d<t.r*.8){const p=(t.con?.02:.009)*ds;
+      if(u>.04&&inLeaf(.8)){const p=(t.con?.02:.009)*ds;
         if(Math.random()<p){   // caught a branch: the ball loses its pace and drops a few yards on
           const[tx,ty]=travelDir(f,u),a=(Math.random()-.5)*1.4,c=Math.cos(a),sn=Math.sin(a);sfx.tree();toast('TIMBER!','Knocked down by a branch','#ff9b6a');
           const v=1.2+Math.random()*2.5;f.knocked=true;f.drop={vx:(tx*c-ty*sn)*v,vz:(tx*sn+ty*c)*v,vy:.5};return;}}}}
@@ -6700,6 +6701,16 @@ function r3TreeSpecies(h){R3T.use=R3.on&&!!R3T_COURSES[CUR.id];R3T.h=h;if(!R3T.u
   for(const t of h.farTrees||[]){const c=ctxOf(t,true);t.sp=fit(t,pick(t,c));}}
 // buildTreeMesh hands its trees here instead of building them
 function r3TreeTake(t){if(!R3T.use||!R3T_SP[t.sp])return false;R3T.list.push(t);return true;}
+/* Oct 28 2026: the ball meets the tree that is drawn. A tree's crown in play used to be a cylinder of 0.8 x its photo radius from
+   3 yds up to 2 + 1.35 r; the drawn crowns are narrower (about 40% of that cylinder was empty air, more beside the fairways where
+   crowns are trimmed back from the line of play), and a dead snag has no leaves at all, so balls were knocked down by "ghost" leaves.
+   r3tProf: the variant's foliage (leaves + leaf masses) radius in 0.5-unit height bands, widened by one band either side. */
+function r3tProf(v){if(v.prof)return v.prof;const B=.5,raw=[];
+  for(const a of[v.leaf,v.mass]){const st=a===v.leaf?11:9;for(let k=0;k<a.length;k+=st){const bi=Math.floor(a[k+1]/B);if(bi<0)continue;raw[bi]=Math.max(raw[bi]||0,Math.hypot(a[k],a[k+2]));}}
+  const n=raw.length,r=new Float32Array(n);let max=0;for(let i=0;i<n;i++){r[i]=Math.max(raw[i-1]||0,raw[i]||0,raw[i+1]||0);max=Math.max(max,r[i]);}
+  return v.prof={B,r,max};}
+// the drawn crown's radius (yds) at height ht (yds above the tree's ground), or null for a tree drawn without a known shape
+function treeCrown(t,ht){if(!t.cp)return null;const bi=Math.floor(ht/t.cs[1]/t.cp.B);return(t.cp.r[bi]||0)*t.cs[0];}
 function r3TreeFlush(){for(const m of R3T.meshes){R3.scene.remove(m);m.geometry.dispose();}R3T.meshes=[];R3T.groups=[];R3T.lodRef=null;r3tFarBuild(R3T.use&&R3T.h?R3T.h.farTrees:null);if(!R3T.use||!R3T.list.length)return;
   const P=r3tProtos(),T=THREE,groups={};
   for(const t of R3T.list){const key=t.sp+(t.fall?'_fall':''),vs=P[key]||P[t.sp],vi=Math.floor((t.shade||0)*97)%vs.length;(groups[key+'|'+vi]=groups[key+'|'+vi]||{v:vs[vi],ts:[]}).ts.push(t);}
@@ -6708,6 +6719,7 @@ function r3TreeFlush(){for(const m of R3T.meshes){R3.scene.remove(m);m.geometry.
     ts.forEach((t,i)=>{const sc=(t.vs||(t.r||9)/10)*(.9+((t.shade*13)%1)*.22);q.setFromAxisAngle(up,(t.shade||0)*TAU*7.3);
       let sh=sc;const H=R3T.h;if(H&&H.lg&&lieCodeAt(H,t.x,t.y)>=0){const room=dplayAt(H,t.x,t.y)+2.5;if(v.reach*sh>room)sh=Math.max(.35,room/v.reach);}
       const tall=R3T_SP[t.sp]&&R3T_SP[t.sp].kind==='broad'?1.22:1.08;s.set(sh,sc*tall*(.92+((t.shade*29)%1)*.16),sh);
+      t.cp=r3tProf(v);t.cs=[sh,s.y];t.cr=t.cp.max*sh;   // the crown as drawn, for the ball (treeCrown)
       p.set(t.x,(t.gh!==undefined?t.gh:hAt(t.x,t.y))-.15,t.y);m4.compose(p,q,s);m4.toArray(M,i*16);const tn=.88+((t.shade*53)%1)*.24,hv=((t.shade*31)%1)-.5;C[i*3]=tn*(1+hv*.1);C[i*3+1]=tn;C[i*3+2]=tn*(.96+((t.shade*7)%1)*.08)*(1-hv*.12);});
     /* Oct 2026: the instanced species meshes used to share the tree and bark materials with the merged R3.trees / R3.bark meshes;
        three.js then re-resolved the program on every draw as it flipped between instanced and not (CPU and garbage every frame).
@@ -8722,6 +8734,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-28-trees",date:"Oct 28, 2026",title:"No more ghost trees",items:[
+    "The ball now hits the trees you can see. A tree used to catch the ball anywhere inside a wide invisible cylinder round it, so balls could be knocked down by leaves that weren't there, most often beside the fairways and by dead trees with no leaves at all.",
+    "A fix for trees standing in the tee shot on every course since the cattails update."]},
   {id:"2026-10-28-e63c",date:"Oct 28, 2026",title:"Cattails",items:[
     "Rush Creek's marshes and the cattail fringes round its lake, and the wet edges at The Meadows at Mystic Lake, now grow cattails, measured from the lidar survey. The \"trees\" that used to stand in their place are gone."]},
   {id:"2026-10-28-54f2",date:"Oct 28, 2026",title:"Real greens, better hole locations",items:[
