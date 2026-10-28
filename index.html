@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="ba558cf174">
+<meta name="gg-build" content="0a37a2e4e4">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -8279,18 +8279,18 @@ function ldFrame(){const p=LDT.p;if(!p||++p.n<2)return;LDT.p=null;if(document.hi
 function pstatAdd(raw){if(!PSTAT||document.hidden||G.paused||!G.hole||(typeof REC!=='undefined'&&REC.on)||(typeof SPEC!=='undefined'&&SPEC.on))return;
   const st=G.state;if(st==='intro'||st==='card')return;const ms=raw*1000;if(!(ms>0&&ms<1000))return;
   if(PSTAT.all.length<30000)PSTAT.all.push(ms);if((st==='power'||st==='acc')&&!G.aiTurn&&PSTAT.met.length<10000)PSTAT.met.push(ms);
-  if(!PSTAT.hole)PSTAT.hole={course:CUR.id,hole:G.hi+1,mode:G.mode};}
+  if(!PSTAT.hole){PSTAT.hole={course:CUR.id,hole:G.hi+1,mode:G.mode};PSTAT.t0=performance.now();}}
 function ldTake(){const o={};if(LDT.boot&&LDT.boot.ff!=null){o.b=LDT.boot;LDT.boot=null;}if(LDT.hole&&LDT.hole.ff!=null&&!LDT.p){o.h=LDT.hole;LDT.hole=null;}return o.b||o.h?o:undefined;}
 function pstatSum(a){if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y),n=s.length,sum=s.reduce((x,y)=>x+y,0);
   return{n,avg:1000/(sum/n),med:1000/s[n>>1],p95:s[Math.min(n-1,Math.floor(n*.95))],max:s[n-1],st:100*s.filter(v=>v>40).length/n};}
 function pstatFlush(keep){if(typeof PSTAT==='undefined'||!PSTAT||!PSTAT.all.length){if(PSTAT)PSTAT.hole=null;return;}
-  const A=pstatSum(PSTAT.all),M=pstatSum(PSTAT.met),h=PSTAT.hole,js=PSTAT.js.sort((x,y)=>x-y),dc=PSTAT.dc.sort((x,y)=>x-y);const hxl=PSTAT.hx||[];PSTAT.all=[];PSTAT.met=[];PSTAT.js=[];PSTAT.dc=[];PSTAT.hx=[];PSTAT.hole=null;
+  const A=pstatSum(PSTAT.all),M=pstatSum(PSTAT.met),h=PSTAT.hole,js=PSTAT.js.sort((x,y)=>x-y),dc=PSTAT.dc.sort((x,y)=>x-y);const hxl=PSTAT.hx||[],hxn=[HTR.n50,HTR.n100];HTR.n50=HTR.n100=0;PSTAT.t0=0;PSTAT.all=[];PSTAT.met=[];PSTAT.js=[];PSTAT.dc=[];PSTAT.hx=[];PSTAT.hole=null;
   if(!A||A.n<60||!h||!DAILY.url)return;const r1=v=>v==null?null:Math.round(v*10)/10;
   const body={player_id:dailyPid(),name:(dailyName()||'').slice(0,16),ver:String(window.GOLF_VER||'').slice(0,40),course:String(h.course).slice(0,24),hole:h.hole,mode:String(h.mode).slice(0,16),
     gfx:String((typeof R3!=='undefined'&&R3.q)||'').slice(0,8),perf:(typeof R3!=='undefined'&&R3.perf)||0,
     device:{ua:navigator.userAgent.slice(0,200),scr:screen.width+'x'+screen.height,dpr:window.devicePixelRatio||1,vw:innerWidth+'x'+innerHeight,app:!!(navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches))},
     frames:A.n,fps_avg:r1(A.avg),fps_med:r1(A.med),ms_p95:r1(A.p95),ms_max:r1(A.max),stutter_pct:r1(A.st),
-    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st),extra:{cap30:!!PERF.cap,ho:PERF.heavyOff||0,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0,dq:PERF.dT&&PERF.dT.some(v=>v)?[...PERF.dT,PERF.midNeed||4]:undefined,shc:R3.shc?R3.shc.n:null,trees:R3T.kept||null,js_med:js.length?r1(js[js.length>>1]):null,js_p95:js.length?r1(js[Math.floor(js.length*.95)]):null,dc_med:dc.length?dc[dc.length>>1]:null,hx:hxl.length?hxl.sort((a,b)=>b.ms-a.ms):undefined,ld:ldTake()}};if(R3.shc)R3.shc.n={dyn:0,cap:0,full:0};PERF.dT=[0,0,0];   /* dq: sharper-picture tries this hole [tried, kept, went back, windows needed] */
+    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st),extra:{cap30:!!PERF.cap,ho:PERF.heavyOff||0,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0,dq:PERF.dT&&PERF.dT.some(v=>v)?[...PERF.dT,PERF.midNeed||4]:undefined,shc:R3.shc?R3.shc.n:null,trees:R3T.kept||null,js_med:js.length?r1(js[js.length>>1]):null,js_p95:js.length?r1(js[Math.floor(js.length*.95)]):null,dc_med:dc.length?dc[dc.length>>1]:null,hx:hxl.length?hxl.sort((a,b)=>b.ms-a.ms):undefined,hxn,ld:ldTake()}};if(R3.shc)R3.shc.n={dyn:0,cap:0,full:0};PERF.dT=[0,0,0];   /* dq: sharper-picture tries this hole [tried, kept, went back, windows needed] */
   try{fetch(DAILY.url+'/rest/v1/perf_stats',{method:'POST',keepalive:!!keep,headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(body)}).catch(()=>{});}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pstatFlush(true);});addEventListener('resize',()=>{MCLK.w=0;});   // w: the meter's width, measured once (not every frame)
 const PERF={n:0,sum:0,level:0};
@@ -8460,11 +8460,25 @@ function fpsTick(now,raw){const el=$('fpsChip');if(!el)return;const show=FPSM.on
 /* Oct 2026 hitch recorder (sent with the smoothness stats, nothing shown): when a frame comes more than 50 ms after the last
    one, keep what the frame before it did (the work that delayed it): the game state, its JS time, which game steps took over
    4 ms, and whether a new GPU program was compiled. The six longest per hole go into perf_stats (extra.hx). */
-var HTR={m:'',prev:null,pc:0};
+var HTR={m:'',prev:null,pc:0,ring:[],pend:[],last:0,endT:0,ping:0,n50:0,n100:0,lat:0};
+/* Oct 28 2026: finer detail on each hitch, to pin down the ~100 ms stalls that come with no marker and almost no JS (Cam's phone,
+   aiming / waiting / at hole-out). lat: how late our frame callback ran after the frame's own timestamp (the page busy before it);
+   wk: the whole frame's work (js is the main step only); idle: from the end of our last frame's work to this frame; free: how soon after our last frame the page was free again (a
+   MessageChannel ping; large = something else held the page); pre/post: frame times just before and after; gap: s since the last
+   hitch; t: s into the hole; dc/dyn/lvl: draw calls, resolution and graphics level. extra.hxn counts every hitch in the hole. */
+const HXCH=typeof MessageChannel!=='undefined'?new MessageChannel():null;if(HXCH)HXCH.port1.onmessage=()=>{if(!HTR.ping)HTR.ping=performance.now();};
 function hxWrap(n,f){return function(){const t=performance.now();try{return f.apply(this,arguments);}finally{const d=performance.now()-t;if(d>4)HTR.m+=n+':'+Math.round(d)+' ';}};}
-function hxFrame(raw){const p=HTR.prev,between=HTR.m;HTR.prev=null;HTR.m='';if(!p||!(raw>.05)||!PSTAT||!PSTAT.hole||document.hidden)return;   // 'between': taps and timers since the last frame
-  const L=PSTAT.hx||(PSTAT.hx=[]);L.push({ms:Math.round(raw*1000),st:p.st,js:Math.round(p.js),m:(p.m+(between?'| '+between:'')).trim().slice(0,220)});if(L.length>6){L.sort((a,b)=>b.ms-a.ms);L.length=6;}}
-function hxEnd(js){const rr=R3.renderer;if(rr){const L=rr.info.programs,pc=L.length;if(HTR.pc&&pc>HTR.pc){HTR.m+='prog+'+(pc-HTR.pc)+'['+L.slice(HTR.pc).map(p=>(p.cacheKey||'').slice(0,14).replace(/[,|]/g,'.')).join(';')+'] ';}HTR.pc=pc;}HTR.prev={st:G.state+(G.paused?'/p':''),js,m:HTR.m};HTR.m='';}
+function hxFrame(raw,now){const p=HTR.prev,between=HTR.m;HTR.prev=null;HTR.m='';const ms=Math.round(raw*1000);
+  for(let i=HTR.pend.length-1;i>=0;i--){const e=HTR.pend[i];e.post.push(ms);if(e.post.length>=4)HTR.pend.splice(i,1);}
+  const ring=HTR.ring.slice();HTR.ring.push(ms);if(HTR.ring.length>6)HTR.ring.shift();
+  const free=HTR.ping&&HTR.endT?Math.round(HTR.ping-HTR.endT):null,idle=HTR.endT?Math.round(now-HTR.endT):null;HTR.ping=0;
+  if(!p||!(raw>.05)||!PSTAT||!PSTAT.hole||document.hidden)return;   // 'between': taps and timers since the last frame
+  HTR.n50++;if(raw>=.1)HTR.n100++;const t=performance.now(),gap=HTR.last?Math.round((t-HTR.last)/100)/10:null;HTR.last=t;
+  const e={ms,st:p.st,js:Math.round(p.js),wk:Math.round(p.wk),m:(p.m+(between?'| '+between:'')).trim().slice(0,220),lat:Math.round(HTR.lat),idle,free,pre:ring,post:[],gap,
+    t:PSTAT.t0?Math.round((t-PSTAT.t0)/100)/10:null,dc:R3.dcN0||0,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0};
+  HTR.pend.push(e);if(HTR.pend.length>8)HTR.pend.shift();
+  const L=PSTAT.hx||(PSTAT.hx=[]);L.push(e);if(L.length>6){L.sort((a,b)=>b.ms-a.ms);L.length=6;}}
+function hxEnd(js){HTR.endT=performance.now();HTR.ping=0;if(HXCH)try{HXCH.port2.postMessage(0);}catch(e){}R3.dcN0=R3.dcN;const rr=R3.renderer;if(rr){const L=rr.info.programs,pc=L.length;if(HTR.pc&&pc>HTR.pc){HTR.m+='prog+'+(pc-HTR.pc)+'['+L.slice(HTR.pc).map(p=>(p.cacheKey||'').slice(0,14).replace(/[,|]/g,'.')).join(';')+'] ';}HTR.pc=pc;}HTR.prev={st:G.state+(G.paused?'/p':''),js,wk:HTR.fs?HTR.endT-HTR.fs:js,m:HTR.m};HTR.m='';}
 buildGrassPatch=hxWrap('grass',buildGrassPatch);buildTreeMesh=hxWrap('trees',buildTreeMesh);r3TreeLOD=hxWrap('lod',r3TreeLOD);r3ShcPlan=hxWrap('shc',r3ShcPlan);
 r3Reflect=hxWrap('refl',r3Reflect);prepareShot=hxWrap('prep',prepareShot);executeShot=hxWrap('shot',executeShot);startHole=hxWrap('hole',startHole);
 pstatFlush=hxWrap('flush',pstatFlush);saveGame=hxWrap('save',saveGame);updHud=hxWrap('hud',updHud);renderScene=hxWrap('ovl',renderScene);r3Post=hxWrap('post',r3Post);
@@ -8474,7 +8488,7 @@ r3GrassUpdate=hxWrap('grassU',r3GrassUpdate);cpkPack=hxWrap('pack',cpkPack);cupB
 function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
   if(LDT.p)try{ldFrame();}catch(e){}
   if(PERF.cap&&now-last<28&&!(REC&&REC.on))return;   /* steady 30: every other refresh (on a 120 Hz screen, every fourth) */
-  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);hxFrame(raw);if(FPSM.on)fpsTick(now,raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
+  const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);HTR.fs=performance.now();HTR.lat=HTR.fs-now;hxFrame(raw,now);if(FPSM.on)fpsTick(now,raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */
   try{ambTick(dt);}catch(e){}
   const j0=performance.now(),rr=R3.renderer;if(rr&&!rr.__dc){const ro=rr.render;rr.__dc=1;rr.render=function(a,b){ro.call(this,a,b);R3.dcN=(R3.dcN||0)+this.info.render.calls;};}R3.dcN=0;
   if(SJ.job&&G.state==='wait'&&!G.paused)try{shortTick();}catch(e){SJ.job=null;}   // chip/pitch choice for the next shot, a few candidates a frame
