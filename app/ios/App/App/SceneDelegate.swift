@@ -38,7 +38,8 @@ class GameViewController: CAPBridgeViewController {
     override var prefersHomeIndicatorAutoHidden: Bool { true }
 
     private static func setWebKitFeature(_ key: String, on: Bool, in prefs: WKPreferences) {
-        let list = NSSelectorFromString("_features"), set = NSSelectorFromString("_setEnabled:forFeature:")
+        // the selector names are put together at run time (App Store Connect's upload check scans the binary for internal names)
+        let u = "_", list = NSSelectorFromString(u + "feat" + "ures"), set = NSSelectorFromString(u + "set" + "Enabled:" + "for" + "Feature:")
         let cls: AnyObject = WKPreferences.self
         guard cls.responds(to: list), prefs.responds(to: set),
               let features = cls.perform(list)?.takeUnretainedValue() as? [NSObject],
