@@ -1,0 +1,104 @@
+03:38:18   err HTTPSConnectionPool(host='gis.apfo.usda.gov', port=443): Max retries exceeded with url: /arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage?bbox=-93.53599323613449%2C45.092164811499515%2C-93.5089037773891%2C45.10421564753793&bboxSR=4326&imageSR=4326&size=3547%2C2220&f=json&format=jpg&compressionQuality=90 (Caused by NameResolutionError("HTTPSConnection(host='gis.apfo.usda.gov', port=443): Failed to resolve 'gis.apfo.usda.gov' ([Errno -2] Name or service not known)"))
+03:38:36   err HTTPSConnectionPool(host='gis.apfo.usda.gov', port=443): Max retries exceeded with url: /arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage?bbox=-93.53599323613449%2C45.092164811499515%2C-93.5089037773891%2C45.10421564753793&bboxSR=4326&imageSR=4326&size=3547%2C2220&f=json&format=jpg&compressionQuality=90 (Caused by NameResolutionError("HTTPSConnection(host='gis.apfo.usda.gov', port=443): Failed to resolve 'gis.apfo.usda.gov' ([Errno -2] Name or service not known)"))
+03:39:02   err HTTPSConnectionPool(host='gis.apfo.usda.gov', port=443): Max retries exceeded with url: /arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage?bbox=-93.53599323613449%2C45.092164811499515%2C-93.5089037773891%2C45.10421564753793&bboxSR=4326&imageSR=4326&size=3547%2C2220&f=json&format=jpg&compressionQuality=90 (Caused by NameResolutionError("HTTPSConnection(host='gis.apfo.usda.gov', port=443): Failed to resolve 'gis.apfo.usda.gov' ([Errno -2] Name or service not known)"))
+03:39:36   err HTTPSConnectionPool(host='gis.apfo.usda.gov', port=443): Max retries exceeded with url: /arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage?bbox=-93.53599323613449%2C45.092164811499515%2C-93.5089037773891%2C45.10421564753793&bboxSR=4326&imageSR=4326&size=3547%2C2220&f=json&format=jpg&compressionQuality=90 (Caused by NameResolutionError("HTTPSConnection(host='gis.apfo.usda.gov', port=443): Failed to resolve 'gis.apfo.usda.gov' ([Errno -2] Name or service not known)"))
+03:40:18   err HTTPSConnectionPool(host='gis.apfo.usda.gov', port=443): Max retries exceeded with url: /arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage?bbox=-93.53599323613449%2C45.092164811499515%2C-93.5089037773891%2C45.10421564753793&bboxSR=4326&imageSR=4326&size=3547%2C2220&f=json&format=jpg&compressionQuality=90 (Caused by NameResolutionError("HTTPSConnection(host='gis.apfo.usda.gov', port=443): Failed to resolve 'gis.apfo.usda.gov' ([Errno -2] Name or service not known)"))
+03:40:58   naip source failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage
+03:41:12 rushcreek naip [3547, 2220] 2445 KB from https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage
+(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory((PDALPDAL  ErrorError) ) Can't load library Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: : Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directoryFailed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory((PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directoryPDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory((PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directoryPDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory03:41:17 rushcreek 1 1114047 pts
+03:41:18 rushcreek 0 1205229 pts
+03:41:19 rushcreek 2 1654603 pts
+03:41:19 rushcreek 3 1927177 pts
+03:41:23 rushcreek 4 1757780 pts
+03:41:23 rushcreek 5 1372352 pts
+03:41:24 rushcreek 7 1550909 pts
+03:41:25 rushcreek 6 1688574 pts
+03:41:28 rushcreek 8 89322 pts
+03:41:30 rushcreek 9 1832578 pts
+03:41:30 rushcreek 10 2028625 pts
+03:41:31 rushcreek 11 1416412 pts
+03:41:34 rushcreek 12 1481307 pts
+03:41:36 rushcreek 13 1692504 pts
+03:41:36 rushcreek 14 1670394 pts
+03:41:37 rushcreek 15 1604445 pts
+03:41:40 rushcreek 16 1420483 pts
+03:41:42 rushcreek 18 1404508 pts
+03:41:42 rushcreek 17 1421755 pts
+03:41:43 rushcreek 19 93448 pts
+03:41:45 rushcreek 20 1224131 pts
+03:41:47 rushcreek 21 1124167 pts
+03:41:48 rushcreek 22 1680596 pts
+03:41:49 rushcreek 23 1650514 pts
+03:41:51 rushcreek 24 1269329 pts
+03:41:53 rushcreek 25 1450412 pts
+03:41:53 rushcreek 26 1444078 pts
+03:41:54 rushcreek 27 2007179 pts
+03:41:56 rushcreek 28 1488587 pts
+03:41:58 rushcreek 30 1713286 pts
+03:41:58 rushcreek 29 1407957 pts
+03:41:59 rushcreek 31 1195621 pts
+03:42:02 rushcreek 32 1332934 pts
+03:42:03 rushcreek 33 1411992 pts
+03:42:03 rushcreek 34 1173345 pts
+03:42:04 rushcreek 35 1521874 pts
+03:42:07 rushcreek 36 1701477 pts
+03:42:08 rushcreek 37 1525677 pts
+03:42:09 rushcreek 39 1538026 pts
+03:42:10 rushcreek 38 1390779 pts
+03:42:12 rushcreek 40 1589609 pts
+03:42:14 rushcreek 41 1782598 pts
+03:42:14 rushcreek 42 1485513 pts
+03:42:15 rushcreek 43 95971 pts
+03:42:18 rushcreek 44 146734 pts
+03:42:19 rushcreek saved 2020 1232
+03:42:49 mystic naip [2304, 2622] 1958 KB from https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage
+((PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directoryPDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so(: PDALFailed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory03:42:54 mystic 2 575961 pts
+03:42:54 mystic 1 476797 pts
+03:42:54 mystic 3 458620 pts
+03:42:54 mystic 0 565469 pts
+03:42:57 mystic 4 481793 pts
+03:42:58 mystic 7 527025 pts
+03:42:58 mystic 5 458565 pts
+03:42:58 mystic 6 147278 pts
+03:43:00 mystic 8 467368 pts
+03:43:01 mystic 9 431351 pts
+03:43:01 mystic 11 385331 pts
+03:43:01 mystic 10 506141 pts
+03:43:04 mystic 12 441867 pts
+03:43:04 mystic 13 440488 pts
+03:43:04 mystic 14 456417 pts
+03:43:05 mystic 15 402174 pts
+03:43:07 mystic 16 322466 pts
+03:43:08 mystic 17 893208 pts
+03:43:08 mystic 18 774338 pts
+03:43:09 mystic 19 727532 pts
+03:43:11 mystic 20 694725 pts
+03:43:11 mystic 21 697635 pts
+03:43:13 mystic 22 981478 pts
+03:43:13 mystic 23 1012266 pts
+03:43:15 mystic 24 784586 pts
+03:43:16 mystic 25 800831 pts
+03:43:18 mystic 26 869598 pts
+03:43:18 mystic 27 170367 pts
+03:43:18 mystic 28 533363 pts
+03:43:19 mystic 29 814460 pts
+03:43:21 mystic 30 536334 pts
+03:43:21 mystic 32 553329 pts
+03:43:21 mystic 31 534674 pts
+03:43:23 mystic 33 552231 pts
+03:43:24 mystic 34 210638 pts
+03:43:25 mystic 35 435064 pts
+03:43:25 mystic 36 364107 pts
+03:43:26 mystic 37 532684 pts
+03:43:28 mystic 39 552448 pts
+03:43:28 mystic 38 462529 pts
+03:43:28 mystic 40 403676 pts
+03:43:30 mystic 41 147789 pts
+03:43:31 mystic 42 173236 pts
+03:43:32 mystic 43 121231 pts
+03:43:32 mystic 44 128871 pts
+03:43:34 mystic 45 136536 pts
+03:43:35 mystic 46 274271 pts
+03:43:35 mystic 48 44737 pts
+03:43:35 mystic 47 159684 pts
+03:43:36 mystic saved 1274 1468

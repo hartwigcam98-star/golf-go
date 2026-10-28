@@ -1,0 +1,22 @@
+{
+ "started": "2026-10-28 03:38:08",
+ "courses": {
+  "rushcreek": {
+   "tiles": 45,
+   "grid": [
+    2020,
+    1232
+   ]
+  },
+  "mystic": {
+   "tiles": 49,
+   "grid": [
+    1274,
+    1468
+   ]
+  }
+ },
+ "errors": [],
+ "naip_src": "https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage",
+ "finished": "2026-10-28 03:43:36"
+}
