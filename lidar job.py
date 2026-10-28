@@ -1,15 +1,9 @@
-# Minnesota: The Jewel, The Ridges at Sand Creek, Edinburgh USA, Willinger's, The Links at Northfork.
+# Golf Go course fetch job (template auto/fetch_job_tmpl.py, filled by auto/mkjob.py). Results go to the 'course-data' branch (this run only).
 # Fetches OSM, NED, NAIP, 3DEP 1 m and lidar ground points around the greens; results go to the "course-data" branch.
 import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
-JOB = {"name": "minnesota 5, second pass: ridges at sand creek (full outline), willingers (box from its holes)",
-       "search": [[44.60, -93.66, 44.68, -93.55], [44.46, -93.36, 44.52, -93.28]],
-       "want": {"ridges": r"^zzz$", "willingers": r"willinger"},
-       "holes": {"ridges": r"^zzz$", "willingers": r"willinger"},
-       "ids": {"ridges": "way/175655077"},
-       "boxes": {"willingers": [-93.3232, 44.4864, -93.3051, 44.4984]},
-       "steps": {"ridges": "all", "willingers": "all"}}
+JOB = json.loads(r'''{"rushcreek": {"res": "MN_CentralMissRiver_4_B22", "epsg": 32615, "tiles": [[-93.5352297, 45.1018643, -93.5326845, 45.103673], [-93.5326845, 45.1018643, -93.5301393, 45.103673], [-93.5301393, 45.1018643, -93.5275941, 45.103673], [-93.5275941, 45.1018643, -93.525049, 45.103673], [-93.5199586, 45.1018643, -93.5174134, 45.103673], [-93.5174134, 45.1018643, -93.5148682, 45.103673], [-93.5148682, 45.1018643, -93.5123231, 45.103673], [-93.5123231, 45.1018643, -93.5097779, 45.103673], [-93.5097779, 45.1018643, -93.5072327, 45.103673], [-93.5352297, 45.1000555, -93.5326845, 45.1018643], [-93.5326845, 45.1000555, -93.5301393, 45.1018643], [-93.5301393, 45.1000555, -93.5275941, 45.1018643], [-93.5275941, 45.1000555, -93.525049, 45.1018643], [-93.525049, 45.1000555, -93.5225038, 45.1018643], [-93.5225038, 45.1000555, -93.5199586, 45.1018643], [-93.5199586, 45.1000555, -93.5174134, 45.1018643], [-93.5174134, 45.1000555, -93.5148682, 45.1018643], [-93.5148682, 45.1000555, -93.5123231, 45.1018643], [-93.5123231, 45.1000555, -93.5097779, 45.1018643], [-93.5097779, 45.1000555, -93.5072327, 45.1018643], [-93.5275941, 45.0982468, -93.525049, 45.1000555], [-93.525049, 45.0982468, -93.5225038, 45.1000555], [-93.5225038, 45.0982468, -93.5199586, 45.1000555], [-93.5199586, 45.0982468, -93.5174134, 45.1000555], [-93.5174134, 45.0982468, -93.5148682, 45.1000555], [-93.5148682, 45.0982468, -93.5123231, 45.1000555], [-93.5123231, 45.0982468, -93.5097779, 45.1000555], [-93.5275941, 45.0964381, -93.525049, 45.0982468], [-93.525049, 45.0964381, -93.5225038, 45.0982468], [-93.5225038, 45.0964381, -93.5199586, 45.0982468], [-93.5199586, 45.0964381, -93.5174134, 45.0982468], [-93.5174134, 45.0964381, -93.5148682, 45.0982468], [-93.5148682, 45.0964381, -93.5123231, 45.0982468], [-93.5123231, 45.0964381, -93.5097779, 45.0982468], [-93.525049, 45.0946293, -93.5225038, 45.0964381], [-93.5225038, 45.0946293, -93.5199586, 45.0964381], [-93.5199586, 45.0946293, -93.5174134, 45.0964381], [-93.5174134, 45.0946293, -93.5148682, 45.0964381], [-93.5148682, 45.0946293, -93.5123231, 45.0964381], [-93.5123231, 45.0946293, -93.5097779, 45.0964381], [-93.5225038, 45.0928206, -93.5199586, 45.0946293], [-93.5199586, 45.0928206, -93.5174134, 45.0946293], [-93.5123231, 45.0928206, -93.5097779, 45.0946293], [-93.5225038, 45.0910118, -93.5199586, 45.0928206], [-93.5199586, 45.0910118, -93.5174134, 45.0928206]], "bbox": [-93.53522968417407, 45.09270743453929, -93.50966732934951, 45.10367302449815]}, "mystic": {"res": "MN_CentralMissRiver_6_B22", "epsg": 26915, "tiles": [[-93.4883602, 44.7336435, -93.4858312, 44.7354522], [-93.4858312, 44.7336435, -93.4833023, 44.7354522], [-93.4833023, 44.7336435, -93.4807734, 44.7354522], [-93.4807734, 44.7336435, -93.4782445, 44.7354522], [-93.4782445, 44.7336435, -93.4757156, 44.7354522], [-93.4757156, 44.7336435, -93.4731866, 44.7354522], [-93.4731866, 44.7336435, -93.4706577, 44.7354522], [-93.4883602, 44.7318347, -93.4858312, 44.7336435], [-93.4858312, 44.7318347, -93.4833023, 44.7336435], [-93.4833023, 44.7318347, -93.4807734, 44.7336435], [-93.4807734, 44.7318347, -93.4782445, 44.7336435], [-93.4782445, 44.7318347, -93.4757156, 44.7336435], [-93.4883602, 44.730026, -93.4858312, 44.7318347], [-93.4858312, 44.730026, -93.4833023, 44.7318347], [-93.4833023, 44.730026, -93.4807734, 44.7318347], [-93.4807734, 44.730026, -93.4782445, 44.7318347], [-93.4782445, 44.730026, -93.4757156, 44.7318347], [-93.4883602, 44.7282172, -93.4858312, 44.730026], [-93.4858312, 44.7282172, -93.4833023, 44.730026], [-93.4833023, 44.7282172, -93.4807734, 44.730026], [-93.4807734, 44.7282172, -93.4782445, 44.730026], [-93.4782445, 44.7282172, -93.4757156, 44.730026], [-93.4883602, 44.7264085, -93.4858312, 44.7282172], [-93.4858312, 44.7264085, -93.4833023, 44.7282172], [-93.4833023, 44.7264085, -93.4807734, 44.7282172], [-93.4807734, 44.7264085, -93.4782445, 44.7282172], [-93.4757156, 44.7264085, -93.4731866, 44.7282172], [-93.4731866, 44.7264085, -93.4706577, 44.7282172], [-93.4883602, 44.7245997, -93.4858312, 44.7264085], [-93.4858312, 44.7245997, -93.4833023, 44.7264085], [-93.4833023, 44.7245997, -93.4807734, 44.7264085], [-93.4807734, 44.7245997, -93.4782445, 44.7264085], [-93.4782445, 44.7245997, -93.4757156, 44.7264085], [-93.4757156, 44.7245997, -93.4731866, 44.7264085], [-93.4731866, 44.7245997, -93.4706577, 44.7264085], [-93.4883602, 44.722791, -93.4858312, 44.7245997], [-93.4858312, 44.722791, -93.4833023, 44.7245997], [-93.4833023, 44.722791, -93.4807734, 44.7245997], [-93.4807734, 44.722791, -93.4782445, 44.7245997], [-93.4782445, 44.722791, -93.4757156, 44.7245997], [-93.4757156, 44.722791, -93.4731866, 44.7245997], [-93.4731866, 44.722791, -93.4706577, 44.7245997], [-93.4883602, 44.7209822, -93.4858312, 44.722791], [-93.4858312, 44.7209822, -93.4833023, 44.722791], [-93.4833023, 44.7209822, -93.4807734, 44.722791], [-93.4807734, 44.7209822, -93.4782445, 44.722791], [-93.4782445, 44.7209822, -93.4757156, 44.722791], [-93.4757156, 44.7209822, -93.4731866, 44.722791], [-93.4731866, 44.7209822, -93.4706577, 44.722791]], "bbox": [-93.48836015888119, 44.722305893742295, -93.47239601354231, 44.7354521971794]}}''')
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -192,149 +186,46 @@ def naip(key, b):
         except Exception as e: log('  naip source failed', u, e)
     raise RuntimeError('no NAIP source worked')
 
-# ---------- 5. 3DEP 1 m elevation: the original lon/lat export (course-wide grid) and square UTM metres (greens)
-IMG = 'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage'
-def dem_ll(key, b):
-    b = grow(b, 120); lat = (b[1] + b[3]) / 2
-    w = int((b[2] - b[0]) * 111320 * math.cos(math.radians(lat))); h = int((b[3] - b[1]) * 110574)
-    r = get(IMG, dict(bbox=','.join(map(str, b)), bboxSR=4326, imageSR=4326, size=f'{w},{h}', format='bsq', pixelType='F32',
-                      interpolation='RSP_BilinearInterpolation', f='image'))
-    if len(r.content) < w * h * 4: raise RuntimeError('short dem %d for %dx%d' % (len(r.content), w, h))
-    Z = np.frombuffer(r.content[:w * h * 4], '<f4').reshape(h, w).copy()
-    res = max((b[2] - b[0]) / w, (b[3] - b[1]) / h); cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2   # the server widens to square-degree pixels
-    ext = [cx - res * w / 2, cy - res * h / 2, cx + res * w / 2, cy + res * h / 2]
-    np.savez_compressed(f'{OUT}/demll_{key}.npz', z=Z)
-    json.dump(dict(bbox=b, size=[w, h], fmt='bsq', ext=ext), open(f'{OUT}/lidar_{key}.json', 'w')); log(key, 'dem lon/lat', w, h)
-def dem_utm(key, b):
-    W, S_, E, N = grow(b, 120); EPSG = UTMZ((W + E) / 2)
-    tf = Transformer.from_crs(4326, EPSG, always_xy=True)
-    xs, ys = tf.transform([W, E, W, E], [S_, S_, N, N])
-    x0, y0, x1, y1 = math.floor(min(xs)), math.floor(min(ys)), math.ceil(max(xs)), math.ceil(max(ys))
-    w, h = x1 - x0, y1 - y0; Z = np.full((h, w), np.nan, np.float32); T = 1000
-    for ty in range(y0, y1, T):
-        for tx in range(x0, x1, T):
-            tw, th = min(T, x1 - tx), min(T, y1 - ty)
-            r = get(IMG, dict(bbox=f'{tx},{ty},{tx+tw},{ty+th}', bboxSR=EPSG, imageSR=EPSG, size=f'{tw},{th}', format='bsq',
-                               pixelType='F32', interpolation='RSP_BilinearInterpolation', f='image'))
-            a = np.frombuffer(r.content[:tw * th * 4], '<f4').reshape(th, tw).copy(); a[(a < -1000) | (a > 10000)] = np.nan
-            r0 = y1 - (ty + th); Z[r0:r0 + th, tx - x0:tx - x0 + tw] = a
-    np.savez_compressed(f'{OUT}/dem_{key}.npz', z=Z, x0=x0, y1=y1, res=1.0, epsg=EPSG)
-    lo = np.linspace(W, E, 5); la = np.linspace(S_, N, 5); LO, LA = np.meshgrid(lo, la); X, Y = tf.transform(LO.ravel(), LA.ravel())
-    SUM['courses'][key]['dem'] = dict(epsg=EPSG, x0=x0, y0=y0, x1=x1, y1=y1, w=w, h=h, nan=int(np.isnan(Z).sum()),
-        ctrl=[[float(a), float(b_), float(c), float(d)] for a, b_, c, d in zip(LO.ravel(), LA.ravel(), X, Y)])
-    log(key, 'dem utm', w, 'x', h)
 
-# ---------- 6. raw lidar ground points round every green
+
+def grow(b, m):
+    lat = (b[1] + b[3]) / 2; dx = m / (111320 * math.cos(math.radians(lat))); dy = m / 110574
+    return [b[0] - dx, b[1] - dy, b[2] + dx, b[3] + dy]
 EPT = 'https://s3-us-west-2.amazonaws.com/usgs-lidar-public/%s/ept.json'
 def merc(lon, lat): R = 6378137.0; return R * math.radians(lon), R * math.log(math.tan(math.pi / 4 + math.radians(lat) / 2))
-def read_green(key, gi, res, box, epsg):
+def tile(key, ti, res, box, epsg):
     import pdal
     W, S_, E, N = box; x0, y0 = merc(W, S_); x1, y1 = merc(E, N)
-    spec = [{'type': 'readers.ept', 'filename': EPT % res, 'bounds': f'([{x0:.2f},{x1:.2f}],[{y0:.2f},{y1:.2f}])', 'threads': 6}]
-    t = time.time(); p = pdal.Pipeline(json.dumps(spec)); n = p.execute(); arrs = p.arrays; a = arrs[0] if arrs else None
-    info = dict(n=int(n), sec=round(time.time() - t, 1))
-    if a is None or len(a) == 0: return key, gi, res, info, None
-    cls = a['Classification'].astype(int); info['classes'] = {int(k): int(v) for k, v in zip(*np.unique(cls, return_counts=True))}
-    g = a[cls == 2]
-    if len(g) == 0: return key, gi, res, info, None
-    tf = Transformer.from_crs(3857, epsg, always_xy=True); X, Y = tf.transform(g['X'], g['Y']); X = np.asarray(X); Y = np.asarray(Y)
-    ox, oy = math.floor(X.min()), math.floor(Y.min())
-    d = dict(ox=ox, oy=oy, x=np.round((X - ox) * 100).astype(np.int32), y=np.round((Y - oy) * 100).astype(np.int32), z=np.round(np.asarray(g['Z']) * 1000).astype(np.int32))
-    if 'GpsTime' in g.dtype.names: info['gps'] = [float(g['GpsTime'].min()), float(g['GpsTime'].max())]
-    info['ground'] = int(len(g)); info['gdens'] = round(len(g) / max((X.max() - X.min()) * (Y.max() - Y.min()), 1), 2)
-    return key, gi, res, info, d
-def rings_of(g):
-    if g['type'] == 'Polygon': return [g['coordinates'][0]]
-    if g['type'] == 'MultiPolygon': return [p[0] for p in g['coordinates']]
-    return []
-def pip(pt, r):
-    x, y = pt; c = False
-    for i in range(len(r)):
-        x1, y1 = r[i]; x2, y2 = r[i - 1]
-        if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1: c = not c
-    return c
-def greens_points(key, b, osm, resources, rings):
-    W, S_, E, N = grow(b, 60); epsg = UTMZ((W + E) / 2)
-    greens = [dict(id=f'traced/{i}', bbox=grow(list(bb), 25)) for i, bb in enumerate(JOB.get('greens', {}).get(key, []))]
-    for el in ([] if greens else osm['elements']):
-        if el.get('tags', {}).get('golf') != 'green': continue
-        bb = bbox_of(el)
-        if not bb: continue
-        c = ((bb[0] + bb[2]) / 2, (bb[1] + bb[3]) / 2)
-        if not any(len(r) > 2 and pip(c, r) for r in rings): continue
-        greens.append(dict(id=el['type'] + '/' + str(el['id']), bbox=grow(bb, 25)))
-    for g in greens:
-        x0, y0, x1, y1 = g['bbox']; pts = [(x0, y0), (x1, y0), (x0, y1), (x1, y1), ((x0 + x1) / 2, (y0 + y1) / 2)]
-        g['cand'] = [f['properties']['name'] for f in resources if any(pip(q, r) for q in pts for r in rings_of(f['geometry']))]
-    try:
-        base = 'https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer/24/query'
-        for g in greens:
-            x0, y0, x1, y1 = g['bbox']; q = get(base, dict(geometry=f'{(x0+x1)/2},{(y0+y1)/2}', geometryType='esriGeometryPoint', inSR=4326, spatialRel='esriSpatialRelIntersects', outFields='workunit,project,collect_start,collect_end,ql', returnGeometry='false', f='json')).json()
-            g['wesm'] = [ft['attributes'] for ft in q.get('features', [])]
-            names = {f['properties']['name'] for f in resources}
-            for a in g['wesm']:
-                for nm in (a.get('workunit'), a.get('project')):
-                    if nm and nm in names and nm not in g['cand']: g['cand'].append(nm)
-    except Exception as e: err(f'wesm {key}', e)
-    SUM['courses'][key]['greens'] = greens; save()
-    jobs = [(key, gi, r, g['bbox'], epsg) for gi, g in enumerate(greens) for r in g['cand']]
-    pack = {}; info_all = {}
-    with ProcessPoolExecutor(6) as ex:
-        fs = [ex.submit(read_green, *j) for j in jobs]
-        for f in as_completed(fs):
-            try: k, gi, r, info, d = f.result()
-            except Exception as e: err(f'points {key}', e); continue
-            info_all.setdefault(str(gi), {})[r] = info; log(key, gi, r, info.get('ground'), 'ground', info.get('gdens'), '/m2')
-            if d is not None:
-                for kk, v in d.items(): pack[f'g{gi}|{r}|{kk}'] = np.asarray(v)
-    np.savez_compressed(f'{OUT}/pts_{key}.npz', **pack); SUM['courses'][key]['points'] = info_all
-    log(key, 'points saved', os.path.getsize(f'{OUT}/pts_{key}.npz') // 1024, 'KB'); save()
-
+    spec = [{'type': 'readers.ept', 'filename': EPT % res, 'bounds': f'([{x0:.2f},{x1:.2f}],[{y0:.2f},{y1:.2f}])', 'resolution': 0.5, 'threads': 4}]
+    p = pdal.Pipeline(json.dumps(spec)); n = p.execute(); a = p.arrays[0] if p.arrays else None
+    if a is None or len(a) == 0: return key, ti, None
+    cls = a['Classification'].astype(int); ok = (cls != 7) & (cls != 18)
+    tf = Transformer.from_crs(3857, epsg, always_xy=True); X, Y = tf.transform(a['X'][ok], a['Y'][ok]); X = np.asarray(X); Y = np.asarray(Y); Z = np.asarray(a['Z'][ok]); c = cls[ok]
+    return key, ti, dict(x=X.astype(np.float64), y=Y.astype(np.float64), z=Z.astype(np.float32), g=(c == 2))
 def main():
-    import subprocess   # keep the earlier courses' files on the results branch
-    try:
-        subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_mn5a.json; [ -f out/run.log ] && mv out/run.log out/run_prev_mn5a.log; true', shell=True)
-    except Exception as e: SUM['errors'].append(f'keep old: {e}')
-    try: res = discover()
-    except Exception as e: err('discover', e); return
-    if not res: err('discover', 'none of the wanted courses found; see osm_golf_courses'); return
-    if JOB.get('discover_only'):
-        # hole summary per wanted course: refs, names, pars, and the golf feature counts inside each picked box
-        d = json.load(open(f'{OUT}/osm_courses.json'))
-        for key, c in res.items():
-            b = c['bbox']; inb = lambda el: (lambda bb: bb and b[0] - .003 < (bb[0] + bb[2]) / 2 < b[2] + .003 and b[1] - .003 < (bb[1] + bb[3]) / 2 < b[3] + .003)(bbox_of(el))
-            hs = [el for el in d['elements'] if el.get('tags', {}).get('golf') == 'hole' and inb(el)]
-            c['holes'] = sorted([[el['tags'].get('ref', ''), el['tags'].get('name', ''), el['tags'].get('par', ''), el['id']] for el in hs], key=lambda t: (t[1], t[0]))
-        SUM['picked'] = {k: {kk: vv for kk, vv in v.items() if kk != 'rings'} for k, v in res.items()}
-        SUM['finished'] = time.strftime('%Y-%m-%d %H:%M:%S'); save(); return
-    try: resources = get('https://raw.githubusercontent.com/hobuinc/usgs-lidar/master/boundaries/resources.geojson').json()['features']
-    except Exception as e: resources = []; err('resources', e)
-    # one map download per resort: courses within 6 km of each other share it
-    groups = []
-    for key, c in res.items():
-        cx, cy = (c['bbox'][0] + c['bbox'][2]) / 2, (c['bbox'][1] + c['bbox'][3]) / 2
-        for g in groups:
-            if abs(g['c'][0] - cx) * 76000 < 6000 and abs(g['c'][1] - cy) * 111000 < 6000: g['k'].append(key); break
-        else: groups.append({'c': (cx, cy), 'k': [key]})
-    for gi_, g in enumerate(groups):
-        bb = [min(res[k]['bbox'][0] for k in g['k']), min(res[k]['bbox'][1] for k in g['k']), max(res[k]['bbox'][2] for k in g['k']), max(res[k]['bbox'][3] for k in g['k'])]
-        osm = None
-        try:
-            osm = osm_all(bb); os.replace(f'{OUT}/osm_all.json', f'{OUT}/osm_{"_".join(g["k"])}.json')
-        except Exception as e: err('osm_all', e)
-        for key in g['k']:
-            c = res[key]; SUM['courses'][key] = {k: v for k, v in c.items() if k != 'rings'}; save(); b = c['bbox']
-            mode = JOB['steps'].get(key)
-            if not mode: continue
-            for step in ((ned_grids, naip, dem_ll, dem_utm) if mode == 'all' else ()):   # mode 'points': green point clouds only
-                try: step(key, b)
-                except Exception as e: err(f'{step.__name__} {key}', e)
-                save()
-            if osm is not None:
-                try: greens_points(key, b, osm, resources, c['rings'])
-                except Exception as e: err(f'greens {key}', e)
+    for key, J in JOB.items():
+        SUM['courses'][key] = {'tiles': len(J['tiles'])}; save()
+        try: naip(key, J['bbox'])
+        except Exception as e: err(f'naip {key}', e)
+        tf = Transformer.from_crs(4326, J['epsg'], always_xy=True)
+        b = J['bbox']; xs, ys = tf.transform([b[0], b[2], b[0], b[2]], [b[1], b[1], b[3], b[3]])
+        gx0, gy0, gx1, gy1 = math.floor(min(xs)), math.floor(min(ys)), math.ceil(max(xs)), math.ceil(max(ys))
+        w, h = gx1 - gx0, gy1 - gy0
+        top = np.full((h, w), -1e9, np.float32); gs = np.zeros((h, w), np.float32); gn = np.zeros((h, w), np.uint16); cnt = np.zeros((h, w), np.uint16)
+        with ProcessPoolExecutor(4) as ex:
+            fs = [ex.submit(tile, key, ti, J['res'], t, J['epsg']) for ti, t in enumerate(J['tiles'])]
+            for f in as_completed(fs):
+                try: k, ti, d = f.result()
+                except Exception as e: err(f'tile {key}', e); continue
+                if d is None: log(key, ti, 'no points'); continue
+                ix = np.floor(d['x'] - gx0).astype(np.int64); iy = np.floor(gy1 - d['y']).astype(np.int64); m = (ix >= 0) & (iy >= 0) & (ix < w) & (iy < h)
+                ix, iy, z, g = ix[m], iy[m], d['z'][m], d['g'][m]
+                np.maximum.at(top, (iy, ix), z); np.add.at(cnt, (iy, ix), 1)
+                np.add.at(gs, (iy[g], ix[g]), z[g]); np.add.at(gn, (iy[g], ix[g]), 1)
+                log(key, ti, len(z), 'pts')
+        ground = np.where(gn > 0, gs / np.maximum(gn, 1), np.nan).astype(np.float32); top[top < -1e8] = np.nan
+        np.savez_compressed(f'{OUT}/chm_{key}.npz', top=top, ground=ground, cnt=cnt, x0=gx0, y1=gy1, epsg=J['epsg'])
+        SUM['courses'][key]['grid'] = [w, h]; save(); log(key, 'saved', w, h)
     SUM['finished'] = time.strftime('%Y-%m-%d %H:%M:%S'); save()
-
 if __name__ == '__main__':
     main()
