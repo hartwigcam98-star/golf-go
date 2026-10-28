@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="0a37a2e4e4">
+<meta name="gg-build" content="3086de455c">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -8466,16 +8466,19 @@ var HTR={m:'',prev:null,pc:0,ring:[],pend:[],last:0,endT:0,ping:0,n50:0,n100:0,l
    wk: the whole frame's work (js is the main step only); idle: from the end of our last frame's work to this frame; free: how soon after our last frame the page was free again (a
    MessageChannel ping; large = something else held the page); pre/post: frame times just before and after; gap: s since the last
    hitch; t: s into the hole; dc/dyn/lvl: draw calls, resolution and graphics level. extra.hxn counts every hitch in the hole. */
+/* mut: changes to the screen controls (DOM) since the last frame; an: CSS animations running at the hitch (Standard HUD, Oct 28:
+   the stalls come with the page idle and, during the swing meter, with no 3D drawn, so look at what else changes on screen) */
+HTR.mut=0;try{new MutationObserver(l=>{HTR.mut+=l.length;}).observe(document.getElementById('game')||document.body,{subtree:true,childList:true,characterData:true,attributes:true});}catch(e){}
 const HXCH=typeof MessageChannel!=='undefined'?new MessageChannel():null;if(HXCH)HXCH.port1.onmessage=()=>{if(!HTR.ping)HTR.ping=performance.now();};
 function hxWrap(n,f){return function(){const t=performance.now();try{return f.apply(this,arguments);}finally{const d=performance.now()-t;if(d>4)HTR.m+=n+':'+Math.round(d)+' ';}};}
 function hxFrame(raw,now){const p=HTR.prev,between=HTR.m;HTR.prev=null;HTR.m='';const ms=Math.round(raw*1000);
   for(let i=HTR.pend.length-1;i>=0;i--){const e=HTR.pend[i];e.post.push(ms);if(e.post.length>=4)HTR.pend.splice(i,1);}
   const ring=HTR.ring.slice();HTR.ring.push(ms);if(HTR.ring.length>6)HTR.ring.shift();
-  const free=HTR.ping&&HTR.endT?Math.round(HTR.ping-HTR.endT):null,idle=HTR.endT?Math.round(now-HTR.endT):null;HTR.ping=0;
+  const free=HTR.ping&&HTR.endT?Math.round(HTR.ping-HTR.endT):null,idle=HTR.endT?Math.round(now-HTR.endT):null;HTR.ping=0;const mut=HTR.mut;HTR.mut=0;
   if(!p||!(raw>.05)||!PSTAT||!PSTAT.hole||document.hidden)return;   // 'between': taps and timers since the last frame
   HTR.n50++;if(raw>=.1)HTR.n100++;const t=performance.now(),gap=HTR.last?Math.round((t-HTR.last)/100)/10:null;HTR.last=t;
   const e={ms,st:p.st,js:Math.round(p.js),wk:Math.round(p.wk),m:(p.m+(between?'| '+between:'')).trim().slice(0,220),lat:Math.round(HTR.lat),idle,free,pre:ring,post:[],gap,
-    t:PSTAT.t0?Math.round((t-PSTAT.t0)/100)/10:null,dc:R3.dcN0||0,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0};
+    t:PSTAT.t0?Math.round((t-PSTAT.t0)/100)/10:null,dc:R3.dcN0||0,mut,an:(()=>{try{return document.getAnimations?document.getAnimations().length:-1;}catch(e){return -1;}})(),hud:(document.getElementById('game')||{}).className||'',dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0};
   HTR.pend.push(e);if(HTR.pend.length>8)HTR.pend.shift();
   const L=PSTAT.hx||(PSTAT.hx=[]);L.push(e);if(L.length>6){L.sort((a,b)=>b.ms-a.ms);L.length=6;}}
 function hxEnd(js){HTR.endT=performance.now();HTR.ping=0;if(HXCH)try{HXCH.port2.postMessage(0);}catch(e){}R3.dcN0=R3.dcN;const rr=R3.renderer;if(rr){const L=rr.info.programs,pc=L.length;if(HTR.pc&&pc>HTR.pc){HTR.m+='prog+'+(pc-HTR.pc)+'['+L.slice(HTR.pc).map(p=>(p.cacheKey||'').slice(0,14).replace(/[,|]/g,'.')).join(';')+'] ';}HTR.pc=pc;}HTR.prev={st:G.state+(G.paused?'/p':''),js,wk:HTR.fs?HTR.endT-HTR.fs:js,m:HTR.m};HTR.m='';}
