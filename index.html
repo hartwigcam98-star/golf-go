@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="68c209d45e">
+<meta name="gg-build" content="ba558cf174">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -3547,7 +3547,11 @@ const shotApex=(c,carry)=>c.apex*SHOTS[G.stype].a*Math.sqrt(clamp(carry/(c.carry
 // it needs there are a fraction of the distance to the hole: size the meter from that, so the flag sits around 40-70% of
 // the meter instead of near the bottom (which took three quick taps). No 1-yd floor: a downhill putt off the fringe can need
 // only a few inches of fringe roll, and the floor put its flag at 10-25%
-function calcPuttMax(){const q=puttNeed(),n=Math.max(0,q.need),k=cmod().puttM??1,b=G.lie==='green'?clamp(Math.max(n*1.35+1,q.d*.6+1),3,80):clamp(n*1.4+.1,.3,80);return k===1?b:Math.max(b*k,n*1.12+.2);}   // v103: a blade putter's meter is finer
+/* Oct 28 2026 (Cam: lag putting far too easy): on the green the meter comes in fixed lengths (15, 40, 100 ft of flat roll), the
+   smallest one with the flag at most ~85% of the way, instead of being cut to every putt (flag always about three-quarters up, so a
+   60-footer was as easy to judge as a 6-footer). The same tap error now costs more on a long putt. Off the green it's still cut to fit. */
+const PUTT_TIERS=[15/3,40/3,100/3];
+function calcPuttMax(){const q=puttNeed(),n=Math.max(0,q.need),k=cmod().puttM??1,b=G.lie==='green'?(PUTT_TIERS.find(T=>n*1.15+.3<=T)??clamp(n*1.25+1,100/3,80)):clamp(n*1.4+.1,.3,80);return k===1?b:Math.max(b*k,n*1.12+.2);}   // v103: a blade putter's meter is finer
 function aimTarget(){const h=G.hole,s=alongCl(h,G.ball.x,G.ball.y);if(h.len-s>300){const p=h.at(s+255);return[p[0],p[1]];}return h.pin;}
 /* the driver is a tee club. Brick and El Chupacabra (the two biggest hitters) can also take it off the fairway, shorter and wilder */
 const DECK_DRIVER={brute:1,ch43:1};
@@ -8743,6 +8747,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-28-lag",date:"Oct 28, 2026",title:"Lag putting takes touch",items:[
+    "The putting meter now comes in three lengths, 15, 40 and 100 feet (the club line shows which), instead of being cut to fit every putt. Long putts sit lower on a longer meter, so judging the pace from distance is harder and the same tap off the flag leaves you further away."]},
   {id:"2026-10-28-cup",date:"Oct 28, 2026",title:"Speed matters on the greens",items:[
     "The cup is now its real size (it was a little wide), and a putt has to arrive at the right pace to drop: hit it too firm and it lips out or rides over the hole, even when it's on line.",
     "Putts hit at the flag's strength drop just as before. The flag on the putting meter still allows for uphill and downhill."]},
