@@ -13,6 +13,12 @@ for f in ('greens.js','ground.js','trees.js'):
     v=h(open(R+'/'+f,'rb').read())
     s,n=re.subn(r'<script src="'+re.escape(f)+r'\?v=[0-9a-f]+"></script>',f'<script src="{f}?v={v}"></script>',s);assert n==1,(f,n)
     sw,n=re.subn(r'"'+re.escape(f)+r'\?v=[0-9a-f]+"',f'"{f}?v={v}"',sw);assert n==1,(f,n)
+# every inline script must parse (a stray // comment once swallowed the code after it on its line): node --check each one
+import subprocess,tempfile
+for k,m in enumerate(re.finditer(r'<script>(.*?)</script>',s,re.S)):
+    with tempfile.NamedTemporaryFile('w',suffix='.js',delete=False) as tf: tf.write(m.group(1))
+    r=subprocess.run(['node','--check',tf.name],capture_output=True,text=True);os.unlink(tf.name)
+    if r.returncode: sys.exit('STAMP REFUSED: inline script %d does not parse:\n%s'%(k,r.stderr[:600]))
 M=r'<meta name="gg-build" content="[0-9a-f]+">'
 assert len(re.findall(M,s))==1,'gg-build meta'
 b=h(re.sub(M,'<meta name="gg-build" content="0000000000">',s).encode())
