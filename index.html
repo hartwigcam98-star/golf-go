@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="ef757d2a41">
+<meta name="gg-build" content="7b89fcfa2c">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -3547,11 +3547,13 @@ const shotApex=(c,carry)=>c.apex*SHOTS[G.stype].a*Math.sqrt(clamp(carry/(c.carry
 // it needs there are a fraction of the distance to the hole: size the meter from that, so the flag sits around 40-70% of
 // the meter instead of near the bottom (which took three quick taps). No 1-yd floor: a downhill putt off the fringe can need
 // only a few inches of fringe roll, and the floor put its flag at 10-25%
-/* Oct 28 2026 (Cam: lag putting far too easy): on the green the meter comes in fixed lengths (9, 12, 16, 22, 40, 70, 120 ft of flat roll; Cam, later Oct 28: five lengths so the flag sits 50-85% along, was 15/40/100), the
-   smallest one with the flag at most ~85% of the way, instead of being cut to every putt (flag always about three-quarters up, so a
-   60-footer was as easy to judge as a 6-footer). The same tap error now costs more on a long putt. Off the green it's still cut to fit. */
-const PUTT_TIERS=[9/3,12/3,16/3,22/3,40/3,70/3,120/3];   // 9 ft (Cam): short putts get their own meter so the flag sits well along it, not three quick taps
-function calcPuttMax(){const q=puttNeed(),n=Math.max(0,q.need),k=cmod().puttM??1,b=G.lie==='green'?(PUTT_TIERS.find(T=>n*1.15+.3<=T)??clamp(n*1.25+1,120/3,80)):clamp(n*1.4+.1,.3,80);return k===1?b:Math.max(b*k,n*1.12+.2);}   // v103: a blade putter's meter is finer
+/* Oct 28 2026 putting meter (Cam): on the green the meter is sized so the flag sits further along the closer the putt: about 85% of
+   the way at 4 ft, 75% at 10, 65% at 25 and 50% from 60 ft (smooth in between, by the log of the distance). Short putts get time for
+   the taps; on a long putt the flag sits low on a long meter, so the same tap off the flag leaves the ball further away (lag putting
+   was far too easy when every meter was cut to put the flag about three-quarters up). Off the green it's still cut to fit. */
+const PUTT_FLAG=[[4,.85],[10,.75],[25,.65],[60,.5]];
+function puttFlagAt(ft){const P=PUTT_FLAG;if(ft<=P[0][0])return P[0][1];for(let i=1;i<P.length;i++)if(ft<=P[i][0]){const a=Math.log(P[i-1][0]),b=Math.log(P[i][0]),t=(Math.log(ft)-a)/(b-a);return P[i-1][1]+(P[i][1]-P[i-1][1])*t;}return P[P.length-1][1];}
+function calcPuttMax(){const q=puttNeed(),n=Math.max(0,q.need),k=cmod().puttM??1,b=G.lie==='green'?clamp(n/puttFlagAt(q.d*3),1,80):clamp(n*1.4+.1,.3,80);return k===1?b:Math.max(b*k,n*1.12+.2);}   // v103: a blade putter's meter is finer
 function aimTarget(){const h=G.hole,s=alongCl(h,G.ball.x,G.ball.y);if(h.len-s>300){const p=h.at(s+255);return[p[0],p[1]];}return h.pin;}
 /* the driver is a tee club. Brick and El Chupacabra (the two biggest hitters) can also take it off the fairway, shorter and wilder */
 const DECK_DRIVER={brute:1,ch43:1};
@@ -8780,9 +8782,9 @@ const UPDATES=[
     "Approach shots (irons, hybrids and wedges on a full swing) now scatter a little, like real ones: a pure strike still flies close to where you aimed, a merely good one spreads a bit more. The timing window is a touch smaller for approaches and for woods and the driver off the tee.",
     "Woods, the driver and hybrids no longer check up or spin back when struck low: the driver keeps no backspin, fairway woods and hybrids only a little. Irons and wedges spin as before.",
     "Flames now only come with a power shot struck dead centre.",
-    "Short putts get their own 9-foot putting meter, so the flag sits well along it and a short putt isn't three quick taps."]},
+    "Short putts have the flag well along the putting meter, so a tap-in isn't three quick taps."]},
   {id:"2026-10-28-lag",date:"Oct 28, 2026",title:"Lag putting takes touch",items:[
-    "The putting meter now comes in fixed lengths from 9 to 120 feet (the club line shows which), instead of being cut to fit every putt; the flag sits at least halfway along. Long putts sit lower on a longer meter, so judging the pace from distance is harder and the same tap off the flag leaves you further away."]},
+    "The putting meter is now sized so the flag sits further along the closer you are: about 85% of the way on a 4-footer, 75% at 10 feet, 65% at 25 and halfway on long putts. Short putts give you time for the taps; on a lag the flag sits low on a long meter, so judging the pace is harder and the same tap off the flag leaves you further away."]},
   {id:"2026-10-28-cup",date:"Oct 28, 2026",title:"Speed matters on the greens",items:[
     "The cup is now its real size (it was a little wide), and a putt has to arrive at the right pace to drop: hit it too firm and it lips out or rides over the hole, even when it's on line.",
     "Putts hit at the flag's strength drop just as before. The flag on the putting meter still allows for uphill and downhill."]},
