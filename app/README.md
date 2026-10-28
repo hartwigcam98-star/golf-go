@@ -8,6 +8,30 @@ app hold web pages to 60 fps. Nothing about the game changes.
 - Its saves and name are its own, separate from Safari's and the home-screen app's (like those two are from each other).
 - Its rounds show up in `perf_stats` with `GolfGoApp` at the end of the device's user agent, so app fps can be compared with Safari.
 
+## TestFlight (no Mac needed)
+
+GitHub builds the app on one of its Macs and uploads it (`.github/workflows/testflight.yml`, "iPhone app to TestFlight").
+One-time setup, all in the Apple and GitHub websites:
+
+1. Join the Apple Developer Program ($99/yr, developer.apple.com/programs). Approval can take a day or two.
+2. developer.apple.com → Account → Certificates, IDs & Profiles → Identifiers → **+** → App IDs → App:
+   description "Golf Go", Bundle ID (explicit) `io.github.hartwigcam98.golfgo`.
+3. appstoreconnect.apple.com → Apps → **+** → New App: iOS, name "Golf Go" (or any free name), language English,
+   bundle ID `io.github.hartwigcam98.golfgo`, SKU `golfgo`.
+4. App Store Connect → Users and Access → Integrations → App Store Connect API → Team Keys → **+**: name "GitHub", access
+   **Admin** (needed so Xcode can create the signing certificate). Download the .p8 file (it can be downloaded only once) and note
+   the **Key ID** and the **Issuer ID** shown above the list.
+5. developer.apple.com → Account → Membership details: note the **Team ID**.
+6. github.com/hartwigcam98-star/golf-go → Settings → Secrets and variables → Actions → New repository secret, four times:
+   `APPLE_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, and `ASC_KEY_P8` (open the .p8 in a text editor and paste all of it).
+   Never paste these into a chat.
+
+Then: Actions → "iPhone app to TestFlight" → Run workflow. When the build has been processed (5-30 min), App Store Connect →
+the app → TestFlight lists it; add yourself under Internal Testing, install the **TestFlight** app on the iPhone and accept the
+invite. Other players: add them as App Store Connect users (internal, no review) or as external testers (a short Apple review
+of the first build). Each run uploads a new build; the app itself loads the live site, so a new build is only needed for changes
+to the app shell.
+
 ## Put it on your iPhone (needs a Mac)
 
 1. Install Xcode from the Mac App Store, and Node.js (nodejs.org, LTS).
