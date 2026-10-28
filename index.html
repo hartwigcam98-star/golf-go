@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="80d63eab5a">
+<meta name="gg-build" content="ef757d2a41">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -3547,10 +3547,10 @@ const shotApex=(c,carry)=>c.apex*SHOTS[G.stype].a*Math.sqrt(clamp(carry/(c.carry
 // it needs there are a fraction of the distance to the hole: size the meter from that, so the flag sits around 40-70% of
 // the meter instead of near the bottom (which took three quick taps). No 1-yd floor: a downhill putt off the fringe can need
 // only a few inches of fringe roll, and the floor put its flag at 10-25%
-/* Oct 28 2026 (Cam: lag putting far too easy): on the green the meter comes in fixed lengths (12, 22, 40, 70, 120 ft of flat roll; Cam, later Oct 28: five lengths so the flag sits 50-85% along, was 15/40/100), the
+/* Oct 28 2026 (Cam: lag putting far too easy): on the green the meter comes in fixed lengths (9, 12, 16, 22, 40, 70, 120 ft of flat roll; Cam, later Oct 28: five lengths so the flag sits 50-85% along, was 15/40/100), the
    smallest one with the flag at most ~85% of the way, instead of being cut to every putt (flag always about three-quarters up, so a
    60-footer was as easy to judge as a 6-footer). The same tap error now costs more on a long putt. Off the green it's still cut to fit. */
-const PUTT_TIERS=[12/3,22/3,40/3,70/3,120/3];
+const PUTT_TIERS=[9/3,12/3,16/3,22/3,40/3,70/3,120/3];   // 9 ft (Cam): short putts get their own meter so the flag sits well along it, not three quick taps
 function calcPuttMax(){const q=puttNeed(),n=Math.max(0,q.need),k=cmod().puttM??1,b=G.lie==='green'?(PUTT_TIERS.find(T=>n*1.15+.3<=T)??clamp(n*1.25+1,120/3,80)):clamp(n*1.4+.1,.3,80);return k===1?b:Math.max(b*k,n*1.12+.2);}   // v103: a blade putter's meter is finer
 function aimTarget(){const h=G.hole,s=alongCl(h,G.ball.x,G.ball.y);if(h.len-s>300){const p=h.at(s+255);return[p[0],p[1]];}return h.pin;}
 /* the driver is a tee club. Brick and El Chupacabra (the two biggest hitters) can also take it off the fairway, shorter and wilder */
@@ -8280,9 +8280,7 @@ function meterFill(to){const mw=MCLK.w;if(!mw)return;const full=(1-IMPACT)*mw,w=
   if(F.full!==full){F.full=full;$('mRun').style.width=full.toFixed(2)+'px';}
   const a='translate3d('+(w-full).toFixed(2)+'px,0,0)',b='translate3d('+(full-w).toFixed(2)+'px,0,0) scaleX('+(w/full).toFixed(5)+')';
   if(F.a!==a){F.a=a;$('mRun').style.transform=a;}if(F.b!==b){F.b=b;$('mRunIn').style.transform=b;}}
-/* Oct 28 2026 (Cam): on the shortest putting meter (short putts) the meter moves 30% slower, so a short putt isn't three quick taps */
-const shortPutt=()=>curClub().putter&&G.lie==='green'&&typeof PUTT_TIERS!=='undefined'&&G.puttMax<=PUTT_TIERS[0]+.01;
-function meterSpeed(){const putt=curClub().putter,sp=shortPutt()?.7:1;return G.state==='power'?(putt?.7*sp:isShort()?.85:1.0):(putt?.6*sp:isShort()?.8:.95*(G.pshot?1.2:1));}
+function meterSpeed(){const putt=curClub().putter;return G.state==='power'?(putt?.7:isShort()?.85:1.0):(putt?.6:isShort()?.8:.95*(G.pshot?1.2:1));}
 function meterAt(at){const m=G.meter;if(!(at>0)||!(MCLK.t>0))return;const d=clamp((at-MCLK.t)/1000,-.034,.05);if(!d)return;   // at most two frames either side: anything else is a bad timestamp
   if(G.state==='power')m.pos=clamp(m.pos+(m.dir||1)*d*meterSpeed(),IMPACT,1);else if(G.state==='acc')m.pos=clamp(m.pos-d*meterSpeed(),0,1);}
 /* smoothness stats: frame times per hole (all play, and while the swing meter runs), sent quietly to the perf_stats table
@@ -8782,9 +8780,9 @@ const UPDATES=[
     "Approach shots (irons, hybrids and wedges on a full swing) now scatter a little, like real ones: a pure strike still flies close to where you aimed, a merely good one spreads a bit more. The timing window is a touch smaller for approaches and for woods and the driver off the tee.",
     "Woods, the driver and hybrids no longer check up or spin back when struck low: the driver keeps no backspin, fairway woods and hybrids only a little. Irons and wedges spin as before.",
     "Flames now only come with a power shot struck dead centre.",
-    "Short putts get a slower putting meter, so tap-ins aren't three quick taps."]},
+    "Short putts get their own 9-foot putting meter, so the flag sits well along it and a short putt isn't three quick taps."]},
   {id:"2026-10-28-lag",date:"Oct 28, 2026",title:"Lag putting takes touch",items:[
-    "The putting meter now comes in five lengths, 12, 22, 40, 70 and 120 feet (the club line shows which), instead of being cut to fit every putt; the flag sits at least halfway along. Long putts sit lower on a longer meter, so judging the pace from distance is harder and the same tap off the flag leaves you further away."]},
+    "The putting meter now comes in fixed lengths from 9 to 120 feet (the club line shows which), instead of being cut to fit every putt; the flag sits at least halfway along. Long putts sit lower on a longer meter, so judging the pace from distance is harder and the same tap off the flag leaves you further away."]},
   {id:"2026-10-28-cup",date:"Oct 28, 2026",title:"Speed matters on the greens",items:[
     "The cup is now its real size (it was a little wide), and a putt has to arrive at the right pace to drop: hit it too firm and it lips out or rides over the hole, even when it's on line.",
     "Putts hit at the flag's strength drop just as before. The flag on the putting meter still allows for uphill and downhill."]},
