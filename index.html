@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="dd93a853e0">
+<meta name="gg-build" content="8358c42678">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1784,7 +1784,7 @@ function rawH(h,x,y){
 const PIN_MAX_SLOPE=.028,PIN_EDGE=5;
 function cupSlope(h,x,y){let m=0;const gr=(a,b)=>{const gx=(hFineH(h,a+.5,b)-hFineH(h,a-.5,b)),gy=(hFineH(h,a,b+.5)-hFineH(h,a,b-.5));return Math.hypot(gx,gy);};
   m=gr(x,y);for(let k=0;k<8;k++){const a=k/8*TAU,c=Math.cos(a),s=Math.sin(a);m=Math.max(m,gr(x+c*.7,y+s*.7),gr(x+c*1.4,y+s*1.4));}return m;}
-function placePin(h){const g=h.green,p0=h.pin0||(h.pin0=[h.pin[0],h.pin[1]]);
+function placePinV1(h){const g=h.green,p0=h.pin0||(h.pin0=[h.pin[0],h.pin[1]]);
   let maxE=0;for(let x=g.bb[0];x<=g.bb[2];x+=1)for(let y=g.bb[1];y<=g.bb[3];y+=1){const e=-polyDist(g,x,y,40);if(e>maxE)maxE=e;}
   const E=Math.min(PIN_EDGE,maxE*.55),ok=(x,y)=>-polyDist(g,x,y,40)>=E;
   // every spot on a 1-yd grid that passes the rules (far enough in from the edge, gentle enough round the cup)
@@ -1817,6 +1817,50 @@ function placePin(h){const g=h.green,p0=h.pin0||(h.pin0=[h.pin[0],h.pin[1]]);
   // slope: the ground in the cup's 1.5-yd circle is eased to a gentle plane (feathered out to 3 yd), so it passes the rule
   for(const q of [fr,mid,bk])if(q[2]>PIN_MAX_SLOPE){cupPad(h,q[0],q[1]);q[2]=cupSlope(h,q[0],q[1]);}
   h.pins=[fr,mid,bk].map(q=>[q[0],q[1]]);h.pinSet=[fr,mid,bk].map(q=>({s:q[2]}));h.pinTag=['front','middle','back'];
+  h.pin=[...h.pins[1]];h.pinSlope=mid[2];}
+// hole locations, v2 (Oct 28 2026): spots with gentle ground all round the cup. Daily rounds (and their replays) before
+// PIN_V2_DAY keep the v1 spots so a day's leaderboard stays fair.
+const PIN_V2_DAY=20755;
+function pinVer(){return((G.mode==='daily'||G.mode==='spectate')&&G.dailyDay&&dailyNum(G.dailyDay)<PIN_V2_DAY)?1:2;}
+function placePin(h){h.pinVer=pinVer();return(h.pinVer===1?placePinV1:placePinV2)(h);}
+function placePinV2(h){const g=h.green,p0=h.pin0||(h.pin0=[h.pin[0],h.pin[1]]);
+  let maxE=0;for(let x=g.bb[0];x<=g.bb[2];x+=1)for(let y=g.bb[1];y<=g.bb[3];y+=1){const e=-polyDist(g,x,y,40);if(e>maxE)maxE=e;}
+  const E=Math.min(PIN_EDGE,maxE*.55),ok=(x,y)=>-polyDist(g,x,y,40)>=E;
+  // slope round the cup at every 1-yd spot on the green; ALL = the spots far enough in from the edge
+  const S=new Map(),ALL=[];
+  for(let x=Math.ceil(g.bb[0]);x<=g.bb[2];x+=1)for(let y=Math.ceil(g.bb[1]);y<=g.bb[3];y+=1){if(-polyDist(g,x,y,40)<0)continue;const s=cupSlope(h,x,y);S.set(x+','+y,s);if(ok(x,y))ALL.push([x,y,s,0]);}
+  // a hole location makes sense where the ground round it is gentle too, so a ball can come to rest near the cup:
+  // zone = share of the green within 3 yd of the cup that is gentle enough to hold a ball
+  for(const q of ALL){let n=0,k=0;for(let dx=-3;dx<=3;dx++)for(let dy=-3;dy<=3;dy++){if(dx*dx+dy*dy>9)continue;const s=S.get((q[0]+dx)+','+(q[1]+dy));if(s===undefined)continue;n++;if(s<=PIN_MAX_SLOPE)k++;}q[3]=n?k/n:0;}
+  const s0=cupSlope(h,p0[0],p0[1]);
+  if(!ALL.length){h.pins=[p0,p0,p0].map(q=>[q[0],q[1]]);h.pinSet=[0,1,2].map(()=>({s:s0}));h.pinTag=['','',''];h.pin=[...p0];h.pinSlope=s0;h.pinV=0;h.pinA=0;return;}
+  const V=ALL.filter(q=>q[2]<=PIN_MAX_SLOPE),TIERS=[V.filter(q=>q[3]>=.6),V.filter(q=>q[3]>=.4),V.filter(q=>q[3]>=.25),V];
+  h.pinV=V.length;h.pinA=ALL.length;h.pinGood=TIERS[0].length;
+  const L=h.line,a=L.length>1?L[L.length-2]:[p0[0]-1,p0[1]],dl=Math.hypot(p0[0]-a[0],p0[1]-a[1])||1,ux=(p0[0]-a[0])/dl,uy=(p0[1]-a[1])/dl,vx=-uy,vy=ux;
+  const VE=TIERS[0].length>=6?TIERS[0]:V.length>=6?V:ALL;let cx=0,cy=0;VE.forEach(q=>{cx+=q[0];cy+=q[1];});cx/=VE.length;cy/=VE.length;
+  let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9;VE.forEach(q=>{const al=(q[0]-cx)*ux+(q[1]-cy)*uy,pe=(q[0]-cx)*vx+(q[1]-cy)*vy;a0=Math.min(a0,al);a1=Math.max(a1,al);b0=Math.min(b0,pe);b1=Math.max(b1,pe);});
+  const at=(fa,fb)=>[cx+ux*(a0+(a1-a0)*fa)+vx*(b0+(b1-b0)*fb),cy+uy*(a0+(a1-a0)*fa)+vy*(b0+(b1-b0)*fb)];
+  // nearest good spot to a target, trading a few yards of distance for flatter ground round the cup
+  const pick=(t,others,D,P)=>{let best=null;for(const q of P){if(others.some(o=>Math.hypot(q[0]-o[0],q[1]-o[1])<D))continue;const sc=Math.hypot(q[0]-t[0],q[1]-t[1])+12*(1-q[3])+300*q[2];if(!best||sc<best.sc)best={q,sc};}return best&&best.q;};
+  let mid=null;const p0q=ALL.find(q=>q[0]===Math.round(p0[0])&&q[1]===Math.round(p0[1]));
+  if(p0q&&ok(p0[0],p0[1])&&s0<=PIN_MAX_SLOPE&&p0q[3]>=.6)mid=[p0[0],p0[1],s0,p0q[3]];
+  for(const P of TIERS){if(mid)break;if(P.length)mid=pick(p0,[],0,P);}
+  if(!mid){let b=null;for(const q of ALL){const sc=q[2]*200+Math.hypot(q[0]-p0[0],q[1]-p0[1])*.3;if(!b||sc<b.sc)b={q,sc};}mid=b.q;}
+  const Dm=Math.max(6,Math.min(12,(a1-a0)*.32));
+  let fr=null,bk=null;
+  // the good ground first; on greens with little of it, ground that is gentle at the cup; then up to 3.3% (still well in from the edge)
+  const base=V.length?PIN_MAX_SLOPE:Math.min(...ALL.map(q=>q[2]));
+  const POOLS=TIERS.slice(0,3).filter(P=>P.length),RELAX=[.003,.005,.008].map(e=>ALL.filter(q=>q[2]<=base+e+1e-9));
+  // a smaller gap between holes on good ground beats a hole perched on a slope
+  for(const P of POOLS){for(const D of [Dm,Dm*.75,5,4,3]){fr=fr||pick(at(.22,.3),[mid].concat(bk?[bk]:[]),D,P);bk=bk||pick(at(.8,.72),[mid].concat(fr?[fr]:[]),D,P);if(fr&&bk)break;}if(fr&&bk)break;}
+  // still short of a hole: a spot with some gentle ground round it may sit close to another (a severe green has few places to cut a cup)
+  if(!(fr&&bk)){const P=TIERS[2].length?TIERS[2]:V;if(P.length){fr=fr||pick(at(.22,.3),[mid].concat(bk?[bk]:[]),1.5,P);bk=bk||pick(at(.8,.72),[mid].concat(fr?[fr]:[]),1.5,P);
+    if(TIERS[2].length){fr=fr||pick(at(.22,.3),[],0,TIERS[2]);bk=bk||pick(at(.8,.72),[],0,TIERS[2]);}}}
+  for(const P of RELAX){if(fr&&bk)break;for(const D of [Dm*.75,5,4]){fr=fr||pick(at(.22,.3),[mid].concat(bk?[bk]:[]),D,P);bk=bk||pick(at(.8,.72),[mid].concat(fr?[fr]:[]),D,P);if(fr&&bk)break;}}
+  const gentle=(t,others)=>{let b=null;for(const q of ALL){if(others.some(o=>Math.hypot(q[0]-o[0],q[1]-o[1])<Math.max(5,Dm*.75)))continue;const sc=q[2]*150+Math.hypot(q[0]-t[0],q[1]-t[1])*.08;if(!b||sc<b.sc)b={q,sc};}return b&&b.q;};
+  fr=fr||gentle(at(.22,.3),[mid].concat(bk?[bk]:[]))||mid;bk=bk||gentle(at(.8,.72),[mid,fr])||mid;
+  for(const q of [fr,mid,bk])if(q[2]>PIN_MAX_SLOPE){cupPad(h,q[0],q[1]);q[2]=cupSlope(h,q[0],q[1]);}
+  h.pins=[fr,mid,bk].map(q=>[q[0],q[1]]);h.pinSet=[fr,mid,bk].map(q=>({s:q[2],z:q[3]}));h.pinTag=['front','middle','back'];
   h.pin=[...h.pins[1]];h.pinSlope=mid[2];}
 function cupPad(h,x,y){const q=h.gg;if(!q)return;const R=3,st=q.st,d=q.data,n=q.nx;let sx=0,sy=0,sz=0,sxx=0,syy=0,sxy=0,sxz=0,syz=0,c=0;
   const i0=Math.max(0,Math.floor((x-R-q.x0)/st)),i1=Math.min(q.nx-1,Math.ceil((x+R-q.x0)/st)),j0=Math.max(0,Math.floor((y-R-q.y0)/st)),j1=Math.min(q.ny-1,Math.ceil((y+R-q.y0)/st));
@@ -3800,6 +3844,7 @@ function startHole(i){if(b10On()&&!b10ClubReady(CUR.id,()=>startHole(i)))return;
   try{pstatFlush();}catch(e){}try{perfRetry();}catch(e){}try{if(PERF.pend!=null){const l=PERF.pend;PERF.pend=null;R3.dyn=.8;r3SetPerf(l);PERF.upQ=null;PERF.tryD=null;}}catch(e){}
   try{perfDynHole();}catch(e){}const h0=performance.now();
   G.hi=i;G.hole=hole(i);
+  if(G.hole.hg&&G.hole.pinVer!==pinVer()){G.hole.hg=null;G.terrains[i]=null;}   // pins from the other hole-location rules: rebuild
   if(!G.hole.hg)buildHeights(G.hole);
   if(!G.terrains[i])G.terrains[i]=buildTerrain(G.hole);
   r3SetHole(G.hole,G.terrains[i]);buildTreeMesh(G.hole);buildGrassPatch(G.hole,0,0);
@@ -8623,6 +8668,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-28-54f2",date:"Oct 28, 2026",title:"Real greens, better hole locations",items:[
+    "Greens on 22 courses are back to their real surveyed slopes (they had been smoothed when the courses were built).",
+    "Holes are now cut where there is gentle ground all round the cup, so a good approach can settle near the pin. Today's daily round keeps its pins; the new ones start with tomorrow's."]},
   {id:"2026-10-27-4622",date:"Oct 27, 2026",title:"New course: Rush Creek",items:[
     "Rush Creek Golf Club in Maple Grove, MN: Bob Cupp and John Fought's 1996 course, 7,189 yd from the Duncan tees (card 7,306), with Gold and Blue tees, its double-ended range and the Tudor clubhouse measured from the 2022 lidar survey."]},
   {id:"2026-10-26-upd1",date:"Oct 26, 2026",title:"Updates reach the home-screen app",items:[
