@@ -94,6 +94,39 @@ let first = true;
 coreText = coreText.replace(tagRe, () => { if (!first) return ''; first = false;
   return '<script>window.CFILES=' + JSON.stringify(CF) + ';' + Object.keys(T).map(n => 'var ' + n + '={};').join('') + '</script>\n' +
     (keep.length ? '<script>\n' + keep.join('\n') + '\n</script>\n' : ''); });
+// ---- big static blobs (textures, golfer animation, leaf atlas, course pictures, three.js, sounds) each go to their own
+//      versioned file, so a code change doesn't make phones download them again. A line moves only if it is `const|let NAME=<literal>;`
+//      or `Object.assign(NAME,<literal>);` whose literal evaluates on its own; three.js (its own <script>) moves whole.
+const vm = require('vm'), ASSETS = [];
+fs.mkdirSync(path.join(OUT, 'a'), { recursive: true });
+const addAsset = (name, js) => { const v = sha(js), rel = 'a/ga_' + name + '.js'; fs.writeFileSync(path.join(OUT, rel), js); ASSETS.push(rel + '?v=' + v); return rel + '?v=' + v; };
+{ let CL = coreText.split('\n');
+  // three.js: <script>/* three.js ... */ ... })();</script>
+  const t0 = CL.findIndex(l => /^<script>\/\* three\.js r\d+/.test(l));
+  if (t0 >= 0) { let t1 = t0; while (t1 < CL.length && CL[t1] !== '</script>') t1++;
+    const body = CL.slice(t0, t1).join('\n').replace(/^<script>/, '');
+    const u = addAsset('three', body + '\n');
+    CL.splice(t0, t1 - t0 + 1, '<script src="' + u + '"></script>'); }
+  // the main game script: big literal lines inside it
+  const m0 = CL.findIndex((l, i) => l === '<script>' && CL.slice(i + 1, i + 40).some(x => x.length > 50000) || l === '<script>' && i > 0 && CL.findIndex((x, j) => j > i && x.length > 50000) > i);
+  const moves = [];
+  CL.forEach((l, i) => { if (l.length < 50000) return;
+    let m = /^(const|let) ([A-Za-z_$][\w$]*)=(.*);\s*$/.exec(l), kind = 'def', name, lit;
+    if (m) { name = m[2]; lit = m[3]; } else if ((m = /^Object\.assign\(([A-Za-z_$][\w$]*),(.*)\);\s*$/.exec(l))) { kind = 'assign'; name = m[1]; lit = m[2]; } else return;
+    const key = name + (kind === 'assign' ? '_' + i : '');
+    try { vm.runInNewContext('(' + lit + ')', {}, { timeout: 5000 }); } catch (e) { console.log('blob stays inline (not a plain literal): ' + key); return; }
+    moves.push({ i, kind, name, key, lit, decl: m[1] }); });
+  if (moves.length) {
+    // the asset scripts run before the game script that uses them
+    const first = Math.min(...moves.map(x => x.i)); let s0 = first; while (s0 > 0 && !/^<script>/.test(CL[s0])) s0--;
+    const tagsA = [];
+    for (const mv of moves) { const u = addAsset(mv.key, '(window.__GA=window.__GA||{})[' + JSON.stringify(mv.key) + ']=' + mv.lit + ';\n'); tagsA.push('<script src="' + u + '"></script>');
+      CL[mv.i] = mv.kind === 'def' ? mv.decl + ' ' + mv.name + '=__GA[' + JSON.stringify(mv.key) + '];' : 'Object.assign(' + mv.name + ',__GA[' + JSON.stringify(mv.key) + ']);'; }
+    // if any of them didn't arrive (no signal on a first launch), say so instead of opening a broken game
+    tagsA.push('<script>if(!window.THREE||!window.__GA||Object.keys(__GA).length<' + moves.length + '){window.__GAFAIL=1;document.addEventListener("DOMContentLoaded",()=>{document.body.innerHTML=\'<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;background:#0f2233;color:#fff6dc;font:600 18px sans-serif">Golf Go couldn\\u2019t finish loading.<br>Check your connection and open it again.</div>\';});}</script>');
+    CL.splice(s0, 0, ...tagsA); }
+  coreText = CL.join('\n'); }
+console.log('static blobs moved out: ' + ASSETS.map(u => u.split('?')[0].replace('a/ga_', '').replace('.js', '')).join(', '));
 fs.writeFileSync(path.join(OUT, 'index.html'), coreText);
 
 // ---- every other tracked file, as is
@@ -107,7 +140,9 @@ for (const f of tracked) {
 // ---- offline cache: course files replace the three data files; new cache version for the new page
 let sw = fs.readFileSync('sw.js', 'utf8');
 const dm = /const DATA=(\[[^\]]*\]);/.exec(sw); if (!dm) die('sw.js DATA list not found');
-const DATA = JSON.parse(dm[1]).filter(u => !extraScripts.some(f => u.startsWith(f + '?'))).concat(Object.values(CF).map(x => x.u.split('/').pop()));   // the cache keeps files whose last path part + ?v= is listed
+const DATA = JSON.parse(dm[1]).filter(u => !extraScripts.some(f => u.startsWith(f + '?'))).concat(Object.values(CF).map(x => x.u.split('/').pop())).concat(ASSETS.map(u => u.split('/').pop()));   // the cache keeps files whose last path part + ?v= is listed
+if (!/const PRE=\[\];/.test(sw)) die('sw.js PRE list not found');
+sw = sw.replace(/const PRE=\[\];/, 'const PRE=' + JSON.stringify(ASSETS) + ';');
 sw = sw.replace(dm[0], 'const DATA=' + JSON.stringify(DATA) + ';').replace(/const V='[0-9a-f]+'/, "const V='" + sha(coreText) + "'");
 if (!/const V='/.test(sw)) die('sw.js version not found');
 fs.writeFileSync(path.join(OUT, 'sw.js'), sw);

@@ -1,9 +1,12 @@
 /* Golf Go offline cache. The page is checked online first (so updates show straight away) and falls back to the copy on
    this phone; course data carries a version tag (?v=…) and is kept until it changes; leaderboards always go to the network. */
-const V='f4a3e38a55',B='8d4258fc8a',CORE='core-'+V,ASSETS='assets';
+const V='c425056020',B='72bcd6a61c',CORE='core-'+V,ASSETS='assets';
 const CORE_FILES=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png'];
 const DATA=["greens.js?v=19a2283654", "ground.js?v=1f2c101420", "trees.js?v=c5ef22a416", "char%20ch12.js?v=lg2", "char%20remy.js?v=lg2", "char%20ch01.js?v=lg2", "char_ch08.js?v=lg2", "char_ch42.js?v=lg2", "char_ch23.js?v=lg2", "char%20ch28.js?v=lg2", "char_mx_joe.js?v=lg2", "char_ch17.js?v=lg2", "char_mh_tyger.js?v=m4", "char_mh_jack.js?v=m4", "char_mh_arnie.js?v=m4", "char_mh_phil.js?v=m4", "char_mh_rory.js?v=m4", "char_mh_scotty.js?v=m4", "char_mh_seve.js?v=m4", "char_mh_barry.js?v=m4", "char_mh_hoagan.js?v=m4", "char_mh_payne.js?v=m4"];   // current versioned data files
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CORE).then(c=>c.addAll(CORE_FILES)).then(()=>self.skipWaiting()));});
+const PRE=[];   // publish build: the shared graphics files (a/ga_*.js?v=…), saved at install so even the first launch offline works
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CORE).then(c=>c.addAll(CORE_FILES))
+  .then(()=>PRE.length?caches.open(ASSETS).then(a=>Promise.all(PRE.map(u=>a.match(u).then(h=>h||fetch(u).then(r=>{if(r.ok)return a.put(u,r);}))))).catch(()=>{}):0)
+  .then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil((async()=>{
   for(const k of await caches.keys())if(k.startsWith('core-')&&k!==CORE)await caches.delete(k);
   const a=await caches.open(ASSETS);for(const r of await a.keys()){const u=new URL(r.url);if(u.searchParams.has('v')&&!DATA.includes(u.pathname.split('/').pop()+'?v='+u.searchParams.get('v')))await a.delete(r);}

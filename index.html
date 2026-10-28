@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="8d4258fc8a">
+<meta name="gg-build" content="72bcd6a61c">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1728,7 +1728,7 @@ function courseGate(id,again){if(courseReady(id))return false;const C=COURSES[id
       ()=>{if(off)return;$('cdlT').textContent='Couldn\u2019t load '+C.name;$('cdlS').textContent='Check your connection and try again.';$('cdlRetry').hidden=false;$('cdlCancel').hidden=false;});};
   $('cdlRetry').onclick=()=>{A();go();};$('cdlCancel').onclick=()=>{A();off=true;M.hidden=true;};go();return true;}
 // warm the offline cache with courses likely to be played next (today's daily, the home course): fetched, not opened
-function coursePrefetch(ids){if(!CFILES)return;for(const id of ids)if(id&&CFILES[id]&&!courseReady(id)&&!CLOAD[id])fetch(CFILES[id].u).catch(()=>{});}
+function coursePrefetch(ids){if(!CFILES)return;for(const id of ids)if(id&&CFILES[id]&&!CLOAD[id])fetch(CFILES[id].u).catch(()=>{});}   // also the course already open: it may have arrived before the offline cache was running
 // course-frame height in yards (Catmull-Rom bicubic over the grid, clamped at the edges)
 function gridH(D,x,y){const fx=clamp((x-D.x0)/D.dx,0,D.nc-1.0001),fy=clamp((y-D.y0)/D.dy,0,D.nr-1.0001),i=fx|0,j=fy|0,tx=fx-i,ty=fy-j;
   const at=(a,b)=>D.v[clamp(b,0,D.nr-1)*D.nc+clamp(a,0,D.nc-1)];
@@ -3412,7 +3412,7 @@ function hfixApply(C,id){const F=HFIX[id];if(!F||C._hfix)return;C._hfix=1;for(co
    (sh: building it, ff: until it is on screen, tee: shader warm-up finished at Tee off, sc: switching course just before) */
 var LDT={boot:null,hole:null,sc:null,p:null};
 function setCourse(id,persist=true,tee=0){const C=COURSES[id]||COURSES.troy;if(C===CUR&&TB===C.tb&&COURSE===C.course&&COURSE&&TEE===tee)return;TEE=tee;   // (split build: the starting course's data arrives after CUR first points at it)
-  if(!courseReady(C.id))courseSync(C.id);const sc0=performance.now();try{setCourseRun(C,persist);}finally{LDT.sc={c:C.id,ms:Math.round(performance.now()-sc0)};}}
+  if(!courseReady(C.id))courseSync(C.id);if(!courseReady(C.id)){console.warn('[course] not loaded, staying on',CUR&&CUR.id);if(CUR)return;}const sc0=performance.now();try{setCourseRun(C,persist);}finally{LDT.sc={c:C.id,ms:Math.round(performance.now()-sc0)};}}
 function setCourseRun(C,persist){if(CUR)CUR.__seen=1;C.__seen=1;CUR=C;TB=C.tb;COURSE=C.course;hfixApply(COURSE,C.id);
   if(HFIX[C.id])for(const k in HFIX[C.id])if(HFIX[C.id][k].tip&&TB[k-1])TB[k-1].tip=HFIX[C.id][k].tip;DEM=C.dem;WIDE=C.wide;SAVE_KEY=C.saveKey;SURR.ready=null;
   HOLES.length=0;for(let i=0;i<TB.length;i++)HOLES[i]=null;G.terrains=[];G.hole=null;TOTAL_PAR=TB.reduce((s,h)=>s+h.par,0);
@@ -8723,7 +8723,7 @@ function boot(data){
     LDT.boot={bs:Math.round(b0),sync:Math.round(performance.now()-b0),html:nv?Math.round(nv.responseEnd):null,kb:nv?Math.round((nv.transferSize||0)/1024):null,sw:!!(navigator.serviceWorker&&navigator.serviceWorker.controller)};
     LDT.p={k:'boot',t0:b0,n:0};}catch(e){}
   requestAnimationFrame(frame);
-  if(CFILES)setTimeout(()=>{try{coursePrefetch([dailyCourse(dailyDay()),homeCourse()]);}catch(e){}},8000);
+  if(CFILES)setTimeout(()=>{try{coursePrefetch([dailyCourse(dailyDay()),homeCourse(),CUR&&CUR.id]);}catch(e){}},8000);
 }
 
 try{window.claude?.hot?.snapshot?.(()=>G.mode==='career'?{course:CUR.id}:({hi:G.hi,scores:G.scores,mode:G.mode,course:CUR.id}));}catch(e){}
@@ -8734,6 +8734,9 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-28-split",date:"Oct 28, 2026",title:"Faster opening, less data",items:[
+    "After an update the game now downloads only what changed: about 0.7 MB instead of 11 MB. Each course is its own download, fetched the first time you play it and then kept on your phone.",
+    "Courses you've played (and today's daily) still work with no signal."]},
   {id:"2026-10-28-trees",date:"Oct 28, 2026",title:"No more ghost trees",items:[
     "The ball now hits the trees you can see. A tree used to catch the ball anywhere inside a wide invisible cylinder round it, so balls could be knocked down by leaves that weren't there, most often beside the fairways and by dead trees with no leaves at all.",
     "A fix for trees standing in the tee shot on every course since the cattails update."]},
