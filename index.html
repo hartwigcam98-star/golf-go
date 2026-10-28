@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="e0fce70165">
+<meta name="gg-build" content="5d8c89baff">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1004,7 +1004,7 @@ const SHOTS={
  full:{c:1,a:1,r:1,w:1,e:1,win:1,clubs:CLUBS.map((c,i)=>i).filter(i=>i!==PUTTER),hint:'Full swing'},
  punch:{c:.8,a:.13,r:3,w:.35,e:.8,win:1,clubs:ids('4H','5I','6I','7I','8I','9I','PW'),hint:'Punch — low, bores through wind, runs out, stays under branches'},
  pitch:{c:.62,a:.85,r:.55,w:.8,e:.8,win:1.2,clubs:ids('9I','PW','GW','SW','LW'),hint:'Pitch — soft, medium height, checks up'},
- chip:{c:.33,a:.22,r:0,w:.3,e:.7,win:1.4,clubs:ids('7I','8I','9I','PW','GW','SW','LW'),hint:'Chip — low hop, then rolls like a putt'},
+ chip:{c:.33,a:.22,r:0,w:.3,e:.7,win:1.2,clubs:ids('7I','8I','9I','PW','GW','SW','LW'),hint:'Chip — low hop, then rolls like a putt'},
  flop:{c:.42,a:1.6,r:.12,w:1.3,e:2.1,win:.55,clubs:ids('GW','SW','LW'),hint:'Flop — sky-high and stops dead; tight timing'},
  spin:{c:.58,a:.6,r:.1,w:.8,e:.85,win:1,clubs:ids('PW','GW','SW','LW'),hint:'Spinner — a pitch with lots of spin: one hop and it checks up (fairway lies only)'},
  // greenside bunker shots (offered in the sand within 45 yards of the pin)
@@ -3454,7 +3454,7 @@ function previewDist(){const c=curClub();return c.putter?G.puttMax:isShort()&&G.
 /* ---- short game: chips run out by club (a 7-iron rolls about 3x its carry, a lob wedge well under its carry), pitches release a little,
    flops stop. The meter is sized round the shot like the putter's, and the planner finds the carry that finishes at the cup. ---- */
 /* Oct 28 2026 short-game balance (Cam: "being closer to the hole is not really a benefit"; real daily replays: pitches from 40-70 yd
-   finished 6.3 yd away, full shots from 70-100 yd 3.0): wider short-game timing windows (pitch 1.2, chip 1.4, spinner 1), the
+   finished 6.3 yd away, full shots from 70-100 yd 3.0): wider short-game timing windows (pitch 1.2, chip 1.2 - Cam later Oct 28: chip was 1.4, looked far bigger than an approach's; spinner 1), the
    short-game rating moves the window and the sideways miss less, chunks and blades start smaller and are capped (45% / 50% of
    carry), a bladed pitch runs 1.4x (was 2.2x), pitches stray sideways less, and the meter is sized from the carry needed.
    Shot lab, Dex, same timing: 30 yd chip 4.6 -> 1.9 yd, 50 yd pitch 12.5 -> 3.3, full 85 yd 4.7 (unchanged). */
