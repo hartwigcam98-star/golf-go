@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="7b89fcfa2c">
+<meta name="gg-build" content="e0fce70165">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -60,7 +60,7 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .right{display:flex;gap:8px;align-items:flex-start;flex-shrink:0}
 .wind{display:flex;align-items:center;gap:8px}
 .dial{width:40px;height:40px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;border:2px solid rgba(255,255,255,.15)}
-.dial svg{width:26px;height:26px;transition:transform .15s linear}
+.dial svg{width:26px;height:26px}
 .wind .v{font-size:22px;line-height:1;font-variant-numeric:tabular-nums;min-width:2ch}
 .wind .u{font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;font-weight:700}
 .iconbtn{background:var(--panel);border-radius:12px;width:40px;height:40px;display:grid;place-items:center;box-shadow:0 3px 0 rgba(0,0,0,.28)}
@@ -8145,6 +8145,15 @@ function render(){
   if(REC.on)recFrame();
 }
 
+/* Oct 28 2026 hitches (Cam's phone: ~0.1 s stalls with the game's own frame work at ~2 ms and the page free, in every state, with
+   ~45 DOM changes logged before each): updHud runs every frame and re-set hidden / disabled / aria-* on ~45 buttons and panels even
+   when nothing changed, and every one of those is a real change to an iPhone (mutation records, style invalidation, layer updates).
+   Setting one of these to the value it already has is now skipped, for the whole page. */
+(()=>{try{const hd=Object.getOwnPropertyDescriptor(HTMLElement.prototype,'hidden');
+  if(hd&&hd.set)Object.defineProperty(HTMLElement.prototype,'hidden',{get:hd.get,set(v){if(this.hasAttribute('hidden')!==!!v)hd.set.call(this,v);},configurable:true,enumerable:hd.enumerable});
+  for(const C of [HTMLButtonElement,HTMLInputElement,HTMLSelectElement,HTMLTextAreaElement]){const dd=Object.getOwnPropertyDescriptor(C.prototype,'disabled');
+    if(dd&&dd.set)Object.defineProperty(C.prototype,'disabled',{get:dd.get,set(v){if(this.hasAttribute('disabled')!==!!v)dd.set.call(this,v);},configurable:true,enumerable:dd.enumerable});}
+  const sa=Element.prototype.setAttribute;Element.prototype.setAttribute=function(n,v){if(this.getAttribute(n)===String(v))return;return sa.call(this,n,v);};}catch(e){}})();
 /* ---------- hud ---------- */
 function impShort(){const x=G.imp.x,y=G.imp.y,h=G.traj>0?'High':G.traj<0?'Low':'';if(Math.hypot(x,y)<.15)return h||'Centre';const a=h?[h]:[];if(y>.2)a.push('Top');else if(y<-.2)a.push('Back');if(x<-.2)a.push('Draw');else if(x>.2)a.push('Fade');return a.join(' ')||'Centre';}
 function impName(){const x=G.imp.x,y=G.imp.y,h=G.traj>0?'High':G.traj<0?'Low':'';if(Math.hypot(x,y)<.15)return h?h+' \u00b7 centre':'Centre';const a=h?[h]:[];if(y>.2)a.push('Topspin');else if(y<-.2)a.push('Backspin');if(x<-.2)a.push('Draw');else if(x>.2)a.push('Fade');return a.join(' \u00b7 ')||'Centre';}
@@ -8173,7 +8182,7 @@ function updHud(){
     const ch=MATCH.on&&G.aiTurn?{name:rn(MATCH.r)}:curChar(),pl=$('bcPlate');setT('bcName',ch.name);
     setT('bcScore',MATCH.on?statusShort(matchUp()):G.mode==='practice'?'PRAC':fmtDiff(roundDiff()));setT('bcThru','thru '+Math.min(18,G.hi));pl.style.bottom=(botH+6)+'px';
     pl.style.visibility=(G.state==='aim'||G.state==='power'||G.state==='acc')&&!G.overview?'visible':'hidden';}
-  {const d=Math.round((G.wind.a-V.yaw)*1800/Math.PI);if(MCLK.wa!==d){MCLK.wa=d;$('windArrow').style.transform='rotate('+(d/10)+'deg)';}}   // a new string only when it turns (0.1 deg)
+  {const d=Math.round((G.wind.a-V.yaw)*360/Math.PI);if(MCLK.wa!==d){MCLK.wa=d;$('windArrow').style.transform='rotate('+(d/2)+'deg)';}}   // a new string only when it turns (0.5 deg); no CSS transition (Oct 28: it restarted every frame as the camera turned)
   const c=curClub();setT('clubId',clubLabel(c));
   const lr0=c.putter?'':lieRange(c,G.lie);setT('clubInfo',c.putter?'Putter · '+Math.round(G.puttMax*3)+' ft':(lr0?'Lie '+lr0:c.id==='1W'?(onTeeBox()?'Off the tee':'Off the deck'):c.name)+' · '+Math.round(previewDist())+'y');   // rough/fescue: the lie's power range (rolled per shot) in place of the club's name
   const lie=(G.state==='flight'||G.state==='roll'||G.state==='bounce'||G.state==='replay')?G.fromLie:G.lie;
@@ -8778,6 +8787,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-28-smooth",date:"Oct 28, 2026",title:"Smoother play",items:[
+    "Fixed a cause of short stutters (about a tenth of a second) during play: the on-screen buttons were being redrawn every frame even when nothing about them changed. The wind arrow also turns without restarting its animation every frame."]},
   {id:"2026-10-28-appr",date:"Oct 28, 2026",title:"Approach shots, spin and flames",items:[
     "Approach shots (irons, hybrids and wedges on a full swing) now scatter a little, like real ones: a pure strike still flies close to where you aimed, a merely good one spreads a bit more. The timing window is a touch smaller for approaches and for woods and the driver off the tee.",
     "Woods, the driver and hybrids no longer check up or spin back when struck low: the driver keeps no backspin, fairway woods and hybrids only a little. Irons and wedges spin as before.",
