@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="8358c42678">
+<meta name="gg-build" content="6f03ecaf49">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -935,7 +935,7 @@ td.won{background:rgba(255,201,60,.38)}
 
 <script src="greens.js?v=19a2283654"></script>
 <script src="ground.js?v=1f2c101420"></script>
-<script src="trees.js?v=6343bebdcc"></script>
+<script src="trees.js?v=c5ef22a416"></script>
 <script>/* three.js r170 (MIT) */
 (function(){
 /**
@@ -3271,7 +3271,7 @@ function courseFeel2(h,out){const F=CFEEL[CUR.id]||{},b=h.bounds,T0=h.T0,R=rng((
    on the horizon where one is in view. CFEEL[courseId]: fo fountains (largest ponds first), pe pond edge 'boulder'|'wall'|'timber',
    br bridge style 'stone'|'white' (default timber), sky true for a city skyline on the horizon (off by default: from the ground
    the towers are only a few pixels at 15+ km and trees hide them). */
-const CFEEL={"crls":{"pe":"timber"},"crsc":{"pe":"timber"},"dove":{"fo":2,"pe":"boulder"},"edinburgh":{"pe":"boulder"},"hazeltine":{"br":"stone"},"interlachen":{"fo":1},"judge":{"pe":"timber"},"legend":{"pe":"boulder"},"legends":{"fo":1,"pe":"wall"},"legislator":{"pe":"timber"},"lookout":{"pe":"wall"},"mystic":{"fo":3,"pe":"timber"},"orangeburg":{"fo":1,"pe":"wall"},"pawplant":{"fo":2,"pe":"timber"},"pines":{"fo":1,"pe":"boulder"},"preserve":{"fo":1},"prestwick":{"fo":1},"quarry":{"pe":"boulder"},"ridges":{"fo":1},"santee":{"br":"white"},"troy":{"fo":2},"valley":{"pe":"timber"},"wigwam":{"pe":"wall"},"wilderness":{"pe":"boulder"},"willingers":{"fo":1},"wyboo":{"pe":"timber"},"jacks":{"fo":0},"dacotah":{"fo":0,"pe":"boulder","br":"grey"},"kingsnorth":{"fo":0,"pe":"timber","br":"grey"},"sentryworld":{"fo":0},"rushcreek":{"fo":0,"pe":"boulder","br":"stone"}};
+const CFEEL={"crls":{"pe":"timber"},"crsc":{"pe":"timber"},"dove":{"fo":2,"pe":"boulder"},"edinburgh":{"pe":"boulder"},"hazeltine":{"br":"stone"},"interlachen":{"fo":1},"judge":{"pe":"timber"},"legend":{"pe":"boulder"},"legends":{"fo":1,"pe":"wall"},"legislator":{"pe":"timber"},"lookout":{"pe":"wall"},"mystic":{"fo":3,"pe":"timber"},"orangeburg":{"fo":1,"pe":"wall"},"pawplant":{"fo":2,"pe":"timber"},"pines":{"fo":1,"pe":"boulder"},"preserve":{"fo":1},"prestwick":{"fo":1},"quarry":{"pe":"boulder"},"ridges":{"fo":1},"santee":{"br":"white"},"troy":{"fo":2},"valley":{"pe":"timber"},"wigwam":{"pe":"wall"},"wilderness":{"pe":"boulder"},"willingers":{"fo":1},"wyboo":{"pe":"timber"},"jacks":{"fo":0},"dacotah":{"fo":0,"pe":"boulder","br":"grey"},"kingsnorth":{"fo":0,"pe":"timber","br":"grey"},"sentryworld":{"fo":0},"rushcreek":{"fo":0,"br":"stone"}};
 for(const k in CFEEL2)CFEEL[k]=Object.assign({},CFEEL2[k],CFEEL[k]||{},CFEEL2[k].pe?{pe:CFEEL2[k].pe}:{});
 const SKYLINES=[{lat:44.9778,lon:-93.2650,n:26,hmax:241,spread:1400,seed:11},{lat:44.9490,lon:-93.0930,n:14,hmax:143,spread:900,seed:23},
   {lat:33.4484,lon:-112.0740,n:16,hmax:148,spread:1200,seed:37},{lat:33.5186,lon:-86.8104,n:12,hmax:139,spread:900,seed:41}];
@@ -3847,7 +3847,7 @@ function startHole(i){if(b10On()&&!b10ClubReady(CUR.id,()=>startHole(i)))return;
   if(G.hole.hg&&G.hole.pinVer!==pinVer()){G.hole.hg=null;G.terrains[i]=null;}   // pins from the other hole-location rules: rebuild
   if(!G.hole.hg)buildHeights(G.hole);
   if(!G.terrains[i])G.terrains[i]=buildTerrain(G.hole);
-  r3SetHole(G.hole,G.terrains[i]);buildTreeMesh(G.hole);buildGrassPatch(G.hole,0,0);
+  r3SetHole(G.hole,G.terrains[i]);buildTreeMesh(G.hole);try{r3Reeds(G.hole);}catch(e){}buildGrassPatch(G.hole,0,0);
   G.terrains.forEach((t,j)=>{if(j!==i&&j!==i+1)G.terrains[j]=null;});
   G.ball={x:0,y:0};G.prev={...G.ball};G.strokes=0;G.lie='tee';G.fromLie='tee';
   G.canReplay=false;G.lastShot=null;G.replay=null;G.hop=null;
@@ -6747,7 +6747,7 @@ function r3NaipApply(h){const N=r3NaipLoad(CUR.data||CUR.id);if(!N)return false;
   const near=[],far=[];
   for(let i=0;i<N.n;i++){const x=N.xy[i*2]/2-T0[0],y=N.xy[i*2+1]/2-T0[1],rb=N.r[i],cr=(rb&127)/10,con=rb>>7;
     const d=Math.max(b[0]-x,x-b[2],b[1]-y,y-b[3],0);if(d>400)continue;
-    const lie=lieCodeAt(h,x,y);if(lie>=2)continue;if(onHouse(x,y))continue;if(d<1&&inCorridor(x,y,cr))continue;
+    const lie=lieCodeAt(h,x,y);if(lie>=2)continue;if(onHouse(x,y))continue;if(reedAt(x+T0[0],y+T0[1]))continue;   // a cattail bed, not a treeif(d<1&&inCorridor(x,y,cr))continue;
     const sh=((Math.sin(i*12.9898)*43758.5453)%1+1)%1;
     const t={x,y,r:Math.max(3.2,cr/.9),con,shade:sh,naip:1,d};
     // courses whose photo crowns crowd the fairways (Pawleys Island): no canopy hanging over mown grass
@@ -6764,6 +6764,59 @@ function r3NaipApply(h){const N=r3NaipLoad(CUR.data||CUR.id);if(!N)return false;
   far.sort((a,c)=>(a.d||0)-(c.d||0));if(far.length>4200)far.length=4200;
   h.allTrees=near;h.trees=near;h.farTrees=far;bldTreeClear(h);return true;}
 
+/* ---- cattails and reeds (Oct 2026): the stands measured from the lidar (vegetation 0.5-3.5 m tall standing in and beside the
+   water, nothing taller), REEDS in trees.js as a 2-yd grid of stand heights over the course. They replace the photo "trees" that
+   were really cattail beds, and stand in the water up through its surface. Drawn as instanced clumps: blades and brown heads. */
+const RD={g:{},meshes:[],list:null,ref:null};
+function reedGrid(id){if(RD.g[id]!==undefined)return RD.g[id];const D=typeof REEDS!=='undefined'&&REEDS[id];if(!D)return RD.g[id]=null;
+  const bs=atob(D.d),n=D.nx*D.ny,v=new Uint8Array(n);let k=0,i=0;const vi=()=>{let x=0,m=1,c;do{c=bs.charCodeAt(k++);x+=(c&127)*m;m*=128;}while(c&128);return x;};
+  while(k<bs.length&&i<n){i+=vi();const L=vi(),c=bs.charCodeAt(k++);for(let j=0;j<L&&i<n;j++)v[i++]=c;}
+  return RD.g[id]={x0:D.x0,y0:D.y0,st:D.st,nx:D.nx,ny:D.ny,v};}
+// non-zero where a photo "tree" is really a cattail bed or low growth by the water (the scan shows nothing over 3 m there)
+function reedAt(X,Y){const g=reedGrid(CUR.data||CUR.id);if(!g)return 0;const i=Math.floor((X-g.x0)/g.st),j=Math.floor((Y-g.y0)/g.st);if(i<0||j<0||i>=g.nx||j>=g.ny)return 0;return g.v[j*g.nx+i]/10*1.0936;}
+function r3ReedProto(nb,nh,seed){const R=rng(seed),a=[];const P=(p,n,c)=>a.push(p[0],p[1],p[2],n[0],n[1],n[2],c[0],c[1],c[2]);
+  const blade=[hexc('#3f5226'),hexc('#6f8640'),hexc('#9caa5e')],dead=[hexc('#6b6040'),hexc('#a39466'),hexc('#c8b98a')],stem=hexc('#56683a'),head=hexc('#4a2e1a');
+  for(let b=0;b<nb;b++){const ang=R()*TAU,r=Math.sqrt(R())*.5,bx=Math.cos(ang)*r,bz=Math.sin(ang)*r,hgt=.55+R()*.45,lean=.08+R()*.22,la=ang+(R()-.5)*1.2,w=.035+R()*.025;
+    const d=[Math.cos(la),0,Math.sin(la)],sd=[-d[2],0,d[0]],col=R()<.18?dead:blade,n=[sd[0],.3,sd[2]];
+    const b0=[bx-sd[0]*w,0,bz-sd[2]*w],b1=[bx+sd[0]*w,0,bz+sd[2]*w],m0=[bx+d[0]*lean*.35-sd[0]*w*.7,hgt*.55,bz+d[2]*lean*.35-sd[2]*w*.7],m1=[bx+d[0]*lean*.35+sd[0]*w*.7,hgt*.55,bz+d[2]*lean*.35+sd[2]*w*.7],t=[bx+d[0]*lean,hgt,bz+d[2]*lean];
+    P(b0,n,col[0]);P(b1,n,col[0]);P(m1,n,col[1]);P(b0,n,col[0]);P(m1,n,col[1]);P(m0,n,col[1]);P(m0,n,col[1]);P(m1,n,col[1]);P(t,n,col[2]);}
+  for(let s=0;s<nh;s++){const ang=R()*TAU,r=Math.sqrt(R())*.35,bx=Math.cos(ang)*r,bz=Math.sin(ang)*r,top=.95+R()*.2,hb=top-.17-R()*.05,he=hb+.1,rr=.017+R()*.005,w=.008;
+    const sd=[Math.cos(ang+1.57),0,Math.sin(ang+1.57)],n=[sd[0],.2,sd[2]];
+    P([bx-sd[0]*w,0,bz-sd[2]*w],n,stem);P([bx+sd[0]*w,0,bz+sd[2]*w],n,stem);P([bx,top,bz],n,stem);
+    for(let k=0;k<5;k++){const a0=k/5*TAU,a1=(k+1)/5*TAU,c0=[Math.cos(a0),Math.sin(a0)],c1=[Math.cos(a1),Math.sin(a1)],n0=[c0[0],0,c0[1]],n1=[c1[0],0,c1[1]];
+      const q0=[bx+c0[0]*rr,hb,bz+c0[1]*rr],q1=[bx+c1[0]*rr,hb,bz+c1[1]*rr],u0=[bx+c0[0]*rr,he,bz+c0[1]*rr],u1=[bx+c1[0]*rr,he,bz+c1[1]*rr],dk=mul(head,.8);
+      P(q0,n0,dk);P(u1,n1,head);P(q1,n1,dk);P(q0,n0,dk);P(u0,n0,head);P(u1,n1,head);P(u0,[0,1,0],head);P([bx,he+.02,bz],[0,1,0],head);P(u1,[0,1,0],head);}}
+  return a;}
+// the clumps for this hole: every stand cell within reach of the hole
+function r3Reeds(h){for(const m of RD.meshes){R3.scene.remove(m);m.geometry.dispose();}RD.meshes=[];RD.list=null;RD.ref=null;
+  if(!R3.on)return;const g=reedGrid(CUR.data||CUR.id);if(!g)return;const T0=h.T0,b=h.bounds,M=90,list=[];
+  const i0=Math.max(0,Math.floor((b[0]-M+T0[0]-g.x0)/g.st)),i1=Math.min(g.nx-1,Math.ceil((b[2]+M+T0[0]-g.x0)/g.st)),j0=Math.max(0,Math.floor((b[1]-M+T0[1]-g.y0)/g.st)),j1=Math.min(g.ny-1,Math.ceil((b[3]+M+T0[1]-g.y0)/g.st));
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const v=g.v[j*g.nx+i];if(v<5)continue;   // 1 marks ground by the water with nothing tree-tall on it
+    const sh=((Math.sin((i*928.31+j*517.17))*43758.5453)%1+1)%1,sh2=((Math.sin((i*311.7+j*733.9))*24634.6345)%1+1)%1;
+    const x=g.x0+(i+.2+.6*sh)*g.st-T0[0],y=g.y0+(j+.2+.6*sh2)*g.st-T0[1];
+    const lie=lieCodeAt(h,x,y);if(lie>=2&&lie!==6)continue;   // never on the mown surfaces or sand (LIE_CODES: 6 is water)
+    let base=null;for(const w of h.water||[])if(inPoly(w,x,y)){base=(w.lv?wLvl(w,x,y):(w.lvl!==undefined?w.lvl:-1.1))+.14-.35;break;}
+    if(base===null)base=(lie>=0?hAtH(h,x,y):demRel(h,x,y))-.1;
+    const hm=clamp(1.45+.45*(v/10-1),1.35,2.5);   // the scan was flown in spring, when last year's stems stand lower than summer's
+    list.push({x,y,base,H:hm*1.0936*(.88+.24*sh),s:1.55+.6*sh2,a:sh*TAU*3.1,t:.86+.28*((sh*7.7)%1)});}
+  if(!list.length)return;RD.list=list;const T=THREE;
+  const mat=R3.mat.reed||(R3.mat.reed=r3Patch(new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:.85,metalness:0}),{fade:true,twoSided:true}));
+  for(const[nb,nh,cap]of[[28,3,2600],[10,1,7000]]){const geo=r3Geo(new Float32Array(r3ReedProto(nb,nh,4242+nb)),9),im=new T.InstancedMesh(geo,mat,Math.min(cap,list.length));
+    im.count=0;im.visible=false;im.castShadow=false;im.receiveShadow=true;im.frustumCulled=false;im.setColorAt(0,new T.Color(1,1,1));R3.scene.add(im);RD.meshes.push(im);}
+  r3ReedLOD(true);}
+// near clumps in full, the rest lighter; only what the camera can see
+function r3ReedLOD(force){if(!RD.list||!RD.meshes.length)return;const ex=V.E?V.E[0]:0,ez=V.E?V.E[2]:0,r=RD.ref,fx=V.F?V.F[0]:0,fz=V.F?V.F[2]:1,ang=Math.atan2(fx,fz);
+  const pf=R3.perf;if(!force&&r&&r.pf===pf&&Math.hypot(ex-r.x,ez-r.z)<12&&Math.abs(Math.atan2(Math.sin(ang-r.ang),Math.cos(ang-r.ang)))<.15)return;RD.ref={x:ex,z:ez,ang,pf};
+  const T=THREE,Q=r3Q(),wide=G.overview||G.state==='intro'||G.state==='card',fh=Math.hypot(fx,fz),cull=!wide&&fh>.45&&V.f>0,ux=fx/(fh||1),uz=fz/(fh||1);
+  const hf=Math.atan((W/2)/(V.f||1)),cosL=Math.cos(Math.min(1.5,hf+.45)),near2=(wide?0:(Q.near?Math.min(Q.near,110):110))**2,far2=(wide?600:(Q.far?Math.min(Q.far,320):320))**2;
+  const[mN,mF]=RD.meshes,m4=new T.Matrix4(),q=new T.Quaternion(),s=new T.Vector3(),p=new T.Vector3(),up=new T.Vector3(0,1,0),c=new T.Color();let nN=0,nF=0;
+  const cand=[];for(const t of RD.list){const dx=t.x-ex,dz=t.y-ez,d2=dx*dx+dz*dz;if(d2>far2)continue;if(cull&&d2>900&&(dx*ux+dz*uz)<cosL*Math.sqrt(d2))continue;cand.push([d2,t]);}
+  const lv=Math.min(R3_LMAX,(R3.q==='high'?0:1)+R3.perf),sc=[1,.75,.55,.4,.3,.22,.15][lv]||.15;   // fewer clumps on slower phones
+  const capN=Math.floor(mN.instanceMatrix.count*sc),capF=Math.floor(mF.instanceMatrix.count*sc);
+  if(cand.length>capN+capF)cand.sort((a,b)=>a[0]-b[0]);
+  for(const[d2,t]of cand){const nearOne=d2<near2&&nN<capN;if(!nearOne&&nF>=capF)continue;const im=nearOne?mN:mF,k=nearOne?nN++:nF++;
+    q.setFromAxisAngle(up,t.a);s.set(t.s,t.H,t.s);p.set(t.x,t.base,t.y);m4.compose(p,q,s);im.setMatrixAt(k,m4);c.setRGB(t.t,t.t*(.97+.06*((t.a*3)%1)),t.t*.92);im.setColorAt(k,c);}
+  for(const[im,n]of[[mN,nN],[mF,nF]]){im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;}}
 /* ---- far trees as impostors: every species prototype is photographed once from the side into an atlas, then each far tree
    is a single camera-facing card (turning about its trunk), all of them in one instanced draw ---- */
 const R3T_IMP={cols:8,rows:8,cell:224};
@@ -7774,7 +7827,7 @@ function r3Render(){const rd=R3.renderer;if(!G.hole)return;R3.sun.intensity=SUN_
     if((sc||keep)&&R3.scS&&R3.scS.tex){GU.slT.value=R3.scS.tex;GU.SLB.value.set(...R3.scS.R);const[ax,az]=dirOf(G.aim);GU.slRot.value.set(ax,az);GU.slOn.value=GL.slFade;GU.SLG.value=2;R3.scOn=true;}
     else if(R3.scOn){R3.scOn=false;GU.slT.value=GL.slTex;GU.SLG.value=1;if(GL.slR)GU.SLB.value.set(...GL.slR);} }
   if(R3.waterN){R3.waterN.offset.set(T*.012,T*.007);}if(R3.WU)R3.WU.wT.value=T;
-  if(typeof r3TreeLOD==='function')r3TreeLOD(false);r3GrassUpdate();{const now2=performance.now(),dt2=Math.min(.1,(now2-(R3.tTr||now2))/1000);R3.tTr=now2;r3Tracer(dt2);}r3PostTargets();{const sk=R3.shK||(R3.shK=new Float64Array(6));let same=R3.shKok===true;for(let i=0;i<6;i++){const v=Math.round((i<3?V.E[i]:V.F[i-3])*1000);if(sk[i]!==v){same=false;sk[i]=v;}}R3.shKok=true;   /* the view to the mm, as numbers (it was a string built every frame) */
+  if(typeof r3TreeLOD==='function')r3TreeLOD(false);if(typeof r3ReedLOD==='function')r3ReedLOD(false);r3GrassUpdate();{const now2=performance.now(),dt2=Math.min(.1,(now2-(R3.tTr||now2))/1000);R3.tTr=now2;r3Tracer(dt2);}r3PostTargets();{const sk=R3.shK||(R3.shK=new Float64Array(6));let same=R3.shKok===true;for(let i=0;i<6;i++){const v=Math.round((i<3?V.E[i]:V.F[i-3])*1000);if(sk[i]!==v){same=false;sk[i]=v;}}R3.shKok=true;   /* the view to the mm, as numbers (it was a string built every frame) */
     const still=same&&G.state==='aim'&&!(typeof R3R!=='undefined'&&R3R.on)&&!G.fc;
     R3.camStill=same;R3.shN=(R3.shN||0)+1;const shEv=r3Q().shEv||2;rd.shadowMap.needsUpdate=G.state==='power'||G.state==='acc'||(!still&&(R3.shN%shEv===0||G.state==='intro'))||R3.shN%(shEv*3)===0;   /* during the meter every frame, so frames cost the same and the cursor moves evenly */
     r3ShcInit();r3ShcPlan();}r3Reflect();
@@ -8668,6 +8721,8 @@ if(window.claude?.hot?.ready)window.claude.hot.ready(boot);else boot(window.clau
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-10-28-e63c",date:"Oct 28, 2026",title:"Cattails",items:[
+    "Rush Creek's marshes and the cattail fringes round its lake, and the wet edges at The Meadows at Mystic Lake, now grow cattails, measured from the lidar survey. The \"trees\" that used to stand in their place are gone."]},
   {id:"2026-10-28-54f2",date:"Oct 28, 2026",title:"Real greens, better hole locations",items:[
     "Greens on 22 courses are back to their real surveyed slopes (they had been smoothed when the courses were built).",
     "Holes are now cut where there is gentle ground all round the cup, so a good approach can settle near the pin. Today's daily round keeps its pins; the new ones start with tomorrow's."]},
