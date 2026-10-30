@@ -95,7 +95,15 @@ return 'ok';})()`;
   await page.clock.install({ time: new Date('2026-06-01T12:00:00Z') });
   await page.clock.pauseAt(new Date('2026-06-01T12:00:01Z'));
   await page.goto(url + '/index.html', { timeout: 600000, waitUntil: 'load' });
-  await page.clock.runFor(1500);   // boot: a fixed 1.5 s of frames
+  // boot waits on files (the starting course, the Blender scripts) that land after a real-time delay; with the clock still
+  // standing, wait in real time for the first hole to be set up, so the game clock starts from the same point every run
+  let booted = false;
+  for (let k = 0; k < 600 && !booted; k++) {
+    booted = await page.evaluate(() => { try { return !!window.__ev('typeof G!=="undefined"&&!!G.hole'); } catch (e) { return false; } });
+    if (!booted) await new Promise(r => setTimeout(r, 100));
+  }
+  if (!booted) console.log('(boot did not finish on a standing clock; letting the clock run)');
+  await page.clock.runFor(1500);   // then a fixed 1.5 s of frames
   const ev = s => page.evaluate(s => window.__ev(s), s);
   await ev(PAGE_LIB);
 
