@@ -140,7 +140,13 @@ return 'ok';})()`;
     // the picture last (a rendered scene makes building the later holes slow in a software renderer)
     if (!NOIMG && res.holes[0] && !res.holes[0].err) {
       await ev(`(()=>{Math.random=rng(99);startHole(0);})()`);
-      await new Promise(r => setTimeout(r, 2500));   // textures for the hole (baked light, leaves) arrive in the background: let them land
+      // textures for the hole arrive in the background: wait for the Blender baked light (it darkens the whole hole until it lands),
+      // then a moment more for the rest (leaves)
+      for (let k = 0; k < 600; k++) {
+        if (await ev(`(()=>{try{const K=b10K();return !K||!!K.ok;}catch(e){return true;}})()`)) break;
+        await new Promise(r => setTimeout(r, 100));
+      }
+      await new Promise(r => setTimeout(r, 1500));
       // a fixed camera worked out from the hole itself (not the game's camera, which depends on what was played before):
       // 14 yd behind the tee and 8 yd up, looking 160 yd down the first leg
       const p = JSON.parse(await ev(`(()=>{try{Math.random=rng(99);startHole(0);$('introM').hidden=true;try{R3R.on=false;}catch(e){}prepareShot();try{R3R.on=false;}catch(e){}
