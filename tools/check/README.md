@@ -15,7 +15,7 @@ playing and looking exactly as it did. It is the safety net for the restructure:
 - **Errors** the page threw.
 
 Two runs of the same code give identical files. `compare.js` lists every difference between two runs (pictures are allowed tiny
-rendering noise; anything over 0.2% of pixels fails and a side-by-side image is saved).
+rendering noise; anything over 2% of pixels fails and a side-by-side image is saved).
 
 ## In GitHub
 

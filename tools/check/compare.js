@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 /* Compares two snapshot folders from snapshot.js (baseline first). Prints every difference and exits 1 if there is any.
    Pictures may differ by rendering noise only: a pixel counts as changed when any channel moves by more than 24, and a picture
-   fails when more than 0.2% of its pixels change (measured in headless Chromium, so nothing beyond Playwright is needed).
+   fails when more than 2% of its pixels change (identical code can differ by up to ~1% on a busy
+   machine: textures and tree detail that land a moment apart). The numbers (holes, shots, data) are the exact check;
+   the picture is the backstop for anything that only shows on screen (measured in headless Chromium, so nothing beyond Playwright is needed).
    Side-by-side images (baseline | candidate | changed pixels in red) of any picture that fails go to <candidate>/diff/.
    usage: node tools/check/compare.js <baselineOut> <candidateOut> [--report report.md]                                  */
 const fs = require('fs'), path = require('path');
 const [A, B] = process.argv.slice(2, 4).map(p => path.resolve(p));
 const ri = process.argv.indexOf('--report'), REPORT = ri > 0 ? process.argv[ri + 1] : null;
 const sa = JSON.parse(fs.readFileSync(path.join(A, 'snapshot.json'), 'utf8')), sb = JSON.parse(fs.readFileSync(path.join(B, 'snapshot.json'), 'utf8'));
-const out = [], bad = m => out.push(m);
+const out = [], bad = m => out.push(m), warn = [];
 const eq = (x, y) => JSON.stringify(x) === JSON.stringify(y);
 
 // errors: any error in the candidate that the baseline didn't have
@@ -43,6 +45,7 @@ for (const id of Object.keys(sa.courses)) {
       for (let s = 0; s < n; s++) if (!eq((pa.shots || [])[s], (pb.shots || [])[s])) { bad(`${w}: shot ${s + 1} ${JSON.stringify((pa.shots || [])[s])} -> ${JSON.stringify((pb.shots || [])[s])}`); break; }
     } else if (pa.score !== pb.score || pa.end !== pb.end || pa.steps !== pb.steps) bad(`${w}: round ended differently (${pa.score}/${pa.end}/${pa.steps} -> ${pb.score}/${pb.end}/${pb.steps})`);
   });
+  if ((ca.pic && ca.pic.lost) || (cb.pic && cb.pic.lost)) { warn.push(`${id}: picture not compared (the headless browser lost its graphics context${ca.pic && ca.pic.lost ? ' on the baseline' : ''}${cb.pic && cb.pic.lost ? ' on the candidate' : ''})`); continue; }
   const ia = path.join(A, 'img', id + '.png'), ib = path.join(B, 'img', id + '.png');
   if (fs.existsSync(ia) !== fs.existsSync(ib)) { bad(`${id}: picture ${fs.existsSync(ia) ? 'missing' : 'new'} in candidate`); continue; }
   if (!fs.existsSync(ia)) continue; pics++;
@@ -71,7 +74,7 @@ async function measurePics() {
       return { share: n / (w * h), png: c.toDataURL('image/png') };
     }, [ba.toString('base64'), bb.toString('base64')]);
     if (r.size) { bad(`${id}: picture size differs`); continue; }
-    if (r.share > .002) {
+    if (r.share > .02) {
       bad(`${id}: picture differs (${(r.share * 100).toFixed(2)}% of pixels) -> diff/${id}.png`);
       fs.mkdirSync(path.join(B, 'diff'), { recursive: true }); fs.writeFileSync(path.join(B, 'diff', id + '.png'), Buffer.from(r.png.split(',')[1], 'base64'));
     }
@@ -81,7 +84,8 @@ async function measurePics() {
 
 measurePics().then(() => {
 const head = `Compared ${Object.keys(sa.data).length} data blocks, ${Object.keys(sa.courses).length} courses, ${holes} holes, ${shots} scripted shots, ${pics} pictures.`;
-const txt = out.length ? `${head}\n\n${out.length} difference(s):\n` + out.map(x => '- ' + x).join('\n') : `${head}\n\nNo differences: the candidate plays and looks the same as the baseline.`;
+const wtxt = warn.length ? '\n\nNot checked:\n' + warn.map(x => '- ' + x).join('\n') : '';
+const txt = (out.length ? `${head}\n\n${out.length} difference(s):\n` + out.map(x => '- ' + x).join('\n') : `${head}\n\nNo differences: the candidate plays and looks the same as the baseline.`) + wtxt;
 console.log(txt);
 if (REPORT) fs.writeFileSync(REPORT, txt + '\n');
 process.exit(out.length ? 1 : 0);

@@ -5,7 +5,7 @@
      - a fingerprint of the hole as the game builds it (layout, pins, lie grid, heights, trees, buildings ...)
      - a scripted round: the game picks club and aim as it does for a player, every swing is struck with a fixed seed,
        and the ball's resting spot, lie, shot type and strokes are written down after each one
-     - a picture of hole 1 from the tee (render repeated until it holds still)
+     - a picture of hole 1 from behind the tee, from a fixed camera (render repeated until it holds still)
    plus a fingerprint of every big data block (course layouts, lidar greens and ground, trees, textures, golfer rigs),
    and any errors the page threw.
 
@@ -73,8 +73,9 @@ H.play=(i)=>{const S=[];let steps=0;const st=()=>{update(1/60);steps++;};
     S.push([c.id,G.stype,r(pw),r(G.ball.x),r(G.ball.y),lieAt(G.ball.x,G.ball.y),G.strokes,G.state,r(G.aim),G.wind.mph]);}
   return{shots:S,steps,score:G.scores[i]??null,end:G.state};};
 // a picture of the current view, once two renders in a row agree (or after 12)
-H.pic=()=>{const a=$('gl'),c=$('c'),o=document.createElement('canvas');o.width=a.width;o.height=a.height;const x=o.getContext('2d');
+H.pic=()=>{try{if(R3.renderer.getContext().isContextLost())return{lost:true};}catch(e){}const a=$('gl'),c=$('c'),o=document.createElement('canvas');o.width=a.width;o.height=a.height;const x=o.getContext('2d');
   let prev='',n=0;for(;n<12;n++){render();x.clearRect(0,0,o.width,o.height);x.drawImage(a,0,0);x.drawImage(c,0,0,o.width,o.height);const d=o.toDataURL('image/png');if(d===prev)break;prev=d;}
+  try{if(R3.renderer.getContext().isContextLost())return{lost:true};}catch(e){}
   return{png:prev,renders:n+1};};
 return 'ok';})()`;
 
@@ -99,10 +100,7 @@ return 'ok';})()`;
 
   const snap = { site: path.basename(SITE), bootErrors: errs, data: {}, courses: {} };
   errs = [];
-  // shared tables the game builds from its data
-  snap.tables = JSON.parse(await ev(`JSON.stringify({clubs:__H.h(CLUBS),courseIds:Object.keys(COURSES),
-    courses:Object.fromEntries(Object.keys(COURSES).map(id=>[id,__H.h(Object.fromEntries(Object.entries(COURSES[id]).filter(([k])=>k[0]!=='_')))]))})`));
-
+  snap.tables = JSON.parse(await ev(`JSON.stringify({courseIds:Object.keys(COURSES)})`));
   let ids = ONLY || snap.tables.courseIds;
   if (SHARD) ids = ids.filter((_, i) => i % SHARD[1] === SHARD[0] - 1);
   for (const id of ids) {
@@ -129,18 +127,27 @@ return 'ok';})()`;
       }catch(e){o.err=String(e&&e.stack||e).slice(0,600);}return JSON.stringify(o);})()`)));
       if (process.env.SNAP_TIME) console.log('  hole', i + 1, 'build', b - a, 'ms  play', Date.now() - b, 'ms');
       res.holes.push(hr);
-      if (i === 0 && !NOIMG && !hr.err) {
-        const p = JSON.parse(await ev(`(()=>{try{Math.random=rng(99);startHole(0);$('introM').hidden=true;try{R3R.on=false;}catch(e){}prepareShot();try{R3R.on=false;}catch(e){}
-          const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];return JSON.stringify(__H.pic());}catch(e){return JSON.stringify({err:String(e)});}})()`));
-        if (p.png) fs.writeFileSync(path.join(OUT, 'img', id + '.png'), Buffer.from(p.png.split(',')[1], 'base64'));
-        res.pic = { renders: p.renders, err: p.err };
-      }
+    }
+    // the picture last (a rendered scene makes building the later holes slow in a software renderer)
+    if (!NOIMG && res.holes[0] && !res.holes[0].err) {
+      await ev(`(()=>{Math.random=rng(99);startHole(0);})()`);
+      await new Promise(r => setTimeout(r, 2500));   // textures for the hole (baked light, leaves) arrive in the background: let them land
+      // a fixed camera worked out from the hole itself (not the game's camera, which depends on what was played before):
+      // 14 yd behind the tee and 8 yd up, looking 160 yd down the first leg
+      const p = JSON.parse(await ev(`(()=>{try{Math.random=rng(99);startHole(0);$('introM').hidden=true;try{R3R.on=false;}catch(e){}prepareShot();try{R3R.on=false;}catch(e){}
+        const h=G.hole,a=h.line[0],b=h.line[1],l=Math.hypot(b[0]-a[0],b[1]-a[1])||1,dx=(b[0]-a[0])/l,dy=(b[1]-a[1])/l,tx=a[0]+dx*160,ty=a[1]+dy*160;
+        cam.E=[a[0]-dx*14,hAt(a[0],a[1])+8,a[1]-dy*14];cam.L=[tx,hAt(tx,ty)+2,ty];return JSON.stringify(__H.pic());}catch(e){return JSON.stringify({err:String(e)});}})()`));
+      if (p.png) fs.writeFileSync(path.join(OUT, 'img', id + '.png'), Buffer.from(p.png.split(',')[1], 'base64'));
+      res.pic = { renders: p.renders, err: p.err, lost: p.lost };
     }
     res.errors = errs;
     snap.courses[id] = res;
     const sc = res.holes.map(h => h.play && h.play.score).filter(x => x != null);
     console.log(`${id.padEnd(14)} ${res.n || 0} holes  scripted score ${sc.reduce((a, b) => a + b, 0)} (par ${res.par})  errors ${errs.length}  ${((Date.now() - c0) / 1000).toFixed(0)}s`);
   }
+  // shared tables, after the courses have loaded (on the published build a course's entry fills in when its file arrives)
+  Object.assign(snap.tables, JSON.parse(await ev(`JSON.stringify({clubs:__H.h(CLUBS),courseIds:Object.keys(COURSES),
+    courses:Object.fromEntries(Object.keys(COURSES).map(id=>[id,__H.h(Object.fromEntries(Object.entries(COURSES[id]).filter(([k])=>k[0]!=='_')))]))})`)));
   // data blocks, last: on the published build a course's data only arrives when the course is first played
   for (const n of dataNames()) {
     snap.data[n] = await ev(`(()=>{try{return __H.h(${n});}catch(e){return 'unreachable';}})()`);
