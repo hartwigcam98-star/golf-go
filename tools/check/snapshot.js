@@ -116,7 +116,7 @@ return 'ok';})()`;
       if (await ev(`(()=>!b10On()||b10ClubReady(CUR.id,null))()`)) break;
       await new Promise(r => setTimeout(r, 100));
     }
-    res.club = await ev(`__H.h(window.B10CLUBS&&B10CLUBS[CUR.id]||null)`);
+    res.club = JSON.parse(await ev(`(()=>{const D=window.B10CLUBS&&B10CLUBS[CUR.id];return JSON.stringify(D?Object.fromEntries(Object.keys(D).sort().map(k=>[k,__H.h(D[k])])):null);})()`));
     for (let i = 0; i < Math.min(res.n || 0, MAXH); i++) {
       const a = Date.now();
       const hr = JSON.parse(await ev(`(()=>{const o={};try{
@@ -149,7 +149,7 @@ return 'ok';})()`;
   }
   // shared tables, after the courses have loaded (on the published build a course's entry fills in when its file arrives)
   Object.assign(snap.tables, JSON.parse(await ev(`JSON.stringify({clubs:__H.h(CLUBS),courseIds:Object.keys(COURSES),
-    courses:Object.fromEntries(Object.keys(COURSES).map(id=>[id,__H.h(Object.fromEntries(Object.entries(COURSES[id]).filter(([k])=>k[0]!=='_')))]))})`)));
+    courses:Object.fromEntries(Object.keys(COURSES).map(id=>[id,Object.fromEntries(Object.entries(COURSES[id]).filter(([k])=>k[0]!=='_').map(([k,v])=>[k,__H.h(v)]))]))})`)));
   // data blocks, last: on the published build a course's data only arrives when the course is first played
   for (const n of dataNames()) {
     snap.data[n] = await ev(`(()=>{try{return __H.h(${n});}catch(e){return 'unreachable';}})()`);

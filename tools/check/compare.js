@@ -24,14 +24,16 @@ for (const k of new Set([...Object.keys(sa.data), ...Object.keys(sb.data)])) {
 }
 if (!eq(sa.tables.clubs, sb.tables.clubs)) bad('club table differs');
 if (!eq(sa.tables.courseIds, sb.tables.courseIds)) bad('course list differs');
-for (const id of sa.tables.courseIds) if (sa.tables.courses[id] !== sb.tables.courses[id]) bad(`course ${id}: registry entry differs`);
+const keyDiff = (x, y) => { x = x || {}; y = y || {}; if (typeof x !== 'object' || typeof y !== 'object') return eq(x, y) ? [] : ['(whole)']; return [...new Set([...Object.keys(x), ...Object.keys(y)])].filter(k => x[k] !== y[k]); };
+for (const id of sa.tables.courseIds) { const d = keyDiff(sa.tables.courses[id], sb.tables.courses[id]); if (d.length) bad(`course ${id}: registry entry differs (${d.join(', ')})`); }
 
 let holes = 0, shots = 0, pics = 0;
 const picJobs = [];
 for (const id of Object.keys(sa.courses)) {
   const ca = sa.courses[id], cb = sb.courses[id];
   if (!cb) { bad(`course ${id}: not in candidate run`); continue; }
-  for (const k of ['err', 'cur', 'n', 'par', 'club']) if (!eq(ca[k], cb[k])) bad(`course ${id}: ${k} ${JSON.stringify(ca[k])} -> ${JSON.stringify(cb[k])}`);
+  { const d = keyDiff(ca.club, cb.club); if (d.length) bad(`course ${id}: Blender clubhouse data differs (${d.join(', ')})`); }
+  for (const k of ['err', 'cur', 'n', 'par']) if (!eq(ca[k], cb[k])) bad(`course ${id}: ${k} ${JSON.stringify(ca[k])} -> ${JSON.stringify(cb[k])}`);
   newErr(ca.errors, cb.errors, `course ${id}`);
   (ca.holes || []).forEach((ha, i) => {
     const hb = (cb.holes || [])[i], w = `${id} hole ${i + 1}`; holes++;

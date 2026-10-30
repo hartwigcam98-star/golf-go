@@ -3,14 +3,14 @@ name: Same-game check
 # Green = same game. Red = the summary lists what changed; pictures of any changed view are in the run's artifacts.
 on:
   push:
-    branches-ignore: [main]
+    branches-ignore: [main, 'check-pictures-*']
   workflow_dispatch:
     inputs:
       base:
         description: Compare against (branch or tag)
         default: main
 permissions:
-  contents: read
+  contents: write   # only to keep any changed pictures on a check-pictures-<shard> branch, where they can be looked at
 concurrency:
   group: check-${{ github.ref }}
   cancel-in-progress: true
@@ -64,6 +64,15 @@ jobs:
           # the reports as annotations too, so they can be read from the run page (and the API) without downloading logs
           for r in published repo; do m=$(head -c 3500 $r.md | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g'); if grep -q '^No differences' $r.md; then echo "::notice title=Shard ${{ matrix.shard }} $r::$m"; else echo "::error title=Shard ${{ matrix.shard }} $r::$m"; fi; done
           exit $f
+      - name: Keep changed pictures on a branch (check-pictures-${{ matrix.shard }})
+        if: always()
+        run: |
+          shopt -s nullglob; f=(snap/*/diff/*.png); [ ${#f[@]} -eq 0 ] && exit 0
+          mkdir pics && cd pics && git init -q && git checkout -q -b check-pictures-${{ matrix.shard }}
+          for p in "${f[@]}"; do d=$(basename $(dirname $(dirname "$p"))); mkdir -p "$d"; cp "../$p" "$d/"; done
+          cp ../*.md . 2>/dev/null || true
+          git add . && git -c user.name=check -c user.email=check@users.noreply.github.com commit -qm "Changed pictures, run ${{ github.run_id }} (${{ github.ref_name }}), shard ${{ matrix.shard }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" HEAD:check-pictures-${{ matrix.shard }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
