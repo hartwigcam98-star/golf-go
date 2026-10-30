@@ -1,0 +1,73 @@
+name: Same-game check
+# Proves a branch plays and looks the same as main (tools/check/README.md). Runs on every push to a branch other than main.
+# Green = same game. Red = the summary lists what changed; pictures of any changed view are in the run's artifacts.
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Compare against (branch or tag)
+        default: main
+permissions:
+  contents: read
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: cand
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.base || 'main' }}
+          path: base
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install the checker
+        run: cd cand/tools/check && npm install --no-audit --no-fund && npx playwright install --with-deps chromium
+      - name: Build the published game from main and from this branch
+        run: |
+          (cd base && node tools/split/build.js ../site-base)
+          (cd cand && node tools/split/build.js ../site-cand)
+      - name: Play both (shard ${{ matrix.shard }} of 8)
+        run: |
+          S=${{ matrix.shard }}/8
+          node cand/tools/check/snapshot.js site-base snap/base --shard $S > base.log 2>&1 & a=$!
+          node cand/tools/check/snapshot.js site-cand snap/cand --shard $S > cand.log 2>&1 & b=$!
+          wait $a; ra=$?; wait $b; rb=$?
+          echo "--- main"; cat base.log; echo "--- branch"; cat cand.log
+          [ $ra -eq 0 ] && [ $rb -eq 0 ]
+      - name: Check the repo copy too (fingerprints and data, no play)
+        run: |
+          S=${{ matrix.shard }}/8
+          node cand/tools/check/snapshot.js base snap/base-repo --shard $S --no-play --no-img > base-repo.log 2>&1 & a=$!
+          node cand/tools/check/snapshot.js cand snap/cand-repo --shard $S --no-play --no-img > cand-repo.log 2>&1 & b=$!
+          wait $a; ra=$?; wait $b; rb=$?
+          cat base-repo.log cand-repo.log
+          [ $ra -eq 0 ] && [ $rb -eq 0 ]
+      - name: Compare
+        run: |
+          f=0
+          node cand/tools/check/compare.js snap/base snap/cand --report published.md || f=1
+          node cand/tools/check/compare.js snap/base-repo snap/cand-repo --report repo.md || f=1
+          { echo "## Shard ${{ matrix.shard }}: published game"; cat published.md; echo; echo "## Shard ${{ matrix.shard }}: repo copy"; cat repo.md; } >> "$GITHUB_STEP_SUMMARY"
+          exit $f
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: check-shard-${{ matrix.shard }}
+          path: |
+            snap/*/diff
+            *.md
+            *.log
+          if-no-files-found: ignore

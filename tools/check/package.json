@@ -1,0 +1,8 @@
+{
+  "name": "golf-go-check",
+  "private": true,
+  "description": "Snapshot check: proves a change to the game's structure leaves how it plays and looks the same (see README.md)",
+  "dependencies": {
+    "playwright": "1.49.1"
+  }
+}
