@@ -22,6 +22,7 @@ const { serve } = require('./serve.js');
 const args = process.argv.slice(2), flag = k => { const i = args.indexOf(k); return i < 0 ? null : args[i + 1]; };
 const SITE = path.resolve(args[0] || '.'), OUT = path.resolve(args[1] || 'snap');
 const ONLY = flag('--courses') ? flag('--courses').split(',') : null, NOIMG = args.includes('--no-img'), NOPLAY = args.includes('--no-play');
+const MAXH = flag('--holes') ? +flag('--holes') : 99;   // (for trying the check out: only the first N holes)
 const SHARD = flag('--shard') ? flag('--shard').split('/').map(Number) : null;
 fs.mkdirSync(path.join(OUT, 'img'), { recursive: true });
 
@@ -74,7 +75,7 @@ H.play=(i)=>{const S=[];let steps=0;const st=()=>{update(1/60);steps++;};
   return{shots:S,steps,score:G.scores[i]??null,end:G.state};};
 // a picture of the current view, once two renders in a row agree (or after 12)
 H.pic=()=>{try{if(R3.renderer.getContext().isContextLost())return{lost:true};}catch(e){}const a=$('gl'),c=$('c'),o=document.createElement('canvas');o.width=a.width;o.height=a.height;const x=o.getContext('2d');
-  let prev='',n=0;for(;n<12;n++){render();x.clearRect(0,0,o.width,o.height);x.drawImage(a,0,0);x.drawImage(c,0,0,o.width,o.height);const d=o.toDataURL('image/png');if(d===prev)break;prev=d;}
+  let prev='',n=0;for(;n<12;n++){stepCam(0);render();x.clearRect(0,0,o.width,o.height);x.drawImage(a,0,0);x.drawImage(c,0,0,o.width,o.height);const d=o.toDataURL('image/png');if(d===prev)break;prev=d;}
   try{if(R3.renderer.getContext().isContextLost())return{lost:true};}catch(e){}
   return{png:prev,renders:n+1};};
 return 'ok';})()`;
@@ -116,7 +117,7 @@ return 'ok';})()`;
       await new Promise(r => setTimeout(r, 100));
     }
     res.club = await ev(`__H.h(window.B10CLUBS&&B10CLUBS[CUR.id]||null)`);
-    for (let i = 0; i < (res.n || 0); i++) {
+    for (let i = 0; i < Math.min(res.n || 0, MAXH); i++) {
       const a = Date.now();
       const hr = JSON.parse(await ev(`(()=>{const o={};try{
         Math.random=rng(${i + 1}*104729+${id.length});startHole(${i});if(!G.hole||G.hi!==${i})throw new Error('hole did not start');o.fp=__H.holeFP(G.hole);
@@ -136,7 +137,8 @@ return 'ok';})()`;
       // 14 yd behind the tee and 8 yd up, looking 160 yd down the first leg
       const p = JSON.parse(await ev(`(()=>{try{Math.random=rng(99);startHole(0);$('introM').hidden=true;try{R3R.on=false;}catch(e){}prepareShot();try{R3R.on=false;}catch(e){}
         const h=G.hole,a=h.line[0],b=h.line[1],l=Math.hypot(b[0]-a[0],b[1]-a[1])||1,dx=(b[0]-a[0])/l,dy=(b[1]-a[1])/l,tx=a[0]+dx*160,ty=a[1]+dy*160;
-        cam.E=[a[0]-dx*14,hAt(a[0],a[1])+8,a[1]-dy*14];cam.L=[tx,hAt(tx,ty)+2,ty];return JSON.stringify(__H.pic());}catch(e){return JSON.stringify({err:String(e)});}})()`));
+        const E=[a[0]-dx*14,hAt(a[0],a[1])+8,a[1]-dy*14],L=[tx,hAt(tx,ty)+2,ty],ct=camTarget;
+        camTarget=()=>({E:[...E],L:[...L],cut:true,zoom:1});try{return JSON.stringify(__H.pic());}finally{camTarget=ct;}}catch(e){return JSON.stringify({err:String(e&&e.stack||e)});}})()`));
       if (p.png) fs.writeFileSync(path.join(OUT, 'img', id + '.png'), Buffer.from(p.png.split(',')[1], 'base64'));
       res.pic = { renders: p.renders, err: p.err, lost: p.lost };
     }
