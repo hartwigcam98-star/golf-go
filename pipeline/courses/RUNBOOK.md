@@ -136,7 +136,7 @@ sedge compass rock peaks canyon loblolly lodge fish paddles loon. turf: `troy` (
 south), `desertcanyon` (desert; also scen `desert`, trees `az`). trees: `north` (north woods), `south`, `az`, or `default`.
 ```
 cd /home/claude/golf-go && git pull -q origin main
-cp index.html /home/claude/golf/work/base_index.html && cp greens.js ground.js trees.js /home/claude/golf/work/base/
+python3 tools/datafiles.py pack /home/claude/golf/work/base_index.html && cp greens.js ground.js trees.js /home/claude/golf/work/base/
 cd /home/claude/golf && python3 auto/inject_auto.py <key>
 python3 /home/claude/golf-go/pipeline/ranges/sync.py work/index.html     # ranges, range lidar and tee sets from pipeline/ranges + teecard.json
 python3 clubs/extras.py apply work/index.html work/ground.js <key>          # clubhouse, look, landmarks (once 6b has written them)
@@ -183,6 +183,9 @@ cd /home/claude/golf-go && git status --short
 index.html and `B` in sw.js: phones on an older copy see it differ, download the new game and offer a Restart) and sw.js `V`.
 **Any other change to index.html or the data files: run `python3 tools/stamp.py` before committing** (instead of editing
 `?v=` or `V` by hand).
+The repo page keeps its big data lines (course layouts, surroundings, pictures) in `data/` (`tools/datafiles.py`). The work
+copy is the all-in-one page (`datafiles.py pack`, step 6); `stamp.py` splits whatever page `ship.py` writes back, so nothing
+else changes. A tool that must read the repo page as one text uses `python3 tools/datafiles.py pack OUT`.
 Add an entry for the request to `pipeline/courses/requests.json` (`built`, key, date). Copy any changed pipeline files back
 into `pipeline/courses/` (e.g. `auto/<key>/meta.json`, `*_edits.json`, scorecard; not the big json/npz data).
 Commit `index.html greens.js ground.js trees.js sw.js pipeline/courses/ pipeline/ranges/` to main ("New course: <name> (player request)")

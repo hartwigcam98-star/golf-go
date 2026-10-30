@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /* Golf Go publish build: splits the repo's all-in-one game into a small core plus one file per course.
 
-   The repo keeps every course inline (index.html holds the layouts and surroundings; greens.js, ground.js and trees.js hold the
-   lidar greens, ground, buildings and tree crowns for all courses), because the course pipeline writes there. What players
+   The repo keeps every course in one page (index.html, with its big data lines in data/ and packed back in by
+   tools/datafiles.py; greens.js, ground.js and trees.js hold the lidar greens, ground, buildings and tree crowns for all
+   courses), because the course pipeline writes there. What players
    download is built from it:
      dist/index.html   the game without any course data; window.CFILES maps each course id to its file
      dist/c/<id>.js    one course: its layout + surroundings (+ the shared blocks they use) and its LIDG/LIDW/BLDX/R3NAIP parts
@@ -16,7 +17,8 @@ const OUT = path.resolve(process.argv[2] || 'dist');
 const sha = t => crypto.createHash('sha1').update(t).digest('hex').slice(0, 10);
 const die = m => { console.error('BUILD FAILED: ' + m); process.exit(1); };
 
-const src = fs.readFileSync('index.html', 'utf8');
+// the repo keeps the big data lines in data/ (tools/datafiles.py); the build starts from the all-in-one page they pack into
+const src = execSync('python3 tools/datafiles.py pack', { encoding: 'utf8', maxBuffer: 1 << 30 });
 const L = src.split('\n');
 
 // ---- the course registry: one line per course inside `const COURSES={ ... }};`
@@ -130,7 +132,7 @@ console.log('static blobs moved out: ' + ASSETS.map(u => u.split('?')[0].replace
 fs.writeFileSync(path.join(OUT, 'index.html'), coreText);
 
 // ---- every other tracked file, as is
-const skipTop = new Set(['.github', 'pipeline', 'supabase', 'app', 'tools', 'dist']);
+const skipTop = new Set(['.github', 'pipeline', 'supabase', 'app', 'tools', 'dist', 'data']);   // data/: packed into the page above
 const tracked = execSync('git ls-files -z', { encoding: 'utf8' }).split('\0').filter(Boolean);
 for (const f of tracked) {
   if (skipTop.has(f.split('/')[0]) || f === 'index.html' || f === 'sw.js' || extraScripts.includes(f)) continue;

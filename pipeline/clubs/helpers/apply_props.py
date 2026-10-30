@@ -7,7 +7,8 @@ import json, re, sys, os, subprocess, shutil
 R = '/home/claude/golf-go/'
 props = json.load(open(sys.argv[1])); out = sys.argv[2]; os.makedirs(out, exist_ok=True)
 LOOK_ALIAS = {'legislator': ['judge', 'senator'], 'gnlinks': ['gnlake'], 'gnlake': ['gnlinks'], 'valley': ['ridge'], 'crsc': ['crls'], 'slmh': ['slbm'], 'sandvalley': ['mammoth']}
-s = open(R + 'index.html').read(); g = open(R + 'ground.js').read().split('\n')
+sys.path.insert(0, R + 'tools'); import datafiles
+s = datafiles.pack_text(R.rstrip('/')); g = open(R + 'ground.js').read().split('\n')
 i = s.index('const CLUBLOOK={\n'); j = s.index('};', i); body = s[i:j]
 li = next(k for k, l in enumerate(g) if l.startswith('const CLUBLID=')); LID = json.loads(g[li][len('const CLUBLID='):].rstrip().rstrip(';'))
 for cid, P in props.items():

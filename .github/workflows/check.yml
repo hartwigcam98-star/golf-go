@@ -1,5 +1,7 @@
 name: Same-game check
 # Proves a branch plays and looks the same as main (tools/check/README.md). Runs on every push to a branch other than main.
+# Checks: the published files byte for byte; the repo copies played in full (holes, scripted shots, data, pictures); the
+# published copies played too when their files differ; tools/datafiles.py round trip.
 # Green = same game. Red = the summary lists what changed; pictures of any changed view are in the run's artifacts.
 on:
   push:
@@ -39,7 +41,27 @@ jobs:
         run: |
           (cd base && node tools/split/build.js ../site-base)
           (cd cand && node tools/split/build.js ../site-cand)
-      - name: Play both (shard ${{ matrix.shard }} of 8)
+      - name: Published files (byte for byte)
+        id: files
+        run: |
+          # what players download; .gitignore and the check's own tools don't reach phones
+          if diff -rq -x .gitignore site-base site-cand > files.txt; then
+            echo "same=yes" >> "$GITHUB_OUTPUT"; echo "Every published file is byte-for-byte the same as main's." > published.md
+          else
+            echo "same=no" >> "$GITHUB_OUTPUT"; { echo "Published files that differ from main's:"; sed 's/^/- /' files.txt | head -60; } > published.md
+          fi
+          cat published.md
+      - name: Play the repo copies (shard ${{ matrix.shard }} of 8)
+        run: |
+          # the repo copy is what a restructure changes (and what the course pipeline and tools run); full play and pictures
+          S=${{ matrix.shard }}/8
+          node cand/tools/check/snapshot.js base snap/base-repo --shard $S > base-repo.log 2>&1 & a=$!
+          node cand/tools/check/snapshot.js cand snap/cand-repo --shard $S > cand-repo.log 2>&1 & b=$!
+          wait $a; ra=$?; wait $b; rb=$?
+          echo "--- main"; cat base-repo.log; echo "--- branch"; cat cand-repo.log
+          [ $ra -eq 0 ] && [ $rb -eq 0 ]
+      - name: Play the published copies (only when their files differ)
+        if: steps.files.outputs.same == 'no'
         run: |
           S=${{ matrix.shard }}/8
           node cand/tools/check/snapshot.js site-base snap/base --shard $S > base.log 2>&1 & a=$!
@@ -47,22 +69,15 @@ jobs:
           wait $a; ra=$?; wait $b; rb=$?
           echo "--- main"; cat base.log; echo "--- branch"; cat cand.log
           [ $ra -eq 0 ] && [ $rb -eq 0 ]
-      - name: Check the repo copy too (fingerprints and data, no play)
-        run: |
-          S=${{ matrix.shard }}/8
-          node cand/tools/check/snapshot.js base snap/base-repo --shard $S --no-play --no-img > base-repo.log 2>&1 & a=$!
-          node cand/tools/check/snapshot.js cand snap/cand-repo --shard $S --no-play --no-img > cand-repo.log 2>&1 & b=$!
-          wait $a; ra=$?; wait $b; rb=$?
-          cat base-repo.log cand-repo.log
-          [ $ra -eq 0 ] && [ $rb -eq 0 ]
       - name: Compare
         run: |
           f=0
-          node cand/tools/check/compare.js snap/base snap/cand --report published.md || f=1
+          (cd cand && python3 tools/datafiles.py check) > datafiles.md 2>&1 || f=1
           node cand/tools/check/compare.js snap/base-repo snap/cand-repo --report repo.md || f=1
-          { echo "## Shard ${{ matrix.shard }}: published game"; cat published.md; echo; echo "## Shard ${{ matrix.shard }}: repo copy"; cat repo.md; } >> "$GITHUB_STEP_SUMMARY"
+          if [ -d snap/cand ]; then { cat published.md; echo; node cand/tools/check/compare.js snap/base snap/cand || f=1; } > p2.md; mv p2.md published.md; fi
+          { echo "## Shard ${{ matrix.shard }}: published game"; cat published.md; echo; echo "## Shard ${{ matrix.shard }}: repo copy"; cat repo.md; echo; cat datafiles.md; } >> "$GITHUB_STEP_SUMMARY"
           # the reports as annotations too, so they can be read from the run page (and the API) without downloading logs
-          for r in published repo; do m=$(head -c 3500 $r.md | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g'); if grep -q '^No differences' $r.md; then echo "::notice title=Shard ${{ matrix.shard }} $r::$m"; else echo "::error title=Shard ${{ matrix.shard }} $r::$m"; fi; done
+          for r in published repo datafiles; do m=$(head -c 3500 $r.md | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g'); if grep -qE '^No differences|^Every published file|^datafiles check ok' $r.md; then echo "::notice title=Shard ${{ matrix.shard }} $r::$m"; else echo "::error title=Shard ${{ matrix.shard }} $r::$m"; fi; done
           exit $f
       - name: Keep changed pictures on a branch (check-pictures-${{ matrix.shard }})
         if: always()

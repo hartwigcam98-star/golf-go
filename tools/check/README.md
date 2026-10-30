@@ -19,9 +19,11 @@ rendering noise; anything over 2% of pixels fails and a side-by-side image is sa
 
 ## In GitHub
 
-`.github/workflows/check.yml` runs on every push to a branch other than `main` (and by hand from the Actions tab). It builds the
-published game (`tools/split/build.js`) from both `main` and the branch, checks both across 8 machines, and compares. Green means
-same game. Red lists what changed, with pictures attached to the run.
+`.github/workflows/check.yml` runs on every push to a branch other than `main` (and by hand from the Actions tab), across 8
+machines. It builds the published game (`tools/split/build.js`) from both `main` and the branch and compares the files byte for
+byte; plays the repo copies of both in full and compares; plays the published copies too when their files differ; and runs
+the `tools/datafiles.py` round trip. Green means same game. Red lists what changed: the reports are annotations on the run,
+and changed pictures go to `check-pictures-<shard>` branches.
 
 ## By hand
 
