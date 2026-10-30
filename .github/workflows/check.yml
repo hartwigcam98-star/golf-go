@@ -61,6 +61,8 @@ jobs:
           node cand/tools/check/compare.js snap/base snap/cand --report published.md || f=1
           node cand/tools/check/compare.js snap/base-repo snap/cand-repo --report repo.md || f=1
           { echo "## Shard ${{ matrix.shard }}: published game"; cat published.md; echo; echo "## Shard ${{ matrix.shard }}: repo copy"; cat repo.md; } >> "$GITHUB_STEP_SUMMARY"
+          # the reports as annotations too, so they can be read from the run page (and the API) without downloading logs
+          for r in published repo; do m=$(head -c 3500 $r.md | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g'); if grep -q '^No differences' $r.md; then echo "::notice title=Shard ${{ matrix.shard }} $r::$m"; else echo "::error title=Shard ${{ matrix.shard }} $r::$m"; fi; done
           exit $f
       - uses: actions/upload-artifact@v4
         if: always()
