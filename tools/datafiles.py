@@ -1,27 +1,35 @@
 #!/usr/bin/env python3
-"""The game's big data lines live in data/, one file each; index.html keeps a one-line marker where each one was.
+"""The game page is kept in pieces: index.html (page, styles, three.js, the loader), src/ (the game code, one file per
+section) and data/ (the game code's big data lines, one file each). Packed together they are exactly the old all-in-one
+index.html, byte for byte.
 
-Why: index.html used to be 27 MB, almost all of it data (course layouts and surroundings, textures, the golfer's motion,
-character pictures, course pictures). Code and data are now apart, and nothing about the game changes:
+Why: index.html used to be 27 MB and the game code one 7,900-line block. Now code, data and page are apart, and nothing about
+the game changes:
 
-  pack    rebuilds the old all-in-one page, byte for byte (each marker swapped back for its line, the data script tags dropped).
-          The publish build (tools/split/build.js) and the stamp (tools/stamp.py) work from it, so players get exactly the same
-          files as before. Course-pipeline steps that edit the page as one text start from it too.
-  unpack  takes any page and moves every big data line out of the game script into data/<NAME>.js, leaving the marker and
-          loading the files with plain <script> tags just before the game script. Lines already moved stay moved; a data file
-          whose marker is gone is deleted. Running it on an all-in-one page (e.g. the nightly build's work/index.html once it
-          has been copied back into the repo) splits it again, so it is safe to run any time. tools/stamp.py runs it.
+  pack    rebuilds the all-in-one page, byte for byte: the game code from src/ goes back between its <script> tags, each data
+          marker is swapped back for its line, and the data script tags and the loader are dropped. The publish build
+          (tools/split/build.js) and the stamp (tools/stamp.py) work from it, so players get exactly the same files as before.
+          Course-pipeline steps that edit the page as one text start from it too.
+  unpack  takes any page (all-in-one, already split, or partly) and splits it: every big data line in the game code moves to
+          data/<NAME>.js (leaving a /*@data NAME*/ marker); then the game code is cut at its section headings
+          (/* ---------- name ---------- */ and /* ---- name ---- */) into src/<name>.js, and index.html gets a small loader in
+          its place (the loader's list keeps the order). Files whose
+          part is gone are deleted. Safe to run any time; tools/stamp.py runs it.
   check   pack(unpack(page)) must give the page back exactly; also run by the Same-game check.
 
-A line moves when it sits in the game script, is at least 20,000 characters, and is `const|let NAME=<literal>;` or
+Data lines: a line moves when it sits in the game code, is at least 20,000 characters, and is `const|let NAME=<literal>;` or
 `Object.assign(NAME,<literal>);` (a trailing // comment is fine) whose literal is plain data (an object, array or string
-literal that evaluates on its own, checked with node),
-so running it as its own script before the game gives the same value. Moving it from the game's closure to a top-level script
-keeps it visible to the game by the same name. KEEP lists lines that pipeline tools edit in place in the repo copy.
+literal that evaluates on its own, checked with node), so running it as its own script before the game gives the same value.
+Moving it from the game's closure to a top-level script keeps it visible to the game by the same name. KEEP lists lines that
+pipeline tools edit in place.
+
+The game code: in the repo copy, the loader fetches src/ in order and runs the joined text as one inline script, so the game
+still runs as one closure, from exactly the same text as before. Edit the game in src/. A tool that writes an all-in-one page
+into the repo is fine: the next stamp splits it again.
 
 usage (from the repo root, or pass --repo DIR):
   python3 tools/datafiles.py pack [OUT]     all-in-one page to OUT (default: stdout)
-  python3 tools/datafiles.py unpack [IN]    split IN (default: index.html) into index.html + data/
+  python3 tools/datafiles.py unpack [IN]    split IN (default: index.html) into index.html + src/ + data/
   python3 tools/datafiles.py check          round-trip test of the current repo
 """
 import hashlib, json, os, re, subprocess, sys, tempfile
@@ -88,9 +96,59 @@ def strip_tags(lines):
     a = lines.index(TAGS_A); b = lines.index(TAGS_B, a)
     return lines[:a] + lines[b + 1:]
 
+CODE_A, CODE_B = '<!-- game code: tools/datafiles.py (the game is in src/) -->', '<!-- /game code -->'
+HEAD = re.compile(r'^/\* -{4,} (.*?) -{4,} \*/\s*$')
+PART = re.compile(r'^[a-z0-9-]+\.js$')
+
+def slug(h):
+    h = re.split(r'[:(,]', h)[0].lower().replace('&', 'and')
+    w = re.findall(r'[a-z0-9]+', h)[:4]
+    return '-'.join(w) or 'part'
+
+def loader(names, repo):
+    P = ','.join('"src/%s?v=%s"' % (n, sha(rd(os.path.join(repo, 'src', n)))) for n in names)
+    return [CODE_A,
+            '<script>(function(){var P=[' + P + '],t="",i,x;for(i=0;i<P.length;i++){x=new XMLHttpRequest();x.open("GET",P[i],false);x.send();'
+            'if(x.status!==200&&x.status!==0)throw new Error("game code: could not load "+P[i]);t+=x.responseText;}'
+            'var s=document.createElement("script");s.text="\\n"+t+"//# sourceURL=game.js\\n";document.currentScript.after(s);})();</script>',
+            CODE_B]
+
+def code_inline(repo, lines):
+    """the game code back between its <script> tags (no-op when it is already inline)"""
+    if CODE_A not in lines: return lines
+    a = lines.index(CODE_A); b = lines.index(CODE_B, a)
+    names = re.findall(r'"src/([^"?]+)\?v=', '\n'.join(lines[a:b]))
+    body = []
+    for n in names:
+        p = os.path.join(repo, 'src', n)
+        if not os.path.exists(p): sys.exit('datafiles: the loader lists %s but it is missing' % p)
+        t = rd(p)
+        if not t.endswith('\n'): sys.exit('datafiles: %s must end with a newline' % p)
+        body += t[:-1].split('\n')
+    return lines[:a] + ['<script>'] + body + ['</script>'] + lines[b + 1:]
+
+def code_split(repo, lines, quiet=False):
+    g0, g1 = game_span(lines)
+    body = lines[g0:g1 + 1]
+    cuts = [0] + [k for k, l in enumerate(body) if k > 0 and HEAD.match(l)] + [len(body)]
+    sdir = os.path.join(repo, 'src'); os.makedirs(sdir, exist_ok=True)
+    names = []
+    for n in range(len(cuts) - 1):
+        part = body[cuts[n]:cuts[n + 1]]
+        m = HEAD.match(part[0]) if n else None
+        base = slug(m.group(1)) if m else 'start'; name = base + '.js'; k = 2
+        while name in names: name = '%s-%d.js' % (base, k); k += 1
+        wr(os.path.join(sdir, name), '\n'.join(part) + '\n')
+        names.append(name)
+    for f in os.listdir(sdir):
+        if PART.match(f) and f not in names:
+            os.remove(os.path.join(sdir, f))
+            if not quiet: print('removed src/%s (its section is gone or renamed)' % f)
+    return lines[:g0 - 1] + loader(names, repo) + lines[g1 + 2:], names
+
 def pack_text(repo, page=None):
     s = rd(os.path.join(repo, 'index.html')) if page is None else page
-    lines = strip_tags(s.split('\n'))
+    lines = strip_tags(code_inline(repo, s.split('\n')))
     out = []
     for l in lines:
         m = MARK.match(l)
@@ -105,7 +163,7 @@ def pack_text(repo, page=None):
 
 def unpack(repo, src=None, quiet=False):
     s = rd(os.path.join(repo, 'index.html')) if src is None else rd(src)
-    lines = strip_tags(s.split('\n'))
+    lines = strip_tags(code_inline(repo, s.split('\n')))
     g0, g1 = game_span(lines)
     cands = []
     for i in range(g0, g1 + 1):
@@ -147,8 +205,9 @@ def unpack(repo, src=None, quiet=False):
     if keys:
         at = g0 - 1   # the '<script>' line of the game
         lines = lines[:at] + tags_block(keys, repo) + lines[at:]
+    lines, names = code_split(repo, lines, quiet)
     wr(os.path.join(repo, 'index.html'), '\n'.join(lines))
-    if not quiet: print('datafiles: %d line(s) moved now, %d data files in all' % (moved, len(keys)))
+    if not quiet: print('datafiles: %d data line(s) moved now, %d data files in all; game code in %d src files' % (moved, len(keys), len(names)))
     return keys
 
 def check(repo):
@@ -156,7 +215,7 @@ def check(repo):
     page = rd(os.path.join(repo, 'index.html'))
     full = pack_text(repo)
     with tempfile.TemporaryDirectory() as t:
-        os.makedirs(os.path.join(t, 'data'))
+        os.makedirs(os.path.join(t, 'data')); os.makedirs(os.path.join(t, 'src'))
         wr(os.path.join(t, 'index.html'), full)
         unpack(t, quiet=True)
         page2 = rd(os.path.join(t, 'index.html'))
@@ -166,8 +225,13 @@ def check(repo):
         if a != b: sys.exit('datafiles CHECK FAILED: data files differ: %s' % sorted(set(a) ^ set(b)))
         for f in a:
             if rd(os.path.join(repo, 'data', f)) != rd(os.path.join(t, 'data', f)): sys.exit('datafiles CHECK FAILED: data/' + f)
+        c = lambda d: sorted(f for f in os.listdir(d) if PART.match(f)) if os.path.isdir(d) else []
+        ca = c(os.path.join(repo, 'src')); cb = c(os.path.join(t, 'src'))
+        if ca != cb: sys.exit('datafiles CHECK FAILED: src files differ: %s' % sorted(set(ca) ^ set(cb)))
+        for f in ca:
+            if rd(os.path.join(repo, 'src', f)) != rd(os.path.join(t, 'src', f)): sys.exit('datafiles CHECK FAILED: src/' + f)
         if pack_text(t) != full: sys.exit('datafiles CHECK FAILED: packing twice differs')
-    print('datafiles check ok: %d data files, page %d KB, all-in-one %d KB' % (len(a), len(page.encode()) // 1024, len(full.encode()) // 1024))
+    print('datafiles check ok: %d data files, %d src files, page %d KB, all-in-one %d KB' % (len(a), len(ca), len(page.encode()) // 1024, len(full.encode()) // 1024))
 
 if __name__ == '__main__':
     argv = sys.argv[1:]; repo = repo_dir(argv)

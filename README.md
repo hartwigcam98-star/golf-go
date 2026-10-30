@@ -7,8 +7,9 @@ Live at https://hartwigcam98-star.github.io/golf-go/
 
 | Where | What |
 |---|---|
-| `index.html` | The game: page, styles, three.js and the game script |
-| `data/` | The game script's big data lines (course layouts, textures, golfer motion, pictures, sounds); see `data/README.md` |
+| `index.html` | The page: markup, styles, three.js, and the loader for the game code |
+| `src/` | The game code, one file per section (see `src/README.md`) |
+| `data/` | The game code's big data lines (course layouts, textures, golfer motion, pictures, sounds); see `data/README.md` |
 | `greens.js`, `ground.js`, `trees.js` | Per-course lidar greens, ground and buildings, and tree crowns |
 | `b10/` | The Blender upgrade: baked light, Blender clubhouses and trees |
 | `char*.js` | Playable golfer models |
@@ -21,9 +22,10 @@ Live at https://hartwigcam98-star.github.io/golf-go/
 
 ## Publishing
 
-Every push to `main` runs `.github/workflows/publish.yml`: `tools/split/build.js` packs the page, splits it into a small core
-plus one file per course, and deploys that to GitHub Pages. Before committing a change to `index.html`, `data/` or the data
-scripts, run `python3 tools/stamp.py`.
+Every push to `main` runs `.github/workflows/publish.yml`: `tools/split/build.js` packs the page (`tools/datafiles.py pack`:
+`index.html` + `src/` + `data/` back into the old all-in-one page, byte for byte), splits that into a small core plus one file
+per course, and deploys it to GitHub Pages. Before committing a change to `index.html`, `src/`, `data/` or the data scripts,
+run `python3 tools/stamp.py`.
 
 ## Changing the game safely
 

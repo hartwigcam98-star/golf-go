@@ -1,0 +1,38 @@
+/* ---------- v107 Help & FAQ: written answers, plus "Ask" (Claude via the Supabase function; queued as feedback until that's switched on) ---------- */
+const FAQ=[
+ ['How do I hit a perfect shot?','Tap Swing, tap again to set the power, then tap as the bar crosses the Impact line on the way back. Dead centre is a Perfect strike (flames on the ball), close is a Nice shot. Woods get +3% carry on a perfect strike; irons, hybrids and wedges keep your distance and bite more on the green. The window is smaller from the rough, bunkers and fescue, and on power shots.'],
+ ['Why doesn’t the yardage change with the wind?','On purpose: every number on screen (meter, landing ring, pin yardage) is the calm-air distance. Read the wind arrow and allow for it yourself: club up into the wind, down with it, and aim off for a crosswind. High shots feel the wind more, low shots less.'],
+ ['What do the first cut, rough and fescue do?','The first cut is the darker 2½-yard band round every fairway: just 1–3% less carry and slightly wider misses. Rough costs more (woods carry about 80%, wedges about 92%), misses are wider, and the ball comes out with little spin, so it runs out on landing (a flyer). Fescue, the long golden grass, is heavy: about 40–45% with woods, 63–74% with irons. The meter already allows for the lost carry.'],
+ ['Why did my approach run through the green?','Usually one of these: it came out of the rough (a flyer has little spin and releases), the wind was behind you, you hit it lower (Low height or topspin), the green was below you or sloping away, or your ball or irons roll out more (Distance or Low-spin ball, Cavity backs). Land it short and let it run.'],
+ ['How far do approach shots roll on the green?','For a normal full swing: 3 wood about 19 yards, 5 wood 16, 4 hybrid 11, 5 iron 8, 7 iron 6, 9 iron 4, pitching wedge about 3, sand wedge about 1. Perfect strikes with irons roll about 15% less. That’s roughly a normal tour week; real major-championship greens are firmer.'],
+ ['What do the bag models do? Are they fair?','Each slot (woods, irons, wedges, putter, ball) has Standard plus models that trade a strength for a weakness, e.g. the Bomber driver flies 5% further but strays 10% wider. They were tested in hundreds of simulated rounds to be roughly even overall, but some suit some courses: a Bomber helps on open courses and hurts in the trees. Pick them on the Golfers screen.'],
+ ['Can I change the clubs in my bag?','Yes, on the Golfers screen under Clubs & yardages. Slots marked ⇄ can swap: 4 wood or mini driver for the 3 wood, 7 wood or 3 hybrid for the 5 wood, a 3 or 5 hybrid, 4 iron or driving iron for the 4 hybrid, a 5 hybrid for the 5 iron, and 52°, 54°, 58° or 64° wedges. The table shows each club’s carry and the gaps.'],
+ ['What’s a power shot?','The lightning button: up to +15% distance, but the timing at impact is faster and harder. A dead-centre strike gets all of it, a nice strike half, and a miss none (then loses distance like any mishit). Use it as often as you like.'],
+ ['What do strike point and shot height do?','Strike point (the ball icon): hit the top for topspin (lower, more roll), the bottom for backspin (stops quicker; wedges can spin back), left or right to draw or fade. Shot height: High lands softer and stops quicker but the wind moves it more; Low stays under the wind and runs.'],
+ ['How do I read a putt?','The grid lines on the green show the slope: red is steep, green is gentle, and the glow runs downhill. Aim above the hole on a side slope and hit uphill putts firmer. The flag on the putting meter marks the hole’s distance.'],
+ ['Flag in or flag out?','Inside 15 feet the flag comes out automatically. Tap the small Flag chip at the top right to change it. With the flag in, a firm putt that hits it is more likely to drop.'],
+ ['Can I watch someone else\u2019s round?','Yes. Open Daily round and the leaderboard, tap a player\u2019s name, then tap \u25b6 Watch round (or a hole number to jump to that hole). Every shot plays back on the course, and the speed button plays it at 2\u00d7 or 4\u00d7. Course records work the same way for posted rounds. You can also replay your own last shot, save it to Saved shots, or save it as a video.'],
+ ['How does the daily round work?','Everyone plays the same course, pins, wind and weather that day, and you get one official round for the leaderboard. The course order is shuffled and future days are a surprise.'],
+ ['What’s the difference between Challenge and Challenge V2?','Challenge is 18-hole match play up a ladder of rivals, earning points for gear upgrades and outfits. In V2 you start as the weakest golfer and unlock each golfer by beating them on their home course.'],
+ ['Does my golfer matter?','Yes. Each golfer has Power, Control, Impact (timing window), Short game, Putting and Spin rated 1–10, plus a trait. They count in the daily round, full rounds and single holes.'],
+ ['Can I get my course added?','Yes. On the home screen, tap \u201cDon\u2019t see your course? Request it\u201d under the map (or \u201cRequest a course\u201d in a state\u2019s list) and enter the course and town. Courses are built from real maps, aerial photos and lidar, and the most-requested come first. You can have one request waiting at a time; it shows as Added \u2713 once it\u2019s in, and then you can ask for another.'],
+ ['How do I report a bug or suggest something?','Open the menu during a round to pause, then Send feedback. You can attach a screenshot of where you are. Every note gets read.']];
+const FAQX={hist:[]};
+function renderFaq(){const L=$('faqList');if(L.dataset.done)return;L.dataset.done=1;const esc=t=>t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  L.innerHTML=FAQ.map(([q,a])=>'<details><summary>'+esc(q)+'</summary><p>'+esc(a)+'</p></details>').join('');}
+function openFaq(){renderFaq();$('faqM').hidden=false;sfx.tick();}
+function faqShow(){const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  $('faqA').innerHTML=FAQX.hist.slice().reverse().map(h=>'<div class="qa"><b>'+esc(h.q)+'</b>'+(h.wait?'<span class="wait">Thinking…</span>':h.err?'<span class="err">'+esc(h.err)+'</span>':esc(h.a).replace(/\n/g,'<br>'))+'</div>').join('');}
+async function faqAsk(){const q=$('faqQ').value.trim();if(q.length<3){$('faqQ').focus();return;}
+  const h={q,wait:true};FAQX.hist.push(h);faqShow();$('faqQ').value='';$('faqGo').disabled=true;
+  const ctx=G.hole&&CUR&&inRound()?(CUR.name+' hole '+(G.hi+1)+(G.lie?', ball in the '+G.lie:'')):'';
+  const queue=async()=>{try{const r=await fetch(DAILY.url+'/rest/v1/feedback',{method:'POST',headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),
+      body:JSON.stringify({player_id:dailyPid(),name:dailyName()||'',kind:'other',message:('[Question] '+q).slice(0,2000),ctx:{faq:true,where:ctx,ver:window.GOLF_VER||''}})});
+      h.a=r.ok?'Thanks! Instant answers aren’t switched on yet, so your question has been saved. The answer will be added to this FAQ soon.':'';if(!r.ok)h.err='Couldn’t send it just now. Try again in a bit.';}
+    catch(e){h.err='Couldn’t send it. Check your connection and try again.';}};
+  try{const r=await fetch(DAILY.url+'/functions/v1/ask',{method:'POST',headers:dailyHdr({'Content-Type':'application/json'}),body:JSON.stringify({q,pid:dailyPid(),ver:window.GOLF_VER||'',ctx})});
+    let d={};try{d=await r.json();}catch(e){}
+    if(r.ok&&d.a)h.a=d.a;else if(d.queue||r.status===404||r.status>=500)await queue();else h.err=d.error||('Couldn’t get an answer (error '+r.status+').');}
+  catch(e){await queue();}
+  h.wait=false;faqShow();$('faqGo').disabled=false;}
+$('mFaq').addEventListener('click',()=>{A();openFaq();});

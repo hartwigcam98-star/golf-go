@@ -11,7 +11,11 @@ page = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'index.html')
 J = lambda p: json.load(open(os.path.join(ROOT, p)))
 traced, borrow, rlid, card = J('pipeline/ranges/traced.json'), J('pipeline/ranges/borrow.json'), J('pipeline/ranges/rlid.json'), J('pipeline/courses/teecard.json')
 dump = lambda o: json.dumps(o, separators=(',', ':'))
-s = open(page).read(); s0 = s
+sys.path.insert(0, os.path.join(ROOT, 'tools')); import datafiles
+s = open(page).read()
+split = '<!-- game code: tools/datafiles.py' in s     # the repo page in pieces (src/, data/): edit the packed page, then split it again
+if split: s = datafiles.pack_text(os.path.dirname(os.path.abspath(page)), s)
+s0 = s
 def put(pat, new, name):
     global s
     n = len(re.findall(pat, s, flags=re.M))
@@ -24,4 +28,5 @@ put(r'^const TEECARD=\{.*\};$', 'const TEECARD=' + dump(card) + ';', 'TEECARD')
 if s == s0: print('no changes')
 else:
     open(page, 'w').write(s)
+    if split: datafiles.unpack(os.path.dirname(os.path.abspath(page)), quiet=True)
     print('updated', page, ':', len(traced), 'traced ranges,', len(borrow), 'borrowed,', len(rlid), 'range lidar patches,', len(card), 'tee cards')

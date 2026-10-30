@@ -183,8 +183,8 @@ cd /home/claude/golf-go && git status --short
 index.html and `B` in sw.js: phones on an older copy see it differ, download the new game and offer a Restart) and sw.js `V`.
 **Any other change to index.html or the data files: run `python3 tools/stamp.py` before committing** (instead of editing
 `?v=` or `V` by hand).
-The repo page keeps its big data lines (course layouts, surroundings, pictures) in `data/` (`tools/datafiles.py`). The work
-copy is the all-in-one page (`datafiles.py pack`, step 6); `stamp.py` splits whatever page `ship.py` writes back, so nothing
+The repo page is kept in pieces: the game code in `src/` and its big data lines (course layouts, surroundings, pictures) in
+`data/` (`tools/datafiles.py`). The work copy is the all-in-one page (`datafiles.py pack`, step 6); `stamp.py` splits whatever page `ship.py` writes back, so nothing
 else changes. A tool that must read the repo page as one text uses `python3 tools/datafiles.py pack OUT`.
 Add an entry for the request to `pipeline/courses/requests.json` (`built`, key, date). Copy any changed pipeline files back
 into `pipeline/courses/` (e.g. `auto/<key>/meta.json`, `*_edits.json`, scorecard; not the big json/npz data).

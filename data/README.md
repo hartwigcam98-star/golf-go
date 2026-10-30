@@ -4,8 +4,8 @@ The game's big data lines: course layouts (`COURSE_*`), their surroundings (`SUR
 (`DEM_*`), textures (`R3TEX`), the golfer's motion (`R3BOSS`), the leaf atlas (`R3LEAF`), character and course pictures
 (`CHAR_PIC`, `COURSE_IMG`) and sounds (`REAL_*`).
 
-Each file is exactly one line, cut verbatim from the game script in `index.html`, which keeps a `/*@data NAME*/` marker
-where the line was and loads these files with plain `<script>` tags just before the game script.
+Each file is exactly one line, cut verbatim from the game code (now in `src/`), which keeps a `/*@data NAME*/` marker where
+the line was; `index.html` loads these files with plain `<script>` tags just before the game code.
 
 Don't edit these by hand. `tools/datafiles.py` moves the lines in and out:
 

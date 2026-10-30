@@ -1,5 +1,6 @@
-/* Tiny static server for the snapshot check. Serves a site folder; index.html gets one line added (window.__ev) so the check can
-   reach into the game's own scope. Nothing on disk changes. */
+/* Tiny static server for the snapshot check. Serves a site folder; the game's boot line (in index.html, or in src/ when the
+   game code is kept in pieces) gets one line added before it (window.__ev) so the check can reach into the game's own scope.
+   Nothing on disk changes. */
 const http = require('http'), fs = require('fs'), path = require('path');
 const ANCHOR = 'if(window.claude?.hot?.ready)window.claude.hot.ready(boot);';
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.png': 'image/png',
@@ -12,10 +13,11 @@ function serve(root) {
       const f = path.join(root, p);
       if (!f.startsWith(root) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.writeHead(404); r.end(); return; }
       let body = fs.readFileSync(f);
-      if (p === '/index.html') {
+      // the boot line is in index.html (all-in-one page) or in src/ (the game code in pieces, joined by the page's loader)
+      if (p === '/index.html' || /^\/src\/[^/]+\.js$/.test(p)) {
         const s = body.toString('utf8'), i = s.indexOf(ANCHOR);
-        if (i < 0) { r.writeHead(500); r.end('snapshot check: boot anchor not found in index.html'); return; }
-        body = Buffer.from(s.slice(0, i) + 'window.__ev=s=>eval(s);\n' + s.slice(i), 'utf8');
+        if (i >= 0) body = Buffer.from(s.slice(0, i) + 'window.__ev=s=>eval(s);\n' + s.slice(i), 'utf8');
+        else if (p === '/index.html' && !s.includes('"src/')) { r.writeHead(500); r.end('snapshot check: boot anchor not found in index.html'); return; }
       }
       r.writeHead(200, { 'content-type': TYPES[path.extname(f)] || 'application/octet-stream', 'cache-control': 'no-store' }); r.end(body);
     });

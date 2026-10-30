@@ -132,7 +132,7 @@ console.log('static blobs moved out: ' + ASSETS.map(u => u.split('?')[0].replace
 fs.writeFileSync(path.join(OUT, 'index.html'), coreText);
 
 // ---- every other tracked file, as is
-const skipTop = new Set(['.github', 'pipeline', 'supabase', 'app', 'tools', 'dist', 'data']);   // data/: packed into the page above
+const skipTop = new Set(['.github', 'pipeline', 'supabase', 'app', 'tools', 'dist', 'data', 'src']);   // data/, src/: packed into the page above
 const tracked = execSync('git ls-files -z', { encoding: 'utf8' }).split('\0').filter(Boolean);
 for (const f of tracked) {
   if (skipTop.has(f.split('/')[0]) || f === 'index.html' || f === 'sw.js' || extraScripts.includes(f)) continue;

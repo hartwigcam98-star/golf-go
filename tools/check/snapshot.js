@@ -35,6 +35,8 @@ function dataNames() {
   scan(main, 20000);
   for (const f of ['greens.js', 'ground.js', 'trees.js']) if (fs.existsSync(path.join(SITE, f))) scan(fs.readFileSync(path.join(SITE, f), 'utf8'), 1000);
   // the repo copy keeps the page's big data lines in data/ (tools/datafiles.py)
+  const sd = path.join(SITE, 'src');   // the game code in pieces
+  if (fs.existsSync(sd)) for (const f of fs.readdirSync(sd)) if (f.endsWith('.js')) scan(fs.readFileSync(path.join(sd, f), 'utf8'), 20000);
   const dd = path.join(SITE, 'data');
   if (fs.existsSync(dd)) for (const f of fs.readdirSync(dd)) if (f.endsWith('.js')) scan(fs.readFileSync(path.join(dd, f), 'utf8'), 1000);
   return [...names].sort();

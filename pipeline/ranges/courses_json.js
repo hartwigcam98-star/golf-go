@@ -3,8 +3,8 @@
 const fs=require('fs'),vm=require('vm'),path=require('path');
 const page=process.argv[2]||'index.html',ctx={};vm.createContext(ctx);
 let s=fs.readFileSync(page,'utf8');
-// the repo page keeps its big data lines in data/ (tools/datafiles.py): read the all-in-one page they pack into
-if(s.includes('/*@data '))s=require('child_process').execSync('python3 '+JSON.stringify(path.join(__dirname,'../../tools/datafiles.py'))+' --repo '+JSON.stringify(path.dirname(path.resolve(page)))+' pack',{encoding:'utf8',maxBuffer:1<<30});
+// the repo page is kept in pieces (src/, data/; tools/datafiles.py): read the all-in-one page they pack into
+if(s.includes('/*@data ')||s.includes('<!-- game code: tools/datafiles.py'))s=require('child_process').execSync('python3 '+JSON.stringify(path.join(__dirname,'../../tools/datafiles.py'))+' --repo '+JSON.stringify(path.dirname(path.resolve(page)))+' pack',{encoding:'utf8',maxBuffer:1<<30});
 for(const m of s.matchAll(/^let ([A-Z][A-Z0-9_]*)=(.*)$/gm)){try{vm.runInContext('var '+m[1]+'='+m[2],ctx);}catch(e){}}
 const out=[];
 for(const m of s.matchAll(/^\s*([a-z0-9_]+):\{([^\n]*?)\bid:'([a-z0-9_]+)'([^\n]*?)course:(COURSE_[A-Z0-9_]+)/gm)){

@@ -14,7 +14,8 @@ const [course, holeArg] = process.argv.slice(2);
 if (!course || !holeArg) { console.error('usage: node next/tools/export-hole.mjs <course> <hole 1-18>'); process.exit(1); }
 const hole = parseInt(holeArg, 10) - 1, root = resolve('.');
 const HOOKED = '_export_tmp.html';
-const src = await readFile(join(root, 'index.html'), 'utf8'), tail = 'else boot(window.claude?.hot?.data??{});\n})();';
+// the all-in-one page (the repo keeps it in pieces: src/, data/; tools/datafiles.py)
+const src = (await import('node:child_process')).execSync('python3 tools/datafiles.py pack', { cwd: root, encoding: 'utf8', maxBuffer: 1 << 30 }), tail = 'else boot(window.claude?.hot?.data??{});\n})();';
 if (!src.includes(tail)) throw new Error('index.html boot line not found; update the hook');
 await writeFile(join(root, HOOKED), src.replace(tail, 'else boot(window.claude?.hot?.data??{});\nwindow.__ev=x=>eval(x);\n})();'));
 

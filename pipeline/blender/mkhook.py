@@ -9,7 +9,8 @@ for n in os.listdir(src):
     if n in ('index.html', '.git'): continue
     p = os.path.join(dst, n)
     if not os.path.lexists(p): os.symlink(os.path.join(src, n), p)
-L = open(os.path.join(src, 'index.html')).read().split('\n')
+sys.path.insert(0, os.path.join(src, 'tools')); import datafiles
+L = datafiles.pack_text(os.path.abspath(src)).split('\n')   # the all-in-one page (the repo keeps it in pieces: src/, data/)
 k = next(i for i in range(1, len(L)) if L[i] == '(()=>{' and L[i - 1] == '<script>')
 L[k] = '(()=>{window.__ev=s=>eval(s);'
 s = '\n'.join(L)

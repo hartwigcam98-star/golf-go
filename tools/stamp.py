@@ -20,7 +20,7 @@ for f in ('greens.js','ground.js','trees.js'):
     sw,n=re.subn(r'"'+re.escape(f)+r'\?v=[0-9a-f]+"',f'"{f}?v={v}"',sw);assert n==1,(f,n)
 # every inline script must parse (a stray // comment once swallowed the code after it on its line): node --check each one
 import subprocess,tempfile
-for k,m in enumerate(re.finditer(r'<script>(.*?)</script>',s,re.S)):
+for k,m in enumerate(re.finditer(r'<script>(.*?)</script>',datafiles.pack_text(R,s),re.S)):   # the packed page: the game code is in src/
     with tempfile.NamedTemporaryFile('w',suffix='.js',delete=False) as tf: tf.write(m.group(1))
     r=subprocess.run(['node','--check',tf.name],capture_output=True,text=True);os.unlink(tf.name)
     if r.returncode: sys.exit('STAMP REFUSED: inline script %d does not parse:\n%s'%(k,r.stderr[:600]))
