@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Ask
         run: |
-          K=$(grep -o "key:'eyJ[^']*'" index.html | head -1 | cut -d"'" -f2)
+          K=$(grep -ho "key:'eyJ[^']*'" index.html src/*.js | head -1 | cut -d"'" -f2)
           ask(){ R=$(curl -sS --max-time 60 -X POST https://rgzpfjstfgygqdfmiqdh.supabase.co/functions/v1/ask -H "apikey: $K" -H "Authorization: Bearer $K" -H "Content-Type: application/json" -d "$(jq -nc --arg q "$1" '{q:$q,pid:"ci-test"}')");
             echo "::notice title=Q: $1::$(echo "$R" | jq -r '.a // .error // .' | tr '\n' ' ')"; }
           ask "What is the difference between control and impact stats?"

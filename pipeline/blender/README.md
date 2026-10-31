@@ -51,5 +51,5 @@ Then Read `/home/claude/b10work/shots/<key>_before.png` and `<key>_after.png`, a
 - The clubhouse's terrace side faces whichever hole is being played in the old game. The Blender copy is fixed, so it is
   captured on the home hole (the hole whose line runs closest to it), which is also where it is seen most.
 - `b10/club_ver.json` bumps a clubhouse's `?v=` when it is rebuilt; `mkbake.py` writes it into `bake.js`.
-- Bump `b10/bake.js?v=` in index.html whenever bake.js changes (`bake` does it).
+- Bump `b10/bake.js?v=` (in src/daily-round.js since the code split) whenever bake.js changes (`bake` does it).
 - Don't run two `bake`s at once from the same clone.

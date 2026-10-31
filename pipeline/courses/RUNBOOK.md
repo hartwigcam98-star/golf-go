@@ -203,7 +203,7 @@ bash $P/newcourse.sh bake <key> [key2]        # background, one GitHub run for b
 bash $P/newcourse.sh cand <key> [key2]        # Read /home/claude/b10work/shots/sheet_<keys>.jpg and pick a view per course
 bash $P/newcourse.sh shoot <key>=<n> [key2=<n>]
 ```
-Read the before/after pictures (README "Checks"). Commit `b10/ blender/ index.html` to main ("Blender pass: <name>") and push
+Read the before/after pictures (README "Checks"). Commit `b10/ blender/ src/ index.html sw.js` to main ("Blender pass: <name>") and push
 (on rejection: pull, re-run `python3 $P/mkbake.py`, bump `b10/bake.js?v=` again, push). A part that fails is left out and reported.
 
 ## 8. Report to Cam (PushNotification)
