@@ -171,6 +171,15 @@ const DAILY_UNDO=[['2026-10-23','p5sa6c8gmmuvyzitv','cam',9,'u1']];
   for(const[day,id,name,hi,tag]of DAILY_UNDO){const f='golf-daily-undo-'+day+tag;if(d.day!==day||!(pid===id||nm===name)||localStorage.getItem(f))continue;
     localStorage.setItem(f,'1');if(d.done||d.hi!==hi||!d.mid||!(d.strokes>0)||!d.prev)continue;
     d.ball={x:d.prev.x,y:d.prev.y};d.strokes-=1;d.pend=null;if(d.strokes===0)d.mid=false;if(Array.isArray(d.shots)&&d.shots.length)d.shots.pop();d.ts=Date.now();dailyStore(d);d._undone=1;}}catch(e){}})();
+/* one-off restarts of a hole in a player's daily round (day, player id or name, hole index, tag): on that phone, once, if the saved round
+   is on that hole (or has just holed out on it, with no stroke yet on the next), the hole's strokes, score and replays come off and it
+   starts again from the tee. Oct 31: Cam, Lehman hole 9 (his ask). */
+const DAILY_REHOLE=[['2026-10-31','p5sa6c8gmmuvyzitv','cam',8,'h1']];
+(function(){try{const d=dailyLoad();if(!d)return;const pid=localStorage.getItem('golf-pid')||'',nm=String(localStorage.getItem('golf-name')||'').trim().toLowerCase();
+  for(const[day,id,name,hi,tag]of DAILY_REHOLE){const f='golf-daily-rehole-'+day+tag;if(d.day!==day||!(pid===id||nm===name)||localStorage.getItem(f))continue;
+    const sc=Array.isArray(d.scores)?d.scores:[];const on=d.hi===hi,after=d.hi===hi+1&&!d.mid&&!d.pend&&!(d.strokes>0)&&sc[hi]>0;
+    if(d.done||!(on||after))continue;localStorage.setItem(f,'1');
+    d.hi=hi;d.scores=sc.slice(0,hi);d.strokes=0;d.mid=false;d.pend=null;d.ball=null;d.prev=null;if(Array.isArray(d.shots))d.shots=d.shots.filter(x=>!x||x.h<hi);d.ts=Date.now();dailyStore(d);}}catch(e){}})();
 function dailyHdr(h={}){const k=DAILY.key;h.apikey=k;if(!/^sb_/.test(k))h.Authorization='Bearer '+k;return h;}
 const PLAYER_MERGE=['cam','pappa','ogtwig'];   // same golfer on more than one player id (re-saved to the home screen)
 const pKey=r=>{const n=String(r.name||'').trim().toLowerCase();return PLAYER_MERGE.includes(n)?'n:'+n:r.player_id;};
