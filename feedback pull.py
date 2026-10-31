@@ -1,7 +1,8 @@
 # Pulls Golf Go feedback (Supabase table "feedback") into the "feedback" branch: one folder per note with
 # note.json and shot.jpg, plus FEEDBACK.md listing every note newest first. Runs on GitHub Actions (feedback.yml).
-import base64, json, os, re, subprocess, time, urllib.request
-page = open('index.html', encoding='utf-8').read()
+import base64, glob, json, os, re, subprocess, time, urllib.request
+# The Supabase config lives in src/daily-round.js since the Oct 30 split; search index.html and all of src/ so a future move can't break this.
+page = ''.join(open(f, encoding='utf-8').read() for f in ['index.html'] + sorted(glob.glob('src/**/*.js', recursive=True)))
 m = re.search(r"DAILY=\{url:'([^']+)',key:'([^']+)'", page); URL, KEY = m.group(1), m.group(2)
 hdr = {'apikey': KEY}
 if not KEY.startswith('sb_'): hdr['Authorization'] = 'Bearer ' + KEY
