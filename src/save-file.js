@@ -1,6 +1,6 @@
 /* ---------- save file (this device) ---------- */
 let SAVE_KEY=CUR.saveKey;
-function saveGame(o={}){if(G.hole&&G.hole.range)return;if(G.mode==='daily'){dailySave(o);return;}if(G.mode!=='round')return;
+function saveGame(o={}){if(G.hole&&G.hole.range)return;if(G.mode==='daily'){dailySave(o);return;}if(G.mode==='tourney'){tourSave(o);return;}if(G.mode!=='round')return;
   const d={v:1,pin:G.pinSeed||0,shots:G.rShots||[],ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,pend:o.pend||null,tee:TEE,ts:Date.now()};
   try{localStorage.setItem(SAVE_KEY,JSON.stringify(d));}catch(e){}}
 function loadSave(key=SAVE_KEY,n=TB.length){try{const d=JSON.parse(localStorage.getItem(key)||'null');if(d&&d.v===1&&Number.isInteger(d.hi)&&d.hi>=0&&d.hi<n)return d;}catch(e){}return null;}
@@ -16,6 +16,7 @@ function roundWindSeed(){
   if(G.mode==='daily'||(G.mode==='spectate'&&G.dailyDay))return G.dailySeed;
   if(G.mode==='spectate')return G.dailySeed||1;
   if(G.mode==='round'){if(!G.pinSeed)G.pinSeed=1+Math.floor(Math.random()*1e9);return G.pinSeed;}
+  if(G.mode==='tourney'&&CAR.tour)return CAR.tour.seed;
   if(MATCH.on){if(!MATCH.ws)MATCH.ws=1+Math.floor(Math.random()*1e9);return MATCH.ws;}
   if(!G.windSeed)G.windSeed=1+Math.floor(Math.random()*1e9);return G.windSeed;}
 function holeWind(i){
@@ -44,7 +45,7 @@ function startHole(i){if(b10On()&&!b10ClubReady(CUR.id,()=>startHole(i)))return;
   $('iTip').textContent=rg?'Warm up as long as you like: every ball comes back to the mat. Tap First tee when you\u2019re ready.':G.hole.tip;$('teeBtn').textContent=rg?'Start hitting':'Tee off';$('matchTag').hidden=!MATCH.on;
   $('howto').hidden=!(i===0&&G.mode==='round');$('iFine').hidden=i!==0;$('rangeGo').hidden=!rg;$('iRange').hidden=!(i===0&&(G.mode==='round'||G.mode==='daily')&&!MATCH.on&&!!rangeOf(CUR));
   if(i===0){const cn=(COURSES[CUR.id]&&COURSES[CUR.id].name||'the club').split(' \u00b7 ')[0];$('iFine').textContent='Unofficial re-creation built from the mapped course layout (\u00a9 OpenStreetMap contributors), aerial photos, USGS 3DEP elevation and published hole descriptions. Not affiliated with '+cn+'.';}
-  $('iEyebrow').textContent=G.mode==='practice'?CUR.name+' \u00b7 practice hole':G.mode==='daily'?'Daily round \u00b7 '+dailyNice(G.dailyDay)+' \u00b7 '+CUR.name:courseLine();
+  $('iEyebrow').textContent=G.mode==='practice'?CUR.name+' \u00b7 practice hole':G.mode==='daily'?'Daily round \u00b7 '+dailyNice(G.dailyDay)+' \u00b7 '+CUR.name:G.mode==='tourney'?tourEyebrow():courseLine();
   $('cardM').hidden=true;$('reliefM').hidden=true;$('introM').hidden=false;
   setTimeout(()=>$('teeBtn').focus({preventScroll:true}),50);
   try{if(R3.on)r3LvlWarm();}catch(e){}
@@ -100,7 +101,7 @@ function tap(at){
    and on reopening that same swing is played out before anything else */
 function pendSave(power,e,seed){const P={s:G.strokes,bx:G.ball.x,by:G.ball.y,p:power,e,sd:seed,aim:G.aim,c:G.clubIdx,st:G.stype,sp:G.spin,imp:{...G.imp},tr:G.traj,ps:!!G.pshot,mp:G.meter.power,fo:!!G.flagOut,w:{...G.wind}};
   if(MATCH.on){const m=CAR.match;if(m&&m.cur){m.cur.pend={...P,k:MATCH.turn};m.ts=Date.now();saveCareer();}return;}
-  if(G.mode==='round'||G.mode==='daily')saveGame({mid:true,pend:P});}
+  if(G.mode==='round'||G.mode==='daily'||G.mode==='tourney')saveGame({mid:true,pend:P});}
 function pendResume(P){if(!P||G.state!=='aim'||G.strokes!==P.s||hyp(G.ball.x-P.bx,G.ball.y-P.by)>.1)return false;
   const set=()=>{G.aim=P.aim;G.clubIdx=P.c;G.stype=P.st||'full';G.spin=P.sp||0;G.imp={...(P.imp||{x:0,y:0})};G.traj=P.tr||0;G.pshot=!!P.ps;G.meter.power=P.mp||0;G.flagOut=!!P.fo;if(P.w)G.wind={...P.w};G.shortP=null;setShortMax();};
   set();pendSave(P.p,P.e,P.sd);
@@ -133,7 +134,7 @@ function strikeShot(power,e){
     if(perfect===2)toast('PURE STROKE','','#ffe27a');
     return;
   }
-  const ST=SHOTS[G.stype];if(MATCH.on&&!G.aiTurn&&perfect===2)MATCH.earn.perfect++;
+  const ST=SHOTS[G.stype];if(MATCH.on&&!G.aiTurn&&perfect===2)MATCH.earn.perfect++;else if(perfect===2&&tourEarn())tourEarn().perfect++;
   /* a perfect strike: any wood (tee, fairway, rough) gets extra carry; irons, hybrids and wedges keep the distance
      stays exactly what the player dialled in and the ball comes off with more spin, so it bites: less roll-out (more with a
      carry-boost trait: +3% -> 15% less roll, +6% -> 30%) */
@@ -549,7 +550,7 @@ function holed(kind){if(G.hole&&G.hole.range){const p=G.hole.pin;G.ball={x:p[0],
   toast(name,sub,good?'#ffc93c':G.strokes===G.hole.par?'#8ee6a8':'#fff6dc');
   const highlight=!gim&&(G.strokes===1||G.fromLie!=='green'||(G.fromLie==='green'&&hyp(G.prev.x-p[0],G.prev.y-p[1])*3>25));
   const nx=MATCH.on?mHoled:showCard;
-  if(MATCH.on&&!G.aiTurn&&!gim){if(G.fromLie!=='green'&&G.strokes>1)MATCH.earn.chip++;else if(G.fromLie==='green'&&hyp(G.prev.x-p[0],G.prev.y-p[1])*3>25)MATCH.earn.putt++;}
+  {const E=MATCH.on&&!G.aiTurn?MATCH.earn:tourEarn();if(E&&!gim){if(G.fromLie!=='green'&&G.strokes>1)E.chip++;else if(G.fromLie==='green'&&hyp(G.prev.x-p[0],G.prev.y-p[1])*3>25)E.putt++;}}
   // celebrations and groans: the bigger the moment, the bigger the dance
   const pick=a=>a[Math.floor(Math.random()*a.length)],dpar=G.strokes-G.hole.par,chipIn=sub==='Chip-in',longPutt=/ft putt/.test(sub);
   const rk=G.strokes===1||dpar<=-3?'freeze':dpar===-2?pick(['robot','samba']):chipIn&&dpar<=-1?'break90':G.fromLie==='green'&&dpar===-1&&!gim?(hyp(G.prev.x-p[0],G.prev.y-p[1])*3>12?'puttwin':'puttwin2'):(chipIn||longPutt)?'uprock':dpar===-1?'runman':dpar>=2?pick(['rejected','angry']):'';
@@ -570,7 +571,7 @@ function nineTable(from,label,withTot){
   return head+'<tbody>'+par+you+'</tbody>';
 }
 function showCard(){
-  G.state='card';$('cardPostV').hidden=true;
+  G.state='card';$('cardPostV').hidden=true;if(G.mode==='tourney'&&CAR.tour){tourCard();return;}
   const last=G.hi===TB.length-1,prac=G.mode==='practice';
   for(const el of document.querySelectorAll('#cardM .scwrap,#cardM .legend'))el.hidden=prac;
   $('cardPick').hidden=!prac;
@@ -602,4 +603,4 @@ function showCard(){
   }
   $('cardM').hidden=false;setTimeout(()=>$('nextBtn').focus({preventScroll:true}),50);
 }
-function nextFromCard(){if(MATCH.on){matchNext();return;}if(G.mode==='daily'&&G.hi===TB.length-1){$('cardM').hidden=true;openDailyBoard(true);return;}if(G.mode==='practice'){G.scores=[];G.psLeft=3;startHole(B10T&&b10On()?(G.hi+1)%TB.length:G.hi);return;}/* walk-through link: hole by hole */if(G.hi===TB.length-1){G.scores=[];G.pinSeed=0;G.rShots=[];G.psLeft=3;if(R3.on)r3NewWx();startHole(0);}else startHole(G.hi+1);}   /* Play again is a fresh round: new pins, power shots back, its own replay */
+function nextFromCard(){if(MATCH.on){matchNext();return;}if(G.mode==='tourney'){tourNext();return;}if(G.mode==='daily'&&G.hi===TB.length-1){$('cardM').hidden=true;openDailyBoard(true);return;}if(G.mode==='practice'){G.scores=[];G.psLeft=3;startHole(B10T&&b10On()?(G.hi+1)%TB.length:G.hi);return;}/* walk-through link: hole by hole */if(G.hi===TB.length-1){G.scores=[];G.pinSeed=0;G.rShots=[];G.psLeft=3;if(R3.on)r3NewWx();startHole(0);}else startHole(G.hi+1);}   /* Play again is a fresh round: new pins, power shots back, its own replay */

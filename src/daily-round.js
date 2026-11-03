@@ -116,7 +116,7 @@ async function dailyMine(day){const u=authUser();if(!u||!DAILY.url)return null;
 function dailySave(o={}){const d=dailyLoad()||{};if(d.day!==G.dailyDay)return;
   Object.assign(d,{ps:G.psLeft,hi:o.hi??G.hi,scores:G.scores,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,pend:o.pend||null,ts:Date.now()});dailyStore(d);}
 function dailyWeather(day){if(typeof R3==='undefined'||!R3.on||typeof r3ApplyWx!=='function')return;r3ApplyWx(Math.floor(rng(dailyNum(day)*31+7)()*4)%4,true);}
-function dailyLeave(){if(G.mode!=='daily'&&G.mode!=='spectate'&&G.mode!=='career'&&G.mode!=='highlight')return;G.mode='round';const c=homeCourse();if(c!==CUR.id)setCourse(c,false);
+function dailyLeave(){if(G.mode!=='daily'&&G.mode!=='spectate'&&G.mode!=='career'&&G.mode!=='tourney'&&G.mode!=='highlight')return;G.mode='round';const c=homeCourse();if(c!==CUR.id)setCourse(c,false);
   if(typeof R3!=='undefined'&&R3.on&&typeof r3RoundWx==='function')r3RoundWx();}
 // start or resume today's official round
 function dailyPlay(){if(courseGate(dailyCourse(dailyDay()),dailyPlay))return;const day=dailyDay(),cid=dailyCourse(day);let d=dailyToday();

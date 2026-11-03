@@ -11,7 +11,7 @@ function pauseSync(){document.querySelectorAll('#pTrz button').forEach(b=>b.clas
   document.querySelectorAll('#pGfx button').forEach(b=>b.classList.toggle('on',(b.dataset.g==='high')===(R3.q==='high')));}
 function openPause(){PAUSE.shot=pauseShot();G.paused=true;const c=pauseCtx();
   $('pSub').textContent=(CUR?CUR.name:'')+' \u00b7 hole '+c.hole+(c.thru?' \u00b7 '+fmtDiff(c.toPar)+' thru '+c.thru:'');
-  $('pQuitSub').textContent=G.mode==='daily'?'Today\u2019s round is saved. Pick it up from the Daily round button.':G.mode==='career'?'Your match is saved. Continue it from the menu.':G.mode==='practice'?'Practice holes aren\u2019t saved.':'Your round is saved. Continue it any time from the menu.';
+  $('pQuitSub').textContent=G.mode==='daily'?'Today\u2019s round is saved. Pick it up from the Daily round button.':G.mode==='career'?'Your match is saved. Continue it from the menu.':G.mode==='tourney'?'Your tournament round is saved. Continue it from the menu.':G.mode==='practice'?'Practice holes aren\u2019t saved.':'Your round is saved. Continue it any time from the menu.';
   pauseMode(false);$('pMain').hidden=false;$('pFbView').hidden=true;$('pCardView').hidden=true;pauseSync();$('pauseM').hidden=false;}
 /* Oct 2026: the same settings and feedback, opened from the home screen (no round buttons; Done goes back to the menu) */
 function pauseMode(home){PAUSE.home=home;PAUSE.fbOnly=false;$('pTitle').textContent=home?'Settings':'Paused';for(const id of['pSub','pResume','pCard','pQuit','pQuitSub'])$(id).hidden=home;$('pHome').hidden=!home;}

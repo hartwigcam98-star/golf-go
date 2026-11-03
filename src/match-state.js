@@ -5,7 +5,7 @@ function matchUp(){return MATCH.res.reduce((a,b)=>a+(b||0),0);}
 function holesPlayed(){return MATCH.res.filter(x=>x!==undefined&&x!==null).length;}
 function statusLong(up,thru){const r=MATCH.r?rn(MATCH.r):'Rival';if(!up)return'All square'+(thru?' thru '+thru:'');return(up>0?'You':r)+' '+Math.abs(up)+' UP'+(thru?' thru '+thru:'');}
 function statusShort(up){const r=MATCH.r?rn(MATCH.r):'Rival';return up===0?'AS':up>0?'You '+up+' UP':r+' '+(-up)+' UP';}
-function endMatchMode(){if(R3.on&&MATCH.on)r3RoundWx();$('game').classList.remove('inmatch');MATCH.on=false;G.aiTurn=false;G.aiChar=false;G.ai=null;G.cm=null;G.look=null;$('matchTag').hidden=true;
+function endMatchMode(){try{tourLeave();}catch(e){}if(R3.on&&MATCH.on)r3RoundWx();$('game').classList.remove('inmatch');MATCH.on=false;G.aiTurn=false;G.aiChar=false;G.ai=null;G.cm=null;G.look=null;$('matchTag').hidden=true;
   if(CV===2&&typeof r3GolferSet==='function'&&R3.on)r3GolferSet(CHAR_ID);}   // back to your Play Now golfer
 /* a match stays on the course it started on (saves from before the 8-course ladder kept the old pairings) */
 function matchCid(m,r){if(m&&m.cid&&COURSES[m.cid])return m.cid;if(m&&((m.res&&m.res.length)||m.cur))return ({gus:'troy',kelly:'troy',hank:'stoneridge',priya:'stoneridge',beau:'caledonia',marisol:'caledonia',theo:'trueblue',rex:'trueblue'})[r.id]||r.course;return r.course;}
@@ -101,7 +101,7 @@ function showMatchCard(res,over){const r=MATCH.r,i=MATCH.hi,rf=rn(r);
   $('cEyebrow').textContent=(i>=18?'Playoff hole '+(i-17):'Hole '+(i+1))+' · You '+(MATCH.sy[i]>=10?'X':MATCH.sy[i])+', '+rf+' '+(MATCH.so[i]>=10?'X':MATCH.so[i]);
   if(over){const won=matchUp()>0;$('cTitle').textContent=won?'Match won!':'Match lost';
     note.innerHTML='<b>'+MATCH.result+'.</b> '+(MATCH.unlock?'<b>'+ch2Char(MATCH.unlock).name+' unlocked</b>: pick them on the Golfers tab. ':'')+(won?'':(CV===2?'Better equipment helps: try '+rf+' again. ':'Upgrade your game and try '+rf+' again. '))+'<span class="earn">'+MATCH.pts.items.map(x=>x[0]+' <b>+'+x[1]+'</b>').join(' · ')+'</span><br><b class="ptot">+'+MATCH.pts.total+' points</b> · '+CAR.pts+' to spend';
-    $('nextBtn').textContent='Challenge';if(won)setTimeout(sfx.fanfare,200);}
+    $('nextBtn').textContent='VS mode';if(won)setTimeout(sfx.fanfare,200);}
   else{$('cTitle').textContent=res>0?'You win the hole':res<0?rf+' wins the hole':'Hole halved';
     const up=matchUp(),left=18-Math.min(18,i+1);note.textContent=i>=17&&up===0?'All square after 18 — sudden-death playoff next.':statusLong(up)+(left?' with '+left+' to play.':'.')+(left===Math.abs(up)&&up?(up>0?' Dormie — halve one more and it’s yours.':' Dormie — you need to win every hole left.'):'');
     $('nextBtn').textContent=i>=17?'Next: playoff hole':'Next hole';}

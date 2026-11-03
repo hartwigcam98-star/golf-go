@@ -136,12 +136,15 @@ const RIVALS2=CH2_ORDER.slice(1).map((cid,i)=>{const c=CHARS.find(x=>x.id===cid)
   return{id:'c2_'+cid,cid,name:c.name,short:c.name,nick:c.nick,blurb:c.blurb,course:CH2_COURSE[cid],reward:RIVALS1[i].reward,look:null,
     sk:{pow:o.pow*(1+.02*d10(s.pow)),acc:o.acc*(1-.06*d10(s.ctl)),putt:clamp(o.putt+.03*d10(s.putt),.2,.99),miss:o.miss*clamp(1-.12*d10(s.imp),.5,1.5),wind:o.wind,perr:o.perr*(1-.05*d10(s.ctl))}};});
 let RIVALS=RIVALS1;
-const CAREER2_KEY='golf-challenge2-v1';
-function blankCareer2(){return{v:1,pts:0,gear:{drv:0,irn:0,wdg:0,ptr:0,ball:0},beaten:[],record:{},match:null,char:CH2_START,unlocked:[CH2_START]};}
+// Nov 2026: the two Challenges are replaced by the PS1/PS2 modes, VS (this ladder) and Tournaments, sharing one fresh save
+// (golf-sp-v1: golfers, points, gear, tournament rank). The old Challenge saves are left untouched in storage but no longer read.
+const CAREER2_KEY='golf-sp-v1';
+function blankCareer2(){return{v:1,pts:0,gear:{drv:0,irn:0,wdg:0,ptr:0,ball:0},beaten:[],record:{},match:null,char:CH2_START,unlocked:[CH2_START],rank:0,tour:null,trec:{}};}
 let CAR1=CAR,CAR2=blankCareer2(),CV=1;
 try{const d=JSON.parse(localStorage.getItem(CAREER2_KEY)||'null');if(d&&d.v===1)CAR2={...blankCareer2(),...d,gear:{...blankCareer2().gear,...d.gear}};}catch(e){}
 const carOf=v=>v===CV?CAR:v===2?CAR2:CAR1;
 function careerUse(v){if(v===CV)return;if(CV===1)CAR1=CAR;else CAR2=CAR;CV=v;CAR=v===2?CAR2:CAR1;RIVALS=v===2?RIVALS2:RIVALS1;}
+careerUse(2);   // VS and Tournaments both use the V2 save
 const ch2Char=id=>CHARS.find(x=>x.id===id)||CHARS.find(x=>x.id===CH2_START);
 // your V2 golfer (1-10 stats and their trait) plus the equipment you have bought
 function careerMods2(){const c=ch2Char(CAR.char),s=CH2_ST[c.id]||CH2_ST[CH2_START];

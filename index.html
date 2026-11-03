@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="8f45a70d94">
+<meta name="gg-build" content="77369afb97">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -357,6 +357,12 @@ button.lnk{font:inherit;color:inherit;background:none;border:0;padding:0;text-de
 .ctabs button{padding:7px 0;border-radius:9px;font-weight:700;font-size:14px}
 .ctabs button.on{background:#12283b;color:var(--sun)}
 .rvlist{display:grid;gap:6px}
+.trank{font-weight:800;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#12283b;margin:8px 2px 0}.trank.locked{opacity:.5}
+.tico{display:flex!important;align-items:center;justify-content:center;font-size:22px;border-radius:50%;background:#e3dccb}
+.rvhead .tico{font-size:34px}
+.tlb{width:100%;border-collapse:collapse;margin:8px 0 2px;font-size:14px}.tlb td{padding:3px 6px;border-top:1px solid rgba(18,40,59,.12)}
+.tlb td:first-child{width:2.6em;font-weight:700}.tlb td:nth-child(3),.tlb td:nth-child(4){text-align:right;width:3em;font-variant-numeric:tabular-nums}.tlb td:nth-child(3){font-weight:700}
+.tlb tr.me td{background:#12283b;color:var(--sun)}
 .rv{display:flex;align-items:center;gap:10px;padding:6px 10px 6px 6px;border-radius:14px;border:2px solid #12283b;text-align:left;width:100%;color:#12283b}
 .rv.next{background:#12283b;color:var(--paper)}
 .rv.locked{opacity:.45;cursor:default}
@@ -700,7 +706,7 @@ td.won{background:rgba(255,201,60,.38)}
       <div class="chdet" id="chDet"></div>
       <div class="bagbox" id="chBag"></div>
       <button class="primary disp" id="chGo">Play as</button>
-      <div class="msub">Attributes count in the daily round, full rounds and single holes. In the Challenge your upgrades count instead. Your bag counts everywhere.</div>
+      <div class="msub">Attributes count in the daily round, full rounds and single holes. In VS mode and Tournaments you play as your unlocked golfer with the gear you’ve bought. Your bag counts everywhere.</div>
       <button class="textbtn" id="chBack">Back</button>
     </div>
   </div>
@@ -794,9 +800,9 @@ td.won{background:rgba(255,201,60,.38)}
   </div>
   <div class="modal" id="careerM" hidden>
     <div class="card">
-      <div class="eyebrow">Challenge · <span id="careerPts">0 pts</span></div>
-      <h1 class="disp" id="careerH">Challenge</h1>
-      <div class="ctabs" id="careerTabs" role="tablist" aria-label="Challenge sections"><button data-tab="rivals">Rivals</button><button data-tab="golfers" hidden>Golfers</button><button data-tab="skills">Skills</button><button data-tab="gear">Gear</button><button data-tab="look">Look</button></div>
+      <div class="eyebrow">VS &amp; Tournaments · <span id="careerPts">0 pts</span></div>
+      <h1 class="disp" id="careerH">VS mode</h1>
+      <div class="ctabs" id="careerTabs" role="tablist" aria-label="VS and Tournaments sections"><button data-tab="rivals">VS</button><button data-tab="tour">Tour</button><button data-tab="golfers">Golfers</button><button data-tab="gear">Shop</button></div>
       <div id="careerBody"></div>
       <button class="textbtn" id="careerBack">Back to menu</button>
     </div>
@@ -805,7 +811,7 @@ td.won{background:rgba(255,201,60,.38)}
     <div class="card mcard">
       <div class="mtabs" role="tablist" aria-label="Home">
         <button role="tab" id="tabBtnC" class="on" aria-selected="true" aria-controls="tabC">Courses</button>
-        <button role="tab" id="tabBtnP" aria-selected="false" aria-controls="tabP">Daily &amp; Challenge</button>
+        <button role="tab" id="tabBtnP" aria-selected="false" aria-controls="tabP">Daily, VS &amp; Tour</button>
       </div>
       <button class="golferbtn" id="mGolfer" aria-label="Choose your golfer"><img id="mGolferImg" alt=""><span><b id="mGolferName">The Boss</b><em id="mGolferSub">Choose your golfer</em></span><i aria-hidden="true">›</i></button>
       <div id="tabC" role="tabpanel" aria-labelledby="tabBtnC">
@@ -839,12 +845,14 @@ td.won{background:rgba(255,201,60,.38)}
         <div class="hero small"><img id="mDailyImg" alt=""><div class="herocap"><div class="eyebrow light">Today’s course</div><h1 class="disp" id="mDailyName"></h1></div></div>
         <button class="primary disp dailybtn" id="mDaily">Daily round <span id="mDailyCourse"></span></button>
         <div class="msub" id="mDailySub"></div>
-        <button class="primary disp careerbtn" id="mCareer">Challenge <span id="mCareerN">vs rivals</span></button>
-        <div class="msub" id="mCareerSub"></div>
-        <button class="primary disp careerbtn" id="mCareer2">Challenge V2 <span id="mCareer2N">unlock the golfers</span></button>
-        <div class="msub" id="mCareer2Sub"></div>
+        <button class="primary disp careerbtn" id="mVs">VS mode <span id="mVsN">unlock the golfers</span></button>
+        <div class="msub" id="mVsSub"></div>
+        <button class="primary disp careerbtn" id="mTour">Tournaments <span id="mTourN">Rookie</span></button>
+        <div class="msub" id="mTourSub"></div>
         <button class="primary disp careerbtn" id="mMatchCont" hidden>Continue match</button>
         <div class="msub" id="mMatchSub" hidden></div>
+        <button class="primary disp careerbtn" id="mTourCont" hidden>Continue tournament</button>
+        <div class="msub" id="mTourContSub" hidden></div>
       </div>
       <button class="textbtn" id="mNews">What’s new</button>
       <button class="textbtn" id="mFaq">Help &amp; FAQ</button>
@@ -1072,7 +1080,7 @@ window.THREE={ACESFilmicToneMapping:et,AddEquation:y,AddOperation:J,AdditiveAnim
 <script src="data/COURSE_IMG.js?v=95017ba109"></script>
 <!-- /data files -->
 <!-- game code: tools/datafiles.py (the game is in src/) -->
-<script>(function(){var P=["src/start.js?v=d8ceba60e2","src/clubs-and-surfaces.js?v=d725e5b5db","src/hole-construction-from-the.js?v=9699949c35","src/terrain-height.js?v=c97952d065","src/terrain-texture.js?v=a2b4be7d5e","src/lighting-shared-by-every.js?v=cd5a62476a","src/realism.js?v=aa16e80b0d","src/surroundings.js?v=74bd8e969d","src/built-things.js?v=f98fc21593","src/sky-dome.js?v=1c137437ce","src/webgl-ground.js?v=5d371faab8","src/state.js?v=7b1286ac5f","src/sound.js?v=785547d9b6","src/ui-helpers.js?v=101dacc8d1","src/flow.js?v=395fe450d7","src/save-file.js?v=1f62ec9a67","src/daily-round.js?v=e35b5b63dd","src/a-golfer-s-daily.js?v=a2bc5f7b56","src/menu.js?v=58010d20df","src/pause-screen-and-feedback.js?v=5d705d0ef6","src/v107-help-and-faq.js?v=f70f3cbfc4","src/course-requests.js?v=6cec62c7c0","src/career.js?v=8c56e6444d","src/golfers.js?v=30e4ba4eee","src/match-state.js?v=b80e7e9535","src/the-rival-s-shot.js?v=aedfc0dd26","src/career-screens.js?v=e7ed55b295","src/camera.js?v=72b4256890","src/3d-meshes.js?v=4e5c2ee0ce","src/divots.js?v=5d712295af","src/feel.js?v=cc5f67f75b","src/render.js?v=bbfcd83bef","src/choosing-a-golfer.js?v=59f6ffe37b","src/arm-ik.js?v=33a58d0cc1","src/real-tree-positions-from.js?v=2cee2c05cd","src/shader-patches-shared-by.js?v=1d67bace22","src/ground.js?v=95a21c663d","src/sky.js?v=636b8c950e","src/weather.js?v=1fc7d09e82","src/per-hole-scene-content.js?v=d4f28d78e4","src/immediate-mode-primitives.js?v=0052447815","src/camera-straight-from-v.js?v=1bad554182","src/post-chain.js?v=ffb5fe4ede","src/hud.js?v=7f93a757a4","src/loop.js?v=463b202bfd","src/saved-shots.js?v=d66742977c","src/input.js?v=eb6f35341b","src/home-screen.js?v=e043ad6d67","src/sizing.js?v=67b1e861b4","src/boot.js?v=364c778f34"],t="",i,x;for(i=0;i<P.length;i++){x=new XMLHttpRequest();x.open("GET",P[i],false);x.send();if(x.status!==200&&x.status!==0)throw new Error("game code: could not load "+P[i]);t+=x.responseText;}var s=document.createElement("script");s.text="\n"+t+"//# sourceURL=game.js\n";document.currentScript.after(s);})();</script>
+<script>(function(){var P=["src/start.js?v=d8ceba60e2","src/clubs-and-surfaces.js?v=d725e5b5db","src/hole-construction-from-the.js?v=9699949c35","src/terrain-height.js?v=32b6b31ee2","src/terrain-texture.js?v=a2b4be7d5e","src/lighting-shared-by-every.js?v=cd5a62476a","src/realism.js?v=aa16e80b0d","src/surroundings.js?v=74bd8e969d","src/built-things.js?v=f98fc21593","src/sky-dome.js?v=1c137437ce","src/webgl-ground.js?v=5d371faab8","src/state.js?v=7b1286ac5f","src/sound.js?v=785547d9b6","src/ui-helpers.js?v=101dacc8d1","src/flow.js?v=395fe450d7","src/save-file.js?v=5dfb8899c3","src/daily-round.js?v=bc940451a7","src/a-golfer-s-daily.js?v=57305f4816","src/menu.js?v=58010d20df","src/pause-screen-and-feedback.js?v=b5ab620041","src/v107-help-and-faq.js?v=73740ead25","src/course-requests.js?v=6cec62c7c0","src/career.js?v=8c56e6444d","src/golfers.js?v=ac0e2525f8","src/match-state.js?v=7a407e7535","src/the-rival-s-shot.js?v=aedfc0dd26","src/career-screens.js?v=192bd06128","src/camera.js?v=72b4256890","src/3d-meshes.js?v=4e5c2ee0ce","src/divots.js?v=5d712295af","src/feel.js?v=cc5f67f75b","src/render.js?v=bbfcd83bef","src/choosing-a-golfer.js?v=59f6ffe37b","src/arm-ik.js?v=33a58d0cc1","src/real-tree-positions-from.js?v=2cee2c05cd","src/shader-patches-shared-by.js?v=1d67bace22","src/ground.js?v=95a21c663d","src/sky.js?v=636b8c950e","src/weather.js?v=1fc7d09e82","src/per-hole-scene-content.js?v=d4f28d78e4","src/immediate-mode-primitives.js?v=0052447815","src/camera-straight-from-v.js?v=1bad554182","src/post-chain.js?v=ffb5fe4ede","src/hud.js?v=e8345b0a01","src/loop.js?v=463b202bfd","src/saved-shots.js?v=d66742977c","src/input.js?v=eb6f35341b","src/home-screen.js?v=124d004c02","src/sizing.js?v=67b1e861b4","src/boot.js?v=364c778f34"],t="",i,x;for(i=0;i<P.length;i++){x=new XMLHttpRequest();x.open("GET",P[i],false);x.send();if(x.status!==200&&x.status!==0)throw new Error("game code: could not load "+P[i]);t+=x.responseText;}var s=document.createElement("script");s.text="\n"+t+"//# sourceURL=game.js\n";document.currentScript.after(s);})();</script>
 <!-- /game code -->
 
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
@@ -1186,7 +1194,7 @@ const UPDATES=[
   {id:"2026-10-19-tees",date:"Oct 19, 2026",title:"Three sets of tees",items:[
     "Every course now has three sets of tees: its back tees and the next two sets on its scorecard. Tap a course and choose your tees, with each set\u2019s total yardage; the back tees are picked unless you choose otherwise.",
     "The sets carry their scorecard names and hole-by-hole yardages (Troy Burne\u2019s Lehman, Champions and Resort tees, FarmLinks\u2019 Longhorn, Copperhead and Whitetail), each with its own markers on the tee box in its colour.",
-    "The Daily round, challenges, course records and your personal best always play from the back tees."]},
+    "The Daily round, VS matches, tournaments, course records and your personal best always play from the back tees."]},
   {id:"2026-10-19-legends",date:"Oct 19, 2026",title:"Legends take a break",items:[
     "The ten tour legends are off the golfer list for now. If you were playing as one, you're back to The Boss; pick any golfer from the home screen."]},
   {id:"2026-10-18-req",date:"Oct 18, 2026",title:"Request a course",items:[
@@ -1367,7 +1375,7 @@ const UPDATES=[
     'New on the Golfers screen: pick your equipment. Driver & woods, irons, wedges, putter and ball each come in a few models, and every one trades a strength for a weakness: a Bomber driver flies further but strays wider, Blades bite and shape but have a smaller window, a Mallet holds its line but the pace is harder to judge. Standard is balanced. Everything is available now.',
     'Swap clubs: trade the 3 wood for a 4 wood or mini driver, the 5 wood for a 7 wood or 3 hybrid, the 4 hybrid for a 3 or 5 hybrid, a 4 iron or a driving iron, the 5 iron for a 5 hybrid, and pick 52\u00b0, 54\u00b0, 58\u00b0 or 64\u00b0 wedges.',
     'The screen shows your stock yardages (carry and total) and the gaps between clubs for the golfer you pick, so you can see where a swap leaves a hole in the bag.',
-    'Your bag counts in every mode, including the daily round. In the Challenge your gear upgrades stack on top. Every model was tested in hundreds of simulated rounds to keep them even overall, but some suit some courses better.']},
+    'Your bag counts in every mode, including the daily round. In VS mode and Tournaments your shop gear stacks on top. Every model was tested in hundreds of simulated rounds to keep them even overall, but some suit some courses better.']},
   {id:'2026-10-07-firstcut',date:'Oct 7, 2026',title:'First cut',items:[
     'The darker band around every fairway is now its own lie, the first cut: about 2\u00bd yards wide on every course, between the fairway and the rough.',
     'It plays just a touch tougher than the fairway: 1\u20133% less carry, slightly wider misses, a little less spin, and a drive that finishes there rolls a bit less. Nothing like the rough.',

@@ -604,6 +604,7 @@ function pinIndex(i){let seed;if(G.mode==='highlight'&&G.hlPin!=null)return G.hl
   if(G.mode==='spectate'&&SPEC.on&&SPEC.pinSeed){seed=SPEC.pinSeed+i*7919;return Math.floor(rng(seed)()*3)%3;}   // a posted Quick play round: its own pins
   if(G.mode==='daily'||G.mode==='spectate'){if(G.dailyDay&&dailyNum(G.dailyDay)<DAILY_N3)return 1;seed=(G.dailySeed|0)*31+i*7919+17;}   // rounds before Oct 4 2026 keep the mapped pin
   else if(MATCH.on&&typeof CAR!=='undefined'&&CAR.match){if(!CAR.match.pseed){CAR.match.pseed=1+Math.floor(Math.random()*1e9);try{saveCareer();}catch(e){}}seed=CAR.match.pseed+i*7919;}
+  else if(G.mode==='tourney'&&typeof CAR!=='undefined'&&CAR.tour){seed=CAR.tour.seed+i*7919;}
   else if(G.mode==='round'){if(!G.pinSeed)G.pinSeed=1+Math.floor(Math.random()*1e9);seed=G.pinSeed+i*7919;}
   else return Math.floor(Math.random()*3);
   return Math.floor(rng(seed)()*3)%3;}

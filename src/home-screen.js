@@ -34,11 +34,10 @@ $('mGolfer').addEventListener('click',()=>{A();sfx.tick();openChars();});$('chGo
 $('mHolesBack').addEventListener('click',()=>{$('mHoles').hidden=true;$('mMain').hidden=false;});
 $('mClose').addEventListener('click',closeMenu);
 $('mMatchCont').addEventListener('click',()=>{A();const v=pendingMatchV();if(v)startMatch(carOf(v).match.rid,true);});
-/* a match belongs to the Challenge it was started in: the other one stays shut until the match is finished (switching mid-match
-   would send its points and its save to the wrong Challenge) */
-const careerBusy=(v,sub)=>{if(!MATCH.on||CV===v)return false;$(sub).textContent='Finish your match in '+(CV===2?'Challenge V2':'Challenge')+' first';sfx.tick();return true;};
-$('mCareer2').addEventListener('click',()=>{A();if(careerBusy(2,'mCareer2Sub'))return;careerUse(2);openCareer();sfx.tick();});
-$('mCareer').addEventListener('click',()=>{A();if(careerBusy(1,'mCareerSub'))return;careerUse(1);openCareer();sfx.tick();});
+/* Nov 2026: VS mode and Tournaments replace the two Challenges (one save, shared golfers and gear) */
+$('mVs').addEventListener('click',()=>{A();openCareer('rivals');sfx.tick();});
+$('mTour').addEventListener('click',()=>{A();openCareer('tour');sfx.tick();});
+$('mTourCont').addEventListener('click',()=>{A();if(CAR.tour)tourStart(CAR.tour.tid,true);});
 /* owner-only (by player id, not name): press and hold the Daily round button for 2.5 s to clear today's saved daily round
    on this phone. Nothing on screen hints at it; for anyone else the button behaves as normal. */
 {const OWN=['p5sa6c8gmmuvyzitv','p266y26e7muq7fyur'],btn=$('mDaily');let tm=null;const stop=()=>{if(tm){clearTimeout(tm);tm=null;}};

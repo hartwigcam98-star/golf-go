@@ -72,10 +72,9 @@ function dailyShare(){const me=dailyToday();if(!me||!me.done)return;
   const txt='Golf Go daily \u00b7 '+dailyNice(me.day)+'\n'+C.name+': '+me.total+' ('+fmtDiff(me.toPar)+')\n'+em.slice(0,9).join('')+'\n'+em.slice(9).join('')+'\n'+location.href.split('#')[0].split('?')[0];
   if(navigator.share)navigator.share({text:txt}).catch(()=>{});else{navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>toast('COPIED','Paste it to your friends','#8ee6a8'),()=>{});}}
 function menuPlay(){const cid=dailyCourse(dailyDay()),img=courseImg(cid),el=$('mDailyImg');if(img)el.src=img;else el.removeAttribute('src');$('mDailyName').textContent=COURSES[cid].name;
-  {const C1=carOf(1),nb=C1.beaten.length,nx=RIVALS1.find(r=>!C1.beaten.includes(r.id));$('mCareerN').textContent='vs '+RIVALS1.length+' rivals';
-   $('mCareerSub').textContent=nb>=RIVALS1.length?'Every rival beaten \u00b7 rematch anyone for points':nb?nb+' of '+RIVALS1.length+' beaten \u00b7 next: '+nx.name:'Beat each rival to unlock the next';}
-  {const C2=carOf(2),nb=C2.beaten.length,nx=RIVALS2.find(r=>!C2.beaten.includes(r.id));$('mCareer2N').textContent=C2.unlocked.length+' of '+CH2_ORDER.length+' golfers';
-   $('mCareer2Sub').textContent=nb>=RIVALS2.length?'Every golfer unlocked \u00b7 rematch anyone for points':'Start as Gary and win golfers \u00b7 next: '+nx.name+' at '+COURSES[nx.course].name;}}
+  {const C2=carOf(2),nb=C2.beaten.length,nx=RIVALS2.find(r=>!C2.beaten.includes(r.id));$('mVsN').textContent=C2.unlocked.length+' of '+CH2_ORDER.length+' golfers';
+   $('mVsSub').textContent=nb>=RIVALS2.length?'Every golfer unlocked \u00b7 rematch anyone for points':'Beat golfers 1-on-1 to unlock them \u00b7 next: '+nx.name+' at '+COURSES[nx.course].name;}
+  try{tourMenuLine();}catch(e){console.error(e);}}
 function dailyMenuLine(){const day=dailyDay(),cid=dailyCourse(day),me=dailyToday();$('mDailyCourse').textContent=COURSES[cid].name;
   $('mDailySub').textContent=dailyNice(day)+' \u00b7 '+(me&&me.done?'You shot '+me.total+' ('+fmtDiff(me.toPar)+') \u00b7 tap for the leaderboard':me&&(me.hi>0||me.mid)?'In progress \u00b7 hole '+((me.hi||0)+1):'Same course for everyone today');
   if(me&&me.done&&!me.posted)dailyPost();dailyOwed();}
