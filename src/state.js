@@ -34,15 +34,20 @@ function later(t,fn){G.waitT=t;G.waitFn=fn;}
 function curClub(){return CLUBS[G.clubIdx];}
 // v95: a computer with a mouse and keyboard: the hints name the keys
 const DESK=(()=>{try{return matchMedia('(hover:hover) and (pointer:fine)').matches;}catch(e){return false;}})();
-function lieMul(c,lie){const k=c.kind;if(c.id==='1W'&&lie!=='tee'&&lie!=='sand'&&lie!=='fescue'&&!onTeeBox())return lie==='fairway'?.96:lie==='cut'?.92:.75;   // (sand and fescue use their own tables: the driver is the worst club there)
+function lieMul(c,lie){const k=c.kind;if(c.id==='1W'&&lie!=='tee'&&lie!=='sand'&&lie!=='fescue'&&lie!=='dirt'&&!onTeeBox())return lie==='fairway'?.96:lie==='cut'?.92:.75;   // (sand and fescue use their own tables: the driver is the worst club there)
   if(lie==='sand'&&BUNKER_T[G.stype])return 1;
   if(lie==='sand')return SAND_C[tidOf(c)]??.6;
   if(lie==='fescue')return FES_C[tidOf(c)]??.6;
+  if(lie==='dirt')return DIRT_C[tidOf(c)]??.7;
   if(lie==='rough')return LIE_T.rough[clubGroup(c)]*(tidOf(c)==='5W'?1.04:1);if(lie==='cut')return LIE_T.cut[clubGroup(c)];return 1;}
 /* full shots from fairway bunkers and fescue, per club (shot lab): the old club groups made a PW go further than a 9-iron out
    of sand and the 7-iron the longest iron out of fescue. Each club now goes a little shorter than the next-longer one, the
    hybrid advances it furthest, and the woods are a poor bet */
 const SAND_C={'1W':.6,'3W':.72,'5W':.78,'4H':.88,'5I':.88,'6I':.9,'7I':.92,'8I':.93,'9I':.94,'PW':.95,'GW':.95,'SW':.96,'LW':.95};   // Oct 13 2026: a clean pick from a fairway bunker loses only a little; the danger is the tighter timing window and catching it heavy (SAND_FAT)
+/* Nov 2026: under the trees (roots, leaves, pine straw, hardpan). Not an easy way out: less than the rough with every club and
+   far less with the woods, the widest spread in the game after fescue, the biggest swing from shot to shot, the window of a
+   fairway bunker, and caught early it digs into the dirt (DIRT_FAT). A punch with a mid iron is the play. */
+const DIRT_C={'1W':.5,'3W':.58,'5W':.62,'4H':.76,'5I':.74,'6I':.77,'7I':.8,'8I':.83,'9I':.85,'PW':.87,'GW':.88,'SW':.88,'LW':.86};
 const FES_C={'1W':.4,'3W':.42,'5W':.45,'4H':.65,'5I':.63,'6I':.655,'7I':.68,'8I':.7,'9I':.735,'PW':.76,'GW':.79,'SW':.83,'LW':.855};   // v100: a touch more from the hybrid and irons   // the 5-wood's extra loft gets it up out of grass a little better
 /* tough lies by club (golf instruction + launch-monitor tests): grass grabs long, low-lofted clubs and shuts the face, so fairway woods
    and long irons come out short and wild; hybrids cut through medium rough best of the long clubs; from deep rough and fescue the
@@ -50,9 +55,9 @@ const FES_C={'1W':.4,'3W':.42,'5W':.45,'4H':.65,'5I':.63,'6I':.655,'7I':.68,'8I'
 const clubGroup=c=>{const id=tidOf(c);return c.kind==='wood'?'wood':c.kind==='hybrid'?'hyb':(id==='5I'||id==='6I')?'long':(id==='7I'||id==='8I')?'mid':(id==='9I'||id==='PW')?'short':(id==='SW'||id==='LW')?'sand':'gap';};
 // v65 rebalance (PGA 2K-style): every club loses something in the rough, stepping down smoothly from wedges to woods, and each shot
 // rolls its own number inside a range (the lie readout shows it), like 2K's "Rough 84-92%"; fescue is the heavy rough
-const LIE_T={cut:{wood:.97,hyb:.98,long:.97,mid:.98,short:.99,gap:.99,sand:.99},rough:{wood:.8,hyb:.86,long:.84,mid:.88,short:.91,gap:.92,sand:.93},fescue:{wood:.45,hyb:.6,long:.55,mid:.66,short:.74,gap:.78,sand:.82}};
-const LIE_E={cut:{wood:1.12,hyb:1.08,long:1.1,mid:1.06,short:1.04,gap:1.03,sand:1.03},rough:{wood:1.6,hyb:1.35,long:1.45,mid:1.3,short:1.2,gap:1.15,sand:1.15},fescue:{wood:2.6,hyb:1.9,long:2.2,mid:1.8,short:1.55,gap:1.45,sand:1.4}};
-const LIE_V={cut:.015,rough:.04,fescue:.07},LIE_VG={wood:1.25,hyb:1,long:1.1,mid:.9,short:.75,gap:.7,sand:.7};
+const LIE_T={cut:{wood:.97,hyb:.98,long:.97,mid:.98,short:.99,gap:.99,sand:.99},rough:{wood:.8,hyb:.86,long:.84,mid:.88,short:.91,gap:.92,sand:.93},fescue:{wood:.45,hyb:.6,long:.55,mid:.66,short:.74,gap:.78,sand:.82}};   // (dirt: DIRT_C)
+const LIE_E={cut:{wood:1.12,hyb:1.08,long:1.1,mid:1.06,short:1.04,gap:1.03,sand:1.03},rough:{wood:1.6,hyb:1.35,long:1.45,mid:1.3,short:1.2,gap:1.15,sand:1.15},fescue:{wood:2.6,hyb:1.9,long:2.2,mid:1.8,short:1.55,gap:1.45,sand:1.4},dirt:{wood:2.3,hyb:1.7,long:1.9,mid:1.55,short:1.4,gap:1.35,sand:1.35}};
+const LIE_V={cut:.015,rough:.04,fescue:.07,dirt:.08},LIE_VG={wood:1.25,hyb:1,long:1.1,mid:.9,short:.75,gap:.7,sand:.7};
 const lieVar=(c,lie)=>LIE_V[lie]?LIE_V[lie]*LIE_VG[clubGroup(c)]:0;
 function lieRange(c,lie){const v=lieVar(c,lie);if(!v)return'';const m=lieMul(c,lie);return Math.round((m-v)*100)+'\u2013'+Math.round(Math.min(1,m+v)*100)+'%';}
 const lieErr=(c,lie)=>LIE_E[lie]?LIE_E[lie][clubGroup(c)]:lie==='sand'?1.6:1;
@@ -176,7 +181,7 @@ const clubLabel=c=>c.id==='1W'?'Driver':c.lbl||c.id;
 function teeDriver(){const h=G.hole;if(!h||h.par<4||!onTeeBox())return false;
   const dC=clubCarry(CLUBS[0]);if(pinDist()<dC+25)return false;
   const[dx,dy]=dirOf(G.aim),px=-dy,py=dx;let bad=0,n=0;
-  for(let s=dC-10;s<=dC+30;s+=8)for(let w=-14;w<=14;w+=7){const L=lieAt(G.ball.x+dx*s+px*w,G.ball.y+dy*s+py*w);n++;if(L==='water'||L==='ob'||L==='sand'||L==='fescue')bad+=Math.abs(w)>10?.6:1;}
+  for(let s=dC-10;s<=dC+30;s+=8)for(let w=-14;w<=14;w+=7){const L=lieAt(G.ball.x+dx*s+px*w,G.ball.y+dy*s+py*w);n++;if(L==='water'||L==='ob'||L==='sand'||L==='fescue'||L==='dirt')bad+=Math.abs(w)>10?.6:1;}
   return bad/n<.2;}
 function autoClub(d){
   if(G.lie==='green')return PUTTER;
@@ -222,8 +227,8 @@ function apprDisp(club,perfect){if(!apprShot())return{c:1,l:0};const k=APPR_K[cl
 const tightWin=()=>apprShot()||(!isShort()&&curClub().kind==='wood'&&G.lie==='tee');   // Cam: woods and the driver off the tee get the smaller window too
 function perfectWin(){if(!curClub().putter)return perfectWinBase()*shotMods().win*cmod().win(curClub())*(tightWin()?APPR_WIN:1);return perfectWinBase()*cmod().win(curClub());}
 // the player's window is 20% tighter than the rivals' (their timing spread was tuned against the original width)
-function perfectWinBase(){const k=G.aiTurn?1:.8;if(curClub().putter)return .026*k;return((G.lie==='sand'&&!BUNKER_T[G.stype]&&!isShort())?SAND_WIN:(G.lie==='rough'||G.lie==='sand'||G.lie==='fescue')?.018:G.lie==='cut'?.022:.024)*SHOTS[G.stype].win*k;}
-const SAND_WIN=.0145,SAND_FAT=[.12,7,.5];   // heavy from the sand: carry lost = .12 + 7 x how far early (s), at most half   // full shots from a fairway bunker: the tightest window in the game (fairway .024, rough .018)
+function perfectWinBase(){const k=G.aiTurn?1:.8;if(curClub().putter)return .026*k;return((G.lie==='sand'&&!BUNKER_T[G.stype]&&!isShort())||(G.lie==='dirt'&&!isShort())?SAND_WIN:(G.lie==='rough'||G.lie==='sand'||G.lie==='fescue'||G.lie==='dirt')?.018:G.lie==='cut'?.022:.024)*SHOTS[G.stype].win*k;}
+const SAND_WIN=.0145,SAND_FAT=[.12,7,.5],DIRT_FAT=[.1,6,.45];   // dirt: caught early it digs in   // heavy from the sand: carry lost = .12 + 7 x how far early (s), at most half   // full shots from a fairway bunker: the tightest window in the game (fairway .024, rough .018)
 // touch screens show the cursor a frame or two late; judge the tap against what the player saw
 // what you see is what you get: the tap is judged exactly where the cursor is drawn
 try{localStorage.removeItem('troyburne-tap-lag');}catch(e){}

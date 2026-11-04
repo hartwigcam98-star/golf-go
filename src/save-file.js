@@ -156,7 +156,8 @@ function strikeShot(power,e){
     if(sgl.chunk&&!mis&&Math.random()<sgl.chunk*sgk){sgChunk=true;sgv*=.62+Math.random()*.16;if(!G.aiTurn)setTimeout(()=>toast('GRABBED!','The fescue caught the club','#ffb46a'),300);}}
   const flyer=!isShort()&&G.stype!=='punch'&&FLYER[lie]?FLYER[lie][clubGroup(club)]:1;
   // full shots from a fairway bunker: tapped early catches the sand first and comes up well short
-  const fat=!isShort()&&lie==='sand'&&!BUNKER_T[G.stype]&&!miss&&G.missBy>0&&e>0?clamp(SAND_FAT[0]+G.missBy*SAND_FAT[1],0,SAND_FAT[2]):0;
+  const fat=!isShort()&&lie==='sand'&&!BUNKER_T[G.stype]&&!miss&&G.missBy>0&&e>0?clamp(SAND_FAT[0]+G.missBy*SAND_FAT[1],0,SAND_FAT[2])
+    :!isShort()&&lie==='dirt'&&!miss&&G.missBy>0&&e>0?clamp(DIRT_FAT[0]+G.missBy*DIRT_FAT[1],0,DIRT_FAT[2]):0;
   if(fat&&!G.aiTurn)setTimeout(()=>toast('HEAVY!','Caught the sand first','#ffb46a'),300);
   const AD=apprDisp(club,perfect);
   const carry=AD.c*sgv*(mis?mis.c:1)*Math.max(isShort()&&G.swMax?.5:2,(isShort()&&G.swMax?G.swMax:clubCarry(club)*lm*ST.c)*power*M.carry*(perfTee?(cmod().perf??1.03):1)*(1-(HARSH?Math.min(.32,G.missBy*3.6*(cmod().misFull??1)):Math.min(.16,G.missBy*1.6)))*(1-fat));
@@ -270,7 +271,7 @@ function land(u){
   sfx.land();G.fx.push({x:G.ball.x,y:G.ball.y,t:0,type:L==='sand'?'sand':'land'});
   if(spinBack&&R<0)setTimeout(()=>{if(G.state==='roll'||G.state==='bounce')toast('SPIN BACK!','','#8ee6a8');},500);
 }
-const HOP_E={green:.28,fairway:.36,tee:.36,cut:.28,rough:.17,sand:.02,fescue:.12};
+const HOP_E={green:.28,fairway:.36,tee:.36,cut:.28,rough:.17,sand:.02,fescue:.12,dirt:.22};   // dirt: hard ground under the leaves
 function startRoll(L){const b=G.hop;let dx,dz;
   if(b.rollV<0){dx=-b.tx;dz=-b.ty;}else{const l=hyp(b.vx,b.vz);if(l>.3){dx=b.vx/l;dz=b.vz/l;}else{dx=b.tx;dz=b.ty;}}
   const v=Math.abs(b.rollV);G.roll={vx:dx*v,vy:dz*v,t:0,lip:false};G.hop=null;G.state='roll';G.bY=hAt(G.ball.x,G.ball.y);}
@@ -445,6 +446,7 @@ function stopBall(){
   if(L==='green'&&G.fromLie!=='green'){const reg=G.strokes<=G.hole.par-2;toast(reg?'NICE ON!':'ON THE GREEN',Math.round(pinDist()*3)+' ft to the cup','#8ee6a8');}
   else if(L==='sand'&&G.fromLie!=='sand')toast('BUNKER','','#f0e0ab');
   else if(L==='fescue'&&G.fromLie!=='fescue')toast(CUR.scen==='desert'?'IN THE DESERT':'IN THE FESCUE','Tough lie','#e3cf7e');
+  else if(L==='dirt'&&G.fromLie!=='dirt')toast('UNDER THE TREES',lieNm('dirt')+' · tough lie','#c9a27a');
     later(R3.on?r3PostCutTime(1.1):1.1,afterShot);shortPrep();
 }
 // the 3D golfer's reaction to a shot (nod, shake, slump, samba): returns how long it holds the screen, 0 when it doesn't play

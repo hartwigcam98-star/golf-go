@@ -338,7 +338,7 @@ function r3PostLive(dt){const P=R3R.post;if(!P.on)return false;if(G.state!=='wai
 function r3ReactPick(){const L=lieAt(G.ball.x,G.ball.y),fl=G.fromLie,ft=pinDist()*3,coin=Math.random()<.5;
   if(G.twirl&&G.swingType!=='putt'&&L==='green'&&ft<=R3B_TWIRL_FT)return'twirl';   // pure approach, stuck close
   if(G.swingType==='putt'){const f0=hyp(G.prev.x-G.hole.pin[0],G.prev.y-G.hole.pin[1])*3;return f0<12&&ft>4?['slump','thinkshake','angry'][Math.floor(Math.random()*3)]:null;}   // a makeable putt missed (inside 4 ft is a gimme)
-  if((L==='sand'&&fl!=='sand')||(L==='fescue'&&fl!=='fescue'))return coin?'shake':'thinkshake';
+  if((L==='sand'&&fl!=='sand')||(L==='fescue'&&fl!=='fescue')||(L==='dirt'&&fl!=='dirt'))return coin?'shake':'thinkshake';
   if(G.lastMiss&&fl!=='green')return coin?'badshot':'thinkshake';                       // mishit
   if(L==='green'&&fl!=='green'&&ft<=6)return'strut';                      // stuck it
   if(L==='green'&&fl!=='green'&&ft<=12)return'nod';

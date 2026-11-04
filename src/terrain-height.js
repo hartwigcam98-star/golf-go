@@ -634,5 +634,5 @@ function hAtH(h,x,y){const g=h.hg;if(!g)return 0;const fx=(x-g.x0)/g.st,fy=(y-g.
 const hAt=(x,y)=>hAtH(G.hole,x,y);
 const hFine=(x,y)=>hFineH(G.hole,x,y);
 const gradAt=(x,y)=>[(hFine(x+.5,y)-hFine(x-.5,y))/1.0,(hFine(x,y+.5)-hFine(x,y-.5))/1.0];
-function lieAt(x,y){const c=lieCodeAt(G.hole,x,y);return c<0?'ob':LIE_CODES[c];}
+function lieAt(x,y){const c=lieCodeAt(G.hole,x,y);if((c===0||c===1)&&G.hole.cover){const v=coverAt(G.hole,x,y);if(v&&v!==3)return'dirt';}return c<0?'ob':LIE_CODES[c];}   // under the trees: leaves, needles, roots, bare dirt
 

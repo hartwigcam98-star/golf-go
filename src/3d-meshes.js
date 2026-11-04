@@ -85,8 +85,9 @@ function buildTreeMesh(h){
   buildStructures(h,out);
   // wisps of native fescue so the tall grass reads up close
   const b=h.bounds,area=(b[2]-b[0])*(b[3]-b[1]),n=Math.min(9000,area/4);const gold=['#c6ae5c','#d8c37a','#a89449','#b9a45c'];
+  const CVw=(()=>{try{return groundCover(h);}catch(e){return null;}})();   // none on the dirt, leaves and straw under the trees (no fescue grows in that shade)
   for(let i=0;i<n;i++){const x=b[0]+R()*(b[2]-b[0]),z=b[1]+R()*(b[3]-b[1]);
-    if(lieCodeAt(h,x,z)!==0||dplayAt(h,x,z)<1.5)continue;
+    if(lieCodeAt(h,x,z)!==0||dplayAt(h,x,z)<1.5)continue;if(CVw){const v=coverAt(h,x,z);if(v&&v!==3)continue;}
     const y=hAtH(h,x,z),hh=.55+R()*.6,col=hexc(gold[Math.floor(R()*4)]),base=mul(col,.72);
     for(let k=0;k<3;k++){const a=R()*TAU,dx=Math.cos(a)*.14,dz=Math.sin(a)*.14,lx=(R()-.5)*.35,lz=(R()-.5)*.35;
       out.push(x-dx,y,z-dz,0,1,0,...base, x+dx,y,z+dz,0,1,0,...base, x+lx,y+hh,z+lz,0,1,0,...col);}}

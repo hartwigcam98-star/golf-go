@@ -120,6 +120,7 @@ const sfx={
   // club strike: q = contact quality 0 (thin/fat) .. 1 (dead centre); built from recorded-style impact samples, no pitch sweeps
   strike:(p,q,kind,lie)=>{const v=.6+.4*p;playImpact(kind,q,v);
     if(lie==='rough'||lie==='fescue')setTimeout(()=>playTurf(.5,v),8);
+    if(lie==='dirt')setTimeout(()=>playTurf(.3,v),8);
     if(lie==='sand')playSand(v);},
   puttQ:q=>playImpact('putter',q,.8),
   flame:red=>{setTimeout(()=>noise(1,.07,'bandpass',red?700:1000),60);},

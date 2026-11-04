@@ -54,7 +54,7 @@ const shotOK=(t,ci)=>SHOTS[t].clubs.includes(ci);
 // green speed from the stimpmeter: the ramp releases the ball at 6 ft/s and it rolls STIMP feet on a flat green, so the rolling deceleration is v^2/(2d)
 const STIMP=11,STIMP_V=2,MU_GREEN=STIMP_V*STIMP_V/(2*STIMP/3),CAP_YD=.85;
 const CAPV=Math.sqrt(2*MU_GREEN*CAP_YD);   // a centred ball that would have run on CAP_YD (2.5 ft) past still drops
-const MU={green:MU_GREEN,fairway:1.2,tee:1.2,cut:2.4,rough:11,sand:28,fescue:17};   // Oct 13 2026: fairway/tee/cut friction cut from 3.2/3.2/5.5 so slopes kick the ball (a full shot's roll-out on flat ground is planned from this, so it is unchanged)
+const MU={green:MU_GREEN,fairway:1.2,tee:1.2,cut:2.4,rough:11,sand:28,fescue:17,dirt:8};   // dirt (under the trees): runs on further than rough, stopped by leaves and roots   // Oct 13 2026: fairway/tee/cut friction cut from 3.2/3.2/5.5 so slopes kick the ball (a full shot's roll-out on flat ground is planned from this, so it is unchanged)
 // a slow ball on a green: the grass holds it less as it dies, so it trickles on down a slope instead of parking on it.
 // Below 0.4 yd/s the green's rolling resistance eases to 45% (fully by 0.15 yd/s): a ball comes to rest only on slopes under
 // about 3% (the cup-slope rule); on anything steeper it keeps trickling downhill at a walking-pace crawl. Faster rolls are unchanged.
@@ -71,9 +71,9 @@ const PART_K={wood:.8,hybrid:.5,iron:.35,wedge:0};
 const FLYER={cut:{wood:1,hyb:1.05,long:1.1,mid:1.15,short:1.2,gap:1.2,sand:1.2},rough:{wood:1.15,hyb:1.4,long:1.7,mid:2.1,short:2.6,gap:2.6,sand:2.6},fescue:{wood:1.2,hyb:1.5,long:1.85,mid:2.3,short:2.8,gap:2.8,sand:2.8}};   // short irons and wedges lose the most spin
 // short game out of the rough / fescue: distance range, extra release (chips run a bit more, pitches and flops a lot more), spin kept, fescue grabs
 const SG_LIE={cut:{v:.03,r:1.08,chip:1.03,back:.8},rough:{v:.07,r:1.3,chip:1.12,back:.5},fescue:{v:.11,r:1.5,chip:1.22,back:0,chunk:.1}};
-const LIE_NAME={tee:'Tee box',fairway:'Fairway',cut:'First cut',rough:'Rough',sand:'Bunker',green:'Green',fescue:'Fescue',water:'Water',ob:'Out of bounds'};
-const lieNm=k=>k==='fescue'&&typeof CUR!=='undefined'&&CUR.scen==='desert'?'Desert':LIE_NAME[k];   // v108: desert courses: the native area is desert, not fescue
-const LIE_COL={tee:'#7cc257',fairway:'#6db14a',cut:'#5ea247',rough:'#3f7d35',sand:'#f4efe2',green:'#9ad873',fescue:'#c9b35f'};
+const LIE_NAME={tee:'Tee box',fairway:'Fairway',cut:'First cut',rough:'Rough',sand:'Bunker',green:'Green',fescue:'Fescue',dirt:'Dirt & leaves',water:'Water',ob:'Out of bounds'};
+const lieNm=k=>k==='fescue'&&typeof CUR!=='undefined'&&CUR.scen==='desert'?'Desert':k==='dirt'&&typeof CUR!=='undefined'&&CUR?({1:'Pine straw',4:'Bare dirt'}[coverRegion()]||LIE_NAME.dirt):LIE_NAME[k];   // v108: desert courses: the native area is desert, not fescue
+const LIE_COL={tee:'#7cc257',fairway:'#6db14a',cut:'#5ea247',rough:'#3f7d35',sand:'#f4efe2',green:'#9ad873',fescue:'#c9b35f',dirt:'#9b7651'};
 const CUP_R=.059, CUP=.059, IMPACT=.12;   // the cup is 4.25 in across (0.059 yd radius); the ball drops once its centre is just inside the rim
 
 /* ---------- Troy Burne (tips) — unofficial re-creation ----------

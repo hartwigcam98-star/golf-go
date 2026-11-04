@@ -4,9 +4,13 @@ function strokePl(g,pls){for(const pl of pls){g.beginPath();g.moveTo(pl[0][0],pl
 const pot=n=>{let p=1;while(p<n)p*=2;return Math.min(4096,p);};
 /* ---------- regional ground cover (Oct 2026): what lies between the holes and under the trees ----------
    pine straw under the pines and oaks of the South, dark needle-and-leaf duff in the north woods, open sand blowouts in the
-   Wisconsin barrens. Cosmetic only: the lie stays rough or fescue. h.cover: 1 straw, 2 duff, 3 sand, per 1-yd cell of h.lg. */
+   Wisconsin barrens. h.cover: 1 straw, 2 duff, 3 sand, 4 bare dirt (Arizona), per 1-yd cell of h.lg.
+   Nov 2026: every course (not the open desert, where the ground is already desert), shaped by each tree's measured crown:
+   bare ground at the trunk, then a patchy mix out toward the drip line, and all of it under a closed canopy or in the mapped
+   woods. Straw, duff and dirt play as the 'dirt' lie (lieAt): a tough, unpredictable lie, not an easy way out. */
 function coverAt(h,x,y){const C=h.cover,L=h.lg;if(!C||!L)return 0;const i=Math.floor(x-L.x0+.5),j=Math.floor(y-L.y0+.5);return i<0||j<0||i>=L.nx||j>=L.ny?0:C[j*L.nx+i];}
-function coverRegion(){const id=CUR.data||CUR.id;if(CUR.scen==='desert')return 0;if(R3T_BARRENS[id])return 3;if(R3T_NORTH[id])return 2;if(id==='farmlinks')return 2;if(CUR.scen==='lowcountry'||R3T_SOUTH[id])return 1;return 0;}
+function coverRegion(){const id=CUR.data||CUR.id;if(CUR.scen==='desert')return 0;if(R3T_BARRENS[id])return 3;if(R3T_NORTH[id])return 2;if(id==='farmlinks')return 2;if(CUR.scen==='lowcountry'||R3T_SOUTH[id])return 1;
+  if(R3T_AZ[CUR.id]||R3T_AZ[id])return 4;return 2;}   // everywhere else (the Twin Cities, Wisconsin, Dacotah...): leaves and dirt
 function groundCover(h){if(h.cover!==undefined)return h.cover;h.cover=null;const reg=coverRegion(),L=h.lg;if(!reg||!L)return null;
   // the photo's trees, placed now so the ground under them can be painted (the species pass reuses them)
   if(R3.on&&R3T_COURSES[CUR.id]&&!h.naipDone){h.naipDone=1;try{r3NaipApply(h);}catch(e){}}
@@ -15,7 +19,17 @@ function groundCover(h){if(h.cover!==undefined)return h.cover;h.cover=null;const
   const disc=(x,y,r,v)=>{const i0=Math.max(0,Math.floor(x-r-L.x0)),i1=Math.min(nx-1,Math.ceil(x+r-L.x0)),j0=Math.max(0,Math.floor(y-r-L.y0)),j1=Math.min(ny-1,Math.ceil(y+r-L.y0));
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const dx=L.x0+i-x,dy=L.y0+j-y;if(dx*dx+dy*dy>r*r)continue;const k=j*nx+i;if(!C[k]&&ok(k)){C[k]=v;n++;}}};
   const trees=(h.allTrees||[]).concat(h.farTrees||[]);
-  for(const t of trees){if(t.cactus)continue;const r=(t.r||3)*(reg===1?(t.con?1.15:.95):reg===2?1:t.con?1.05:.7);if(reg===3&&!t.con)continue;disc(t.x,t.y,r,reg===3?3:reg);}
+  if(reg===3){for(const t of trees){if(t.cactus||!t.con)continue;disc(t.x,t.y,(t.r||3)*1.05,3);}}
+  else{const hsh=(i,j)=>(((i*73856093)^(j*19349663))>>>0)%1000/1000,cnt=new Uint8Array(nx*ny);
+    // bare ground at the trunk (it reaches toward the fairway edge too), a patchy mix out to the drip line, then count the crowns over each cell
+    const okC=k=>(code[k]===0||code[k]===1)&&dm[k]>1.2;
+    for(const t of trees){if(t.cactus)continue;const r=t.r||3,rc=clamp((reg===1?.55:.35)*r+.5,1.2,reg===1?5:3.5),ro=r*.9;
+      const i0=Math.max(0,Math.floor(t.x-r-L.x0)),i1=Math.min(nx-1,Math.ceil(t.x+r-L.x0)),j0=Math.max(0,Math.floor(t.y-r-L.y0)),j1=Math.min(ny-1,Math.ceil(t.y+r-L.y0));
+      for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const d=Math.hypot(L.x0+i-t.x,L.y0+j-t.y),k=j*nx+i;if(d>r)continue;if(cnt[k]<255)cnt[k]++;if(C[k])continue;
+        if(d<=rc){if(okC(k)){C[k]=reg;n++;}}
+        else if(d<=ro&&ok(k)&&hsh(i,j)<.7*(1-(d-rc)/Math.max(.5,ro-rc))){C[k]=reg;n++;}}}
+    // a closed canopy (two or more crowns overhead): the floor is all leaves, needles or dirt
+    for(let k=0;k<C.length;k++)if(!C[k]&&cnt[k]>=2&&ok(k)){C[k]=reg;n++;}}
   // inside the mapped woods the floor is straw or duff all through
   if(reg!==3)for(const P of h.woods||[]){const bb=P.bb;for(let j=Math.max(0,Math.floor(bb[1]-L.y0));j<=Math.min(ny-1,Math.ceil(bb[3]-L.y0));j++)for(let i=Math.max(0,Math.floor(bb[0]-L.x0));i<=Math.min(nx-1,Math.ceil(bb[2]-L.x0));i++){const k=j*nx+i;if(C[k]||!ok(k))continue;if(inPoly(P,L.x0+i,L.y0+j)){C[k]=reg;n++;}}}
   // the barrens: open sand drifts through the native areas, set back from the mown grass
@@ -40,7 +54,7 @@ function paintFlowers(h,g,R){const F=(typeof CFEEL2!=='undefined'&&CFEEL2[CUR.id
       const c=u>.95?cols[(R()*cols.length)|0]:band(x+(R()-.5)*3,y+(R()-.5)*3);g.fillStyle=rgb(c,.85+R()*.35);g.beginPath();g.arc(x,y,.14+R()*.22,0,TAU);g.fill();}
     g.restore();}}
 function paintCover(h,g,R){const C=groundCover(h);if(!C)return;const L=h.lg,nx=L.nx,ny=L.ny;
-  const BASE={1:[122,86,56],2:[92,76,56],3:[214,198,160]};
+  const BASE={1:[122,86,56],2:[92,76,56],3:[214,198,160],4:[150,118,84]};
   const m=document.createElement('canvas');m.width=nx;m.height=ny;const mc=m.getContext('2d'),id=mc.createImageData(nx,ny);
   for(let k=0;k<C.length;k++){const v=C[k];if(!v)continue;const b=BASE[v],o=k*4,j=((k*2654435761)>>>24)/255*.16-.08;id.data[o]=b[0]*(1+j);id.data[o+1]=b[1]*(1+j);id.data[o+2]=b[2]*(1+j);id.data[o+3]=v===3?235:225;}
   mc.putImageData(id,0,0);g.save();g.imageSmoothingEnabled=true;g.filter='blur(0.6px)';g.drawImage(m,L.x0-.5,L.y0-.5,nx,ny);g.filter='none';
@@ -52,6 +66,8 @@ function paintCover(h,g,R){const C=groundCover(h);if(!C)return;const L=h.lg,nx=L
     else if(v===2){if(u<.45){g.fillStyle=u<.25?'rgba(52,42,32,.55)':'rgba(104,84,60,.45)';g.beginPath();g.arc(x,y,.25+R()*.6,0,TAU);g.fill();}
       else if(u<.8){g.fillStyle=u<.62?'rgba(70,104,48,.55)':'rgba(96,128,62,.5)';g.beginPath();g.ellipse(x,y,.5+R()*.9,.25+R()*.4,R()*TAU,0,TAU);g.fill();}
       else{g.strokeStyle='rgba(150,120,80,.4)';g.lineWidth=.12;const a=R()*TAU,l=.4+R()*.7;g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l);g.stroke();}}
+    else if(v===4){if(u<.4){g.fillStyle=u<.2?'rgba(120,92,62,.45)':'rgba(186,156,118,.4)';g.beginPath();g.arc(x,y,.2+R()*.5,0,TAU);g.fill();}
+      else if(u<.5){g.strokeStyle='rgba(96,72,48,.45)';g.lineWidth=.1;const a=R()*TAU,l=.4+R()*.8;g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l);g.stroke();}}
     else{if(u<.22){g.fillStyle=u<.12?'rgba(118,122,72,.6)':'rgba(150,150,96,.5)';g.beginPath();g.arc(x,y,.3+R()*.8,0,TAU);g.fill();}
       else if(u<.5){g.fillStyle=u<.36?'rgba(236,224,192,.4)':'rgba(176,156,120,.3)';g.beginPath();g.ellipse(x,y,.8+R()*1.6,.15+R()*.2,.4,0,TAU);g.fill();}}}
   g.restore();}
