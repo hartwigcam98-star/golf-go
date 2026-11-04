@@ -30,9 +30,12 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libxi6 libxkbcommon0 libsm6 libxrender1 libxxf86vm1 libxfixes3 libgl1 libegl1 > /dev/null
       - name: blender
         run: |
-          BV=$(curl -s https://download.blender.org/release/Blender4.2/ | grep -o 'blender-4\.2\.[0-9]*-linux-x64\.tar\.xz' | sort -V | tail -1)
-          curl -sL "https://download.blender.org/release/Blender4.2/$BV" -o /tmp/b.tar.xz && mkdir -p /tmp/blender && tar xf /tmp/b.tar.xz -C /tmp/blender --strip-components=1
-          /tmp/blender/blender --version | head -1
+          for t in 1 2 3 4 5 6; do   # the download fails now and then: try again, and fail the job (not a silent empty bake) if it never works
+            BV=$(curl -fs https://download.blender.org/release/Blender4.2/ | grep -o 'blender-4\.2\.[0-9]*-linux-x64\.tar\.xz' | sort -V | tail -1)
+            if [ -n "$BV" ] && curl -fsL "https://download.blender.org/release/Blender4.2/$BV" -o /tmp/b.tar.xz && rm -rf /tmp/blender && mkdir -p /tmp/blender && tar xf /tmp/b.tar.xz -C /tmp/blender --strip-components=1 && /tmp/blender/blender --version > /tmp/bv.txt; then head -1 /tmp/bv.txt; break; fi
+            echo "blender download failed ($t)"; sleep $((t * 15))
+          done
+          test -x /tmp/blender/blender
       - name: build
         run: |
           IT="${{ matrix.item }}"
@@ -42,6 +45,7 @@ jobs:
             H=${IT%%:*}; C=${H%%/*}; PART=${IT##*:}; mkdir -p out/$C
             BD=$(cat bakebranch.txt 2>/dev/null || echo bakedata); git fetch -q --depth 1 origin $BD && git archive FETCH_HEAD holes/$C | tar x   # each run names its own data branch
             PROTOS=holes/$C/protos.npz BAKE_ONLY=$PART SH_SAMPLES=96 SKY_SAMPLES=48 /tmp/blender/blender -b --factory-startup -P bake.py -- holes/$H.npz atlas2.png out/$H 4 2>&1 | tee out/$C/${H##*/}-$PART.log | grep -E "\[bake\]|Error|Traceback" | tail -20
+            test -f out/$H/raw_$PART.npz || { echo "no raw_$PART.npz"; exit 1; }
           else
             H=${IT%%:*}; PART=${IT##*:}; mkdir -p out
             BAKE_ONLY=$PART SH_SAMPLES=128 SKY_SAMPLES=64 /tmp/blender/blender -b --factory-startup -P bake.py -- holes/$H.npz atlas2.png out/$H 4 2>&1 | tee out/$H-$PART.log | grep -E "\[bake\]|Error|Traceback" | tail -20
