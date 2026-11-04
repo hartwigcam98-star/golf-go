@@ -558,16 +558,44 @@ function r3tProf(v){if(v.prof)return v.prof;const B=.5,raw=[];
   for(const a of[v.leaf,v.mass]){const st=a===v.leaf?11:9;for(let k=0;k<a.length;k+=st){const bi=Math.floor(a[k+1]/B);if(bi<0)continue;raw[bi]=Math.max(raw[bi]||0,Math.hypot(a[k],a[k+2]));}}
   const n=raw.length,r=new Float32Array(n);let max=0;for(let i=0;i<n;i++){r[i]=Math.max(raw[i-1]||0,raw[i]||0,raw[i+1]||0);max=Math.max(max,r[i]);}
   return v.prof={B,r,max};}
+/* Nov 2026 trial (?tl=1): a tree's lowest branches. Each version of a species is re-shaped to one of five crown-base heights (as a
+   share of the tree's height); the measured tree takes the closest. Below 1 unit nothing moves (brush at the foot stays put); the trunk
+   between there and the crown stretches or shrinks, and the crown above is squeezed or stretched to keep the top where it was.
+   Leaf cards move whole (not stretched). */
+const R3T_BK=[.1,.2,.3,.42,.55];
+function r3tBucket(f){let b=0;for(let i=1;i<R3T_BK.length;i++)if(Math.abs(R3T_BK[i]-f)<Math.abs(R3T_BK[b]-f))b=i;return b;}
+function r3tStat(g){if(g.st)return g.st;let top=0;const ys=[];for(const[a,st]of[[g.bark,11],[g.mass,9],[g.leaf,11]])for(let i=1;i<a.length;i+=st)top=Math.max(top,a[i]);
+  for(let i=1;i<g.mass.length;i+=9)if(g.mass[i]>1.5)ys.push(g.mass[i]);
+  const L=g.leaf;for(let c=0;c+66<=L.length;c+=66){let lo=1e9,cy=0;for(let v=0;v<6;v++){const y=L[c+v*11+1];lo=Math.min(lo,y);cy+=y/6;}if(cy>1.5)ys.push(lo);}   // a leaf card counts by its lowest corner
+  ys.sort((p,q)=>p-q);
+  return g.st={top,base:ys.length?ys[Math.floor(ys.length*.05)]:top*.4};}
+function r3tWarp(g,id,b){const W=R3T.warp||(R3T.warp={});if(W[id])return W[id];const{top,base}=r3tStat(g),lo=Math.min(1,base*.5),bt=Math.max(lo+.2,R3T_BK[b]*top);
+  const f=y=>y<=lo?y:y<=base?lo+(y-lo)*(bt-lo)/Math.max(.01,base-lo):bt+(y-base)*(top-bt)/Math.max(.01,top-base);
+  // leaves and leaf masses: the few that hung below the old crown base (and above the brush) gather just under the new one
+  const k=(top-bt)/Math.max(.01,top-base),fl=y=>y>=base?f(y):Math.max(f(y),bt-(base-y)*k*.25);
+  const wv=(a,st,F)=>{const o=a.slice();for(let i=1;i<o.length;i+=st)o[i]=F(o[i]);return o;};
+  const wl=a=>{const o=a.slice();for(let c=0;c+66<=o.length;c+=66){let lo=1e9;for(let v=0;v<6;v++)lo=Math.min(lo,o[c+v*11+1]);const d=fl(lo)-lo;for(let v=0;v<6;v++)o[c+v*11+1]+=d;}return o;};
+  // the brush some versions have round the foot of the trunk goes: what grows under a measured tree is in its measured crown base
+  const nb=(a,st,per)=>{const o=[];for(let c=0;c+st*per<=a.length;c+=st*per){let cy=0;for(let v=0;v<per;v++)cy+=a[c+v*st+1]/per;if(cy>=1.5)for(let e=c;e<c+st*per;e++)o.push(a[e]);}return o;};
+  const n={bark:wv(g.bark,11,f),mass:wv(nb(g.mass,9,3),9,fl),leaf:wl(nb(g.leaf,11,6)),trunkN:g.trunkN,snag:g.snag,reach:g.reach};
+  const L=n.leaf,out=[],R=rng(9173);   // the lighter far version, made as r3tProtos makes it
+  for(let c=0;c<L.length;c+=66){if(R()>.4)continue;let cx=0,cy=0,cz=0;for(let v=0;v<6;v++){cx+=L[c+v*11]/6;cy+=L[c+v*11+1]/6;cz+=L[c+v*11+2]/6;}
+    for(let v=0;v<6;v++){const o=c+v*11;out.push(cx+(L[o]-cx)*1.58,cy+(L[o+1]-cy)*1.58,cz+(L[o+2]-cz)*1.58);for(let e=3;e<11;e++)out.push(L[o+e]);}}
+  n.lite={bark:n.bark.slice(0,n.trunkN||n.bark.length),mass:n.mass,leaf:out};n.st={top,base:bt};return W[id]=n;}
 // the drawn crown's radius (yds) at height ht (yds above the tree's ground), or null for a tree drawn without a known shape
 function treeCrown(t,ht){if(!t.cp)return null;const bi=Math.floor(ht/t.cs[1]/t.cp.B);return(t.cp.r[bi]||0)*t.cs[0];}
 function r3TreeFlush(){for(const m of R3T.meshes){R3.scene.remove(m);m.geometry.dispose();}R3T.meshes=[];R3T.groups=[];R3T.lodRef=null;r3tFarBuild(R3T.use&&R3T.h?R3T.h.farTrees:null);if(!R3T.use||!R3T.list.length)return;
   const P=r3tProtos(),T=THREE,groups={};
-  for(const t of R3T.list){const key=t.sp+(t.fall?'_fall':''),vs=P[key]||P[t.sp],vi=Math.floor((t.shade||0)*97)%vs.length;(groups[key+'|'+vi]=groups[key+'|'+vi]||{v:vs[vi],ts:[]}).ts.push(t);}
+  for(const t of R3T.list){const key=t.sp+(t.fall?'_fall':''),vs=P[key]||P[t.sp],vi=Math.floor((t.shade||0)*97)%vs.length;
+    if(t.mh){const lv=[...new Set(vs.filter(g=>!g.snag))],wi=Math.floor((t.shade||0)*97)%lv.length,bk=r3tBucket(t.mb/t.mh),gk=key+'|L'+wi+'#'+bk;   // measured (?tl=1): living versions only (a leaf-off scan can't tell a dead tree)
+      (groups[gk]=groups[gk]||{v:r3tWarp(lv[wi],gk,bk),ts:[]}).ts.push(t);continue;}
+    (groups[key+'|'+vi]=groups[key+'|'+vi]||{v:vs[vi],ts:[]}).ts.push(t);}
   const q=new T.Quaternion(),s=new T.Vector3(),p=new T.Vector3(),up=new T.Vector3(0,1,0);
   for(const k in groups){const{v,ts}=groups[k];const n=ts.length,M=new Float32Array(n*16),C=new Float32Array(n*3),m4=new T.Matrix4();
     ts.forEach((t,i)=>{const sc=(t.vs||(t.r||9)/10)*(.9+((t.shade*13)%1)*.22);q.setFromAxisAngle(up,(t.shade||0)*TAU*7.3);
-      let sh=sc;const H=R3T.h;if(H&&H.lg&&lieCodeAt(H,t.x,t.y)>=0){const room=dplayAt(H,t.x,t.y)+2.5;if(v.reach*sh>room)sh=Math.max(.35,room/v.reach);}
+      let sh=sc;const H=R3T.h;if(!t.mh&&H&&H.lg&&lieCodeAt(H,t.x,t.y)>=0){const room=dplayAt(H,t.x,t.y)+2.5;if(v.reach*sh>room)sh=Math.max(.35,room/v.reach);}
       const tall=R3T_SP[t.sp]&&R3T_SP[t.sp].kind==='broad'?1.22:1.08;s.set(sh,sc*tall*(.92+((t.shade*29)%1)*.16),sh);
+      if(t.mh){sh=t.r/(v.reach||1);s.set(sh,t.mh/r3tStat(v).top,sh);}   // measured: the real crown radius and height
       t.cp=r3tProf(v);t.cs=[sh,s.y];t.cr=t.cp.max*sh;   // the crown as drawn, for the ball (treeCrown)
       p.set(t.x,(t.gh!==undefined?t.gh:hAt(t.x,t.y))-.15,t.y);m4.compose(p,q,s);m4.toArray(M,i*16);const tn=.88+((t.shade*53)%1)*.24,hv=((t.shade*31)%1)-.5;C[i*3]=tn*(1+hv*.1);C[i*3+1]=tn;C[i*3+2]=tn*(.96+((t.shade*7)%1)*.08)*(1-hv*.12);});
     /* Oct 2026: the instanced species meshes used to share the tree and bark materials with the merged R3.trees / R3.bark meshes;

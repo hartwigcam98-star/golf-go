@@ -1,6 +1,13 @@
 /* ---- real tree positions from the USDA NAIP aerial photo (public domain): crowns found in the photo, in course yards ---- */
 const R3N={};
-function r3NaipLoad(id){if(R3N[id])return R3N[id];if(typeof R3NAIP==='undefined'||!R3NAIP[id])return null;const D=R3NAIP[id],xy=r3b64(D.xy,Int16Array),r=r3b64(D.r,Uint8Array);
+/* Nov 2026 trial (?tl=1): trees measured from the lidar instead of guessed from the photo. R3NAIP[id].L holds one tree per crown
+   found in the lidar canopy (treetop position, crown radius, height and the height of the lowest branches), kept only where the
+   photo shows canopy too. Without ?tl=1 nothing changes. */
+const TL=(()=>{try{return /[?&]tl=1/.test(location.search);}catch(e){return false;}})();
+function tlOn(){return TL&&typeof CUR!=='undefined'&&!!CUR&&typeof R3NAIP!=='undefined'&&!!R3NAIP[CUR.data||CUR.id]&&!!R3NAIP[CUR.data||CUR.id].L;}
+function r3NaipLoad(id){const lt=TL&&typeof R3NAIP!=='undefined'&&R3NAIP[id]&&R3NAIP[id].L,ck=lt?id+'|L':id;if(R3N[ck])return R3N[ck];if(typeof R3NAIP==='undefined'||!R3NAIP[id])return null;
+  if(lt){const L=R3NAIP[id].L;return R3N[ck]={n:L.n,xy:r3b64(L.xy,Int16Array),r:r3b64(L.r,Uint8Array),h:r3b64(L.h,Uint8Array),cb:r3b64(L.cb,Uint8Array),ext:R3NAIP[id].ext,L:1};}
+  const D=R3NAIP[id],xy=r3b64(D.xy,Int16Array),r=r3b64(D.r,Uint8Array);
   return R3N[id]={n:D.n,xy,r,ext:D.ext};}
 function r3NaipApply(h){const N=r3NaipLoad(CUR.data||CUR.id);if(!N)return false;const T0=h.T0,b=h.bounds,E=N.ext;
   const blds=(h.buildings||[]).filter(q=>q.pts&&q.pts.length>2),houses=h.houses||[];
@@ -16,6 +23,7 @@ function r3NaipApply(h){const N=r3NaipLoad(CUR.data||CUR.id);if(!N)return false;
     if(d<1&&inCorridor(x,y,cr))continue;
     const sh=((Math.sin(i*12.9898)*43758.5453)%1+1)%1;
     const t={x,y,r:Math.max(3.2,cr/.9),con,shade:sh,naip:1,d};
+    if(N.L){t.r=Math.max(1.2,cr);t.mh=N.h[i]/4;t.mb=N.cb[i]/4;}   // measured: crown radius, height and lowest branches (yds)
     // courses whose photo crowns crowd the fairways (Pawleys Island): no canopy hanging over mown grass
     if(lie>=0&&CUR.treeClear&&h.lg.dmown){const L2=h.lg,i2=Math.floor(x-L2.x0+.5),j2=Math.floor(y-L2.y0+.5);if(L2.dmown[j2*L2.nx+i2]<t.r*CUR.treeClear)continue;}
     if(lie>=0){const dp=dplayAt(h,x,y);t.gh=hAtH(h,x,y);if(dp<85&&d<1){t.dp=dp;near.push(t);continue;}}else t.gh=demRel(h,x,y)-.35;
@@ -120,7 +128,7 @@ function r3tFarBuild(list){const T=THREE;if(R3T.far){R3.scene.remove(R3T.far);R3
   list.forEach((t,i)=>{const sh=t.shade||0,key=t.sp+(t.fall?'_fall':''),cs=I.map[key]||I.map[t.sp]||I.map.oak,c=cs[Math.floor(sh*97)%cs.length];
     const sc=(t.r||9)/10*(.9+((sh*13)%1)*.22),tall=R3T_SP[t.sp]&&R3T_SP[t.sp].kind==='broad'?1.22:1.08;
     P[i*3]=t.x;P[i*3+1]=(t.gh!==undefined?t.gh:hAt(t.x,t.y))-.15;P[i*3+2]=t.y;
-    Sz[i*4]=c.w*sc;Sz[i*4+1]=c.h*sc*tall*(.92+((sh*29)%1)*.16);Sz[i*4+2]=((sh*7)%1)<.5?1:-1;Rc.set(c.uv,i*4);
+    Sz[i*4]=c.w*sc;Sz[i*4+1]=c.h*sc*tall*(.92+((sh*29)%1)*.16);if(t.mh){Sz[i*4]=c.w*t.r/(c.g.reach||1);Sz[i*4+1]=t.mh*1.02;}   // measured (?tl=1)Sz[i*4+2]=((sh*7)%1)<.5?1:-1;Rc.set(c.uv,i*4);
     const tn=.88+((sh*53)%1)*.24,hv=((sh*31)%1)-.5;Cc[i*3]=tn*(1+hv*.1);Cc[i*3+1]=tn;Cc[i*3+2]=tn*(.96+((sh*7)%1)*.08)*(1-hv*.12);});
   const g=new T.InstancedBufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute([-.5,0,0,.5,0,0,.5,1,0,-.5,1,0],3));
   g.setAttribute('normal',new T.Float32BufferAttribute([0,0,1,0,0,1,0,0,1,0,0,1],3));g.setAttribute('uv',new T.Float32BufferAttribute([0,0,1,0,1,1,0,1],2));g.setIndex([0,1,2,0,2,3]);

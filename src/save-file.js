@@ -214,7 +214,7 @@ function stepFlight(dt){
   /* trees like real ones: the crown is mostly leaves, so the ball usually flies through it; each yard it travels inside
      a crown has a small chance of catching a branch, which knocks it down near that spot. Only the trunk sends it back. */
   if(!f.knocked){const lx=f.lx??x,ly=f.ly??y,ds=hyp(x-lx,y-ly);f.lx=x;f.ly=y;
-    for(const t of G.hole.trees){const d=hyp(x-t.x,y-t.y);if(d>Math.max(t.r,t.cr||0))continue;const ht=Y-t.gh,top=2+1.35*t.r,tr=clamp(.05*t.r+.12,.15,.5);
+    for(const t of G.hole.trees){const d=hyp(x-t.x,y-t.y);if(d>Math.max(t.r,t.cr||0))continue;const ht=Y-t.gh,top=t.mh||2+1.35*t.r,tr=clamp(.05*t.r+.12,.15,.5);
       const cw=treeCrown(t,ht),inLeaf=k=>cw===null?(ht>(k>.82?2:3)&&ht<top&&d<t.r*k):(ht>1.5&&d<cw*(k>.82?1:.92));   // the crown as drawn (0.85/0.8 x the photo radius before)
       if(t.cactus){if(ht<9.5*(t.vs||1)&&d<.62&&ds>0){const nx=(x-t.x)/(d||1),ny=(y-t.y)/(d||1),[tx,ty]=travelDir(f,u),dot=tx*nx+ty*ny,rx=tx-2*dot*nx,ry=ty-2*dot*ny,v=clamp(f.carry/f.T*.25,1.5,7);
           G.flight=null;sfx.tree();toast('OUCH!','Off a saguaro','#ff9b6a');G.bY=gnd;G.roll={vx:rx*v,vy:ry*v,t:0,lip:false};G.state='roll';return;}continue;}
