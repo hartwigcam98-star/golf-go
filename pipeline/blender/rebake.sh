@@ -8,6 +8,8 @@
 set -e
 GG=${GG:-/home/claude/golf-go}; P=$GG/pipeline/blender; BC=${BC:-/home/claude/bc}; N=${1:-6}; shift || true
 cd $GG && git pull -q origin main
+B=$(gh run list -R hartwigcam98-star/golf-go --branch blender-club -L 5 --json status -q '[.[]|select(.status!="completed")]|length' 2>/dev/null || echo 0)
+[ "$B" = "0" ] || { echo "BUSY: a Blender bake run is still going, try later"; exit 0; }   # another rebake is mid-way: don't take the same courses
 KEYS="$*"
 if [ -z "$KEYS" ]; then KEYS=$(python3 - $N <<'PY'
 import json, os, re, glob, sys
