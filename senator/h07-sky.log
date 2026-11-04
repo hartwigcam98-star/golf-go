@@ -1,0 +1,22 @@
+[bake] terrain 149 176 image 1184 1400 yd 296.0 350.0
+[bake] trees 6 protos 5
+[bake] far trees 17
+[bake] scenery tris 24180
+Blender 4.2.23 LTS (hash d0cbe84903e8 built 2026-07-21 01:31:03)
+Fra:1 Mem:125.85M (Peak 125.85M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | terrain
+Fra:1 Mem:126.45M (Peak 126.45M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t0
+Fra:1 Mem:126.58M (Peak 126.58M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t0.001
+Fra:1 Mem:126.58M (Peak 126.58M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | scenery
+Fra:1 Mem:130.11M (Peak 130.11M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t1
+Fra:1 Mem:131.34M (Peak 131.34M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t1.001
+Fra:1 Mem:131.46M (Peak 131.46M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t2
+Fra:1 Mem:131.89M (Peak 131.89M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t2.001
+Fra:1 Mem:131.94M (Peak 131.94M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t4
+Fra:1 Mem:132.80M (Peak 132.80M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t5
+Fra:1 Mem:132.84M (Peak 132.84M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t5.001
+Fra:1 Mem:132.96M (Peak 132.96M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | ft
+Fra:1 Mem:133.52M (Peak 133.52M) | Time:498285:41:16.25 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | fc
+Fra:1 Mem:136.38M (Peak 137.09M) | Time:498285:41:16.26 | Mem:0.00M, Peak:0.00M | Scene | Initializing
+Fra:1 Mem:136.38M (Peak 137.09M) | Time:498285:41:16.26 | Mem:0.00M, Peak:0.00M | Scene | Updating Images | Loading bake
+Info: Baking map saved to internal image, save it externally or pack it
+[bake] sky bake 30 s mean 0.9870758056640625 p95 1.0
