@@ -1,0 +1,6 @@
+19:52:05 probe USGS_LPC_SC_Georgetown_2016_LAS_2019 80052 pts 16708 ground
+19:54:32 points 34988615
+19:54:36   http 502 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+19:54:44   http 502 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+19:55:25 reg {'shift_m': [-0.24, -1.24], 'depth_m': -0.214, 'depth0_m': -0.198, 'bunkers': 40}
+19:55:33 done {'key': 'pawplant', 'started': '2026-11-04 19:52:02', 'errors': [], 'probe': {'USGS_LPC_SC_Georgetown_2016_LAS_2019': [80052, 16708]}, 'scan': 'USGS_LPC_SC_Georgetown_2016_LAS_2019', 'tiles': 84, 'grid': [3000, 1750, 670415, 3700211], 'tiles_retried': 0, 'points': 34988615, 'spikes': 145605, 'photo': 0.9902241904761905, 'reg': {'shift_m': [-0.24, -1.24], 'depth_m': -0.214, 'depth0_m': -0.198, 'bunkers': 40}, 'crowns': 27454, 'kept': 26535, 'wet': 5, 'roofs': 886, 'flat': 28, 'tiny': 9, 'h_yd': [16.4, 23.5, 28.9], 'cr_yd': [3.9, 5.8, 7.8], 'cb_yd': [3.3, 5.5, 10.9], 'conifer': 0.381, 'contrast': [-0.1, -0.0, 0.0], 'dark_drop': 0, 'bytes': 247758, 'finished': '2026-11-04 19:55:33'}

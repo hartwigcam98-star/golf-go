@@ -1,0 +1,4 @@
+20:02:59 probe AZ_MaricopaPinal_1_2020 188357 pts 121006 ground
+20:07:18 points 74894177
+20:07:23 reg {'shift_m': [1.76, -1.16], 'depth_m': -0.164, 'depth0_m': -0.088, 'bunkers': 22}
+20:07:27 done {'key': 'desertcanyon', 'started': '2026-11-04 20:02:57', 'errors': [], 'probe': {'AZ_MaricopaPinal_1_2020': [188357, 121006]}, 'scan': 'AZ_MaricopaPinal_1_2020', 'tiles': 49, 'grid': [1750, 1750, 432819, 3716966], 'tiles_retried': 0, 'points': 74894177, 'spikes': 3874, 'photo': 0.9647601632653061, 'reg': {'shift_m': [1.76, -1.16], 'depth_m': -0.164, 'depth0_m': -0.088, 'bunkers': 22}, 'crowns': 11674, 'kept': 4863, 'wet': 34, 'roofs': 563, 'flat': 79, 'tiny': 57, 'h_yd': [4.3, 6.1, 10.3], 'cr_yd': [2.8, 3.3, 4.1], 'cb_yd': [2.2, 2.2, 3.3], 'conifer': 0.0, 'contrast': [0.0, 0.1, 0.1], 'dark_drop': 6148, 'bytes': 45472, 'finished': '2026-11-04 20:07:27'}

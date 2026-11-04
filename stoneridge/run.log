@@ -1,0 +1,4 @@
+19:48:20 probe MN_CentralMissRiver_5_B22 282325 pts 211751 ground
+19:53:11 points 86724126
+19:53:18 reg {'shift_m': [1.24, -1.24], 'depth_m': -0.346, 'depth0_m': -0.255, 'bunkers': 163}
+19:53:24 done {'key': 'stoneridge', 'started': '2026-11-04 19:48:17', 'errors': [], 'probe': {'MN_CentralMissRiver_5_B22': [282325, 211751]}, 'scan': 'MN_CentralMissRiver_5_B22', 'tiles': 81, 'grid': [2250, 2250, 512406, 4978990], 'tiles_retried': 0, 'points': 86724126, 'spikes': 32337, 'photo': 0.9146919506172839, 'reg': {'shift_m': [1.24, -1.24], 'depth_m': -0.346, 'depth0_m': -0.255, 'bunkers': 163}, 'crowns': 17503, 'kept': 16513, 'wet': 74, 'roofs': 818, 'flat': 60, 'tiny': 107, 'h_yd': [8.4, 17.4, 24.7], 'cr_yd': [3.0, 5.0, 7.2], 'cb_yd': [2.2, 4.4, 8.7], 'conifer': 0.238, 'contrast': [-0.1, -0.0, 0.0], 'dark_drop': 0, 'bytes': 154219, 'finished': '2026-11-04 19:53:24'}

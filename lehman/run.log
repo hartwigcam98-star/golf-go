@@ -1,0 +1,4 @@
+19:48:23 probe MN_UpperMissRiver_6_B22 232291 pts 102984 ground
+20:02:51 points 225619350
+20:02:59 reg {'shift_m': [2.16, -1.6], 'depth_m': -0.28, 'depth0_m': -0.159, 'bunkers': 45}
+20:03:14 done {'key': 'lehman', 'started': '2026-11-04 19:48:18', 'errors': [], 'probe': {'MN_UpperMissRiver_6_B22': [232291, 102984]}, 'scan': 'MN_UpperMissRiver_6_B22', 'tiles': 144, 'grid': [3000, 3000, 396082, 5139589], 'tiles_retried': 0, 'points': 225619350, 'spikes': 367391, 'photo': 0.9147492222222222, 'reg': {'shift_m': [2.16, -1.6], 'depth_m': -0.28, 'depth0_m': -0.159, 'bunkers': 45}, 'crowns': 44595, 'kept': 42591, 'wet': 10, 'roofs': 1659, 'flat': 17, 'tiny': 366, 'h_yd': [6.6, 18.4, 26.2], 'cr_yd': [2.8, 4.4, 6.8], 'cb_yd': [2.2, 3.3, 7.7], 'conifer': 0.082, 'contrast': [-0.1, -0.0, 0.0], 'dark_drop': 0, 'bytes': 397601, 'finished': '2026-11-04 20:03:14'}

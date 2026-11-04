@@ -1,0 +1,4 @@
+20:05:50 probe MN_RiverWest_1_B23 197013 pts 137871 ground
+20:09:08 points 51840071
+20:09:11 reg {'shift_m': [1.0, -0.84], 'depth_m': -0.594, 'depth0_m': -0.559, 'bunkers': 47}
+20:09:13 done {'key': 'dacotah', 'started': '2026-11-04 20:05:46', 'errors': [], 'probe': {'MN_RiverWest_1_B23': [197013, 137871]}, 'scan': 'MN_RiverWest_1_B23', 'tiles': 35, 'grid': [1250, 1750, 345902, 4929785], 'tiles_retried': 0, 'points': 51840071, 'spikes': 37009, 'photo': 0.8526354285714286, 'reg': {'shift_m': [1.0, -0.84], 'depth_m': -0.594, 'depth0_m': -0.559, 'bunkers': 47}, 'crowns': 3207, 'kept': 2756, 'wet': 22, 'roofs': 219, 'flat': 0, 'tiny': 220, 'h_yd': [4.4, 18.6, 32.9], 'cr_yd': [2.0, 3.5, 6.5], 'cb_yd': [1.3, 5.5, 19.9], 'conifer': 0.196, 'contrast': [-0.0, 0.0, 0.1], 'dark_drop': 0, 'bytes': 25807, 'finished': '2026-11-04 20:09:13'}

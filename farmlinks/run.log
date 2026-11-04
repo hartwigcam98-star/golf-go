@@ -1,0 +1,4 @@
+20:02:47 probe AL_17Co_2_2020 78823 pts 56607 ground
+20:05:26 points 47610921
+20:05:30 reg {'shift_m': [0.0, -0.84], 'depth_m': -0.62, 'depth0_m': -0.593, 'bunkers': 67}
+20:05:38 done {'key': 'farmlinks', 'started': '2026-11-04 20:02:45', 'errors': [], 'probe': {'AL_17Co_2_2020': [78823, 56607]}, 'scan': 'AL_17Co_2_2020', 'tiles': 96, 'grid': [2000, 3000, 553210, 3666881], 'tiles_retried': 0, 'points': 47610921, 'spikes': 141128, 'photo': 0.8607486666666667, 'reg': {'shift_m': [0.0, -0.84], 'depth_m': -0.62, 'depth0_m': -0.593, 'bunkers': 67}, 'crowns': 21624, 'kept': 21239, 'wet': 7, 'roofs': 330, 'flat': 0, 'tiny': 67, 'h_yd': [16.1, 23.9, 32.0], 'cr_yd': [3.8, 5.8, 8.1], 'cb_yd': [2.2, 5.5, 10.9], 'conifer': 0.017, 'contrast': [-0.1, -0.0, 0.1], 'dark_drop': 0, 'bytes': 198312, 'finished': '2026-11-04 20:05:38'}

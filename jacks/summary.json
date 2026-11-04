@@ -1,0 +1,62 @@
+{
+ "key": "jacks",
+ "started": "2026-11-04 20:05:45",
+ "errors": [],
+ "probe": {
+  "MN_UpperMissRiver_6_B22": [
+   182116,
+   86685
+  ]
+ },
+ "scan": "MN_UpperMissRiver_6_B22",
+ "tiles": 45,
+ "grid": [
+  1250,
+  2250,
+  432737,
+  5141979
+ ],
+ "tiles_retried": 0,
+ "points": 93068438,
+ "spikes": 127220,
+ "photo": 0.8775495111111111,
+ "reg": {
+  "shift_m": [
+   0.0,
+   0.76
+  ],
+  "depth_m": -0.07,
+  "depth0_m": -0.067,
+  "bunkers": 38
+ },
+ "crowns": 15156,
+ "kept": 13718,
+ "wet": 658,
+ "roofs": 485,
+ "flat": 22,
+ "tiny": 498,
+ "h_yd": [
+  13.9,
+  25.2,
+  31.7
+ ],
+ "cr_yd": [
+  2.7,
+  5.2,
+  7.6
+ ],
+ "cb_yd": [
+  2.2,
+  6.6,
+  14.2
+ ],
+ "conifer": 0.105,
+ "contrast": [
+  -0.1,
+  0.0,
+  0.1
+ ],
+ "dark_drop": 0,
+ "bytes": 128125,
+ "finished": "2026-11-04 20:11:47"
+}

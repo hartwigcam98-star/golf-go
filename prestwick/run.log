@@ -1,0 +1,4 @@
+20:02:19 probe MN_CentralMissRiver_5_B22 154366 pts 141216 ground
+20:04:34 points 53998368
+20:04:36 reg {'shift_m': [1.24, -1.16], 'depth_m': -0.436, 'depth0_m': -0.349, 'bunkers': 71}
+20:04:38 done {'key': 'prestwick', 'started': '2026-11-04 20:02:16', 'errors': [], 'probe': {'MN_CentralMissRiver_5_B22': [154366, 141216]}, 'scan': 'MN_CentralMissRiver_5_B22', 'tiles': 56, 'grid': [1750, 2000, 506183, 4972453], 'tiles_retried': 0, 'points': 53998368, 'spikes': 14711, 'photo': 0.8845468571428572, 'reg': {'shift_m': [1.24, -1.16], 'depth_m': -0.436, 'depth0_m': -0.349, 'bunkers': 71}, 'crowns': 10176, 'kept': 9251, 'wet': 30, 'roofs': 856, 'flat': 37, 'tiny': 31, 'h_yd': [8.4, 13.5, 20.1], 'cr_yd': [3.3, 4.8, 6.6], 'cb_yd': [2.2, 3.3, 6.6], 'conifer': 0.402, 'contrast': [-0.0, 0.0, 0.1], 'dark_drop': 0, 'bytes': 86434, 'finished': '2026-11-04 20:04:38'}

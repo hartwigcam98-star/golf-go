@@ -1,0 +1,4 @@
+20:01:36 probe MN_CentralMissRiver_6_B22 192729 pts 138603 ground
+20:05:19 points 82818717
+20:05:39 reg {'shift_m': [1.44, -0.76], 'depth_m': -0.414, 'depth0_m': -0.333, 'bunkers': 55}
+20:05:43 done {'key': 'legends', 'started': '2026-11-04 20:01:33', 'errors': [], 'probe': {'MN_CentralMissRiver_6_B22': [192729, 138603]}, 'scan': 'MN_CentralMissRiver_6_B22', 'tiles': 64, 'grid': [2000, 2000, 471445, 4947827], 'tiles_retried': 0, 'points': 82818717, 'spikes': 16265, 'photo': 0.90649075, 'reg': {'shift_m': [1.44, -0.76], 'depth_m': -0.414, 'depth0_m': -0.333, 'bunkers': 55}, 'crowns': 11588, 'kept': 11260, 'wet': 0, 'roofs': 296, 'flat': 10, 'tiny': 26, 'h_yd': [9.5, 19.0, 24.7], 'cr_yd': [3.3, 5.4, 7.6], 'cb_yd': [2.2, 4.4, 6.6], 'conifer': 0.179, 'contrast': [-0.0, -0.0, 0.0], 'dark_drop': 0, 'bytes': 105191, 'finished': '2026-11-04 20:05:43'}

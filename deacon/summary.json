@@ -1,0 +1,62 @@
+{
+ "key": "deacon",
+ "started": "2026-11-04 19:48:17",
+ "errors": [],
+ "probe": {
+  "MN_UpperMissRiver_6_B22": [
+   260798,
+   26412
+  ]
+ },
+ "scan": "MN_UpperMissRiver_6_B22",
+ "tiles": 100,
+ "grid": [
+  2500,
+  2500,
+  406510,
+  5163833
+ ],
+ "tiles_retried": 0,
+ "points": 175201880,
+ "spikes": 424124,
+ "photo": 0.92970304,
+ "reg": {
+  "shift_m": [
+   1.0,
+   -1.24
+  ],
+  "depth_m": -0.465,
+  "depth0_m": -0.406,
+  "bunkers": 47
+ },
+ "crowns": 38709,
+ "kept": 33070,
+ "wet": 2103,
+ "roofs": 3366,
+ "flat": 70,
+ "tiny": 1277,
+ "h_yd": [
+  14.4,
+  23.0,
+  31.1
+ ],
+ "cr_yd": [
+  2.9,
+  5.0,
+  7.1
+ ],
+ "cb_yd": [
+  2.2,
+  5.5,
+  9.8
+ ],
+ "conifer": 0.194,
+ "contrast": [
+  -0.1,
+  -0.0,
+  0.0
+ ],
+ "dark_drop": 0,
+ "bytes": 308749,
+ "finished": "2026-11-04 19:57:59"
+}

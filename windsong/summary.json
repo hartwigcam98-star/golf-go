@@ -1,0 +1,62 @@
+{
+ "key": "windsong",
+ "started": "2026-11-04 19:58:08",
+ "errors": [],
+ "probe": {
+  "MN_CentralMissRiver_4_B22": [
+   63850,
+   43701
+  ]
+ },
+ "scan": "MN_CentralMissRiver_4_B22",
+ "tiles": 42,
+ "grid": [
+  1500,
+  1750,
+  440960,
+  4982226
+ ],
+ "tiles_retried": 0,
+ "points": 156413930,
+ "spikes": 8043,
+ "photo": 0.9490491428571428,
+ "reg": {
+  "shift_m": [
+   1.0,
+   -1.16
+  ],
+  "depth_m": -0.619,
+  "depth0_m": -0.541,
+  "bunkers": 82
+ },
+ "crowns": 4952,
+ "kept": 4770,
+ "wet": 7,
+ "roofs": 157,
+ "flat": 7,
+ "tiny": 23,
+ "h_yd": [
+  8.1,
+  17.7,
+  24.0
+ ],
+ "cr_yd": [
+  3.1,
+  5.2,
+  7.3
+ ],
+ "cb_yd": [
+  2.2,
+  4.4,
+  6.6
+ ],
+ "conifer": 0.132,
+ "contrast": [
+  -0.0,
+  0.0,
+  0.1
+ ],
+ "dark_drop": 0,
+ "bytes": 44606,
+ "finished": "2026-11-04 20:04:46"
+}

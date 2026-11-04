@@ -1,0 +1,4 @@
+19:48:21 probe USGS_LPC_SC_Georgetown_2016_LAS_2019 42353 pts 19830 ground
+19:49:33 points 13271757
+19:49:47 reg {'shift_m': [0.4, -1.0], 'depth_m': -0.386, 'depth0_m': -0.349, 'bunkers': 136}
+19:49:50 done {'key': 'caledonia', 'started': '2026-11-04 19:48:18', 'errors': [], 'probe': {'USGS_LPC_SC_Georgetown_2016_LAS_2019': [42353, 19830]}, 'scan': 'USGS_LPC_SC_Georgetown_2016_LAS_2019', 'tiles': 42, 'grid': [1750, 1500, 671020, 3703848], 'tiles_retried': 0, 'points': 13271757, 'spikes': 50620, 'photo': 0.9755554285714285, 'reg': {'shift_m': [0.4, -1.0], 'depth_m': -0.386, 'depth0_m': -0.349, 'bunkers': 136}, 'crowns': 7789, 'kept': 7069, 'wet': 50, 'roofs': 659, 'flat': 45, 'tiny': 16, 'h_yd': [9.1, 21.9, 29.8], 'cr_yd': [3.3, 5.6, 7.8], 'cb_yd': [2.2, 5.5, 9.8], 'conifer': 0.242, 'contrast': [-0.1, -0.0, 0.1], 'dark_drop': 0, 'bytes': 66085, 'finished': '2026-11-04 19:49:50'}

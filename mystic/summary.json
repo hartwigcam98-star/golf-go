@@ -1,0 +1,62 @@
+{
+ "key": "mystic",
+ "started": "2026-11-04 20:00:46",
+ "errors": [],
+ "probe": {
+  "MN_CentralMissRiver_6_B22": [
+   184673,
+   175800
+  ]
+ },
+ "scan": "MN_CentralMissRiver_6_B22",
+ "tiles": 56,
+ "grid": [
+  1750,
+  2000,
+  461195,
+  4954053
+ ],
+ "tiles_retried": 0,
+ "points": 51590654,
+ "spikes": 14370,
+ "photo": 0.8937485714285714,
+ "reg": {
+  "shift_m": [
+   1.24,
+   -1.24
+  ],
+  "depth_m": -0.41,
+  "depth0_m": -0.338,
+  "bunkers": 58
+ },
+ "crowns": 6903,
+ "kept": 5639,
+ "wet": 410,
+ "roofs": 1006,
+ "flat": 109,
+ "tiny": 109,
+ "h_yd": [
+  6.9,
+  14.6,
+  22.5
+ ],
+ "cr_yd": [
+  2.8,
+  4.6,
+  6.8
+ ],
+ "cb_yd": [
+  2.2,
+  3.3,
+  6.6
+ ],
+ "conifer": 0.054,
+ "contrast": [
+  -0.0,
+  0.0,
+  0.1
+ ],
+ "dark_drop": 0,
+ "bytes": 52722,
+ "finished": "2026-11-04 20:02:35"
+}

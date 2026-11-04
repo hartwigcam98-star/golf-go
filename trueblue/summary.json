@@ -1,0 +1,62 @@
+{
+ "key": "trueblue",
+ "started": "2026-11-04 19:48:19",
+ "errors": [],
+ "probe": {
+  "USGS_LPC_SC_Georgetown_2016_LAS_2019": [
+   48499,
+   21942
+  ]
+ },
+ "scan": "USGS_LPC_SC_Georgetown_2016_LAS_2019",
+ "tiles": 80,
+ "grid": [
+  2000,
+  2500,
+  671269,
+  3703131
+ ],
+ "tiles_retried": 0,
+ "points": 28912392,
+ "spikes": 126076,
+ "photo": 0.9581208,
+ "reg": {
+  "shift_m": [
+   0.6,
+   -1.0
+  ],
+  "depth_m": -0.341,
+  "depth0_m": -0.311,
+  "bunkers": 191
+ },
+ "crowns": 21077,
+ "kept": 19911,
+ "wet": 69,
+ "roofs": 1038,
+ "flat": 93,
+ "tiny": 29,
+ "h_yd": [
+  12.2,
+  21.5,
+  28.4
+ ],
+ "cr_yd": [
+  3.7,
+  5.6,
+  7.6
+ ],
+ "cb_yd": [
+  2.2,
+  4.4,
+  8.7
+ ],
+ "conifer": 0.388,
+ "contrast": [
+  -0.1,
+  -0.0,
+  0.1
+ ],
+ "dark_drop": 0,
+ "bytes": 185934,
+ "finished": "2026-11-04 19:51:40"
+}

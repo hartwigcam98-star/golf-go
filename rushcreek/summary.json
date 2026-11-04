@@ -1,0 +1,62 @@
+{
+ "key": "rushcreek",
+ "started": "2026-11-04 20:06:38",
+ "errors": [],
+ "probe": {
+  "MN_CentralMissRiver_4_B22": [
+   103726,
+   35214
+  ]
+ },
+ "scan": "MN_CentralMissRiver_4_B22",
+ "tiles": 48,
+ "grid": [
+  2000,
+  1500,
+  457983,
+  4994790
+ ],
+ "tiles_retried": 0,
+ "points": 200662640,
+ "spikes": 9981,
+ "photo": 0.9113203333333333,
+ "reg": {
+  "shift_m": [
+   0.76,
+   -1.24
+  ],
+  "depth_m": -0.386,
+  "depth0_m": -0.326,
+  "bunkers": 65
+ },
+ "crowns": 5833,
+ "kept": 5243,
+ "wet": 5,
+ "roofs": 524,
+ "flat": 28,
+ "tiny": 48,
+ "h_yd": [
+  6.7,
+  15.5,
+  24.1
+ ],
+ "cr_yd": [
+  3.0,
+  4.9,
+  7.3
+ ],
+ "cb_yd": [
+  2.2,
+  3.3,
+  7.1
+ ],
+ "conifer": 0.171,
+ "contrast": [
+  -0.0,
+  0.0,
+  0.1
+ ],
+ "dark_drop": 0,
+ "bytes": 49026,
+ "finished": "2026-11-04 20:18:50"
+}

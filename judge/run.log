@@ -1,0 +1,4 @@
+19:48:21 probe USGS_LPC_AL_25Co_B4_2017 50894 pts 22815 ground
+19:50:07 points 23180621
+19:50:13 reg {'shift_m': [0.44, -1.16], 'depth_m': -0.369, 'depth0_m': -0.335, 'bunkers': 265}
+19:50:18 done {'key': 'judge', 'started': '2026-11-04 19:48:18', 'errors': [], 'probe': {'USGS_LPC_AL_25Co_B4_2017': [50894, 22815]}, 'scan': 'USGS_LPC_AL_25Co_B4_2017', 'tiles': 90, 'grid': [2500, 2250, 556621, 3590916], 'tiles_retried': 0, 'points': 23180621, 'spikes': 183429, 'photo': 0.8956592, 'reg': {'shift_m': [0.44, -1.16], 'depth_m': -0.369, 'depth0_m': -0.335, 'bunkers': 265}, 'crowns': 18958, 'kept': 18671, 'wet': 109, 'roofs': 156, 'flat': 49, 'tiny': 16, 'h_yd': [12.2, 22.1, 31.5], 'cr_yd': [3.4, 5.4, 7.9], 'cb_yd': [2.2, 4.4, 9.8], 'conifer': 0.021, 'contrast': [-0.0, 0.0, 0.1], 'dark_drop': 0, 'bytes': 174354, 'finished': '2026-11-04 19:50:18'}
