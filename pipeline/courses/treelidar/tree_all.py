@@ -129,6 +129,14 @@ def main():
     SUM['tiles_retried'] = len(failed)
     SUM['points'] = npts; save(); log('points', npts)
     gnd = np.where(gn > 0, gs / np.maximum(gn, 1), np.nan).astype(np.float32)
+    # stray returns (birds, haze, a wire) above the canopy: a cell's top is capped 1 m above the highest 3-m band with 3+ returns
+    # in its 2-m column, so a lone point can't make a 40 m "tree" over a field
+    cs3 = prof[..., :].astype(np.int32); c3 = cs3.copy(); c3[..., 1:] += cs3[..., :-1]; c3[..., 2:] += cs3[..., :-2]
+    sup = c3 >= 3; rt = np.where(sup.any(-1), NB - np.argmax(sup[..., ::-1], -1), 0).astype(np.float32)   # top of the highest supported bin (m)
+    rt[rt >= NB] = 80
+    cap = np.kron(rt, np.ones((2, 2), np.float32))[:h, :w]; cap = np.pad(cap, ((0, h - cap.shape[0]), (0, w - cap.shape[1])), mode='edge')
+    SUM['spikes'] = int((chm > cap + 1.0).sum()); chm = np.minimum(chm, cap + 1.0)
+    if KEY in os.environ.get('DIAG', '').split(','): np.savez_compressed(f'{OUT}/grids.npz', chm=np.round(chm * 10).astype(np.uint16), gnd=gnd, prof=np.minimum(prof, 255).astype(np.uint8), x0=gx0, y1=gy1, epsg=EPSG)
     # ---- photo on the 1 m grid
     ph = np.zeros((h, w, 3), np.uint8)
     try:
@@ -157,11 +165,11 @@ def main():
         m_ = np.zeros(gx_.shape, np.uint8); cv2.fillPoly(m_, [((P - [x0_, y0_]) / .5).astype(np.int32)], 1); dil = cv2.dilate(m_, np.ones((13, 13), np.uint8))
         if m_.sum() < 4: continue
         ins.append(c2u(gx_[m_ > 0], gy_[m_ > 0])); outs.append(c2u(gx_[(dil > 0) & (m_ == 0)], gy_[(dil > 0) & (m_ == 0)]))
+    def smp(img, xs_, ys_): return ndi.map_coordinates(img, [np.asarray(ys_, float), np.asarray(xs_, float)], order=1, mode='nearest')
     def depth(dx, dy):
         r = []
         for (ix_, iy_), (ox_, oy_) in zip(ins, outs):
-            zi = cv2.remap(gf, (ix_ + dx - gx0 - .5).astype(np.float32)[None], (gy1 - iy_ - dy - .5).astype(np.float32)[None], cv2.INTER_LINEAR)
-            zo = cv2.remap(gf, (ox_ + dx - gx0 - .5).astype(np.float32)[None], (gy1 - oy_ - dy - .5).astype(np.float32)[None], cv2.INTER_LINEAR)
+            zi = smp(gf, ix_ + dx - gx0 - .5, gy1 - iy_ - dy - .5); zo = smp(gf, ox_ + dx - gx0 - .5, gy1 - oy_ - dy - .5)
             r.append(zi.mean() - zo.mean())
         return float(np.mean(r))
     best = (0., 0.); d0 = depth(0, 0) if ins else 0
@@ -210,10 +218,10 @@ def main():
     # darker than the ground round it? (a crown is; a roof, rock or a slope the ground model missed isn't)
     ux0_ = (px + .5).astype(np.float32); uy0_ = (py + .5).astype(np.float32); crm = np.sqrt(np.maximum(area, 1) / np.pi).astype(np.float32)
     an = np.linspace(0, 2 * np.pi, 24, endpoint=False).astype(np.float32); Lb = cv2.GaussianBlur(Lum.astype(np.float32), (0, 0), 1.0)
-    def ring(rr): return cv2.remap(Lb, ux0_[:, None] + np.cos(an)[None] * rr[:, None], uy0_[:, None] + np.sin(an)[None] * rr[:, None], cv2.INTER_LINEAR, borderValue=0)
+    def ring(rr): return ndi.map_coordinates(Lb, [(uy0_[:, None] + np.sin(an)[None] * rr[:, None]).ravel(), (ux0_[:, None] + np.cos(an)[None] * rr[:, None]).ravel()], order=1, mode='constant').reshape(-1, len(an))
     Lin = np.concatenate([ring(crm * f) for f in (0., .3, .6)], 1).mean(1) if n else np.zeros(0); Lout = np.median(ring(crm + 3), 1) if n else np.zeros(0)
     contrast = Lout - Lin
-    roof = havep & (mexg < (0.0 if desert else 0.06))
+    roof = havep & (mexg < (0.0 if desert else 0.06)) & (mL > 0.25)   # grey or pale and not green: a roof (dark crowns, e.g. pines in shade, stay)
     flat = (sd < 0.45) & (area > 40)                       # a flat top over a big footprint: a roof, not a crown
     keep = ~roof & ~flat & (area >= 8) & (top >= 3) & (top <= 45)
     if desert: keep &= ~havep | ((contrast > 0.03) & (top <= 16))   # desert: a tree is a dark spot on bright ground, and none is taller than ~16 m
