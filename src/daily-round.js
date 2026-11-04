@@ -75,8 +75,9 @@ var GRDK=(()=>{try{return localStorage.getItem('golf-grid')==='1';}catch(e){retu
    &c=<course>&h=<hole>). */
 const B10=(()=>{try{return !/[?&]b10=0/.test(location.search);}catch(e){return true;}})(),B10T=(()=>{try{return /[?&]b10=1/.test(location.search);}catch(e){return false;}})();
 function b10On(){return B10&&typeof CUR!=='undefined'&&!!CUR;}
-function b10K(){if(typeof tlOn==='function'&&tlOn())return null;   // measured trees trial: the baked shadows are of the old trees, so live shadows instead
-  const c=b10On()&&typeof B10BAKE!=='undefined'&&B10BAKE.courses?B10BAKE.courses[CUR.id]:null;return c&&c.holes?c.holes[G.hi]||null:null;}   // this hole's baked light (b: bounds, png)
+function b10K(){const c=b10On()&&typeof B10BAKE!=='undefined'&&B10BAKE.courses?B10BAKE.courses[CUR.id]:null;
+  if(c&&typeof tlOn==='function'&&tlOn()!==!!c.mt)return null;   // light baked with other trees than the ones standing (measured vs photo): live shadows instead
+  return c&&c.holes?c.holes[G.hi]||null:null;}   // this hole's baked light (b: bounds, png)
 function b10Hole(){return !!b10K();}
 function b10Load(done){const L=['b10/bake.js?v=35','b10/trees.js?v=3'];window.B10LEAF='b10/leaves.webp?v=1';let n=L.length;for(const s of L){const e=document.createElement('script');e.src=s;e.onload=e.onerror=()=>{if(--n===0)done();};document.head.appendChild(e);}}
 function b10Trees(P){const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer);};

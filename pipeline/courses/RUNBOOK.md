@@ -159,6 +159,26 @@ python3 test/mkharness.py work/index.html work/test/index.html && cp work/greens
    the clubhouse must look like a building (roofs closed, nothing floating, walls to the ground, porches on posts) and like
    the photos. Each landmark: `PORT=8766 node clubs/render/lmshot.js '[["<key>",x,y,45,8,"lm1"]]' /tmp/lm` and Read it. Fix or drop.
 
+### 6c. Measured trees (every course, since Nov 2026)
+The photo trees from step 5 (`auto/trees.py`) are only a stand-in: every course's trees are then measured from the lidar
+(position, height, crown width, lowest branches; `pipeline/courses/treelidar/README.md`), using the harness from step 6:
+```
+T=/home/claude/golf-go/pipeline/courses/treelidar
+[ -d /home/claude/usgs-lidar ] || (git clone -q --depth 1 --filter=blob:none --sparse https://github.com/hobuinc/usgs-lidar /home/claude/usgs-lidar && git -C /home/claude/usgs-lidar sparse-checkout set boundaries)
+(cd /home/claude/golf/work/test && setsid -f python3 -m http.server 8766 >/dev/null 2>&1); sleep 2
+cd $T && PORT=8766 PAGE=index.html node dump.js /tmp/courses.json && python3 mkcfg.py /tmp/courses.json <key> [key2]
+echo '["<key>"]' > only.json      # both keys for two courses
+cd /home/claude/golf-go && git checkout -q -B trees-all origin/main
+git add pipeline/courses/treelidar/cfg_trees.json pipeline/courses/treelidar/only.json && git commit -qm "Measured trees: <key>" && git push -qf origin trees-all && git checkout -q main
+```
+Poll `gh run list --repo hartwigcam98-star/golf-go --workflow trees.yml -L 1` (~10–20 min), then
+`rm -rf /tmp/td && git clone -q --depth 1 -b trees-data https://github.com/hartwigcam98-star/golf-go /tmp/td`. Read
+`/tmp/td/<key>/summary.json` (no `fatal` error; `kept` in the thousands for a wooded course; `reg.depth_m` clearly negative)
+and **look at** `/tmp/td/<key>/prev.jpg`: red circles on real tree crowns, blue on roofs. Then put them in the work copy:
+`TJ=/home/claude/golf/work/trees.js python3 $T/insL.py /tmp/td <key>` and re-make the harness (step 6's `mkharness.py` + copy
+the data files). Gates 1–6 run on the measured trees. No lidar coverage (mkcfg.py says so), or the run failed: the course
+keeps its photo trees; say so in the report. Commit `pipeline/courses/treelidar/cfg_trees.json` with the course.
+
 Hero picture: `cd work/test && (python3 -m http.server 8766 >/dev/null 2>&1 &); sleep 2; cd ../../qa && node hero.js '[["<key>",-1]]' /tmp`
 then embed (480×270 JPEG q74 data URL) into `auto/<key>/hero.json` as `{"<key>": "data:image/jpeg;base64,..."}` and re-run inject + mkharness.
 Look at the hero picture.
@@ -194,7 +214,9 @@ For failures/skips: commit only `pipeline/courses/requests.json`.
 
 ## 7b. Blender pass (after the course is live; never blocks it)
 Every course gets the Blender upgrade: its clubhouse rebuilt and light-baked in Blender, every hole's light baked (real tree
-and building shadows, soft sky light), and a before/after card on the Blender page. Follow `pipeline/blender/README.md`:
+and building shadows, soft sky light), and a before/after card on the Blender page. The export captures the measured trees
+from step 6c (its log says `trees measured`; the bake then writes `b10/light/<key>/mt.json`): the game only uses baked light
+that matches the trees shown, so a bake made before 6c is ignored. Follow `pipeline/blender/README.md`:
 ```
 P=/home/claude/golf-go/pipeline/blender && git -C /home/claude/golf-go pull -q origin main
 bash $P/newcourse.sh setup

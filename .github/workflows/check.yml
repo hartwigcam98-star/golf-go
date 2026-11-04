@@ -5,7 +5,7 @@ name: Same-game check
 # Green = same game. Red = the summary lists what changed; pictures of any changed view are in the run's artifacts.
 on:
   push:
-    branches-ignore: [main, 'check-pictures-*']
+    branches-ignore: [main, 'check-pictures-*', trees-all, trees-data]   # trees-all only carries the measured-trees job inputs
   workflow_dispatch:
     inputs:
       base:

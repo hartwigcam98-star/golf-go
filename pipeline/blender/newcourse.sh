@@ -58,11 +58,13 @@ k,d,w=sys.argv[1:4];s=[["wait",9000]]
 for i in range(18):
     s+=[["ev","(()=>{$('introM').hidden=true;G.paused=false;window.__skip=!(%d<TB.length);if(!window.__skip)startHole(%d);return 0;})()"%(i,i)],["wait",6500],
         ["dumpf",["%s/h%02d.json"%(d,i+1),"export_guard.js"]]]
+s+=[["log","'trees '+(typeof tlOn==='function'&&tlOn()?'measured':'photo')"]]   # which trees the scenes hold (b10/light/<key>/mt.json)
 json.dump(s,open('%s/logs/sx_%s.json'%(w,k),'w'))
 PY
     (cd $P && PORT=$PORT Q="?b10=1&c=$K" NOUI=1 timeout 3000 node run.js $W/logs/sx_$K.json > $W/logs/sx_$K.log 2>&1) || true
     grep "errors" $W/logs/sx_$K.log | tail -1
     python3 $P/packcourse.py $K $D $BC/holes/$K | tail -1
+    if grep -q "trees measured" $W/logs/sx_$K.log; then echo measured > $BC/holes/$K/trees.txt; else rm -f $BC/holes/$K/trees.txt; fi
     echo "$K: $(ls $BC/holes/$K | grep -c 'h.*json') holes exported"
   done ;;
 bake)
@@ -74,7 +76,7 @@ bake)
 import json,sys,glob,os
 items=[]
 for c in sys.argv[1:]:
-    if os.path.exists('clubs/%s.npz'%c): items.append('club:'+c)
+    if os.path.exists('clubs/%s.npz'%c) and not os.environ.get('NOCLUB'): items.append('club:'+c)   # NOCLUB=1: holes only (rebake.sh)
     if os.environ.get('CLUBONLY'): continue
     for f in sorted(glob.glob('holes/%s/h*.npz'%c)):
         h=os.path.basename(f)[:-4]; items+=['%s/%s:sun'%(c,h),'%s/%s:sky'%(c,h)]
@@ -97,6 +99,7 @@ import json,os;p='$GG/b10/club_ver.json';V=json.load(open(p)) if os.path.exists(
       python3 $P/combine.py $T/sun/$K/$h/raw_sun.npz $T/sky/$K/$h/raw_sky.npz $T > /dev/null && cp $T/light.webp $GG/b10/light/$K/$h.webp; rm -rf $T   # raw bakes are ~0.3 GB a hole: free the disk as we go
       git push -q origin --delete bake-$K-$h-sun bake-$K-$h-sky 2>/dev/null || true
     done
+    if [ -f $BC/holes/$K/trees.txt ]; then echo '{"trees":"measured"}' > $GG/b10/light/$K/mt.json; else rm -f $GG/b10/light/$K/mt.json; fi   # baked with the measured trees
     python3 -c "
 import json,glob,os
 o={}
