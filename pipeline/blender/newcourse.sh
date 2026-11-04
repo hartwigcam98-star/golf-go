@@ -83,30 +83,45 @@ for c in sys.argv[1:]:
 json.dump(items,open('matrix.json','w'));print(len(items),'jobs')
 PY
   git add -f matrix.json bakebranch.txt $(for K in "$@"; do [ -f clubs/$K.npz ] && echo clubs/$K.npz; done) && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "Blender pass: $*" && git push -q origin blender-club
-  SHA=$(git rev-parse HEAD); ID=""   # the run for our own commit (other pushes may start runs too)
-  for t in $(seq 40); do sleep 10; ID=$(gh run list -R $REPO --branch blender-club --limit 20 --json databaseId,headSha -q ".[] | select(.headSha==\"$SHA\") | .databaseId" | head -1); [ -n "$ID" ] && break; done
-  echo "run $ID"; [ -n "$ID" ] || { echo "no run started"; exit 1; }
-  until s=$(gh run view $ID -R $REPO --json status,conclusion -q '.status+" "+.conclusion' 2>/dev/null) && [[ $s == completed* ]]; do sleep 30; done; echo "$s"
+  waitrun() {   # the run for our own commit (other pushes may start runs too); sets ID
+    SHA=$(git rev-parse HEAD); ID=""
+    for t in $(seq 40); do sleep 10; ID=$(gh run list -R $REPO --branch blender-club --limit 20 --json databaseId,headSha -q ".[] | select(.headSha==\"$SHA\") | .databaseId" | head -1); [ -n "$ID" ] && break; done
+    echo "run $ID"; [ -n "$ID" ] || { echo "no run started"; exit 1; }
+    until s=$(gh run view $ID -R $REPO --json status,conclusion -q '.status+" "+.conclusion' 2>/dev/null) && [[ $s == completed* ]]; do sleep 30; done; echo "$s"; RUNS="$RUNS $ID"; }
+  fresh() {   # FETCH_HEAD came from one of this bake's runs (branches of earlier bakes linger: deleting them is refused)
+    local m=$(git log -1 --format=%s FETCH_HEAD 2>/dev/null); for r in $RUNS; do [[ "$m" == "blender run $r "* ]] && return 0; done; return 1; }
+  RUNS=""; waitrun
+  # holes: sun + sky from this run; a hole that failed is baked again once, then left out
+  collect() {   # K h -> 0 if the hole's light map was made
+    local K=$1 h=$2 T=/tmp/bk/$1/$2; rm -rf $T; mkdir -p $T/sun $T/sky
+    for p in sun sky; do git fetch -q --depth 1 origin bake-$K-$h-$p 2>/dev/null && fresh && git archive FETCH_HEAD | tar x -C $T/$p || true; done
+    if python3 $P/combine.py $T/sun/$K/$h/raw_sun.npz $T/sky/$K/$h/raw_sky.npz $T > /dev/null 2>&1; then cp $T/light.webp $GG/b10/light/$K/$h.webp; rm -rf $T; return 0; fi
+    rm -rf $T; return 1; }   # raw bakes are ~0.3 GB a hole: free the disk as we go
+  FAIL=""
+  [ -n "$CLUBONLY" ] || for K in "$@"; do mkdir -p $GG/b10/light/$K
+    for f in $BC/holes/$K/h*.npz; do h=$(basename $f .npz); collect $K $h || FAIL="$FAIL $K/$h"; done; done
+  if [ -n "$FAIL" ]; then
+    echo "retrying:$FAIL"
+    python3 -c "import json,sys;json.dump([i+':'+p for i in sys.argv[1:] for p in ('sun','sky')],open('matrix.json','w'))" $FAIL
+    git add -f matrix.json && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "Blender pass (retry):$FAIL" && git push -q origin blender-club
+    waitrun; F2=""; for kh in $FAIL; do collect ${kh%%/*} ${kh##*/} || F2="$F2 $kh"; done; FAIL="$F2"
+  fi
   for K in "$@"; do
-    if git fetch -q --depth 1 origin bake-club-$K 2>/dev/null; then T=/tmp/bkc/$K; rm -rf $T; mkdir -p $T; git archive FETCH_HEAD | tar x -C $T
+    if [ -z "$NOCLUB" ] && git fetch -q --depth 1 origin bake-club-$K 2>/dev/null && fresh; then T=/tmp/bkc/$K; rm -rf $T; mkdir -p $T; git archive FETCH_HEAD | tar x -C $T
       [ -f $GG/b10/club/$K.js ] && python3 -c "
 import json,os;p='$GG/b10/club_ver.json';V=json.load(open(p)) if os.path.exists(p) else {};V['$K']=V.get('$K',1)+1;json.dump(V,open(p,'w'))"
-      python3 $P/packclub.py $T/$K.npz $GG/b10/club/$K.js $K | tail -1; rm -rf $T; git push -q origin --delete bake-club-$K 2>/dev/null || true; fi
+      python3 $P/packclub.py $T/$K.npz $GG/b10/club/$K.js $K | tail -1; rm -rf $T; fi
     [ -n "$CLUBONLY" ] && { echo "$K: clubhouse $([ -f $GG/b10/club/$K.js ] && echo yes || echo no)"; continue; }
-    mkdir -p $GG/b10/light/$K
-    for f in $BC/holes/$K/h*.npz; do h=$(basename $f .npz); T=/tmp/bk/$K/$h; rm -rf $T; mkdir -p $T/sun $T/sky
-      for p in sun sky; do git fetch -q --depth 1 origin bake-$K-$h-$p && git archive FETCH_HEAD | tar x -C $T/$p; done
-      python3 $P/combine.py $T/sun/$K/$h/raw_sun.npz $T/sky/$K/$h/raw_sky.npz $T > /dev/null && cp $T/light.webp $GG/b10/light/$K/$h.webp; rm -rf $T   # raw bakes are ~0.3 GB a hole: free the disk as we go
-      git push -q origin --delete bake-$K-$h-sun bake-$K-$h-sky 2>/dev/null || true
-    done
-    if [ -f $BC/holes/$K/trees.txt ]; then echo '{"trees":"measured"}' > $GG/b10/light/$K/mt.json; else rm -f $GG/b10/light/$K/mt.json; fi   # baked with the measured trees
+    KF=$(echo " $FAIL " | grep -o " $K/h[0-9]*" | tr -d ' ' | tr '\n' ' ')
+    # baked with the measured trees, every hole: mark it (the game then uses this light); otherwise live shadows until the next bake
+    if [ -f $BC/holes/$K/trees.txt ] && [ -z "$KF" ]; then echo '{"trees":"measured"}' > $GG/b10/light/$K/mt.json; else rm -f $GG/b10/light/$K/mt.json; fi
     python3 -c "
 import json,glob,os
 o={}
 for f in sorted(glob.glob('$BC/holes/$K/h*.json')):
     h=os.path.basename(f)[:-5];b=json.load(open(f))['b'];o[int(h[1:])-1]=[b[0],b[1],b[2]-b[0],b[3]-b[1]]
 json.dump(o,open('$GG/b10/light/$K/bounds.json','w'))"
-    echo "$K: $(ls $GG/b10/light/$K | grep -c webp) light maps, clubhouse $([ -f $GG/b10/club/$K.js ] && echo yes || echo no)"
+    echo "$K: $(ls $GG/b10/light/$K | grep -c webp) light maps, clubhouse $([ -f $GG/b10/club/$K.js ] && echo yes || echo no)${KF:+, FAILED $KF}"
   done
   git push -q origin --delete $BD 2>/dev/null || true
   (git rm -q --ignore-unmatch matrix.json && git -c user.name=Claude -c user.email=noreply@anthropic.com commit -qm "Idle [skip ci]" && git push -q origin blender-club) || true
