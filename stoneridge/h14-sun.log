@@ -1,0 +1,22 @@
+[bake] terrain 115 155 image 908 1232 yd 227.0 308.0
+[bake] trees 7 protos 5
+[bake] far trees 22
+[bake] scenery tris 25493
+Blender 4.2.23 LTS (hash d0cbe84903e8 built 2026-07-21 01:31:03)
+Fra:1 Mem:91.00M (Peak 91.00M) | Time:498285:13:15.06 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | terrain
+Fra:1 Mem:91.41M (Peak 91.41M) | Time:498285:13:15.06 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t0
+Fra:1 Mem:92.35M (Peak 92.35M) | Time:498285:13:15.06 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | scenery
+Fra:1 Mem:94.73M (Peak 94.73M) | Time:498285:13:15.06 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t0.001
+Fra:1 Mem:96.20M (Peak 96.20M) | Time:498285:13:15.06 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t2
+Fra:1 Mem:96.84M (Peak 96.84M) | Time:498285:13:15.06 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t2.001
+Fra:1 Mem:96.89M (Peak 96.89M) | Time:498285:13:15.06 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t3
+Fra:1 Mem:97.80M (Peak 97.80M) | Time:498285:13:15.06 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t3.001
+Fra:1 Mem:98.50M (Peak 98.50M) | Time:498285:13:15.06 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t5
+Fra:1 Mem:98.87M (Peak 98.87M) | Time:498285:13:15.06 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t5.001
+Fra:1 Mem:99.51M (Peak 99.51M) | Time:498285:13:15.06 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t6
+Fra:1 Mem:101.07M (Peak 101.07M) | Time:498285:13:15.07 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | fs
+Fra:1 Mem:102.70M (Peak 102.70M) | Time:498285:13:15.07 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | ft
+Fra:1 Mem:101.61M (Peak 102.70M) | Time:498285:13:15.07 | Mem:0.00M, Peak:0.00M | Scene | Initializing
+Fra:1 Mem:101.60M (Peak 102.70M) | Time:498285:13:15.07 | Mem:0.00M, Peak:0.00M | Scene | Updating Images | Loading bake
+Info: Baking map saved to internal image, save it externally or pack it
+[bake] shadow bake 139 s mean 0.9876721501350403
