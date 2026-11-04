@@ -4,8 +4,9 @@ const R3N={};
    found in the lidar canopy (treetop position, crown radius, height and the height of the lowest branches), kept only where the
    photo shows canopy too. Without ?tl=1 nothing changes. */
 const TL=(()=>{try{return /[?&]tl=1/.test(location.search);}catch(e){return false;}})();
-function tlOn(){return TL&&typeof CUR!=='undefined'&&!!CUR&&typeof R3NAIP!=='undefined'&&!!R3NAIP[CUR.data||CUR.id]&&!!R3NAIP[CUR.data||CUR.id].L;}
-function r3NaipLoad(id){const lt=TL&&typeof R3NAIP!=='undefined'&&R3NAIP[id]&&R3NAIP[id].L,ck=lt?id+'|L':id;if(R3N[ck])return R3N[ck];if(typeof R3NAIP==='undefined'||!R3NAIP[id])return null;
+function tlOn(){return TL&&typeof CUR!=='undefined'&&!!CUR&&(typeof G==='undefined'||!G||G.mode==='round'||G.mode==='practice')&&   // casual rounds and practice only: never the shared daily round, replays, VS or tournaments
+  typeof R3NAIP!=='undefined'&&!!R3NAIP[CUR.data||CUR.id]&&!!R3NAIP[CUR.data||CUR.id].L;}
+function r3NaipLoad(id){const lt=tlOn()&&R3NAIP[id]&&R3NAIP[id].L,ck=lt?id+'|L':id;if(R3N[ck])return R3N[ck];if(typeof R3NAIP==='undefined'||!R3NAIP[id])return null;
   if(lt){const L=R3NAIP[id].L;return R3N[ck]={n:L.n,xy:r3b64(L.xy,Int16Array),r:r3b64(L.r,Uint8Array),h:r3b64(L.h,Uint8Array),cb:r3b64(L.cb,Uint8Array),ext:R3NAIP[id].ext,L:1};}
   const D=R3NAIP[id],xy=r3b64(D.xy,Int16Array),r=r3b64(D.r,Uint8Array);
   return R3N[id]={n:D.n,xy,r,ext:D.ext};}
