@@ -37,7 +37,7 @@ jobs:
       - name: measure
         shell: bash -el {0}
         env:
-          DIAG: ${{ vars.TREE_DIAG || 'jacks,dacotah' }}
+          DIAG: ${{ vars.TREE_DIAG || '' }}
         run: |
           set -o pipefail
           python pipeline/courses/treelidar/tree_all.py ${{ matrix.key }} pipeline/courses/treelidar/cfg_trees.json 2>&1 | tee run.log

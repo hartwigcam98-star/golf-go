@@ -223,9 +223,12 @@ def main():
     def ring(rr): return ndi.map_coordinates(Lb, [(uy0_[:, None] + np.sin(an)[None] * rr[:, None]).ravel(), (ux0_[:, None] + np.cos(an)[None] * rr[:, None]).ravel()], order=1, mode='constant').reshape(-1, len(an))
     Lin = np.concatenate([ring(crm * f) for f in (0., .3, .6)], 1).mean(1) if n else np.zeros(0); Lout = np.median(ring(crm + 3), 1) if n else np.zeros(0)
     contrast = Lout - Lin
-    roof = havep & (mexg < (0.0 if desert else 0.06)) & (mL > 0.25)   # grey or pale and not green: a roof (dark crowns, e.g. pines in shade, stay)
+    roof = havep & (mexg < (0.0 if desert else 0.06)) & (mL > 0.25) & (sd < 1.5)   # grey or pale, not green, and smooth: a roof (dark or blue-green rough crowns, e.g. pines, stay)
+    # over open water (birds, spray, a lake's far shore in the scan): no ground return within 8 m of the crown
+    gdist = ndi.distance_transform_edt(gn == 0); gd = ndi.minimum(gdist, lab, idx) if n else np.zeros(0)
+    wet = gd > 8
     flat = (sd < 0.45) & (area > 40)                       # a flat top over a big footprint: a roof, not a crown
-    keep = ~roof & ~flat & (area >= 8) & (top >= 3) & (top <= 45)
+    keep = ~roof & ~flat & ~wet & (area >= 8) & (top >= 3) & (top <= 45)
     if desert: keep &= ~havep | ((contrast > 0.03) & (top <= 16))   # desert: a tree is a dark spot on bright ground, and none is taller than ~16 m
     con = havep & (mL < 0.31) & (mbr > -0.005)
     ux = gx0 + px + 0.5; uy = gy1 - py - 0.5
@@ -237,8 +240,12 @@ def main():
     Lj = dict(n=int(keep.sum()), xy=q(np.round(xy * 2).clip(-32767, 32767), np.int16), r=q(np.minimum(127, np.round(crY * 10)) + cn * 128, np.uint8),
               h=q(np.minimum(255, np.round(hY * 4)), np.uint8), cb=q(np.minimum(255, np.round(cbY * 4)), np.uint8), scan=res)
     json.dump(Lj, open(f'{OUT}/L.json', 'w'))
+    # every crown found, kept or not, with what the filters looked at: re-filter later without fetching again
+    np.savez_compressed(f'{OUT}/crowns.npz', xy=cxy.astype(np.float32), cr=cr.astype(np.float32), h=top.astype(np.float32), cb=base.astype(np.float32),
+                        area=area.astype(np.float32), exg=mexg.astype(np.float32), L=mL.astype(np.float32), br=mbr.astype(np.float32), sd=sd.astype(np.float32),
+                        contrast=contrast.astype(np.float32), gd=np.asarray(gd, np.float32), keep=keep, con=con, desert=desert)
     pct = lambda a: [round(float(v), 1) for v in np.percentile(a, [10, 50, 90])] if len(a) else []
-    SUM.update(crowns=int(n), kept=int(keep.sum()), roofs=int((roof & ~flat).sum()), flat=int(flat.sum()), tiny=int(((area < 8) | (top < 3)).sum()),
+    SUM.update(crowns=int(n), kept=int(keep.sum()), wet=int(wet.sum()), roofs=int((roof & ~flat).sum()), flat=int(flat.sum()), tiny=int(((area < 8) | (top < 3)).sum()),
                h_yd=pct(hY), cr_yd=pct(crY), cb_yd=pct(cbY), conifer=round(float(cn.mean()), 3) if len(cn) else 0, contrast=pct(contrast[keep]) if n else [], dark_drop=int((desert and havep.any()) and (~((contrast > 0.03) & (top <= 16)) & havep & ~roof & ~flat).sum()), bytes=len(json.dumps(Lj)))
     # ---- preview: the busiest 300 m square near the middle, crowns over the photo (blue = dropped), height/base labels
     S_ = 300; dens = ndi.uniform_filter((lab > 0).astype(np.float32), 150)
