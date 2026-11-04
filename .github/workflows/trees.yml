@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [trees-all]
-    paths: ['pipeline/courses/treelidar/cfg_trees.json']
+    paths: ['pipeline/courses/treelidar/cfg_trees.json', 'pipeline/courses/treelidar/only.json', 'pipeline/courses/treelidar/tree_all.py']
 permissions:
   contents: write
 jobs:
