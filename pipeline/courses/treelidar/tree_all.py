@@ -58,14 +58,15 @@ def tile(res, epsg, ux0, uy0):
 
 def pick_scan(gx0, gy1, w, h):
     """the newest candidate with points and ground over the middle of the course"""
-    cx, cy = gx0 + w / 2 - 60, gy1 - h / 2 - 60
+    spots = [(gx0 + w * fx - 60, gy1 - h * fy - 60) for fx, fy in ((.5, .5), (.3, .3), (.7, .3), (.3, .7), (.7, .7))]   # the middle may be a lake
     for res in CFG['cand']:
-        try:
-            a = read(res, EPSG, cx, cy, 120, 120, 0, {'resolution': 1.0})
-            n = 0 if a is None else len(a); gnd = 0 if a is None else int((a['Classification'] == 2).sum())
-            log('probe', res, n, 'pts', gnd, 'ground'); SUM.setdefault('probe', {})[res] = [n, gnd]
-            if n > 2000 and gnd > 500: return res
-        except Exception as e: log('probe fail', res, e); SUM.setdefault('probe', {})[res] = str(e)[:200]
+        for cx, cy in spots:
+            try:
+                a = read(res, EPSG, cx, cy, 120, 120, 0, {'resolution': 1.0})
+                n = 0 if a is None else len(a); gnd = 0 if a is None else int((a['Classification'] == 2).sum())
+                log('probe', res, n, 'pts', gnd, 'ground'); SUM.setdefault('probe', {})[res] = [n, gnd]
+                if n > 2000 and gnd > 500: return res
+            except Exception as e: log('probe fail', res, e); SUM.setdefault('probe', {})[res] = str(e)[:200]
     return None
 
 NAIP = ['https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage',
@@ -132,8 +133,9 @@ def main():
     # stray returns (birds, haze, a wire) above the canopy: a cell's top is capped 1 m above the highest 3-m band with 3+ returns
     # in its 2-m column, so a lone point can't make a 40 m "tree" over a field
     cs3 = prof[..., :].astype(np.int32); c3 = cs3.copy(); c3[..., 1:] += cs3[..., :-1]; c3[..., 2:] += cs3[..., :-2]
-    sup = c3 >= 3; rt = np.where(sup.any(-1), NB - np.argmax(sup[..., ::-1], -1), 0).astype(np.float32)   # top of the highest supported bin (m)
-    rt[rt >= NB] = 80
+    sup = c3[..., :NB - 1] >= 3; rt = np.where(sup.any(-1), (NB - 1) - np.argmax(sup[..., ::-1], -1), 0).astype(np.float32)   # top of the highest supported bin under 31 m
+    tall = (prof[..., NB - 1] >= 3) & (prof[..., NB - 2] >= 3) & (prof[..., NB - 3] >= 2); rt[tall] = 80   # 31 m and up only for a crown that reaches it without a gap
+
     cap = np.kron(rt, np.ones((2, 2), np.float32))[:h, :w]; cap = np.pad(cap, ((0, h - cap.shape[0]), (0, w - cap.shape[1])), mode='edge')
     SUM['spikes'] = int((chm > cap + 1.0).sum()); chm = np.minimum(chm, cap + 1.0)
     if KEY in os.environ.get('DIAG', '').split(','): np.savez_compressed(f'{OUT}/grids.npz', chm=np.round(chm * 10).astype(np.uint16), gnd=gnd, prof=np.minimum(prof, 255).astype(np.uint8), x0=gx0, y1=gy1, epsg=EPSG)
