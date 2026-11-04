@@ -1,0 +1,64 @@
+name: measured-trees
+on:
+  workflow_dispatch:
+  push:
+    branches: [trees-all]
+    paths: ['pipeline/courses/treelidar/cfg_trees.json']
+permissions:
+  contents: write
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      keys: ${{ steps.k.outputs.keys }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: k
+        run: echo "keys=$(python3 -c "import json;c=json.load(open('pipeline/courses/treelidar/cfg_trees.json'));o=json.load(open('pipeline/courses/treelidar/only.json')) if __import__('os').path.exists('pipeline/courses/treelidar/only.json') else [];print(json.dumps([k for k in c if not o or k in o]))")" >> $GITHUB_OUTPUT
+  course:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        key: ${{ fromJson(needs.plan.outputs.keys) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: pipeline/courses/treelidar
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: pd
+          create-args: -c conda-forge python=3.11 pdal python-pdal numpy scipy scikit-image opencv pyproj requests
+          init-shell: bash
+          cache-environment: true
+      - name: measure
+        shell: bash -el {0}
+        run: |
+          set -o pipefail
+          python pipeline/courses/treelidar/tree_all.py ${{ matrix.key }} pipeline/courses/treelidar/cfg_trees.json 2>&1 | tee run.log
+          mkdir -p out/${{ matrix.key }} && cp run.log out/${{ matrix.key }}/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: t-${{ matrix.key }}
+          path: out/${{ matrix.key }}
+  collect:
+    needs: course
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/o
+          pattern: t-*
+      - name: push
+        run: |
+          cd /tmp/o
+          for d in t-*; do mv "$d" "${d#t-}"; done
+          git init -q -b trees-data
+          git add -A
+          git -c user.name=tree-bot -c user.email=tree-bot@users.noreply.github.com commit -qm "measured trees run $GITHUB_RUN_ID"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" trees-data
