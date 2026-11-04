@@ -1,0 +1,14 @@
+15:09:22   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+15:09:30   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+15:09:46   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+15:10:10   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+15:10:42   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+15:11:22   naip source failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage
+15:11:36 troy0 naip [3157, 2549] 2225 KB from https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage
+15:11:43 troy1 naip [3156, 2549] 2104 KB from https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage
+15:11:43   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+15:11:52   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+15:12:08   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+15:12:32   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+15:13:04   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+15:13:44 meta failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer

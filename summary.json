@@ -1,0 +1,10 @@
+{
+ "started": "2026-11-04 15:09:22",
+ "courses": {},
+ "errors": [],
+ "naip_src": "https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage",
+ "meta": {
+  "https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage": "The USGS NAIP Imagery service from The National Map (TNM) consists of high resolution aerial images that combine the visual attributes of an aerial photograph with the spatial accuracy and reliability of a map. The USGS NAIP Imagery service is a mosaic primarily of 0.6 meter resolution 4-band imagery presented in natural color. This service also supports the use of templates that can be used to dynamically generate 'false color', also known as color-infrared (CIR), and Normalized Difference Vegetation Index (NDVI) views of the data. USGS relies on a partnership with the U.S. Department of Agri",
+  "https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPPlus/ImageServer/exportImage": "The USGS NAIP Plus service from The National Map consists of National Agriculture Imagery Program (NAIP) and high resolution orthoimagery (HRO) that combine the visual attributes of an aerial photograph with the spatial accuracy and reliability of a map. Digital orthoimage resolution may vary from 6 inches to 1 meter. In the former resolution, every pixel in an orthoimage covers a six inch square of the earth\u2019s surface, while in the latter resolution, each pixel represents a one meter square. Many states contribute orthoimagery to The National Map, and the USGS also relies on a partnership wit"
+ }
+}
