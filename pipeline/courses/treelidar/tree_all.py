@@ -35,20 +35,21 @@ def read(res, epsg, ux0, uy0, w, h, buf, extra=None):
     p = pdal.Pipeline(json.dumps(spec)); p.execute(); return p.arrays[0] if p.arrays else None
 
 def tile(res, epsg, ux0, uy0):
-    import pdal
+    import pdal, tempfile
+    td = f'/tmp/pd{os.getpid()}'; os.makedirs(td, exist_ok=True); os.environ['TMPDIR'] = td; tempfile.tempdir = td   # PDAL's temp tiles: one folder per worker
     tf = Transformer.from_crs(epsg, 3857, always_xy=True)
     xs, ys = tf.transform([ux0 - BUF, ux0 + TS + BUF, ux0 - BUF, ux0 + TS + BUF], [uy0 - BUF, uy0 - BUF, uy0 + TS + BUF, uy0 + TS + BUF])
     spec = [{'type': 'readers.ept', 'filename': EPT % res, 'bounds': f'([{min(xs):.2f},{max(xs):.2f}],[{min(ys):.2f},{max(ys):.2f}])', 'threads': 4},
             {'type': 'filters.range', 'limits': 'Classification![7:7],Classification![18:18]'},
             {'type': 'filters.reprojection', 'in_srs': 'EPSG:3857', 'out_srs': f'EPSG:{epsg}'},
             {'type': 'filters.hag_nn', 'count': 4}]
-    for k in range(3):
+    for k in range(6):
         try:
             p = pdal.Pipeline(json.dumps(spec)); p.execute(); a = p.arrays[0] if p.arrays else None; break
         except Exception as e:
-            if 'ground' in str(e).lower() or 'no points' in str(e).lower(): return ux0, uy0, None
-            if k == 2: raise
-            time.sleep(5 * (k + 1))
+            if 'ground' in str(e).lower() and 'tile' not in str(e).lower(): return ux0, uy0, None
+            if k == 5: raise
+            time.sleep(4 * (k + 1))
     if a is None or len(a) == 0: return ux0, uy0, None
     Xp = np.asarray(a['X']); Yp = np.asarray(a['Y'])
     m = (Xp >= ux0) & (Xp < ux0 + TS) & (Yp >= uy0) & (Yp < uy0 + TS)
@@ -105,18 +106,27 @@ def main():
     prof = np.zeros((h2, w2, NB), np.uint16)
     jobs = [(gx0 + i * TS, gy0 + j * TS) for j in range(int(h / TS)) for i in range(int(w / TS))]
     SUM['tiles'] = len(jobs); SUM['grid'] = [w, h, gx0, gy1]; npts = 0
-    with ProcessPoolExecutor(4) as ex:
-        fs = [ex.submit(tile, res, EPSG, ux, uy) for ux, uy in jobs]
-        for f in as_completed(fs):
-            try: ux, uy, d = f.result()
-            except Exception as e: SUM['errors'].append(f'tile: {e}'[:300]); log('tile fail', e); continue
-            if d is None: continue
+    def add(d):
+            nonlocal npts
             ix = np.floor(d['x'] - gx0).astype(np.int64); iy = np.floor(gy1 - d['y']).astype(np.int64)
             k = (ix >= 0) & (iy >= 0) & (ix < w) & (iy < h); ix, iy = ix[k], iy[k]
             hg = np.clip(d['hag'][k], 0, 80); z = d['z'][k]; g = d['g'][k]
             np.maximum.at(chm, (iy, ix), hg); np.add.at(gs, (iy[g], ix[g]), z[g]); np.add.at(gn, (iy[g], ix[g]), 1)
             np.add.at(prof, (np.minimum(iy // 2, h2 - 1), np.minimum(ix // 2, w2 - 1), np.clip(np.floor(hg), 0, NB - 1).astype(np.int64)), 1)
             npts += len(hg)
+    failed = []
+    with ProcessPoolExecutor(3) as ex:
+        fs = {ex.submit(tile, res, EPSG, ux, uy): (ux, uy) for ux, uy in jobs}
+        for f in as_completed(fs):
+            try: ux, uy, d = f.result()
+            except Exception as e: failed.append(fs[f]); log('tile fail (will retry)', e); continue
+            if d is not None: add(d)
+    for ux, uy in failed:   # one at a time: a tile left out would be a hole in the woods
+        try:
+            _, _, d = tile(res, EPSG, ux, uy)
+            if d is not None: add(d)
+        except Exception as e: SUM['errors'].append(f'tile {ux},{uy}: {e}'[:300]); log('tile fail', e)
+    SUM['tiles_retried'] = len(failed)
     SUM['points'] = npts; save(); log('points', npts)
     gnd = np.where(gn > 0, gs / np.maximum(gn, 1), np.nan).astype(np.float32)
     # ---- photo on the 1 m grid
@@ -197,9 +207,16 @@ def main():
     sd = ndi.standard_deviation(ndi.gaussian_filter(chm, .7), lab, idx)
     desert = CFG.get('scen') == 'desert'
     havep = mL > 0
+    # darker than the ground round it? (a crown is; a roof, rock or a slope the ground model missed isn't)
+    ux0_ = (px + .5).astype(np.float32); uy0_ = (py + .5).astype(np.float32); crm = np.sqrt(np.maximum(area, 1) / np.pi).astype(np.float32)
+    an = np.linspace(0, 2 * np.pi, 24, endpoint=False).astype(np.float32); Lb = cv2.GaussianBlur(Lum.astype(np.float32), (0, 0), 1.0)
+    def ring(rr): return cv2.remap(Lb, ux0_[:, None] + np.cos(an)[None] * rr[:, None], uy0_[:, None] + np.sin(an)[None] * rr[:, None], cv2.INTER_LINEAR, borderValue=0)
+    Lin = np.concatenate([ring(crm * f) for f in (0., .3, .6)], 1).mean(1) if n else np.zeros(0); Lout = np.median(ring(crm + 3), 1) if n else np.zeros(0)
+    contrast = Lout - Lin
     roof = havep & (mexg < (0.0 if desert else 0.06))
     flat = (sd < 0.45) & (area > 40)                       # a flat top over a big footprint: a roof, not a crown
-    keep = ~roof & ~flat & (area >= 8) & (top >= 3)
+    keep = ~roof & ~flat & (area >= 8) & (top >= 3) & (top <= 45)
+    if desert: keep &= ~havep | ((contrast > 0.03) & (top <= 16))   # desert: a tree is a dark spot on bright ground, and none is taller than ~16 m
     con = havep & (mL < 0.31) & (mbr > -0.005)
     ux = gx0 + px + 0.5; uy = gy1 - py - 0.5
     cxy = u2c(ux - best[0], uy - best[1])
@@ -212,7 +229,7 @@ def main():
     json.dump(Lj, open(f'{OUT}/L.json', 'w'))
     pct = lambda a: [round(float(v), 1) for v in np.percentile(a, [10, 50, 90])] if len(a) else []
     SUM.update(crowns=int(n), kept=int(keep.sum()), roofs=int((roof & ~flat).sum()), flat=int(flat.sum()), tiny=int(((area < 8) | (top < 3)).sum()),
-               h_yd=pct(hY), cr_yd=pct(crY), cb_yd=pct(cbY), conifer=round(float(cn.mean()), 3) if len(cn) else 0, bytes=len(json.dumps(Lj)))
+               h_yd=pct(hY), cr_yd=pct(crY), cb_yd=pct(cbY), conifer=round(float(cn.mean()), 3) if len(cn) else 0, contrast=pct(contrast[keep]) if n else [], dark_drop=int((desert and havep.any()) and (~((contrast > 0.03) & (top <= 16)) & havep & ~roof & ~flat).sum()), bytes=len(json.dumps(Lj)))
     # ---- preview: the busiest 300 m square near the middle, crowns over the photo (blue = dropped), height/base labels
     S_ = 300; dens = ndi.uniform_filter((lab > 0).astype(np.float32), 150)
     cyc, cxc = h // 2, w // 2; sub = dens[max(0, cyc - 600):cyc + 600, max(0, cxc - 600):cxc + 600]
