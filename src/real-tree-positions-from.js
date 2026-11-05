@@ -128,7 +128,7 @@ function r3tFarBuild(list){const T=THREE;if(R3T.far){R3.scene.remove(R3T.far);R3
   list.forEach((t,i)=>{const sh=t.shade||0,key=t.sp+(t.fall?'_fall':''),cs=I.map[key]||I.map[t.sp]||I.map.oak,c=cs[Math.floor(sh*97)%cs.length];
     const sc=(t.r||9)/10*(.9+((sh*13)%1)*.22),tall=R3T_SP[t.sp]&&R3T_SP[t.sp].kind==='broad'?1.22:1.08;
     P[i*3]=t.x;P[i*3+1]=(t.gh!==undefined?t.gh:hAt(t.x,t.y))-.15;P[i*3+2]=t.y;
-    Sz[i*4]=c.w*sc;Sz[i*4+1]=c.h*sc*tall*(.92+((sh*29)%1)*.16);if(t.mh){Sz[i*4]=c.w*t.r/(c.g.reach||1);Sz[i*4+1]=t.mh*1.02;}   // measured (?tl=1)Sz[i*4+2]=((sh*7)%1)<.5?1:-1;Rc.set(c.uv,i*4);
+    Sz[i*4]=c.w*sc;Sz[i*4+1]=c.h*sc*tall*(.92+((sh*29)%1)*.16);if(t.mh){Sz[i*4]=c.w*t.r/(c.g.reach||1);Sz[i*4+1]=t.mh*1.02;}Sz[i*4+2]=((sh*7)%1)<.5?1:-1;Rc.set(c.uv,i*4);   // measured trees: sized from the lidar
     const tn=.88+((sh*53)%1)*.24,hv=((sh*31)%1)-.5;Cc[i*3]=tn*(1+hv*.1);Cc[i*3+1]=tn;Cc[i*3+2]=tn*(.96+((sh*7)%1)*.08)*(1-hv*.12);});
   const g=new T.InstancedBufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute([-.5,0,0,.5,0,0,.5,1,0,-.5,1,0],3));
   g.setAttribute('normal',new T.Float32BufferAttribute([0,0,1,0,0,1,0,0,1,0,0,1],3));g.setAttribute('uv',new T.Float32BufferAttribute([0,0,1,0,1,1,0,1],2));g.setIndex([0,1,2,0,2,3]);
