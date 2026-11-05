@@ -1,0 +1,39 @@
+[bake] terrain 143 111 image 1132 876 yd 283.0 219.0
+[bake] trees 59 protos 14
+[bake] far trees 111
+[bake] scenery tris 20612
+Blender 4.2.23 LTS (hash d0cbe84903e8 built 2026-07-21 01:31:03)
+Fra:1 Mem:94.13M (Peak 94.13M) | Time:498289:02:12.71 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | terrain
+Fra:1 Mem:94.13M (Peak 94.13M) | Time:498289:02:12.71 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t0
+Fra:1 Mem:94.63M (Peak 94.63M) | Time:498289:02:12.71 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t0.001
+Fra:1 Mem:95.84M (Peak 95.84M) | Time:498289:02:12.71 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t1
+Fra:1 Mem:96.17M (Peak 96.17M) | Time:498289:02:12.71 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t1.001
+Fra:1 Mem:96.23M (Peak 96.23M) | Time:498289:02:12.71 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t3
+Fra:1 Mem:96.75M (Peak 96.75M) | Time:498289:02:12.71 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t3.001
+Fra:1 Mem:96.93M (Peak 96.93M) | Time:498289:02:12.71 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t5
+Fra:1 Mem:97.12M (Peak 97.12M) | Time:498289:02:12.71 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t5.001
+Fra:1 Mem:100.01M (Peak 100.01M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t6
+Fra:1 Mem:100.38M (Peak 100.38M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t6.001
+Fra:1 Mem:100.78M (Peak 100.78M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t9
+Fra:1 Mem:100.95M (Peak 100.95M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t9.001
+Fra:1 Mem:101.53M (Peak 101.53M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t13
+Fra:1 Mem:102.03M (Peak 102.03M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t13.001
+Fra:1 Mem:102.01M (Peak 102.03M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t19
+Fra:1 Mem:101.97M (Peak 102.03M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t19.001
+Fra:1 Mem:102.09M (Peak 102.09M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t24
+Fra:1 Mem:102.31M (Peak 102.31M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t24.001
+Fra:1 Mem:102.30M (Peak 102.31M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t25
+Fra:1 Mem:102.29M (Peak 102.31M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t25.001
+Fra:1 Mem:102.98M (Peak 102.98M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t34.001
+Fra:1 Mem:103.05M (Peak 103.05M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t36
+Fra:1 Mem:103.03M (Peak 103.05M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t36.001
+Fra:1 Mem:103.33M (Peak 103.33M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t44
+Fra:1 Mem:103.78M (Peak 103.78M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t44.001
+Fra:1 Mem:103.76M (Peak 103.78M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t56
+Fra:1 Mem:104.02M (Peak 104.02M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t56.001
+Fra:1 Mem:104.19M (Peak 104.19M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | fs
+Fra:1 Mem:104.23M (Peak 104.23M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | ft
+Fra:1 Mem:105.30M (Peak 105.30M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Initializing
+Fra:1 Mem:105.30M (Peak 105.30M) | Time:498289:02:12.72 | Mem:0.00M, Peak:0.00M | Scene | Updating Images | Loading bake
+Info: Baking map saved to internal image, save it externally or pack it
+[bake] shadow bake 160 s mean 0.8412621021270752
