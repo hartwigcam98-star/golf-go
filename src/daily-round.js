@@ -79,7 +79,7 @@ function b10K(){const c=b10On()&&typeof B10BAKE!=='undefined'&&B10BAKE.courses?B
   if(c&&typeof tlOn==='function'&&tlOn()!==!!c.mt)return null;   // light baked with other trees than the ones standing (measured vs photo): live shadows instead
   return c&&c.holes?c.holes[G.hi]||null:null;}   // this hole's baked light (b: bounds, png)
 function b10Hole(){return !!b10K();}
-function b10Load(done){const L=['b10/bake.js?v=38','b10/trees.js?v=3'];window.B10LEAF='b10/leaves.webp?v=1';let n=L.length;for(const s of L){const e=document.createElement('script');e.src=s;e.onload=e.onerror=()=>{if(--n===0)done();};document.head.appendChild(e);}}
+function b10Load(done){const L=['b10/bake.js?v=39','b10/trees.js?v=3'];window.B10LEAF='b10/leaves.webp?v=1';let n=L.length;for(const s of L){const e=document.createElement('script');e.src=s;e.onload=e.onerror=()=>{if(--n===0)done();};document.head.appendChild(e);}}
 function b10Trees(P){const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer);};
   const arr=(r,st)=>{const Pp=dec(r.P,Int16Array),N=dec(r.N,Int8Array),C=dec(r.C,Uint8Array),U=r.U?dec(r.U,Int16Array):null,o=new Array(r.n*st);
     for(let i=0;i<r.n;i++){const k=i*st;o[k]=Pp[i*3]/1000;o[k+1]=Pp[i*3+1]/1000;o[k+2]=Pp[i*3+2]/1000;o[k+3]=N[i*3]/127;o[k+4]=N[i*3+1]/127;o[k+5]=N[i*3+2]/127;
