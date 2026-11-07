@@ -1,0 +1,77 @@
+18:35:13 golf courses: [('RTJ Grand National Golf', 'way/328838760', [-85.4355881, 32.6657924, -85.4087347, 32.6951683])]
+18:35:14   http 502 https://overpass-api.de/api/interpreter # 502 Gateway Timeout
+
+This Overpass API server is currently at capacity. All query workers are busy
+and the request queue is full.
+
+## What to do
+
+Retry your request using exponential backoff: wait a
+18:35:22   http 502 https://overpass-api.de/api/interpreter # 502 Gateway Timeout
+
+This Overpass API server is currently at capacity. All query workers are busy
+and the request queue is full.
+
+## What to do
+
+Retry your request using exponential backoff: wait a
+18:35:38   overpass mirror failed https://overpass-api.de/api/interpreter failed https://overpass-api.de/api/interpreter
+18:37:27   http 504 https://overpass.private.coffee/api/interpreter <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:
+18:39:09 osm features 3036
+18:39:28 gnshort ned 27 x 30 wide 17
+18:39:29   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+18:39:37   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+18:39:53   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+18:40:17   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+18:40:49   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+18:41:29   naip source failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage
+18:41:57 gnshort naip [1855, 1969] 1106 KB from https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage
+18:41:58   http 502 https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+</body>
+</html>
+
+18:42:06   http 502 https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+</body>
+</html>
+
+18:42:23   http 502 https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+</body>
+</html>
+
+18:43:06 gnshort dem lon/lat 1233 1301
+18:43:57 gnshort dem utm 1255 x 1325
+(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory((PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directoryPDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_writer_tiledb.so": libaws-c-s3.so.1.1: cannot open shared object file: No such file or directory18:44:02 gnshort 3 GA_Central_2_2018 15916 ground 2.33 /m2
+18:44:02 gnshort 0 GA_Central_2_2018 22611 ground 3.1 /m2
+18:44:02 gnshort 4 GA_Central_2_2018 21755 ground 3.58 /m2
+18:44:02 gnshort 1 GA_Central_2_2018 23279 ground 2.89 /m2
+18:44:02 gnshort 5 GA_Central_2_2018 18488 ground 3.19 /m2
+18:44:02 gnshort 2 GA_Central_2_2018 32601 ground 4.84 /m2
+18:44:03 gnshort 6 GA_Central_2_2018 12150 ground 2.11 /m2
+18:44:03 gnshort 9 GA_Central_2_2018 11803 ground 2.23 /m2
+18:44:03 gnshort 7 GA_Central_2_2018 27250 ground 4.43 /m2
+18:44:03 gnshort 10 GA_Central_2_2018 12336 ground 2.04 /m2
+18:44:03 gnshort 11 GA_Central_2_2018 12124 ground 2.18 /m2
+18:44:03 gnshort 8 GA_Central_2_2018 13142 ground 2.28 /m2
+18:44:04 gnshort 12 GA_Central_2_2018 14503 ground 2.29 /m2
+18:44:05 gnshort 13 GA_Central_2_2018 16011 ground 2.58 /m2
+18:44:05 gnshort 16 GA_Central_2_2018 9638 ground 2.04 /m2
+18:44:05 gnshort 15 GA_Central_2_2018 11594 ground 1.8 /m2
+18:44:05 gnshort 14 GA_Central_2_2018 13181 ground 2.32 /m2
+18:44:05 gnshort 17 GA_Central_2_2018 14361 ground 2.12 /m2
+18:44:06 gnshort 18 GA_Central_2_2018 12596 ground 2.06 /m2
+18:44:06 gnshort 19 GA_Central_2_2018 13107 ground 2.43 /m2
+18:44:06 gnshort 20 GA_Central_2_2018 13823 ground 2.38 /m2
+18:44:06 gnshort 21 GA_Central_2_2018 12680 ground 2.44 /m2
+18:44:06 gnshort points saved 2035 KB
