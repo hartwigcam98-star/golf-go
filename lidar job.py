@@ -1,15 +1,9 @@
-# Minnesota: The Jewel, The Ridges at Sand Creek, Edinburgh USA, Willinger's, The Links at Northfork.
+# Golf Go course fetch job (template auto/fetch_job_tmpl.py, filled by auto/mkjob.py). Results go to the 'course-data' branch (this run only).
 # Fetches OSM, NED, NAIP, 3DEP 1 m and lidar ground points around the greens; results go to the "course-data" branch.
 import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
-JOB = {"name": "minnesota 5, second pass: ridges at sand creek (full outline), willingers (box from its holes)",
-       "search": [[44.60, -93.66, 44.68, -93.55], [44.46, -93.36, 44.52, -93.28]],
-       "want": {"ridges": r"^zzz$", "willingers": r"willinger"},
-       "holes": {"ridges": r"^zzz$", "willingers": r"willinger"},
-       "ids": {"ridges": "way/175655077"},
-       "boxes": {"willingers": [-93.3232, 44.4864, -93.3051, 44.4984]},
-       "steps": {"ridges": "all", "willingers": "all"}}
+JOB = json.loads(r'''{"name": "Grand National Short", "search": [[32.65, -85.452, 32.71, -85.392]], "want": {"gnshort": "^zzz$"}, "holes": {"gnshort": "^zzz$"}, "steps": {"gnshort": "all"}, "boxes": {"gnshort": [-85.4215, 32.6722, -85.4109, 32.6818]}}''')
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -291,11 +285,6 @@ def greens_points(key, b, osm, resources, rings):
     log(key, 'points saved', os.path.getsize(f'{OUT}/pts_{key}.npz') // 1024, 'KB'); save()
 
 def main():
-    import subprocess   # keep the earlier courses' files on the results branch
-    try:
-        subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_mn5a.json; [ -f out/run.log ] && mv out/run.log out/run_prev_mn5a.log; true', shell=True)
-    except Exception as e: SUM['errors'].append(f'keep old: {e}')
     try: res = discover()
     except Exception as e: err('discover', e); return
     if not res: err('discover', 'none of the wanted courses found; see osm_golf_courses'); return
