@@ -1,0 +1,4 @@
+resources 2282
+sandbox WI_Adams_2019 129614 pts 5.1 /m2
+done sandbox {'epsg': 32616, 'cands': ['WI_Adams_2019'], 'src': 'WI_Adams_2019', 'dens': 5.063046875, 'gps': [240085333.16707754, 240085834.61119556], 'classes': {1: 3552, 2: 117089, 5: 2917, 6: 6045, 7: 11}, 'aerial': ['naip']}
+all done

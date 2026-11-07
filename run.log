@@ -1,0 +1,39 @@
+resources 2282
+(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directorysandbox WI_Adams_2019 129614 pts 5.1 /m2
+done sandbox {'epsg': 32616, 'cands': ['WI_Adams_2019'], 'src': 'WI_Adams_2019', 'dens': 5.063046875, 'gps': [240085333.16707754, 240085834.61119556], 'classes': {1: 3552, 2: 117089, 5: 2917, 6: 6045, 7: 11}, 'aerial': ['naip']}
+all done
+bing http 200 218056
+bing http 200 142915
+bing http 200 113703
+bing The Sandbox at Sand Valley golf course pond fountain kept 0
+bing http 200 10365
+bing The Sandbox at Sand Valley Nekoosa WI golf clubhouse kept 0
+sandbox_course The Sandbox at Sand Valley golf course pond fountain bing 0 ddg 0
+sandbox_club The Sandbox at Sand Valley Nekoosa WI golf clubhouse bing 0 ddg 0
+bing http 200 9985
+bing http 200 151271
+bing http 200 9689
+bing The Sandbox at Sand Valley golf course bridge kept 0
+bing http 200 11024
+bing The Sandbox at Sand Valley Nekoosa WI clubhouse kept 0
+sandbox_course The Sandbox at Sand Valley golf course bridge bing 0 ddg 0
+sandbox_club The Sandbox at Sand Valley Nekoosa WI clubhouse bing 0 ddg 0
+bing http 200 10022
+bing http 200 107169
+bing http 200 192375
+bing The Sandbox at Sand Valley signature hole kept 0
+bing http 200 161387
+bing The Sandbox at Sand Valley clubhouse patio kept 0
+sandbox_course The Sandbox at Sand Valley signature hole bing 0 ddg 0
+sandbox_club The Sandbox at Sand Valley clubhouse patio bing 0 ddg 0
+sandbox_club search 0
+bing http 200 9820
+bing http 200 169299
+bing The Sandbox at Sand Valley golf course aerial kept 0
+sandbox_course The Sandbox at Sand Valley golf course aerial bing 0 ddg 0
+/home/runner/micromamba/envs/pd/lib/python3.11/site-packages/PIL/Image.py:3728: UserWarning: image file could not be identified because AVIF support not installed
+  warnings.warn(message)
+sandbox_course search 0
+sandbox_club 28
+sandbox_course 0
+extras job done 0
