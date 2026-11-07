@@ -354,11 +354,11 @@ function r3PostCutTime(base){if(!r3ReactOK())return base;const k=r3ReactPick();i
    Species follow the setting: willows and cottonwoods by the water, spruce and maples by the homes, oak-savanna
    mixes in the woods, bur oaks standing alone in the prairie, windbreak rows of spruce and pine on the links. */
 const R3T={use:false,list:[],meshes:[],protos:null};
-const R3T_COURSES={troy:1,stoneridge:1,caledonia:1,trueblue:1,rossbridge:1,senator:1,judge:1,legislator:1,sandvalley:1,mammoth:1,lido:1,sedge:1,wilderness:1,quarry:1,legend:1,crsc:1,crls:1,heritage:1,pawplant:1,deacon:1,lehman:1,maddens:1,pines:1,preserve:1,orangeburg:1,santee:1,wyboo:1,valley:1,ridge:1,gnlinks:1,gnlake:1,lookout:1,wigwam:1,dove:1,interlachen:1,windsong:1,hazeltine:1,slmh:1,slbm:1,mystic:1,legends:1,chaska:1,prestwick:1,royal:1,farmlinks:1,desertcanyon:1,jewel:1,ridges:1,edinburgh:1,willingers:1,northfork:1,jacks:1,dacotah:1,baker:1,kingsnorth:1,lawsonia:1,sentryworld:1,rushcreek:1};
+const R3T_COURSES={troy:1,stoneridge:1,caledonia:1,trueblue:1,rossbridge:1,senator:1,judge:1,legislator:1,sandvalley:1,mammoth:1,lido:1,sedge:1,wilderness:1,quarry:1,legend:1,crsc:1,crls:1,heritage:1,pawplant:1,deacon:1,lehman:1,maddens:1,pines:1,preserve:1,orangeburg:1,santee:1,wyboo:1,valley:1,ridge:1,gnlinks:1,gnlake:1,lookout:1,wigwam:1,dove:1,interlachen:1,windsong:1,hazeltine:1,slmh:1,slbm:1,mystic:1,legends:1,chaska:1,prestwick:1,royal:1,farmlinks:1,desertcanyon:1,jewel:1,ridges:1,edinburgh:1,willingers:1,northfork:1,jacks:1,dacotah:1,baker:1,kingsnorth:1,lawsonia:1,sentryworld:1,rushcreek:1,sandbox:1};
 // north woods of the Iron Range: aspen, birch, spruce and pine, some maple
 const R3T_NORTH={wilderness:1,quarry:1,legend:1,deacon:1,lehman:1,maddens:1,pines:1,preserve:1,jacks:1,baker:1,lawsonia:1,sentryworld:1,rushcreek:1};
 // central Wisconsin sand barrens: red and jack pine plantations with scrub oak, a little aspen and birch
-const R3T_BARRENS={sandvalley:1,mammoth:1,lido:1,sedge:1};
+const R3T_BARRENS={sandvalley:1,mammoth:1,lido:1,sedge:1,sandbox:1};
 const R3T_AZ={wigwam:1};   // Phoenix parkland resorts (filled in with the courses)
 const R3T_SOUTH={rossbridge:1,senator:1,judge:1,legislator:1,crsc:1,crls:1,pawplant:1,orangeburg:1,santee:1,wyboo:1,valley:1,ridge:1,gnlinks:1,gnlake:1,slmh:1,slbm:1,farmlinks:1,kingsnorth:1};
 const R3T_SP={

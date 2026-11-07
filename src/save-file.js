@@ -563,10 +563,13 @@ function holed(kind){if(G.hole&&G.hole.range){const p=G.hole.pin;G.ball={x:p[0],
 }
 function pickUp(){if(MATCH.on){G.state='holed';toast('PICKED UP','10-stroke limit','#fff6dc');mPickUp();return;}G.scores[G.hi]=10;G.state='holed';toast('PICKED UP','10-stroke limit','#fff6dc');later(1.6,showCard);}
 
+/* short courses (Nov 2026: The Sandbox, 17 holes; Grand National Short, 18 par 3s) keep their own personal best, so a
+   par-3 round never becomes the best for the full-length courses (which share one, as before) */
+function pbKey(){return CUR.short?'golf-best-'+CUR.id:'troyburne-best-18';}
 function scClass(s,par){if(!s)return'';const d=s-par;if(d<=-2)return'eagle';if(d===-1)return'birdie';if(d===1)return'bogey';if(d>=2)return'dbl';return'';}
 function nineTable(from,label,withTot){
   let tot=0,ptot=0;
-  const idx=[...Array(9)].map((_,k)=>from+k);
+  const idx=[...Array(Math.max(0,Math.min(9,TB.length-from)))].map((_,k)=>from+k);   // short courses (Nov 2026): a 17-hole card has an 8-hole back nine
   const head='<thead><tr><th>Hole</th>'+idx.map(i=>'<th>'+(i+1)+'</th>').join('')+'<th class="tot">'+label+'</th>'+(withTot?'<th class="tot">Tot</th>':'')+'</tr></thead>';
   const par='<tr><td>Par</td>'+idx.map(i=>{ptot+=TB[i].par;return'<td>'+TB[i].par+'</td>';}).join('')+'<td class="tot">'+ptot+'</td>'+(withTot?'<td class="tot">'+TOTAL_PAR+'</td>':'')+'</tr>';
   const you='<tr><td>You</td>'+idx.map(i=>{const s=G.scores[i];if(s)tot+=s;return'<td>'+(s?'<span class="sc '+scClass(s,TB[i].par)+'">'+s+'</span>':'')+'</td>';}).join('')+'<td class="tot">'+(tot||'')+'</td>'+(withTot?'<td class="tot">'+(G.scores.reduce((a,b)=>a+(b||0),0)||'')+'</td>':'')+'</tr>';
@@ -588,9 +591,9 @@ function showCard(){
   if(last&&G.mode==='daily'){$('cEyebrow').textContent='Daily round complete \u00b7 '+CUR.name;$('cTitle').textContent=tot+' ('+fmtDiff(d)+')';
     note.hidden=false;note.textContent=DAILY.url?'Posting your score to today’s leaderboard…':'Score saved. The online leaderboard switches on soon.';$('nextBtn').textContent='Leaderboard';}
   else if(last){
-    let best=null;try{best=parseInt(localStorage.getItem('troyburne-best-18')||'',10);}catch(e){}
+    const pbK=pbKey();let best=null;try{best=parseInt(localStorage.getItem(pbK)||'',10);}catch(e){}
     const isBest=!TEE&&(!best||tot<best);   // personal best: from the back tees only
-    if(isBest){try{localStorage.setItem('troyburne-best-18',String(tot));}catch(e){}}
+    if(isBest){try{localStorage.setItem(pbK,String(tot));}catch(e){}}
     $('cEyebrow').textContent='Round complete';
     $('cTitle').textContent=tot+' ('+fmtDiff(d)+')';
     note.hidden=false;note.textContent=TEE?'Played from the '+teeName()+'. Course records and personal bests count from the '+teeName(0)+' only.':isBest?(best?'New personal best — beat your old '+best+'.':'First round in the books. Go again and beat it.'):'Personal best on this device: '+best+'.';

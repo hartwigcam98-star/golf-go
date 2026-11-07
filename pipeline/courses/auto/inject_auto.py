@@ -4,6 +4,7 @@ wide_<key>.json, naip_<key>.json, (hero.json), and its patches in golf/lidar2/pa
 meta.json: {"SUF":"HCK","name":"Hidden Creek","town":"Rochester, MN","tees":"Blue tees","ll":[lat,lon],
             "flag":{"bg":"#..","fg":"#..","ac":"#..","m":"<existing emblem>"},"day":<dailyNum first eligible day>,
             "scen":"prairie|desert","turf":"<existing TURF key to copy>","trees":"default|north|south|az|barrens"}
+"short": true for a short / par-3 course (any hole count): own personal best, kept out of the daily round.
 usage (from golf/): python3 auto/inject_auto.py key [key...]"""
 import json, sys, math, os, re
 import numpy as np
@@ -31,7 +32,7 @@ for k in keys:
     blk.append(f'// end {m["name"]}')
 rep('\n/* per-course turf look:', '\n' + '\n'.join(blk) + '\n/* per-course turf look:')
 # 2. COURSES + CPK ids
-ent = ''.join(f",\n  {k}:{{id:'{k}',name:{json.dumps(M[k]['name'])},town:{json.dumps(M[k]['town'])},tees:{json.dumps(M[k]['tees'])},tb:TB_{M[k]['SUF']},course:COURSE_{M[k]['SUF']},dem:DEM_{M[k]['SUF']},saveKey:'{k}-save-v1',scen:'{M[k].get('scen','prairie')}',wide:WIDE_{M[k]['SUF']},surr:SURR_{M[k]['SUF']}}}" for k in keys)
+ent = ''.join(f",\n  {k}:{{id:'{k}',name:{json.dumps(M[k]['name'])},town:{json.dumps(M[k]['town'])},tees:{json.dumps(M[k]['tees'])},tb:TB_{M[k]['SUF']},course:COURSE_{M[k]['SUF']},dem:DEM_{M[k]['SUF']},saveKey:'{k}-save-v1',scen:'{M[k].get('scen','prairie')}',wide:WIDE_{M[k]['SUF']},surr:SURR_{M[k]['SUF']}"+(',short:1' if M[k].get('short') else '')+"}" for k in keys)
 rep("}};\nlet CUR=COURSES.troy", "}" + ent + "};\nlet CUR=COURSES.troy")
 rep('],i:0,t:0};', ''.join(f', "{k}"' for k in keys) + '],i:0,t:0};')
 # 3. TURF
@@ -65,7 +66,7 @@ for k in keys:
     la, lo = M[k]['ll']; X, Y = prj(lo, la); dots[k] = [round(X * sc + tx), round(Y * sc + ty)]
 s = s[:i] + seg[:seg.index('dots:') + 5] + json.dumps(dots, separators=(',', ':')) + s[j:]
 # 7. daily rotation
-rep("DAILY_POOL=[", "DAILY_POOL=[" + ''.join(f"['{k}',{int(M[k]['day'])}]," for k in keys))
+rep("DAILY_POOL=[", "DAILY_POOL=[" + ''.join(f"['{k}',{int(M[k]['day'])}]," for k in keys if not M[k].get('short')))
 # 8. home-screen pictures
 i = s.index('const COURSE_IMG='); j = s.index('};', i) + 1; CI = json.loads(s[i + 17:j])
 for k in keys:

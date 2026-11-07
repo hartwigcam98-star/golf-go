@@ -1,6 +1,6 @@
 /* ---------- a golfer's daily card, and watching their round ---------- */
 const DCARD={};
-function dcTable(C,sc,from,label,withTot,nm,live){const tb=C.tb,tp=tb.reduce((a,h)=>a+h.par,0);let tot=0,ptot=0;const idx=[...Array(9)].map((_,k)=>from+k);
+function dcTable(C,sc,from,label,withTot,nm,live){const tb=C.tb,tp=tb.reduce((a,h)=>a+h.par,0);let tot=0,ptot=0;const idx=[...Array(Math.max(0,Math.min(9,tb.length-from)))].map((_,k)=>from+k);
   const head='<thead><tr><th>Hole</th>'+idx.map(i=>'<th'+(live&&live.has(i)?' class="tap" data-h="'+i+'" role="button"':'')+'>'+(i+1)+'</th>').join('')+'<th class="tot">'+label+'</th>'+(withTot?'<th class="tot">Tot</th>':'')+'</tr></thead>';
   const par='<tr><td>Par</td>'+idx.map(i=>{ptot+=tb[i].par;return'<td>'+tb[i].par+'</td>';}).join('')+'<td class="tot">'+ptot+'</td>'+(withTot?'<td class="tot">'+tp+'</td>':'')+'</tr>';
   const row='<tr><td>'+escH(nm)+'</td>'+idx.map(i=>{const v=sc[i];if(v)tot+=v;return'<td>'+(v?'<span class="sc '+scClass(v,tb[i].par)+'">'+v+'</span>':'')+'</td>';}).join('')+'<td class="tot">'+(tot||'')+'</td>'+(withTot?'<td class="tot">'+(sc.reduce((a,b)=>a+(b||0),0)||'')+'</td>':'')+'</tr>';

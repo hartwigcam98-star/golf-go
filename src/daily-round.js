@@ -238,8 +238,8 @@ async function openDailyBoard(fromRound,day,tab){G.paused=true;$('dCardV').hidde
    Every posted round is kept; the board shows each golfer once, with their best round (fewest strokes, earliest first). ---------- */
 const RECS={cid:null,rows:null,pend:null,tok:0,ctok:0,card:null};
 function recOrder(){return Object.keys(COURSES).sort((a,b)=>stateOf(a).localeCompare(stateOf(b))||COURSES[a].name.localeCompare(COURSES[b].name));}
-function recCanPost(){return G.mode==='round'&&!TEE&&TB.length===18&&G.scores.length>=18&&G.scores.slice(0,18).every(v=>v>0);}
-function recOffer(tot,d){RECS.pend={cid:CUR.id,strokes:tot,to_par:d,holes:G.scores.slice(0,18),done:false,shots:(G.rShots&&G.rShots.length)?{v:1,ch:CHAR_ID,pin:G.pinSeed||0,wx:(typeof R3!=='undefined'&&R3.wx!=null)?R3.wx:null,s:G.rShots}:null};
+function recCanPost(){const n=TB.length;return G.mode==='round'&&!TEE&&(n===18||CUR.short)&&G.scores.length>=n&&G.scores.slice(0,n).every(v=>v>0);}   // a short course's full round is its own length (Nov 2026)
+function recOffer(tot,d){RECS.pend={cid:CUR.id,strokes:tot,to_par:d,holes:G.scores.slice(0,TB.length),done:false,shots:(G.rShots&&G.rShots.length)?{v:1,ch:CHAR_ID,pin:G.pinSeed||0,wx:(typeof R3!=='undefined'&&R3.wx!=null)?R3.wx:null,s:G.rShots}:null};
   $('cardPostV').hidden=false;const nm=dailyName();$('cardName').hidden=!!nm;if(!nm)$('cardName').value='';
   const b=$('cardPost');b.disabled=false;b.textContent='Post to '+CUR.name+' records';}
 async function recPost(){const P=RECS.pend;if(!P)return;if(P.done){openRecords(P.cid);return;}

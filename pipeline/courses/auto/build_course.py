@@ -25,13 +25,24 @@ def mid(f):
     return (sum(p[0] for p in pts)/len(pts),sum(p[1] for p in pts)/len(pts))
 bb=S['bbox']
 inb=lambda p:bb[0]<p[0]<bb[2] and bb[1]<p[1]<bb[3]
+card=json.load(open('scorecard.json'))['card'];NH=len(card)   # 18, or a short course's own count (The Sandbox: 17)
+EF=f'{key}_edits.json';ED0=json.load(open(EF)) if os.path.exists(EF) else {}
+# edits "refs": {"way/123": ref} numbers an OSM hole way that has no ref (Grand National Short)
+for f in F:
+    r=ED0.get('refs',{}).get(f['properties'].get('@id'))
+    if r and f['properties'].get('golf')=='hole':f['properties']['ref']=str(r)
 holes=[f for f in F if f['properties'].get('golf')=='hole' and f['geometry']['type']=='LineString' and f['properties'].get('ref')]
 if HID is not None:holes=[f for f in holes if f['properties'].get('@id') in HID]
 else:holes=[f for f in holes if (any(pip(q,r) for r in OR for q in f['geometry']['coordinates']) if OR else inb(mid(f)))]
 refs=[int(h['properties'].get('ref',0)) for h in holes]
 print('holes',len(holes),sorted(refs))
-if len(set(refs))!=len(refs) or len(refs)!=18:print('BAD refs');[print(h['properties'].get('@id'),h['properties'].get('ref'),h['properties'].get('par'),mid(h)) for h in holes];sys.exit(1)
-card=json.load(open('scorecard.json'))['card']
+lat0=(bb[1]+bb[3])/2;lon0=(bb[0]+bb[2])/2
+K=math.cos(math.radians(lat0))*111320*1.0936;L=110574*1.0936
+# edits "newholes": {ref: [[x,y],..]} (course yards, tee->green) adds a hole OSM doesn't have (Sandbox 12)
+for ref,line in ED0.get('newholes',{}).items():
+    f={'type':'Feature','properties':{'golf':'hole','ref':str(ref),'@id':'new/'+str(ref)},'geometry':{'type':'LineString','coordinates':[[p[0]/K+lon0,lat0-p[1]/L] for p in line]}}
+    F.append(f);holes.append(f);refs.append(int(ref));print('  new hole',ref)
+if len(set(refs))!=len(refs) or len(refs)!=NH or sorted(refs)!=list(range(1,NH+1)):print('BAD refs');[print(h['properties'].get('@id'),h['properties'].get('ref'),h['properties'].get('par'),mid(h)) for h in holes];sys.exit(1)
 for h in holes:
     r=int(h['properties']['ref']);p=h['properties'].get('par')
     if p and int(p)!=card[r-1][0]:print('  par mismatch hole',r,'osm',p,'card',card[r-1][0])

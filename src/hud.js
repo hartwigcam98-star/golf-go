@@ -24,7 +24,7 @@ function updHud(){
   if(HUD_STYLE==='b'){setT('bcHole',String(G.hi+1));setT('bcPar',String(h.par));setT('bcYds',String(h.len));setT('bcStk',String(sn));setT('bcWind',G.wind.mph+' mph');
     $('bcArrow').style.transform='rotate('+((G.wind.a-V.yaw)*180/Math.PI)+'deg)';
     const ch=MATCH.on&&G.aiTurn?{name:rn(MATCH.r)}:MATCH.on&&CV===2?ch2Char(CAR.char):G.mode==='tourney'&&CAR.tour?ch2Char(CAR.tour.me||CAR.char):curChar(),pl=$('bcPlate');setT('bcName',ch.name);
-    setT('bcScore',MATCH.on?statusShort(matchUp()):G.mode==='practice'?'PRAC':G.mode==='tourney'?tourHud():fmtDiff(roundDiff()));setT('bcThru','thru '+Math.min(18,G.hi));pl.style.bottom=(botH+6)+'px';
+    setT('bcScore',MATCH.on?statusShort(matchUp()):G.mode==='practice'?'PRAC':G.mode==='tourney'?tourHud():fmtDiff(roundDiff()));setT('bcThru','thru '+Math.min(TB.length,G.hi));pl.style.bottom=(botH+6)+'px';
     pl.style.visibility=(G.state==='aim'||G.state==='power'||G.state==='acc')&&!G.overview?'visible':'hidden';}
   {const d=Math.round((G.wind.a-V.yaw)*360/Math.PI);if(MCLK.wa!==d){MCLK.wa=d;$('windArrow').style.transform='rotate('+(d/2)+'deg)';}}   // a new string only when it turns (0.5 deg); no CSS transition (Oct 28: it restarted every frame as the camera turned)
   const c=curClub();setT('clubId',clubLabel(c));

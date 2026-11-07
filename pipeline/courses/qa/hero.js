@@ -8,7 +8,7 @@ const list=JSON.parse(process.argv[2]),OUT=process.argv[3],port=process.argv[4]|
  await p.addStyleTag({content:'#game *{visibility:hidden!important} #game canvas{visibility:visible!important} #game #c{visibility:hidden!important} .modal{display:none!important}'});
  for(const [c,hiReq] of list){
   const info=await p.evaluate(([c,hiReq])=>window.__ev(`(()=>{const c='${c}';let hi=${hiReq};document.getElementById('menuM').hidden=true;G.paused=false;setCourse(c,false);
-    if(hi<0){let best=null;for(let i=0;i<18;i++){startHole(i);const h=G.hole;if(h.par!==3)continue;const pin=h.pin;let wd=1e9;
+    if(hi<0){let best=null;for(let i=0;i<TB.length;i++){startHole(i);const h=G.hole;if(h.par!==3)continue;const pin=h.pin;let wd=1e9;
         for(let a=0;a<24;a++)for(const r of [15,25,35,45]){const x=pin[0]+Math.cos(a/24*6.283)*r,y=pin[1]+Math.sin(a/24*6.283)*r;if(lieCodeAt(h,x,y)===6)wd=Math.min(wd,r);}
         const L=Math.hypot(pin[0]-h.line[0][0],pin[1]-h.line[0][1]);const sc=(wd<50?1000-wd:0)+L*.5;if(!best||sc>best.sc)best={sc,i};}hi=best?best.i:17;}
     startHole(hi);const tb=document.getElementById('teeBtn');if(tb)tb.click();

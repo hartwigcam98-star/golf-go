@@ -10,5 +10,11 @@
   "key": "rushcreek",
   "date": "2026-10-27",
   "why": "Built at Cam's request (chat, not a feedback note). OSM main outline way/1040390809 (fetch first picked the Mac 9 outline), 18 hole ways by id; greens from 2022 MN lidar (QL1, 30-85 pts/m2), 3/9/10 softened to ~3.2%. 7189 of 7306 yd."
+ },
+ "cam-2026-11-07-sandbox": {
+  "status": "built",
+  "key": "sandbox",
+  "date": "2026-11-07",
+  "why": "Built at Cam's request (chat). OSM outline way/1552049150, 17 hole ways; greens from WI_Adams_2019 lidar (5 pts/m2, unsoftened; several greens 4-6% median, outlines checked against the photo). 1592 of 1531 yd (Shovels). First short course: meta short:true (own personal best, no daily round)."
  }
 }

@@ -30,7 +30,7 @@ Run `auto/build_course.py` and `auto/consts.py` **inside /home/claude/golf/auto/
   requests wait (don't record them) until that one is built, skipped or failed. The game also blocks a second request while
   one is waiting (client-side, 14-day expiry), so this is the server-side backstop.
 - **Skip** (record status `skipped` + why, no build): not a real golf course; outside the lower 48 US states; private club
-  (say so, Cam decides later); fewer than 18 holes; joke/abusive text. **Duplicate**: already in `COURSES` (check names/towns).
+  (say so, Cam decides later); fewer than 18 holes; (Cam can ask for a short course himself: since Nov 2026 the game plays any hole count; set `"short": true` in meta.json, see inject_auto.py, and the scorecard has that many rows); joke/abusive text. **Duplicate**: already in `COURSES` (check names/towns).
 - Take the top **two** buildable requests (from different players). If one can't be built (see 3), record `failed` with the reason
   and try the next one, but build at most two. With two courses, do steps 2–6 for both: one fetch job can carry both
   (two keys in want/holes/steps, two search boxes), and `inject_auto.py` takes both keys. If one course fails its gates,

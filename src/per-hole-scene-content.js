@@ -109,7 +109,8 @@ const R3_FLAGS={
   kingsnorth:{bg:'#1f3d2b',fg:'#f2ead6',ac:'#c8102e',m:'crown'},
   lawsonia:{bg:'#3b4a2a',fg:'#efe8d4',ac:'#b5873a',m:'meadow'},
   sentryworld:{bg:'#14335c',fg:'#f4f1e8',ac:'#d6262f',m:'rose'},
-  rushcreek:{bg:'#1f3a5f',fg:'#f2efe6',ac:'#6b2d5c',m:'thistle'}};
+  rushcreek:{bg:'#1f3a5f',fg:'#f2efe6',ac:'#6b2d5c',m:'thistle'},
+  sandbox:{bg:'#e9dcc0',fg:'#2f3b2a',ac:'#c4572e',m:'dunes'}};
 function r3FlagStyle(id){return R3_FLAGS[id]||{bg:'#ff6a48',fg:'#ffffff',ac:'#ffd23c',m:''};}
 // emblems, drawn in a box about 100 units across centred on the origin
 const R3_EMB={
