@@ -1,0 +1,24 @@
+{
+ "id": 6,
+ "created_at": "2026-10-09T21:54:52.067422+00:00",
+ "player_id": "p3so34u7ymv1i3p0o",
+ "name": "",
+ "kind": "bug",
+ "message": "Installed on a Windows laptop and really like the bigger picture.  THe swing meter however is fast and very jittery",
+ "ctx": {
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+  "app": true,
+  "gfx": "fast",
+  "lie": "fescue",
+  "ver": "2026-10-09-3152",
+  "hole": 1,
+  "mode": "round",
+  "thru": 0,
+  "state": "aim",
+  "toPar": null,
+  "course": "troy",
+  "screen": "1536x798@1.25",
+  "stroke": 3
+ },
+ "shot": "shot.jpg"
+}
