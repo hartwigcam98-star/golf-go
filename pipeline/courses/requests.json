@@ -16,5 +16,11 @@
   "key": "sandbox",
   "date": "2026-11-07",
   "why": "Built at Cam's request (chat). OSM outline way/1552049150, 17 hole ways; greens from WI_Adams_2019 lidar (5 pts/m2, unsoftened; several greens 4-6% median, outlines checked against the photo). 1592 of 1531 yd (Shovels). First short course: meta short:true (own personal best, no daily round)."
+ },
+ "cam-2026-11-07-gnshort": {
+  "status": "failed",
+  "key": "gnshort",
+  "date": "2026-11-07",
+  "why": "Grand National Short (Opelika AL), Cam's request. OSM has 17 of 18 hole ways with no ref or name (ids 1098809319-337, 1319991738-5278) and one unclaimed green at ~32.67694,-85.41729; routing can be chained from the map but the published cards disagree (GolfingRecord purple 3292 with hole 9 = 250; Hole19 orange 2481 with different per-hole yards) and neither fits the mapped holes (60-90 yd off per hole, map total ~2,860). Needs the club's card or a routing map. Fetch box [-85.4215,32.6722,-85.4109,32.6818] (job 'boxes'), lidar GA_Central_2_2018."
  }
 }
