@@ -5,7 +5,15 @@ function mkPoly(pts,kind){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,a=0,cx=0,cy=0;
   a/=2;return{pts,kind,bb:[x0,y0,x1,y1],area:Math.abs(a),x:a?cx/(6*a):(x0+x1)/2,y:a?cy/(6*a):(y0+y1)/2};}
 /* map fix (course QA): a bunker drawn over a green (Cambrian Ridge's map has several) is slid straight off it, away from the
    green's centre, until it only touches the edge; bunkers that just kiss the collar are left alone */
-function polyOverlap(A,B){let n=0,o=0;const b=A.bb;for(let y=Math.ceil(b[1]);y<=b[3];y++)for(let x=Math.ceil(b[0]);x<=b[2];x++)if(inPoly(A,x,y)){n++;if(inPoly(B,x,y))o++;}return n?o/n:0;}
+// share of A's whole-yard points that are also in B. Row by row: each row's edge crossings are worked out once (the same sum
+// inPoly does, so every point gets exactly the answer inPoly would give) instead of testing every edge at every point; a big
+// waste area over a green (The Lido) took ~25 s to open its first hole the old way
+function polyRow(P,y){const p=P.pts,r=[];for(let i=0,j=p.length-1;i<p.length;j=i++){const yi=p[i][1],yj=p[j][1];if((yi>y)!==(yj>y))r.push((p[j][0]-p[i][0])*(y-yi)/(yj-yi)+p[i][0]);}return r.sort((u,v)=>u-v);}
+function polyOverlap(A,B){let n=0,o=0;const a=A.bb,b=B.bb;
+  for(let y=Math.ceil(a[1]);y<=a[3];y++){const XA=polyRow(A,y);if(!XA.length)continue;const XB=y>=b[1]&&y<=b[3]?polyRow(B,y):null;let ka=0,kb=0;
+    for(let x=Math.ceil(a[0]);x<=a[2];x++){while(ka<XA.length&&XA[ka]<=x)ka++;if(!((XA.length-ka)&1))continue;n++;   // inside A: an odd number of crossings to its right
+      if(XB&&x>=b[0]&&x<=b[2]){while(kb<XB.length&&XB[kb]<=x)kb++;if((XB.length-kb)&1)o++;}}}
+  return n?o/n:0;}
 function bunkerOffGreen(P,greens){let G0=null,ov=0;for(const Gp of greens){if(Gp.bb[0]>P.bb[2]||Gp.bb[2]<P.bb[0]||Gp.bb[1]>P.bb[3]||Gp.bb[3]<P.bb[1])continue;const o=polyOverlap(P,Gp);if(o>ov){ov=o;G0=Gp;}}
   if(ov<.1)return P;let dx=P.x-G0.x,dy=P.y-G0.y;const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;
   for(let s=1;s<=30;s++){const Q=mkPoly(P.pts.map(p=>[p[0]+dx*s,p[1]+dy*s]),P.kind);if(polyOverlap(Q,G0)<.03&&!greens.some(g2=>g2!==G0&&polyOverlap(Q,g2)>.03))return Q;}
