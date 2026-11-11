@@ -136,8 +136,8 @@ function dailyPlay(){if(courseGate(dailyCourse(dailyDay()),dailyPlay))return;con
   if(!d){d={v:1,day,cid,hi:0,scores:[],strokes:0,mid:false,ps:3,done:false,posted:false,ts:Date.now()};dailyStore(d);}
   G.mode='daily';G.dailyDay=day;G.dailySeed=dailyNum(day)*7919;setCourse(d.cid,false);dailyWeather(day);
   G.psLeft=Number.isInteger(d.ps)?d.ps:3;G.scores=Array.isArray(d.scores)?d.scores:[];closeMenu();startHole(d.hi||0);
-  if(((d.mid&&d.strokes>0)||d.pend)&&d.ball){$('introM').hidden=true;G.strokes=d.strokes;G.ball={x:d.ball.x,y:d.ball.y};G.prev=d.prev?{x:d.prev.x,y:d.prev.y}:{...G.ball};if(d.wind)G.wind=d.wind;
-    prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];if(!pendResume(d.pend))toast('WELCOME BACK','Daily round \u00b7 hole '+(d.hi+1),'#8ee6a8');}}
+  if(((d.mid&&d.strokes>0)||d.pend)&&d.ball)midResume(d.hi||0,()=>{$('introM').hidden=true;G.strokes=d.strokes;G.ball={x:d.ball.x,y:d.ball.y};G.prev=d.prev?{x:d.prev.x,y:d.prev.y}:{...G.ball};if(d.wind)G.wind=d.wind;
+    prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];if(!pendResume(d.pend))toast('WELCOME BACK','Daily round \u00b7 hole '+(d.hi+1),'#8ee6a8');});}
 function dailyFinish(){const d=dailyLoad();if(!d||d.day!==G.dailyDay)return;d.scores=G.scores.slice();d.done=true;d.mid=false;d.total=G.scores.reduce((a,b)=>a+(b||0),0);d.toPar=roundDiff();dailyStore(d);dailyPost();}
 async function dailySend(d){const tok=await authToken(),u=authUser();
   const body={day:d.day,course:d.cid,player_id:dailyPid(),name:dailyName()||'Golfer',strokes:d.total,to_par:d.toPar,holes:d.scores};

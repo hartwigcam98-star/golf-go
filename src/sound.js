@@ -2,7 +2,8 @@
 const S={ctx:null,on:true,nb:null};
 function A(){if(!S.on)return null;if(!S.ctx){try{S.ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}
     // everything goes through a master bus: a little extra gain and a limiter so phone speakers get a solid level
-    try{const c=S.ctx.createDynamicsCompressor();c.threshold.value=-14;c.knee.value=8;c.ratio.value=6;c.attack.value=.002;c.release.value=.12;S.out=S.ctx.createGain();S.out.gain.value=2.2;S.out.connect(c).connect(S.ctx.destination);}catch(e){S.out=null;}}
+    try{const c=S.ctx.createDynamicsCompressor();c.threshold.value=-14;c.knee.value=8;c.ratio.value=6;c.attack.value=.002;c.release.value=.12;S.out=S.ctx.createGain();S.out.gain.value=2.2;S.out.connect(c).connect(S.ctx.destination);}catch(e){S.out=null;}
+    try{sfxPre(S.ctx.sampleRate);}catch(e){}}
   if(S.ctx.state!=='running')S.ctx.resume().catch(()=>{});return S.ctx;}
 const OUT=()=>{if(typeof HTR==='object')HTR.m+='snd ';return S.out||S.ctx.destination;};
 // iPhone/iPad: audio only starts inside a touchend/click, and the ring/silent switch mutes web audio unless the page asks for "playback"
@@ -33,8 +34,14 @@ const IMPACT_MODES={
   wedge:{crack:.9,ring:[[4300,.4,.013],[2700,.45,.017],[6000,.25,.009],[1750,.25,.016]],body:[[260,.32,.025]],len:.14},
   putter:{crack:.35,ring:[[1180,.8,.022],[2650,.3,.009],[3900,.12,.006]],body:[[480,.3,.016]],len:.12},
 };
-function impactBuffer(kind,qb){const a=S.ctx,key=kind+qb;S.ib=S.ib||{};if(S.ib[key])return S.ib[key];
-  const M=IMPACT_MODES[kind]||IMPACT_MODES.iron,q=qb/3,sr=a.sampleRate,n=Math.ceil(M.len*sr),buf=a.createBuffer(1,n,sr),d=buf.getChannelData(0);
+/* Nov 2026: the samples are worked out by impactData / cupData (plain numbers in, a Float32Array out: no audio objects), so the
+   same code can run in a background worker (sfxPre) and the game thread only wraps the finished samples in a buffer */
+function sfxBuf(key,make){const a=S.ctx;S.ib=S.ib||{};if(S.ib[key])return S.ib[key];
+  const pre=S.pre&&S.pre[key],d=pre&&pre.sr===a.sampleRate?pre.d:make(a.sampleRate);if(S.pre)delete S.pre[key];
+  const buf=a.createBuffer(1,d.length,a.sampleRate);buf.getChannelData(0).set(d);return S.ib[key]=buf;}
+function impactBuffer(kind,qb){return sfxBuf(kind+qb,sr=>impactData(kind,qb,sr));}
+function impactData(kind,qb,sr){
+  const M=IMPACT_MODES[kind]||IMPACT_MODES.iron,q=qb/3,n=Math.ceil(M.len*sr),d=new Float32Array(n);
   const R=rng(7+qb*13+kind.length*101);
   // pure: full ring and a crisp crack; poor: ring damped and detuned, crack softened, big low thud and a rattly buzz
   const ringAmp=.25+.75*q*q,ringDecay=.35+.65*q,crackLen=(.0012+.0035*(1-q))*sr,thud=.25+1.1*(1-q),buzz=Math.max(0,.6-q)*.5;
@@ -49,7 +56,7 @@ function impactBuffer(kind,qb){const a=S.ctx,key=kind+qb;S.ib=S.ib||{};if(S.ib[k
     if(i<crackLen*8){const nz=(R()*2-1)*Math.exp(-i/crackLen);l1+=lpk*(nz-l1);l2+=lpk*(l1-l2);x+=M.crack*2.2*l2;}
     const atk=Math.min(1,i/(sr*.0004));d[i]=x*atk*.5;}
   let pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));if(pk>0)for(let i=0;i<n;i++)d[i]*=.9/pk;
-  return S.ib[key]=buf;}
+  return d;}
 function playBuf(buf,vol,rate=1){const a=A();if(!a)return;const s=a.createBufferSource(),g=a.createGain();s.buffer=buf;s.playbackRate.value=rate;g.gain.value=vol;s.connect(g).connect(OUT());s.start();}
 /* a real recorded iron strike off turf (from the player's own swing video); every club is voiced from it,
    and worse contact is played darker, lower and softer */
@@ -82,8 +89,9 @@ function playSwoosh(v){const a=A();if(!a)return;S.sw=S.sw||shapedNoise(.2,t=>Mat
 /* cup sound (Oct 2026, v4 "cup mic"): what a microphone inside the cup hears, as on golf broadcasts - modal synthesis.
    A loud, close, dry clack of ball on hard plastic with a deep boom from the cavity, two quick bounces, then the ball
    rattling round the bottom of the cup, faster and faster as it settles (like a spun coin). Hard: rim clicks first. */
-function cupBuf(hard,vr){const a=S.ctx,key='cup4'+hard+vr;S.ib=S.ib||{};if(S.ib[key])return S.ib[key];
-  const sr=a.sampleRate,n=Math.ceil(.95*sr),buf=a.createBuffer(1,n,sr),d=buf.getChannelData(0),R=rng(91+hard*17+vr*5);
+function cupBuf(hard,vr){return sfxBuf('cup4'+hard+vr,sr=>cupData(hard,vr,sr));}
+function cupData(hard,vr,sr){
+  const n=Math.ceil(.95*sr),d=new Float32Array(n),R=rng(91+hard*17+vr*5);
   const MODES=[[430,.75,.055],[1020,1,.035],[1720,.75,.024],[2850,.5,.015],[4300,.3,.009],[6100,.15,.005]];
   const j=v=>v*(1+(R()-.5)*.06);
   const hits=[];const t0=hard?j(.085):0;
@@ -106,11 +114,24 @@ function cupBuf(hard,vr){const a=S.ctx,key='cup4'+hard+vr;S.ib=S.ib||{};if(S.ib[
   {const D=Math.round(sr/440);for(let i=D;i<n;i++)d[i]+=.22*d[i-D];}   // a touch of the cup's tube
   let pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));for(let i=0;i<n;i++)d[i]=Math.tanh(1.8*d[i]/(pk||1));   // broadcast punch: a little saturation
   pk=0;for(let i=0;i<n;i++)pk=Math.max(pk,Math.abs(d[i]));if(pk>0)for(let i=0;i<n;i++)d[i]*=.92/pk;
-  return S.ib[key]=buf;}
+  return d;}
+/* Nov 2026: every cup and club-strike sound is built up front, off the game's thread, as soon as sound is switched on (the first
+   tap). They used to be built one at a time and only while a menu was up, so a round started straight from the home screen could
+   reach its first holed putt with the cup sound unbuilt: a 35-50 ms hitch as the ball dropped. If the worker can't start, the
+   old menu-time build (sfxWarm) carries on. */
+function sfxPre(sr){if(S.preOn!==undefined||typeof Worker==='undefined'||typeof Blob==='undefined')return;S.preOn=false;
+  try{const src='const TAU=Math.PI*2;\n'+rng.toString()+'\nconst IMPACT_MODES='+JSON.stringify(IMPACT_MODES)+';\n'+impactData.toString()+'\n'+cupData.toString()+
+      '\nonmessage=e=>{const sr=e.data.sr;for(const h of[0,1])for(const v of[0,1,2]){const d=cupData(h,v,sr);postMessage({k:"cup4"+h+v,sr,d},[d.buffer]);}'+
+      'for(const k in IMPACT_MODES)for(let q=0;q<4;q++){const d=impactData(k,q,sr);postMessage({k:k+q,sr,d},[d.buffer]);}postMessage({done:1});};';
+    const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'})),w=new Worker(url);S.pre=S.pre||{};S.preOn=true;
+    const end=ok=>{try{w.terminate();URL.revokeObjectURL(url);}catch(e){}if(!ok){S.preOn=false;}else S.preDone=true;};
+    w.onmessage=e=>{const m=e.data;if(m.done){end(true);return;}if(!(S.ib&&S.ib[m.k]))S.pre[m.k]={sr:m.sr,d:m.d};};w.onerror=e=>{try{e.preventDefault();}catch(_){}end(false);};
+    w.postMessage({sr});}catch(e){S.preOn=false;}}
 /* Oct 2026: the six ball-in-the-cup sounds (and the club strikes) are built ahead (one at a time while a menu is up) instead of the first time each plays; building one took a few hundred ms right as the ball dropped */
 function sfxWarm(){setTimeout(sfxWarm,500);if(!S.ctx)return;
   if(!(document.hidden||typeof G!=='object'||!G.hole||(typeof COVERS!=='undefined'&&COVERS.some(m=>!m.hidden))))return;   // menus only
   if(!(S.clips&&(S.clips.iron||S.clips.iron_l))){try{realStrike('wood');}catch(e){}return;}   // start decoding the recorded strikes
+  if(S.preOn)return;   // (Nov 2026) the background worker is building the rest
   for(const h of[0,1])for(const v of[0,1,2])if(!(S.ib&&S.ib['cup4'+h+v])){try{cupBuf(h,v);}catch(e){}return;}
   for(const k in IMPACT_MODES)for(let q=0;q<4;q++)if(!(S.ib&&S.ib[k+q])){try{impactBuffer(k,q);}catch(e){}return;}}   // the club strikes too (20, small)
 setTimeout(sfxWarm,3000);

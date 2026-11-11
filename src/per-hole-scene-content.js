@@ -284,17 +284,46 @@ function r3WarmStart(){if(R3.warmQ||!R3.renderer||!R3.scene)return;const L=[];
      the occlusion and final passes): phone GPUs build a pipeline per program *and* target format, so warming into one generic
      target left part of the work for the first real frames */
   {const T3=THREE,q=r3Q(),ty=R3.hf?T3.HalfFloatType:T3.UnsignedByteType,mk=(o)=>new T3.WebGLRenderTarget(16,16,Object.assign({type:ty,colorSpace:T3.NoColorSpace,depthBuffer:false,stencilBuffer:false},o));
-   R3.warmT={scene:mk({depthBuffer:true,samples:q.msaa||0}),clip:mk({depthBuffer:true}),half:mk({}),byte:mk({type:T3.UnsignedByteType})};R3.warmRT=R3.warmT.scene;}
+   R3.warmT=R3.warmT||{scene:mk({depthBuffer:true,samples:q.msaa||0}),clip:mk({depthBuffer:true}),half:mk({}),byte:mk({type:T3.UnsignedByteType})};R3.warmRT=R3.warmT.scene;}
   const step=()=>{if(!R3.warmQ)return;const t0=performance.now(),idle=!G.hole||G.state==='intro'||G.state==='card'||COVERS.some(m=>!m.hidden);while(R3.warmQ.length&&performance.now()-t0<(idle?40:12)){r3WarmJob(R3.warmQ.shift());}
     if(R3.warmQ.length)requestAnimationFrame(step);else r3WarmEnd();};
   requestAnimationFrame(step);}
 /* each hole's set-up queues the neighbouring quality levels' shadow programs, built a level per frame while the hole's intro card
    is up (whatever is left goes at Tee off); once built, a level costs only a quick shadow pass */
 function r3LvlWarm(){if(!R3.renderer||!R3.scene)return;const base=R3.q==='high'?0:1,cur=R3.perf||0,Q=[];
-  for(let l=Math.max(0,cur-1);l<=Math.min(R3_LMAX-base,cur+2);l++)if(l!==cur)Q.push(l);R3.lvlQ=Q;
+  /* (Nov 2026) once per course and level: the programs a level needs are the same on every hole of a course, and each job is a full
+     shadow pass, so later holes' intro cards no longer repeat it */
+  const seen=R3.lvlSeen||(R3.lvlSeen=new Set()),ck=(CUR&&CUR.id)+'|'+R3.q+'|';
+  for(let l=Math.max(0,cur-1);l<=Math.min(R3_LMAX-base,cur+2);l++)if(l!==cur&&!seen.has(ck+l)){Q.push(l);seen.add(ck+l);}R3.lvlQ=Q;
   const step=()=>{if(!R3.lvlQ||!R3.lvlQ.length)return;if(G.state!=='intro'&&!COVERS.some(m=>!m.hidden)){return;}r3WarmJob({lvl:R3.lvlQ.shift()});if(R3.lvlQ.length)requestAnimationFrame(step);};
   requestAnimationFrame(()=>requestAnimationFrame(step));}   // after the hole's first frame is on screen
 function r3WarmEnd(){R3.warmQ=null;R3.warmDone=1;if(R3.warmT)for(const k in R3.warmT)R3.warmT[k].dispose();R3.warmT=null;R3.warmRT=null;}
+/* Nov 2026: the per-hole level warm-up runs after the background warm-up has finished and thrown its small targets away; its
+   shadow job then failed on the missing target part-way through, leaving every mesh in the hole with its shadow switched on and
+   its off-screen culling switched off for the rest of the hole (more to draw each frame and in every shadow update). The job now
+   makes the one small target it needs, and puts the scene back whatever happens. */
+/* Nov 2026: play could begin with the background warm-up unfinished (Tee off tapped early finished it in one go: a freeze of up
+   to 6 s on a phone; a round picked back up mid-hole skipped it and played its first shots through 0.5-1.6 s stalls as the jobs
+   ran during play). The gate finishes the jobs a slice per frame behind the hole's intro card, reporting progress, then waits
+   for `frames` real pictures of the hole to be drawn (the first one builds the full-size targets) before `then` runs. */
+function r3WarmBusy(){return !!(R3.on&&R3.renderer&&R3.scene&&((R3.warmQ&&R3.warmQ.length)||(!R3.warmQ&&!R3.warmDone&&G.hole)));}
+function r3WarmGate(prog,then,frames){if(R3.gate){R3.gate.prog=prog;R3.gate.then=then;return;}
+  if(!R3.on||!R3.renderer){then();return;}
+  if(!R3.warmQ&&!R3.warmDone)try{r3WarmStart();}catch(e){}
+  const g=R3.gate={prog,then,n0:Math.max(1,(R3.warmQ&&R3.warmQ.length)||1),f0:null,t0:performance.now()};
+  const done=()=>{if(R3.gate!==g)return;R3.gate=null;clearTimeout(g.to);try{g.then();}catch(e){console.error(e);}};
+  const say=()=>{try{g.prog&&g.prog(R3.warmQ?Math.round(100*(1-R3.warmQ.length/g.n0)):100);}catch(e){}};
+  const step=()=>{if(R3.gate!==g)return;
+    if(R3.warmQ&&R3.warmQ.length){const t0=performance.now();try{while(R3.warmQ&&R3.warmQ.length&&performance.now()-t0<45)r3WarmJob(R3.warmQ.shift());}catch(e){R3.warmQ.length=0;}}
+    if(R3.warmQ&&!R3.warmQ.length)try{r3WarmEnd();}catch(e){}
+    say();if(R3.warmQ&&R3.warmQ.length){requestAnimationFrame(step);return;}
+    if(g.f0===null)g.f0=R3.rN||0;if((frames||0)>0&&(R3.rN||0)-g.f0<frames&&!COVERS.some(m=>!m.hidden)&&!document.hidden){requestAnimationFrame(step);return;}
+    done();};
+  g.to=setTimeout(()=>{if(R3.gate!==g)return;try{r3WarmFinish();}catch(e){}done();},9000);   // never leave the player waiting on it
+  say();requestAnimationFrame(step);}
+function r3WarmTarget(clip){if(R3.warmT)return clip?R3.warmT.clip:R3.warmT.scene;const T3=THREE;
+  if(!R3.warmL||R3.warmL.msaa!==(r3Q().msaa||0)){if(R3.warmL)R3.warmL.rt.dispose();R3.warmL={msaa:r3Q().msaa||0,rt:new T3.WebGLRenderTarget(16,16,{type:R3.hf?T3.HalfFloatType:T3.UnsignedByteType,colorSpace:T3.NoColorSpace,depthBuffer:true,stencilBuffer:false,samples:r3Q().msaa||0})};}
+  return R3.warmL.rt;}
 /* post passes' uniforms are empty until a pass first runs: fill them with stand-ins so the warm-up draw can go through (it used to
    throw on the first vector, after compiling but before the pass was ever drawn) */
 const R3_WARM_V3=new Set(['K','sunP','dofP']),R3_WARM_N=new Set(['hdr','aoOn','bloomK','expo','asp','fxaaOn']);
@@ -306,17 +335,19 @@ function r3WarmJob(j){const rd=R3.renderer,prev=rd.getRenderTarget(),pc=rd.clipp
   try{
   if(j.post){const P=R3.post,m=P.m[j.post];r3WarmUniforms(m);P.quad.material=m;rd.setRenderTarget(j.post==='ao'||j.post==='aob'||j.post==='final'?R3.warmT.byte:R3.warmT.half);rd.render(P.scene,P.cam);return;}
   if(j.shadow&&R3.shc&&R3.shc.qs)rd.compile(R3.shc.qs,R3.shc.qc);
-  const sv=[];R3.scene.traverse(o=>{if(o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||o.isPoints||o.isLine){sv.push([o,o.visible]);o.visible=false;}});
-  const tw=[];for(const o of j.objs){o.visible=true;let q=o.parent;while(q){if(!q.visible){tw.push(q);q.visible=true;}q=q.parent;}
+  const sv=[],tw=[],sm=rd.shadowMap.autoUpdate;try{
+  R3.scene.traverse(o=>{if(o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||o.isPoints||o.isLine){sv.push([o,o.visible]);o.visible=false;}});
+  for(const o of j.objs){o.visible=true;let q=o.parent;while(q){if(!q.visible){tw.push(q);q.visible=true;}q=q.parent;}
     if(j.shadow&&!o.castShadow&&(o.isMesh||o.isSkinnedMesh||o.isInstancedMesh)){tw.push(['cs',o,false]);o.castShadow=true;}   // things that only cast now and then (a club, the lite trees) need their shadow programs too
     tw.push(['fc',o,o.frustumCulled]);o.frustumCulled=false;
     if(o.isInstancedMesh&&o.count===0){tw.push(['cnt',o,0]);o.count=1;}
     if(o.geometry&&o.geometry.isInstancedBufferGeometry&&!o.geometry.instanceCount){tw.push(['ic',o.geometry,o.geometry.instanceCount]);o.geometry.instanceCount=1;}}
   rd.clippingPlanes=j.clip?[new THREE.Plane(new THREE.Vector3(0,1,0),0)]:[];
-  const sm=rd.shadowMap.autoUpdate;rd.shadowMap.autoUpdate=false;if(j.shadow){rd.shadowMap.needsUpdate=true;if(R3.shc){R3.shc.mode=null;R3.shc.valid=false;}}
-  rd.setRenderTarget(j.clip?R3.warmT.clip:R3.warmT.scene);rd.render(R3.scene,R3.cam);rd.shadowMap.autoUpdate=sm;if(j.shadow)rd.shadowMap.needsUpdate=true;   // the real shadows are redrawn next frame
+  rd.shadowMap.autoUpdate=false;if(j.shadow){rd.shadowMap.needsUpdate=true;if(R3.shc){R3.shc.mode=null;R3.shc.valid=false;}}
+  rd.setRenderTarget(r3WarmTarget(j.clip));rd.render(R3.scene,R3.cam);if(j.shadow)rd.shadowMap.needsUpdate=true;   // the real shadows are redrawn next frame
+  }finally{rd.shadowMap.autoUpdate=sm;
   for(const t of tw){if(Array.isArray(t)){if(t[0]==='fc')t[1].frustumCulled=t[2];else if(t[0]==='cs')t[1].castShadow=t[2];else if(t[0]==='cnt')t[1].count=t[2];else t[1].instanceCount=t[2];}else t.visible=false;}
-  for(const[o,v]of sv)o.visible=v;
+  for(const[o,v]of sv)o.visible=v;}
  }catch(e){console.warn('[warm]',e);}finally{rd.clippingPlanes=pc;rd.setRenderTarget(prev);}}
 function r3Surround(h){const T=THREE;r3Dispose(R3.skirt);r3Dispose(R3.flat);
   const Wd=WIDE||DEM,T0=h.T0,b=h.bounds;const X0=Wd.x0-T0[0],Y0=Wd.y0-T0[1],X1=X0+Wd.dx*(Wd.nc-1),Y1=Y0+Wd.dy*(Wd.nr-1),st=R3.perf>=3?30:20;

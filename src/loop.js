@@ -82,7 +82,7 @@ function pstatFlush(keep){if(typeof PSTAT==='undefined'||!PSTAT||!PSTAT.all.leng
     gfx:String((typeof R3!=='undefined'&&R3.q)||'').slice(0,8),perf:(typeof R3!=='undefined'&&R3.perf)||0,
     device:{ua:navigator.userAgent.slice(0,200),scr:screen.width+'x'+screen.height,dpr:window.devicePixelRatio||1,vw:innerWidth+'x'+innerHeight,app:!!(navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches))},
     frames:A.n,fps_avg:r1(A.avg),fps_med:r1(A.med),ms_p95:r1(A.p95),ms_max:r1(A.max),stutter_pct:r1(A.st),
-    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st),extra:{cap30:!!PERF.cap,ho:PERF.heavyOff||0,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0,dq:PERF.dT&&PERF.dT.some(v=>v)?[...PERF.dT,PERF.midNeed||4]:undefined,shc:R3.shc?R3.shc.n:null,trees:R3T.kept||null,js_med:js.length?r1(js[js.length>>1]):null,js_p95:js.length?r1(js[Math.floor(js.length*.95)]):null,dc_med:dc.length?dc[dc.length>>1]:null,hx:hxl.length?hxl.sort((a,b)=>b.ms-a.ms):undefined,hxn,ld:ldTake()}};if(R3.shc)R3.shc.n={dyn:0,cap:0,full:0};PERF.dT=[0,0,0];   /* dq: sharper-picture tries this hole [tried, kept, went back, windows needed] */
+    meter_frames:M?M.n:0,meter_fps_avg:M&&r1(M.avg),meter_fps_med:M&&r1(M.med),meter_ms_p95:M&&r1(M.p95),meter_ms_max:M&&r1(M.max),meter_stutter_pct:M&&r1(M.st),extra:{cap30:!!PERF.cap,ho:PERF.heavyOff||0,dyn:+(R3.dyn||1).toFixed(2),lvl:R3.perf||0,dq:PERF.dT&&PERF.dT.some(v=>v)?[...PERF.dT,PERF.midNeed||4]:undefined,shc:R3.shc?R3.shc.n:null,trees:R3T.kept||null,js_med:js.length?r1(js[js.length>>1]):null,js_p95:js.length?r1(js[Math.floor(js.length*.95)]):null,dc_med:dc.length?dc[dc.length>>1]:null,hx:hxl.length?hxl.sort((a,b)=>b.ms-a.ms):undefined,hxn,ld:ldTake(),sy:PERF.sy&&PERF.sy.ms!=null?[PERF.sy.on?1:0,r1(PERF.sy.ms),PERF.sy.a?Math.round(100*PERF.sy.c/PERF.sy.a):0]:undefined}};if(PERF.sy){PERF.sy.a=0;PERF.sy.c=0;}if(R3.shc)R3.shc.n={dyn:0,cap:0,full:0};PERF.dT=[0,0,0];   /* dq: sharper-picture tries this hole [tried, kept, went back, windows needed] */
   try{fetch(DAILY.url+'/rest/v1/perf_stats',{method:'POST',keepalive:!!keep,headers:dailyHdr({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify(body)}).catch(()=>{});}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pstatFlush(true);});addEventListener('resize',()=>{MCLK.w=0;});   // w: the meter's width, measured once (not every frame)
 const PERF={n:0,sum:0,level:0};
@@ -94,6 +94,21 @@ const PERF={n:0,sum:0,level:0};
    picture for good. Smooth play at full resolution (about 18 s of it at first) now buys back one level at the next hole, where the
    change can't stutter a shot. If the richer picture can't hold 60 in its first ~12 s it goes straight back (rather than softening
    the resolution), and the next try needs twice as much smooth play. */
+/* Nov 2026: is the phone itself holding the game to 30 frames a second? In Low Power Mode, and when it is running hot, an iPhone
+   calls the game every other screen refresh whatever the game draws. The picture-quality steps above aim at 60, so a capped phone
+   looked hopelessly slow to them: they softened the picture to its floor and dropped two levels for nothing (still 30), and
+   remembered it. The cap shows in the frames where no course was drawn (a menu up, the swing meter over a held picture): those
+   take 17 ms on a free phone and 33 on a capped one. While it lasts, the steps aim at a steady 30 instead (frame times are halved
+   before they are judged), the player is told once, and the hole's stats carry it (extra.sy: [capped now, idle frame ms, % of the
+   hole's frames under the cap]). */
+function sysTick(now){const S=PERF.sy||(PERF.sy={t:0,rn:-1,w:[],on:false,ms:null,a:0,c:0,told:false});const d=now-S.t,idle=S.rn===(R3.rN||0);S.t=now;S.rn=R3.rN||0;
+  if(document.hidden)return;S.a++;if(S.on)S.c++;
+  if(S.on&&!S.told&&G.hole&&G.state==='aim'&&!G.paused&&!G.aiTurn&&!COVERS.some(m=>!m.hidden)){S.told=true;try{toast('LIMITED TO 30 FPS','Low Power Mode is on, or the phone is warm','#ffd166');}catch(e){}}
+  if(!idle||!(d>4&&d<80)||R3.warmQ||R3.gate||(R3.lvlQ&&R3.lvlQ.length))return;   // only frames that drew no course, with no warm-up work in them
+  const w=S.w;w.push(d);if(w.length>24)w.shift();if(w.length<12)return;
+  const s=w.slice().sort((a,b)=>a-b),med=s[s.length>>1];S.ms=med;
+  const on=S.on?med>27:(med>30.5&&med<37&&s[2]>27);   // capped: these frames come at 33 ms and almost none sooner
+  if(on!==S.on){S.on=on;PERF.w=[];PERF.bad=0;PERF.slow=0;}}
 function perfUp(){if(PERF.cap||!(R3.perf>0)||(PERF.up||0)<(PERF.upNeed||12))return;
   /* not into the heavy look (multisampling, ambient occlusion and reflections, soft shadows): switching it on mid-round rebuilt every
      render target and compiled new shaders (130+ ms), and the phone usually couldn't hold it and fell back again */
@@ -116,7 +131,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){PERF.hidT=
 function perfSet(level){const a=r3Q(),P0=R3.perf;R3.perf=level;const b=r3Q();R3.perf=P0;
   if((a.msaa!==b.msaa||a.ao!==b.ao||a.soft!==b.soft)&&G.hole&&G.state!=='intro'&&G.state!=='card'){PERF.pend=level;return false;}
   PERF.pend=null;r3SetPerf(level);return true;}
-function perfCheck(raw){PERF.level=R3.perf||0;if(R3.warmQ||(PERF.quiet&&performance.now()<PERF.quiet)){PERF.w=[];return;}if(PERF.cap||G.paused||G.state==='intro'||G.state==='card'||G.state==='power'||G.state==='acc'||raw>.25)return;(PERF.w=PERF.w||[]).push(raw);if(PERF.w.length<90)return;
+function perfCheck(raw){PERF.level=R3.perf||0;if(R3.warmQ||(PERF.quiet&&performance.now()<PERF.quiet)){PERF.w=[];return;}if(PERF.cap||G.paused||G.state==='intro'||G.state==='card'||G.state==='power'||G.state==='acc'||raw>.25)return;(PERF.w=PERF.w||[]).push(PERF.sy&&PERF.sy.on?raw*.5:raw);if(PERF.w.length<90)return;   /* (held to 30 by the phone: judged against 30, see sysTick) */
   const w=PERF.w.sort((a,b)=>a-b),med=w[w.length>>1],lng=w.filter(v=>v>.04).length/w.length,slip=w.filter(v=>v>.0205).length/w.length;PERF.w=[];
   /* v121 dynamic resolution: aim for a steady 60. When more than 1 frame in 8 misses a refresh, draw ~10% fewer pixels a side (down to 62%);
      after about 5 s of clean frames sharpen back up a step. Only once the picture is at its softest do the levels below step in. */

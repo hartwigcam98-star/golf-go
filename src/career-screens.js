@@ -133,8 +133,8 @@ function tourStart(tid,resume){const e=tourEv(tid);if(!e)return;if(courseGate(e.
   const me=T.me||CAR.char,keep=CAR.char;CAR.char=me;G.cm=careerMods();CAR.char=keep;G.look=null;G.aiTurn=false;if(R3.on&&typeof r3GolferSet==='function')r3GolferSet(me);
   G.psLeft=Number.isInteger(T.ps)?T.ps:3;G.scores=T.po?(T.fin||[]).slice():(T.scores||[]).slice();
   $('careerM').hidden=true;closeMenu();startHole(T.po?TB.length-1:(T.hi||0));
-  if(((T.mid&&T.strokes>0)||T.pend)&&T.ball){$('introM').hidden=true;G.strokes=T.strokes;G.ball={x:T.ball.x,y:T.ball.y};G.prev=T.prev?{x:T.prev.x,y:T.prev.y}:{...G.ball};if(T.wind)G.wind=T.wind;
-    prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];if(!pendResume(T.pend))toast('WELCOME BACK',tourName(e)+' · '+(T.po?'playoff':'hole '+(T.hi+1)),'#8ee6a8');}}
+  if(((T.mid&&T.strokes>0)||T.pend)&&T.ball)midResume(T.po?TB.length-1:(T.hi||0),()=>{$('introM').hidden=true;G.strokes=T.strokes;G.ball={x:T.ball.x,y:T.ball.y};G.prev=T.prev?{x:T.prev.x,y:T.prev.y}:{...G.ball};if(T.wind)G.wind=T.wind;
+    prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];if(!pendResume(T.pend))toast('WELCOME BACK',tourName(e)+' · '+(T.po?'playoff':'hole '+(T.hi+1)),'#8ee6a8');});}
 function tourSave(o={}){const T=CAR.tour;if(!T||G.mode!=='tourney')return;
   Object.assign(T,{ps:G.psLeft,hi:o.hi??G.hi,strokes:o.strokes??G.strokes,ball:o.ball??G.ball,prev:o.prev??G.prev,wind:G.wind,mid:!!o.mid,pend:o.pend||null,ts:Date.now()});
   if(!T.po)T.scores=G.scores.slice();saveCareer();}

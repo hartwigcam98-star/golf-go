@@ -60,8 +60,8 @@ let newArmed=false;
 function newRound(){endMatchMode();if(R3.on)r3NewWx();dailyLeave();G.mode='round';G.pinSeed=0;G.rShots=[];G.scores=[];G.psLeft=3;clearSave();closeMenu();startHole(0);}
 function continueRound(){endMatchMode();dailyLeave();const sv=loadSave();if(!sv){newRound();return;}teeUse(sv.tee);G.pinSeed=sv.pin||0;G.rShots=Array.isArray(sv.shots)?sv.shots:[];G.psLeft=Number.isInteger(sv.ps)?sv.ps:3;
   G.mode='round';G.scores=Array.isArray(sv.scores)?sv.scores:[];closeMenu();startHole(sv.hi);
-  if(((sv.mid&&sv.strokes>0)||sv.pend)&&sv.ball){$('introM').hidden=true;G.strokes=sv.strokes;G.ball={x:sv.ball.x,y:sv.ball.y};G.prev=sv.prev?{x:sv.prev.x,y:sv.prev.y}:{...G.ball};if(sv.wind)G.wind=sv.wind;
-    prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];if(!pendResume(sv.pend))toast('WELCOME BACK','Hole '+(sv.hi+1)+' \u00b7 stroke '+(sv.strokes+1),'#8ee6a8');}}
+  if(((sv.mid&&sv.strokes>0)||sv.pend)&&sv.ball)midResume(sv.hi,()=>{$('introM').hidden=true;G.strokes=sv.strokes;G.ball={x:sv.ball.x,y:sv.ball.y};G.prev=sv.prev?{x:sv.prev.x,y:sv.prev.y}:{...G.ball};if(sv.wind)G.wind=sv.wind;
+    prepareShot();const t=camTarget();cam.E=[...t.E];cam.L=[...t.L];if(!pendResume(sv.pend))toast('WELCOME BACK','Hole '+(sv.hi+1)+' \u00b7 stroke '+(sv.strokes+1),'#8ee6a8');});}
 function playHole(i){endMatchMode();if(R3.on)r3NewWx();dailyLeave();G.mode='practice';G.scores=[];G.psLeft=3;closeMenu();startHole(i);}
 function buildHoleGrid(){const g=$('holeGrid');let h='';for(let i=0;i<TB.length;i++){if(i===0||i===9)h+='<div class="nine">'+(i?'Back nine':'Front nine')+'</div>';
   h+='<button data-h="'+i+'" aria-label="Hole '+(i+1)+', par '+TB[i].par+'"><b>'+(i+1)+'</b><span>Par '+TB[i].par+'</span><span>'+holeLen(i)+'y</span></button>';}g.innerHTML=h;

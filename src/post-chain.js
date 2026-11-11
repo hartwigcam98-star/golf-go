@@ -164,7 +164,7 @@ function r3Hold(){if(!swAfter()||!R3.on||G.aiTurn||G.replay||!(G.state==='power'
   // the camera settles on the address view by easing: once it's within a few millimetres of the last drawn picture, hold that picture
   const H0=R3.holdSig;if(H0&&Math.abs(V.E[0]-H0[0])+Math.abs(V.E[1]-H0[1])+Math.abs(V.E[2]-H0[2])<.004&&Math.abs(V.F[0]-H0[3])+Math.abs(V.F[1]-H0[4])+Math.abs(V.F[2]-H0[5])<2e-4)return true;
   const K=R3.holdK||(R3.holdK=new Float64Array(6));K[0]=V.E[0];K[1]=V.E[1];K[2]=V.E[2];K[3]=V.F[0];K[4]=V.F[1];K[5]=V.F[2];R3.holdSig=K;return false;}
-function r3Render(){const rd=R3.renderer;if(!G.hole)return;R3.sun.intensity=SUN_COL[0]*Math.PI*R3.sunK;R3.scene.environmentIntensity=R3.envK;
+function r3Render(){const rd=R3.renderer;if(!G.hole)return;R3.rN=(R3.rN||0)+1;R3.sun.intensity=SUN_COL[0]*Math.PI*R3.sunK;R3.scene.environmentIntensity=R3.envK;
   r3Camera();r3Shadow();r3PoolsBegin();r3Dynamic();r3PoolsEnd();
   // green slope grid: fade and orientation, exactly as before
   { const h=G.hole,GU=R3.GU,want=slopeWanted(),now=performance.now(),dtf=Math.min(.5,(now-(R3.tPrev||now))/1000);R3.tPrev=now;GL.slFade=(GL.slFade||0)+((want?1:0)-(GL.slFade||0))*(1-Math.exp(-dtf*7));if(GL.slFade<.003)GL.slFade=0;
@@ -369,6 +369,15 @@ function drawPinLabel(){
   sctx.fillStyle='rgba(12,30,46,.85)';sctx.beginPath();sctx.roundRect(top[0]-w/2,top[1]-26,w,20,10);sctx.fill();
   sctx.fillStyle='#fff6dc';sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText(tx,top[0],top[1]-16);
 }
+/* Nov 2026: the first time anything was drawn on the overlay (the aim line and its yardage label, a second or two into the first
+   hole) a phone stalled for 30-75 ms: the full-screen canvas gets its memory, and the label's font its glyphs, on first use. One of
+   each thing the overlay draws is now drawn (all but invisible, wiped on the next frame) while the hole's intro card is up. Done
+   again if the screen changes size. */
+function ovlWarm(){const k=W+'x'+H+'@'+dpr;if(SCX.warm===k||!(W>0&&H>0))return;SCX.warm=k;try{sctx.save();sctx.setTransform(dpr,0,0,dpr,0,0);sctx.globalAlpha=.004;const x=W/2,y=H/2,tx='0123456789 y ft \u00b7 Pin REPLAY Whole hole tap to return';
+  for(const f of['700 13px "Barlow Semi Condensed",system-ui,sans-serif','700 12px "Barlow Semi Condensed",system-ui,sans-serif']){sctx.font=f;sctx.textAlign='left';sctx.textBaseline='middle';sctx.lineWidth=3;sctx.strokeStyle='#0f2233';sctx.fillStyle='#fff6dc';sctx.measureText(tx);sctx.strokeText(tx,8,y);sctx.fillText(tx,8,y);}
+  sctx.beginPath();sctx.arc(x,y,3,0,TAU);sctx.fill();sctx.lineWidth=2.5;sctx.beginPath();sctx.ellipse(x,y,30,10,0,0,TAU);sctx.stroke();if(sctx.roundRect){sctx.beginPath();sctx.roundRect(x-20,y-8,40,17,8.5);sctx.fill();}
+  sctx.globalCompositeOperation='lighter';const g=sctx.createRadialGradient(x,y,0,x,y,20);g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(1,'rgba(255,255,255,0)');sctx.fillStyle=g;sctx.beginPath();sctx.arc(x,y,20,0,TAU);sctx.fill();
+  sctx.restore();SCX.drew=true;}catch(e){try{sctx.restore();}catch(_){}}}
 function renderScene(){
   sctx.setTransform(dpr,0,0,dpr,0,0);if(SCX.drew){sctx.clearRect(0,0,W,H);SCX.drew=false;}
   const h=G.hole;if(!h)return;

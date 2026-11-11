@@ -118,6 +118,7 @@ r3Golfer=hxWrap('golfer',r3Golfer);r3Dynamic=hxWrap('dyn',r3Dynamic);stepCam=hxW
 chooseShort=hxWrap('short',chooseShort);calcPuttMax=hxWrap('putt',calcPuttMax);autoClub=hxWrap('club',autoClub);r3WarmJob=hxWrap('warm',r3WarmJob);r3Shadow=hxWrap('sun',r3Shadow);
 r3GrassUpdate=hxWrap('grassU',r3GrassUpdate);cpkPack=hxWrap('pack',cpkPack);cupBuf=hxWrap('cupSnd',cupBuf);impactBuffer=hxWrap('hitSnd',impactBuffer);strikeShot=hxWrap('strike',strikeShot);pendSave=hxWrap('psave',pendSave);toast=hxWrap('toast',toast);r3Tracer=hxWrap('tracer',r3Tracer);r3Camera=hxWrap('r3cam',r3Camera);update=hxWrap('upd',update);r3Render=hxWrap('r3',r3Render);
 function frame(now){requestAnimationFrame(frame);   /* asked for first, so one error in a frame can't stop the game for good */
+  try{sysTick(now);}catch(e){}
   if(LDT.p)try{ldFrame();}catch(e){}
   if(PERF.cap&&now-last<28&&!(REC&&REC.on))return;   /* steady 30: every other refresh (on a 120 Hz screen, every fourth) */
   const raw=(now-last)/1000,dt=Math.min(.05,raw);last=now;pstatAdd(raw);HTR.fs=performance.now();HTR.lat=HTR.fs-now;hxFrame(raw,now);if(FPSM.on)fpsTick(now,raw);if(G.hole&&R3.on&&!REC.on&&!SPEC.on&&!(G.ff>1&&ffActive()))perfCheck(raw);   /* video export, spectating and fast-forward aren't measured */

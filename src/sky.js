@@ -85,6 +85,10 @@ function r3Init(){const T=window.THREE;if(!T)return false;
   // unit primitives for the golfer, flag and ball (instanced each frame)
   const W1=[1,1,1];R3.geo={cyl:r3Unit(d=>geoCylinder(d,16,W1)),sph:r3Unit(d=>geoSphere(d,14,20,W1)),box:r3Unit(d=>geoBox(d,W1))};
   M3.meshes={cyl:'cyl',sph:'sph',box:'box'};
+  /* Nov 2026: every pool the game can draw from exists from the start (empty), so the shader warm-up covers them all. They used to
+     be made the first time something was drawn from them, e.g. the spray when a ball first found water: a new program right then,
+     a 0.2-0.3 s freeze as the ball splashed. */
+  try{for(const k of['cyl','sph','box'])for(const v of['matte','satin','gloss','blob','water'])r3Pool(k,v);}catch(e){console.warn('[pools]',e);}
   r3GrassInit();r3TracerInit();try{r3GolferInit();}catch(e){console.error('[golfer]',e);}
   // post-processing
   r3PostInit();

@@ -48,13 +48,26 @@ function startHole(i){if(b10On()&&!b10ClubReady(CUR.id,()=>startHole(i)))return;
   $('iEyebrow').textContent=G.mode==='practice'?CUR.name+' \u00b7 practice hole':G.mode==='daily'?'Daily round \u00b7 '+dailyNice(G.dailyDay)+' \u00b7 '+CUR.name:G.mode==='tourney'?tourEyebrow():courseLine();
   $('cardM').hidden=true;$('reliefM').hidden=true;$('introM').hidden=false;
   setTimeout(()=>$('teeBtn').focus({preventScroll:true}),50);
-  try{if(R3.on)r3LvlWarm();}catch(e){}
+  try{if(R3.on)r3LvlWarm();}catch(e){}try{ovlWarm();}catch(e){}
   LDT.hole={h:i+1,sh:Math.round(performance.now()-h0)};if(LDT.sc){LDT.hole.sc=LDT.sc;LDT.sc=null;}LDT.p={k:'hole',t0:h0,n:0};
 }
 /* Oct 2026: anything still left of the background shader warm-up is finished here, as the intro closes, so the first hole isn't
    played with first-time shader compiles (100-170 ms hitches on phones) landing in the middle of it */
-function r3WarmFinish(){try{while(R3.lvlQ&&R3.lvlQ.length)r3WarmJob({lvl:R3.lvlQ.shift()});}catch(e){}R3.lvlQ=null;if(!R3.warmQ)return;try{while(R3.warmQ.length)r3WarmJob(R3.warmQ.shift());}finally{r3WarmEnd();}}
-function teeOff(){A();$('introM').hidden=true;const w0=performance.now();try{r3WarmFinish();}catch(e){}if(LDT.hole&&LDT.hole.tee==null)LDT.hole.tee=Math.round(performance.now()-w0);PERF.quiet=performance.now()+2500;if(MATCH.on){mNextTurn();return;}prepareShot();}
+function r3WarmFinish(){try{if(R3.lvlQ&&R3.lvlSeen)for(const l of R3.lvlQ)R3.lvlSeen.delete((CUR&&CUR.id)+'|'+R3.q+'|'+l);}catch(e){}R3.lvlQ=null;   /* (Nov 2026) level warm-ups still waiting are left for the next hole's intro card: each is a full shadow pass, too much for the Tee off tap */
+  if(!R3.warmQ)return;try{while(R3.warmQ.length)r3WarmJob(R3.warmQ.shift());}finally{r3WarmEnd();}}
+function teeOff(){A();
+  if(R3.gate)return;   /* (Nov 2026) still getting ready: the button says so */
+  if(typeof r3WarmBusy==='function'&&r3WarmBusy()&&!document.hidden){const b=$('teeBtn'),tx=b.textContent,w1=performance.now();
+    r3WarmGate(p=>{b.textContent='Getting ready\u2026 '+p+'%';},()=>{b.textContent=tx;if(LDT.hole&&LDT.hole.tee==null)LDT.hole.tee=Math.round(performance.now()-w1);if(G.state==='intro'&&!$('introM').hidden)teeOff();},0);return;}
+  $('introM').hidden=true;const w0=performance.now();try{r3WarmFinish();}catch(e){}if(LDT.hole&&LDT.hole.tee==null)LDT.hole.tee=Math.round(performance.now()-w0);PERF.quiet=performance.now()+2500;if(MATCH.on){mNextTurn();return;}prepareShot();}
+/* Nov 2026: a round picked back up in the middle of a hole. The hole's intro card stays up (its button reading "Getting ready")
+   until the hole has really been drawn, then `fn` puts the ball back and goes to the shot; before, the first picture of the round
+   was drawn with the player already at the ball: a 0.4-0.8 s freeze, then more stalls while the warm-up ran during play. */
+function midResume(hi,fn){let n=0;const run=()=>{if(G.hi!==hi||!G.hole||G.state!=='intro')return;fn();};
+  const wait=()=>{if(G.hi!==hi||!G.hole){if(n++<600)requestAnimationFrame(wait);return;}   // (the course's clubhouse file may still be arriving: the hole starts when it lands)
+    if(!R3.on||typeof r3WarmGate!=='function'||document.hidden){run();return;}
+    const b=$('teeBtn'),tx=b.textContent;r3WarmGate(p=>{b.textContent=p<100?'Getting ready\u2026 '+p+'%':'Getting ready\u2026';},()=>{b.textContent=tx;run();},2);};
+  wait();}
 function shotLie(){let L=lieAt(G.ball.x,G.ball.y);if(L!=='water'&&L!=='ob'&&G.hole&&hyp(G.ball.x-((G.hole.line&&G.hole.line[0])||[0,0])[0],G.ball.y-((G.hole.line&&G.hole.line[0])||[0,0])[1])<5)L='tee';return L;}   // the teeing area (some mapped tee boxes are too small)
 function prepareShot(){
   if(G.hole&&R3.on&&(!RL.grassAt||hyp(G.ball.x-RL.grassAt[0],G.ball.y-RL.grassAt[1])>6))buildGrassPatch(G.hole,G.ball.x,G.ball.y);
