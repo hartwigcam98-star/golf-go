@@ -271,7 +271,7 @@ function r3FlagPose(px,top,pz,ps){const m=r3FlagMesh();r3FlagSet(CUR&&CUR.id);m.
    frames (and the first hole with water, whose reflection pass needs clip-plane variants) used to stall for seconds.
    While the menu is up, draw every mesh into a tiny off-screen target a few at a time per frame, plain and with the
    reflection clip plane, then every post-processing pass, so the stalls are spread across idle menu frames instead. */
-function r3WarmStart(){if(R3.warmQ||!R3.renderer||!R3.scene)return;const L=[];
+function r3WarmStart(){if(R3.warmQ||R3.warmDone||!R3.renderer||!R3.scene)return;const L=[];   /* (once: the gate may have started and finished it before the timer that also starts it) */
   R3.scene.traverse(o=>{if(o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||o.isPoints||o.isLine)L.push(o);});
   const jobs=[];for(const clip of[false,true])for(let i=0;i<L.length;i+=3)jobs.push({clip,objs:L.slice(i,i+3)});
   if(R3.post&&R3.post.m)for(const k in R3.post.m)jobs.push({post:k});
