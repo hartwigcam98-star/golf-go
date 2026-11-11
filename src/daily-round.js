@@ -175,8 +175,8 @@ const DAILY_UNDO=[['2026-10-23','p5sa6c8gmmuvyzitv','cam',9,'u1']];
     d.ball={x:d.prev.x,y:d.prev.y};d.strokes-=1;d.pend=null;if(d.strokes===0)d.mid=false;if(Array.isArray(d.shots)&&d.shots.length)d.shots.pop();d.ts=Date.now();dailyStore(d);d._undone=1;}}catch(e){}})();
 /* one-off restarts of a hole in a player's daily round (day, player id or name, hole index, tag): on that phone, once, if the saved round
    is on that hole (or has just holed out on it, with no stroke yet on the next), the hole's strokes, score and replays come off and it
-   starts again from the tee. Oct 31: Cam, Lehman hole 9 (his ask). */
-const DAILY_REHOLE=[['2026-10-31','p5sa6c8gmmuvyzitv','cam',8,'h1']];
+   starts again from the tee. Oct 31: Cam, Lehman hole 9 (his ask). Nov 11: Cam, Caledonia hole 8. */
+const DAILY_REHOLE=[['2026-10-31','p5sa6c8gmmuvyzitv','cam',8,'h1'],['2026-11-11','p5sa6c8gmmuvyzitv','cam',7,'h1']];   // Nov 11: Cam, Caledonia hole 8 (two swings that didn't go; his ask)
 (function(){try{const d=dailyLoad();if(!d)return;const pid=localStorage.getItem('golf-pid')||'',nm=String(localStorage.getItem('golf-name')||'').trim().toLowerCase();
   for(const[day,id,name,hi,tag]of DAILY_REHOLE){const f='golf-daily-rehole-'+day+tag;if(d.day!==day||!(pid===id||nm===name)||localStorage.getItem(f))continue;
     const sc=Array.isArray(d.scores)?d.scores:[];const on=d.hi===hi,after=d.hi===hi+1&&!d.mid&&!d.pend&&!(d.strokes>0)&&sc[hi]>0;
