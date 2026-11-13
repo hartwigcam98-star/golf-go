@@ -1,0 +1,37 @@
+[bake] terrain 243 151 image 1932 1200 yd 483.0 300.0
+[bake] trees 420 protos 12
+[bake] far trees 471
+[bake] scenery tris 935
+Blender 4.2.23 LTS (hash d0cbe84903e8 built 2026-07-21 01:31:03)
+Fra:1 Mem:233.54M (Peak 234.29M) | Time:498500:41:00.88 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | terrain
+Fra:1 Mem:237.18M (Peak 237.18M) | Time:498500:41:00.88 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t0
+Fra:1 Mem:237.24M (Peak 237.24M) | Time:498500:41:00.88 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t0.001
+Fra:1 Mem:237.29M (Peak 237.29M) | Time:498500:41:00.88 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t15
+Fra:1 Mem:237.38M (Peak 237.38M) | Time:498500:41:00.88 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t15.001
+Fra:1 Mem:237.43M (Peak 237.43M) | Time:498500:41:00.88 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t33
+Fra:1 Mem:237.78M (Peak 237.78M) | Time:498500:41:00.88 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t33.001
+Fra:1 Mem:237.90M (Peak 237.90M) | Time:498500:41:00.88 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t39
+Fra:1 Mem:238.24M (Peak 238.24M) | Time:498500:41:00.88 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t39.001
+Fra:1 Mem:238.36M (Peak 238.36M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t42
+Fra:1 Mem:240.02M (Peak 240.02M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | scenery
+Fra:1 Mem:240.24M (Peak 240.24M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | ft
+Fra:1 Mem:240.24M (Peak 240.24M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | fs
+Fra:1 Mem:240.25M (Peak 240.25M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t321.001
+Fra:1 Mem:240.36M (Peak 240.36M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t321
+Fra:1 Mem:240.68M (Peak 240.68M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t308.001
+Fra:1 Mem:240.73M (Peak 240.73M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t308
+Fra:1 Mem:240.82M (Peak 240.82M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t42.001
+Fra:1 Mem:240.90M (Peak 240.90M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t145.001
+Fra:1 Mem:241.00M (Peak 241.00M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t145
+Fra:1 Mem:241.68M (Peak 241.68M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t110.001
+Fra:1 Mem:241.80M (Peak 241.80M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t110
+Fra:1 Mem:241.83M (Peak 241.83M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t46
+Fra:1 Mem:241.99M (Peak 241.99M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t46.001
+Fra:1 Mem:241.99M (Peak 241.99M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t94.001
+Fra:1 Mem:242.07M (Peak 242.07M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t94
+Fra:1 Mem:242.11M (Peak 242.11M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t70
+Fra:1 Mem:242.26M (Peak 242.26M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Synchronizing object | t70.001
+Fra:1 Mem:242.32M (Peak 242.32M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Initializing
+Fra:1 Mem:242.31M (Peak 242.32M) | Time:498500:41:00.89 | Mem:0.00M, Peak:0.00M | Scene | Updating Images | Loading bake
+Info: Baking map saved to internal image, save it externally or pack it
+[bake] sky bake 75 s mean 0.630382239818573 p95 0.8925599455833435
