@@ -219,7 +219,7 @@ def main():
     # returns high up over bare ground; a real crown, even leaf-off, has many (Dacotah: under 2/m2 vs a median of 18/m2).
     n2 = P[:, 2:].sum(1); dens = n2 / np.maximum(area, 1)
     cq = np.cumsum(P[:, 2:], 1) / np.maximum(n2, 1)[:, None]; h99 = 2 + np.argmax(cq >= 0.99, 1).astype(np.float32)
-    clutter = bool(CFG.get('clutter'))
+    clutter = CFG.get('clutter') or 0   # 1: under 2 returns/m2 is clutter; "rel": under 0.11 x the course's median (sparse scans have medians of 1-4/m2)
     if clutter: top = np.minimum(top, np.where(n2 >= 4, h99 + 2.0, top)); base = np.minimum(base, 0.7 * top)   # stray returns over a real crown
     # ---- photo stats per crown
     phf = ph.astype(np.float32) / 255; Bc, Gc, Rc = phf[..., 0], phf[..., 1], phf[..., 2]
@@ -240,7 +240,9 @@ def main():
     wet = (gd > 8) & (mexg < 0.1)   # ...and not green in the photo
     flat = (sd < 0.45) & (area > 40)                       # a flat top over a big footprint: a roof, not a crown
     keep = ~roof & ~flat & ~wet & (area >= 8) & (top >= 3) & (top <= 45)
-    if clutter: keep &= dens >= 2.0   # "clutter": 1 in the config: drop crowns made of stray returns
+    if clutter:   # drop crowns made of stray returns
+        thr = 0.11 * float(np.median(dens[keep])) if clutter == 'rel' and keep.any() else 2.0
+        keep &= dens >= thr; SUM['clutter_thr'] = round(thr, 2)
     if desert: keep &= ~havep | ((contrast > 0.03) & (top <= 16))   # desert: a tree is a dark spot on bright ground, and none is taller than ~16 m
     con = havep & (mL < 0.31) & (mbr > -0.005)
     ux = gx0 + px + 0.5; uy = gy1 - py - 0.5
@@ -256,9 +258,9 @@ def main():
     np.savez_compressed(f'{OUT}/crowns.npz', xy=cxy.astype(np.float32), cr=cr.astype(np.float32), h=top.astype(np.float32), cb=base.astype(np.float32),
                         area=area.astype(np.float32), exg=mexg.astype(np.float32), L=mL.astype(np.float32), br=mbr.astype(np.float32), sd=sd.astype(np.float32),
                         contrast=contrast.astype(np.float32), gd=np.asarray(gd, np.float32), keep=keep, con=con, desert=desert,
-                        dens=dens.astype(np.float32), h99=h99, clutter=clutter)
+                        dens=dens.astype(np.float32), h99=h99, clutter=str(clutter))
     pct = lambda a: [round(float(v), 1) for v in np.percentile(a, [10, 50, 90])] if len(a) else []
-    SUM.update(crowns=int(n), kept=int(keep.sum()), wet=int(wet.sum()), roofs=int((roof & ~flat).sum()), clutter=int((~(dens >= 2.0)).sum()) if clutter else 0, flat=int(flat.sum()), tiny=int(((area < 8) | (top < 3)).sum()),
+    SUM.update(crowns=int(n), kept=int(keep.sum()), wet=int(wet.sum()), roofs=int((roof & ~flat).sum()), clutter=int((~(dens >= thr)).sum()) if clutter else 0, flat=int(flat.sum()), tiny=int(((area < 8) | (top < 3)).sum()),
                h_yd=pct(hY), cr_yd=pct(crY), cb_yd=pct(cbY), conifer=round(float(cn.mean()), 3) if len(cn) else 0, contrast=pct(contrast[keep]) if n else [], dark_drop=int((desert and havep.any()) and (~((contrast > 0.03) & (top <= 16)) & havep & ~roof & ~flat).sum()), bytes=len(json.dumps(Lj)))
     # ---- preview: the busiest 300 m square near the middle, crowns over the photo (blue = dropped), height/base labels
     S_ = 300; dens = ndi.uniform_filter((lab > 0).astype(np.float32), 150)
