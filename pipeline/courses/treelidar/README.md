@@ -46,6 +46,11 @@ old photo trees. A course with no `L` (no public lidar, e.g. Kings North) keeps 
   - Crown base = the height below which 8% of the crown's returns over 2 m lie (at most 0.7 h).
 - **Stray returns:** a 1 m cell's top is capped 1 m above the highest 3-m band of its 2-m column holding 3+ returns
   (31 m and up only when the crown reaches it without a gap), so birds and haze can't make 40 m "trees".
+- **Clutter** (`"clutter": 1` in the config; Dacotah only so far): drops crowns with fewer than 2 returns over 2 m per m²
+  and holds a crown's top to 2 m over 99% of its returns. Dacotah's 2023 scan has bands of stray returns at 20–35 m across
+  fields and fairways; they made about 1,580 thin "trees" (a handful of returns high up over bare ground, against a median
+  of 18/m² in a real crown, even leaf-off). The run also saves `dens` and `h99` per crown in `crowns.npz`, and
+  `"diag": 1` saves the grids (`grids.npz`, with the uncapped canopy and the photo) to re-find crowns offline.
 - **Filters:**
   - roofs: photo greenness under 0.06 (0 on desert courses), not dark, and smooth (sd < 1.5 m); or a flat top
     (sd < 0.45 m) over 40 m²;

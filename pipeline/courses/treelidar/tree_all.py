@@ -136,9 +136,9 @@ def main():
     sup = c3[..., :NB - 1] >= 3; rt = np.where(sup.any(-1), (NB - 1) - np.argmax(sup[..., ::-1], -1), 0).astype(np.float32)   # top of the highest supported bin under 31 m
     tall = (prof[..., NB - 1] >= 3) & (prof[..., NB - 2] >= 3) & (prof[..., NB - 3] >= 2); rt[tall] = 80   # 31 m and up only for a crown that reaches it without a gap
 
+    chm_raw = chm.copy() if CFG.get('diag') else None
     cap = np.kron(rt, np.ones((2, 2), np.float32))[:h, :w]; cap = np.pad(cap, ((0, h - cap.shape[0]), (0, w - cap.shape[1])), mode='edge')
     SUM['spikes'] = int((chm > cap + 1.0).sum()); chm = np.minimum(chm, cap + 1.0)
-    if KEY in os.environ.get('DIAG', '').split(','): np.savez_compressed(f'{OUT}/grids.npz', chm=np.round(chm * 10).astype(np.uint16), gnd=gnd, prof=np.minimum(prof, 255).astype(np.uint8), x0=gx0, y1=gy1, epsg=EPSG)
     # ---- photo on the 1 m grid
     ph = np.zeros((h, w, 3), np.uint8)
     try:
@@ -154,6 +154,10 @@ def main():
                 s_ = cv2.remap(img, px, py, cv2.INTER_LINEAR, borderValue=(0, 0, 0)); ok = (s_.sum(-1) > 0) & (ph.sum(-1) == 0); ph[ok] = s_[ok]
         SUM['photo'] = float((ph.sum(-1) > 0).mean())
     except Exception as e: SUM['errors'].append(f'naip: {e}'[:300]); log('naip fail', e)
+    # diagnosis (DIAG=<keys> or "diag": 1 in the config): the grids, so crowns can be re-found offline with other rules
+    if KEY in os.environ.get('DIAG', '').split(',') or CFG.get('diag'):
+        np.savez_compressed(f'{OUT}/grids.npz', chm=np.round(chm * 10).astype(np.uint16), chm_raw=np.zeros(0, np.uint16) if chm_raw is None else np.round(chm_raw * 10).astype(np.uint16),
+                            gnd=gnd, gn=gn, prof=np.minimum(prof, 255).astype(np.uint8), ph=ph, x0=gx0, y1=gy1, epsg=EPSG)
     # ---- registration: lidar = map + d, the shift that sinks the mapped bunkers deepest into the lidar ground
     gf = gnd.copy(); bad = ~np.isfinite(gf)
     if bad.any(): gf = gf[tuple(ndi.distance_transform_edt(bad, return_distances=False, return_indices=True))]
@@ -210,6 +214,13 @@ def main():
         p = P[i, 2:int(min(NB - 1, top[i])) + 1]
         if p.sum() >= 4: base[i] = 2 + np.searchsorted(np.cumsum(p) / p.sum(), 0.08)
     nb = np.isnan(base); base[nb] = 0.3 * top[nb]; base = np.minimum(base, 0.7 * top)
+    # how much of a crown is really there: returns over 2 m per square metre, and the height under 99% of them. Scan-line
+    # clutter (Dacotah's 2023 scan: bands of stray returns at 20-35 m over fields and fairways) makes "crowns" with a few
+    # returns high up over bare ground; a real crown, even leaf-off, has many (Dacotah: under 2/m2 vs a median of 18/m2).
+    n2 = P[:, 2:].sum(1); dens = n2 / np.maximum(area, 1)
+    cq = np.cumsum(P[:, 2:], 1) / np.maximum(n2, 1)[:, None]; h99 = 2 + np.argmax(cq >= 0.99, 1).astype(np.float32)
+    clutter = bool(CFG.get('clutter'))
+    if clutter: top = np.minimum(top, np.where(n2 >= 4, h99 + 2.0, top)); base = np.minimum(base, 0.7 * top)   # stray returns over a real crown
     # ---- photo stats per crown
     phf = ph.astype(np.float32) / 255; Bc, Gc, Rc = phf[..., 0], phf[..., 1], phf[..., 2]
     exg = (2 * Gc - Rc - Bc) / (Bc + Gc + Rc + 1e-3); Lum = .11 * Bc + .59 * Gc + .3 * Rc
@@ -229,6 +240,7 @@ def main():
     wet = (gd > 8) & (mexg < 0.1)   # ...and not green in the photo
     flat = (sd < 0.45) & (area > 40)                       # a flat top over a big footprint: a roof, not a crown
     keep = ~roof & ~flat & ~wet & (area >= 8) & (top >= 3) & (top <= 45)
+    if clutter: keep &= dens >= 2.0   # "clutter": 1 in the config: drop crowns made of stray returns
     if desert: keep &= ~havep | ((contrast > 0.03) & (top <= 16))   # desert: a tree is a dark spot on bright ground, and none is taller than ~16 m
     con = havep & (mL < 0.31) & (mbr > -0.005)
     ux = gx0 + px + 0.5; uy = gy1 - py - 0.5
@@ -243,9 +255,10 @@ def main():
     # every crown found, kept or not, with what the filters looked at: re-filter later without fetching again
     np.savez_compressed(f'{OUT}/crowns.npz', xy=cxy.astype(np.float32), cr=cr.astype(np.float32), h=top.astype(np.float32), cb=base.astype(np.float32),
                         area=area.astype(np.float32), exg=mexg.astype(np.float32), L=mL.astype(np.float32), br=mbr.astype(np.float32), sd=sd.astype(np.float32),
-                        contrast=contrast.astype(np.float32), gd=np.asarray(gd, np.float32), keep=keep, con=con, desert=desert)
+                        contrast=contrast.astype(np.float32), gd=np.asarray(gd, np.float32), keep=keep, con=con, desert=desert,
+                        dens=dens.astype(np.float32), h99=h99, clutter=clutter)
     pct = lambda a: [round(float(v), 1) for v in np.percentile(a, [10, 50, 90])] if len(a) else []
-    SUM.update(crowns=int(n), kept=int(keep.sum()), wet=int(wet.sum()), roofs=int((roof & ~flat).sum()), flat=int(flat.sum()), tiny=int(((area < 8) | (top < 3)).sum()),
+    SUM.update(crowns=int(n), kept=int(keep.sum()), wet=int(wet.sum()), roofs=int((roof & ~flat).sum()), clutter=int((~(dens >= 2.0)).sum()) if clutter else 0, flat=int(flat.sum()), tiny=int(((area < 8) | (top < 3)).sum()),
                h_yd=pct(hY), cr_yd=pct(crY), cb_yd=pct(cbY), conifer=round(float(cn.mean()), 3) if len(cn) else 0, contrast=pct(contrast[keep]) if n else [], dark_drop=int((desert and havep.any()) and (~((contrast > 0.03) & (top <= 16)) & havep & ~roof & ~flat).sum()), bytes=len(json.dumps(Lj)))
     # ---- preview: the busiest 300 m square near the middle, crowns over the photo (blue = dropped), height/base labels
     S_ = 300; dens = ndi.uniform_filter((lab > 0).astype(np.float32), 150)

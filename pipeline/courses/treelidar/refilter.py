@@ -10,6 +10,7 @@ def rules(C):
     wet = (C['gd'] > 8) & (exg < 0.1)          # no ground within 8 m and not green in the photo: over open water
     keep = ~roof & ~flat & ~wet & (area >= 8) & (top >= 3) & (top <= 45)
     if desert: keep &= ~havep | ((C['contrast'] > 0.03) & (top <= 16))
+    if 'dens' in C and bool(C.get('clutter', False)): keep &= C['dens'] >= 2.0   # stray-return crowns (tree_all.py, "clutter" in the config)
     return keep
 D = sys.argv[1]; keys = sys.argv[2:] or sorted(k for k in os.listdir(D) if os.path.exists(os.path.join(D, k, 'crowns.npz')))
 q = lambda a, t: base64.b64encode(np.ascontiguousarray(a).astype(t).tobytes()).decode()

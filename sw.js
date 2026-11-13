@@ -1,8 +1,8 @@
 /* Golf Go offline cache. The page is checked online first (so updates show straight away) and falls back to the copy on
    this phone; course data carries a version tag (?v=…) and is kept until it changes; leaderboards always go to the network. */
-const V='3edee0ad72',B='b6a891418f',CORE='core-'+V,ASSETS='assets';
+const V='857b3b407c',B='b7f1f601d3',CORE='core-'+V,ASSETS='assets';
 const CORE_FILES=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png'];
-const DATA=["greens.js?v=db85f90c53", "ground.js?v=4a589b8b73", "trees.js?v=748c99a12f", "char%20ch12.js?v=lg2", "char%20remy.js?v=lg2", "char%20ch01.js?v=lg2", "char_ch08.js?v=lg2", "char_ch42.js?v=lg2", "char_ch23.js?v=lg2", "char%20ch28.js?v=lg2", "char_mx_joe.js?v=lg2", "char_ch17.js?v=lg2", "char_mh_tyger.js?v=m4", "char_mh_jack.js?v=m4", "char_mh_arnie.js?v=m4", "char_mh_phil.js?v=m4", "char_mh_rory.js?v=m4", "char_mh_scotty.js?v=m4", "char_mh_seve.js?v=m4", "char_mh_barry.js?v=m4", "char_mh_hoagan.js?v=m4", "char_mh_payne.js?v=m4"];   // current versioned data files
+const DATA=["greens.js?v=db85f90c53", "ground.js?v=4a589b8b73", "trees.js?v=7583546e6a", "char%20ch12.js?v=lg2", "char%20remy.js?v=lg2", "char%20ch01.js?v=lg2", "char_ch08.js?v=lg2", "char_ch42.js?v=lg2", "char_ch23.js?v=lg2", "char%20ch28.js?v=lg2", "char_mx_joe.js?v=lg2", "char_ch17.js?v=lg2", "char_mh_tyger.js?v=m4", "char_mh_jack.js?v=m4", "char_mh_arnie.js?v=m4", "char_mh_phil.js?v=m4", "char_mh_rory.js?v=m4", "char_mh_scotty.js?v=m4", "char_mh_seve.js?v=m4", "char_mh_barry.js?v=m4", "char_mh_hoagan.js?v=m4", "char_mh_payne.js?v=m4"];   // current versioned data files
 const PRE=[];   // publish build: the shared graphics files (a/ga_*.js?v=…), saved at install so even the first launch offline works
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CORE).then(c=>c.addAll(CORE_FILES))
   .then(()=>PRE.length?caches.open(ASSETS).then(a=>Promise.all(PRE.map(u=>a.match(u).then(h=>h||fetch(u).then(r=>{if(r.ok)return a.put(u,r);}))))).catch(()=>{}):0)
