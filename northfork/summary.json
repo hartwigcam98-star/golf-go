@@ -1,0 +1,63 @@
+{
+ "key": "northfork",
+ "started": "2026-11-13 17:49:13",
+ "errors": [],
+ "probe": {
+  "MN_CentralMissRiver_4_B22": [
+   324841,
+   38181
+  ]
+ },
+ "scan": "MN_CentralMissRiver_4_B22",
+ "tiles": 120,
+ "grid": [
+  2000,
+  3750,
+  459758,
+  5013367
+ ],
+ "tiles_retried": 0,
+ "points": 410194609,
+ "spikes": 17167,
+ "photo": 0.9098376,
+ "reg": {
+  "shift_m": [
+   1.16,
+   -1.0
+  ],
+  "depth_m": -0.347,
+  "depth0_m": -0.295,
+  "bunkers": 120
+ },
+ "crowns": 15083,
+ "kept": 13814,
+ "wet": 29,
+ "roofs": 1121,
+ "clutter": 0,
+ "flat": 82,
+ "tiny": 72,
+ "h_yd": [
+  7.6,
+  15.9,
+  22.5
+ ],
+ "cr_yd": [
+  3.1,
+  4.9,
+  7.1
+ ],
+ "cb_yd": [
+  2.2,
+  3.3,
+  7.7
+ ],
+ "conifer": 0.325,
+ "contrast": [
+  -0.0,
+  0.0,
+  0.1
+ ],
+ "dark_drop": 0,
+ "bytes": 129023,
+ "finished": "2026-11-13 18:11:02"
+}

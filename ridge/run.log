@@ -1,0 +1,4 @@
+17:41:16 probe AL_11County_2_B23 82079 pts 33357 ground
+17:43:52 points 83105143
+17:44:12 reg {'shift_m': [0.6, -0.84], 'depth_m': -0.207, 'depth0_m': -0.197, 'bunkers': 46}
+17:44:18 done {'key': 'ridge', 'started': '2026-11-13 17:41:14', 'errors': [], 'probe': {'AL_11County_2_B23': [82079, 33357]}, 'scan': 'AL_11County_2_B23', 'tiles': 80, 'grid': [2500, 2000, 510552, 3698320], 'tiles_retried': 0, 'points': 83105143, 'spikes': 224141, 'photo': 0.9988008, 'reg': {'shift_m': [0.6, -0.84], 'depth_m': -0.207, 'depth0_m': -0.197, 'bunkers': 46}, 'crowns': 25024, 'kept': 24510, 'wet': 22, 'roofs': 471, 'clutter': 0, 'flat': 12, 'tiny': 32, 'h_yd': [15.0, 27.3, 33.7], 'cr_yd': [3.1, 5.2, 7.7], 'cb_yd': [2.2, 7.7, 20.0], 'conifer': 0.024, 'contrast': [-0.1, -0.0, 0.1], 'dark_drop': 0, 'bytes': 228839, 'finished': '2026-11-13 17:44:18'}

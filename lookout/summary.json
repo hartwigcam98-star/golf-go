@@ -1,0 +1,63 @@
+{
+ "key": "lookout",
+ "started": "2026-11-13 17:41:41",
+ "errors": [],
+ "probe": {
+  "AZ_MaricopaPinal_1_2020": [
+   145224,
+   49877
+  ]
+ },
+ "scan": "AZ_MaricopaPinal_1_2020",
+ "tiles": 90,
+ "grid": [
+  2250,
+  2500,
+  401054,
+  3720468
+ ],
+ "tiles_retried": 0,
+ "points": 127620211,
+ "spikes": 7401,
+ "photo": 0.9707123555555556,
+ "reg": {
+  "shift_m": [
+   1.16,
+   -0.76
+  ],
+  "depth_m": -0.41,
+  "depth0_m": -0.338,
+  "bunkers": 61
+ },
+ "crowns": 17632,
+ "kept": 6678,
+ "wet": 46,
+ "roofs": 865,
+ "clutter": 0,
+ "flat": 294,
+ "tiny": 56,
+ "h_yd": [
+  4.3,
+  6.7,
+  11.7
+ ],
+ "cr_yd": [
+  2.9,
+  3.3,
+  4.5
+ ],
+ "cb_yd": [
+  2.2,
+  2.2,
+  4.4
+ ],
+ "conifer": 0.0,
+ "contrast": [
+  0.0,
+  0.1,
+  0.1
+ ],
+ "dark_drop": 9761,
+ "bytes": 62412,
+ "finished": "2026-11-13 17:47:40"
+}

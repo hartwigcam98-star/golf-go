@@ -1,0 +1,4 @@
+17:36:20 probe MN_LakeSuperior_2_2021 199709 pts 182580 ground
+17:40:12 points 92297136
+17:40:42 reg {'shift_m': [0.84, -1.0], 'depth_m': -0.311, 'depth0_m': -0.274, 'bunkers': 109}
+17:40:45 done {'key': 'quarry', 'started': '2026-11-13 17:36:17', 'errors': [], 'probe': {'MN_LakeSuperior_2_2021': [199709, 182580]}, 'scan': 'MN_LakeSuperior_2_2021', 'tiles': 63, 'grid': [1750, 2250, 552197, 5266983], 'tiles_retried': 0, 'points': 92297136, 'spikes': 48663, 'photo': 0.881767619047619, 'reg': {'shift_m': [0.84, -1.0], 'depth_m': -0.311, 'depth0_m': -0.274, 'bunkers': 109}, 'crowns': 22993, 'kept': 22786, 'wet': 1, 'roofs': 191, 'clutter': 0, 'flat': 1, 'tiny': 27, 'h_yd': [13.0, 19.3, 25.4], 'cr_yd': [3.4, 5.0, 7.0], 'cb_yd': [2.2, 3.3, 6.6], 'conifer': 0.074, 'contrast': [-0.1, -0.0, 0.0], 'dark_drop': 0, 'bytes': 212764, 'finished': '2026-11-13 17:40:45'}

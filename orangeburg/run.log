@@ -1,0 +1,4 @@
+17:39:52 probe USGS_LPC_SC_East_Central_2017_LAS_2019 122466 pts 29464 ground
+17:43:10 points 53182249
+17:44:04 reg {'shift_m': [-0.6, -1.24], 'depth_m': -0.532, 'depth0_m': -0.453, 'bunkers': 68}
+17:44:14 done {'key': 'orangeburg', 'started': '2026-11-13 17:39:50', 'errors': [], 'probe': {'USGS_LPC_SC_East_Central_2017_LAS_2019': [122466, 29464]}, 'scan': 'USGS_LPC_SC_East_Central_2017_LAS_2019', 'tiles': 100, 'grid': [2500, 2500, 507854, 3709316], 'tiles_retried': 0, 'points': 53182249, 'spikes': 119640, 'photo': 0.9426064, 'reg': {'shift_m': [-0.6, -1.24], 'depth_m': -0.532, 'depth0_m': -0.453, 'bunkers': 68}, 'crowns': 31344, 'kept': 29588, 'wet': 13, 'roofs': 1708, 'clutter': 0, 'flat': 26, 'tiny': 23, 'h_yd': [7.2, 26.4, 33.2], 'cr_yd': [3.1, 5.3, 8.2], 'cb_yd': [2.2, 4.4, 9.8], 'conifer': 0.053, 'contrast': [-0.1, -0.0, 0.0], 'dark_drop': 0, 'bytes': 276260, 'finished': '2026-11-13 17:44:14'}

@@ -1,0 +1,63 @@
+{
+ "key": "chaska",
+ "started": "2026-11-13 17:44:48",
+ "errors": [],
+ "probe": {
+  "MN_CentralMissRiver_6_B22": [
+   217806,
+   188572
+  ]
+ },
+ "scan": "MN_CentralMissRiver_6_B22",
+ "tiles": 72,
+ "grid": [
+  2250,
+  2000,
+  449091,
+  4965266
+ ],
+ "tiles_retried": 0,
+ "points": 82718003,
+ "spikes": 18191,
+ "photo": 0.9568633333333333,
+ "reg": {
+  "shift_m": [
+   1.24,
+   -1.0
+  ],
+  "depth_m": -0.443,
+  "depth0_m": -0.392,
+  "bunkers": 49
+ },
+ "crowns": 11494,
+ "kept": 10152,
+ "wet": 7,
+ "roofs": 1270,
+ "clutter": 0,
+ "flat": 39,
+ "tiny": 51,
+ "h_yd": [
+  7.6,
+  16.4,
+  23.6
+ ],
+ "cr_yd": [
+  3.1,
+  5.1,
+  7.3
+ ],
+ "cb_yd": [
+  2.2,
+  3.3,
+  7.7
+ ],
+ "conifer": 0.194,
+ "contrast": [
+  -0.0,
+  0.0,
+  0.1
+ ],
+ "dark_drop": 0,
+ "bytes": 94839,
+ "finished": "2026-11-13 17:51:51"
+}

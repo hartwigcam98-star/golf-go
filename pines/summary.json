@@ -1,0 +1,64 @@
+{
+ "key": "pines",
+ "started": "2026-11-13 17:38:47",
+ "errors": [
+  "naip: no NAIP"
+ ],
+ "probe": {
+  "MN_UpperMissRiver_6_B22": [
+   227564,
+   107149
+  ]
+ },
+ "scan": "MN_UpperMissRiver_6_B22",
+ "tiles": 81,
+ "grid": [
+  2250,
+  2250,
+  397790,
+  5152189
+ ],
+ "tiles_retried": 0,
+ "points": 152629027,
+ "spikes": 178145,
+ "reg": {
+  "shift_m": [
+   1.24,
+   -2.84
+  ],
+  "depth_m": -0.205,
+  "depth0_m": -0.002,
+  "bunkers": 56
+ },
+ "crowns": 23832,
+ "kept": 23334,
+ "wet": 296,
+ "roofs": 0,
+ "clutter": 0,
+ "flat": 15,
+ "tiny": 276,
+ "h_yd": [
+  6.6,
+  22.4,
+  29.4
+ ],
+ "cr_yd": [
+  2.8,
+  5.2,
+  7.5
+ ],
+ "cb_yd": [
+  2.2,
+  5.5,
+  8.7
+ ],
+ "conifer": 0.0,
+ "contrast": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "dark_drop": 0,
+ "bytes": 217869,
+ "finished": "2026-11-13 17:52:44"
+}

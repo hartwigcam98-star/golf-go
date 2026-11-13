@@ -1,0 +1,4 @@
+17:36:20 probe WI_StWide_4_StCroix_2021 48113 pts 32969 ground
+17:38:40 points 29701279
+17:40:29 reg {'shift_m': [0.6, -1.0], 'depth_m': -0.606, 'depth0_m': -0.553, 'bunkers': 123}
+17:40:36 done {'key': 'troy', 'started': '2026-11-13 17:36:18', 'errors': [], 'probe': {'WI_StWide_4_StCroix_2021': [48113, 32969]}, 'scan': 'WI_StWide_4_StCroix_2021', 'tiles': 96, 'grid': [2000, 3000, 519736, 4973357], 'tiles_retried': 0, 'points': 29701279, 'spikes': 168016, 'photo': 0.8715335, 'reg': {'shift_m': [0.6, -1.0], 'depth_m': -0.606, 'depth0_m': -0.553, 'bunkers': 123}, 'crowns': 22048, 'kept': 21417, 'wet': 1, 'roofs': 583, 'clutter': 0, 'flat': 9, 'tiny': 48, 'h_yd': [8.9, 17.5, 24.7], 'cr_yd': [3.2, 4.8, 6.8], 'cb_yd': [2.2, 4.4, 10.9], 'conifer': 0.077, 'contrast': [-0.0, 0.0, 0.1], 'dark_drop': 0, 'bytes': 199978, 'finished': '2026-11-13 17:40:36'}

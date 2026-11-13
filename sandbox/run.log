@@ -1,0 +1,4 @@
+17:51:44 probe WI_Adams_2019 91394 pts 78052 ground
+17:52:04 points 4374831
+17:52:22 reg {'shift_m': [1.24, -2.0], 'depth_m': -0.347, 'depth0_m': -0.188, 'bunkers': 90}
+17:52:22 done {'key': 'sandbox', 'started': '2026-11-13 17:51:41', 'errors': [], 'probe': {'WI_Adams_2019': [91394, 78052]}, 'scan': 'WI_Adams_2019', 'tiles': 12, 'grid': [750, 1000, 271347, 4896199], 'tiles_retried': 0, 'points': 4374831, 'spikes': 4969, 'photo': 0.892256, 'reg': {'shift_m': [1.24, -2.0], 'depth_m': -0.347, 'depth0_m': -0.188, 'bunkers': 90}, 'crowns': 3670, 'kept': 3456, 'wet': 0, 'roofs': 202, 'clutter': 0, 'flat': 7, 'tiny': 7, 'h_yd': [7.2, 12.1, 15.5], 'cr_yd': [3.1, 4.2, 5.1], 'cb_yd': [2.2, 5.5, 6.6], 'conifer': 0.021, 'contrast': [-0.0, 0.0, 0.1], 'dark_drop': 0, 'bytes': 32330, 'finished': '2026-11-13 17:52:22'}

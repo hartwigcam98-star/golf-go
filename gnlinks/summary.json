@@ -1,0 +1,64 @@
+{
+ "key": "gnlinks",
+ "started": "2026-11-13 17:41:00",
+ "errors": [
+  "naip: no NAIP"
+ ],
+ "probe": {
+  "GA_Central_2_2018": [
+   79546,
+   34229
+  ]
+ },
+ "scan": "GA_Central_2_2018",
+ "tiles": 117,
+ "grid": [
+  2250,
+  3250,
+  647132,
+  3619032
+ ],
+ "tiles_retried": 0,
+ "points": 28865860,
+ "spikes": 283550,
+ "reg": {
+  "shift_m": [
+   0.4,
+   -0.84
+  ],
+  "depth_m": -0.494,
+  "depth0_m": -0.46,
+  "bunkers": 47
+ },
+ "crowns": 28392,
+ "kept": 27818,
+ "wet": 33,
+ "roofs": 432,
+ "clutter": 0,
+ "flat": 6,
+ "tiny": 144,
+ "h_yd": [
+  13.2,
+  26.0,
+  33.9
+ ],
+ "cr_yd": [
+  3.1,
+  5.2,
+  7.6
+ ],
+ "cb_yd": [
+  3.3,
+  9.8,
+  20.8
+ ],
+ "conifer": 0.009,
+ "contrast": [
+  -0.1,
+  0.0,
+  0.0
+ ],
+ "dark_drop": 0,
+ "bytes": 259719,
+ "finished": "2026-11-13 17:48:40"
+}

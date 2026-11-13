@@ -1,0 +1,6 @@
+17:36:20 probe USGS_LPC_AL_25Co_B4_2017 32085 pts 27574 ground
+17:37:55 points 22350688
+17:39:27   http 504 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+17:39:35   http 504 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+17:41:24 reg {'shift_m': [0.6, -0.84], 'depth_m': -0.488, 'depth0_m': -0.453, 'bunkers': 265}
+17:41:31 done {'key': 'legislator', 'started': '2026-11-13 17:36:19', 'errors': [], 'probe': {'USGS_LPC_AL_25Co_B4_2017': [32085, 27574]}, 'scan': 'USGS_LPC_AL_25Co_B4_2017', 'tiles': 90, 'grid': [2500, 2250, 555755, 3591130], 'tiles_retried': 0, 'points': 22350688, 'spikes': 156671, 'photo': 0.8855939555555555, 'reg': {'shift_m': [0.6, -0.84], 'depth_m': -0.488, 'depth0_m': -0.453, 'bunkers': 265}, 'crowns': 16254, 'kept': 15853, 'wet': 97, 'roofs': 275, 'clutter': 0, 'flat': 41, 'tiny': 40, 'h_yd': [9.1, 20.7, 32.4], 'cr_yd': [3.2, 5.1, 7.8], 'cb_yd': [2.2, 3.3, 9.8], 'conifer': 0.038, 'contrast': [-0.1, 0.0, 0.1], 'dark_drop': 0, 'bytes': 148058, 'finished': '2026-11-13 17:41:31'}

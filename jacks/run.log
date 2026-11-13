@@ -1,0 +1,4 @@
+17:49:12 probe MN_UpperMissRiver_6_B22 182116 pts 86685 ground
+17:55:23 points 93068438
+17:55:51 reg {'shift_m': [0.0, 0.76], 'depth_m': -0.07, 'depth0_m': -0.067, 'bunkers': 38}
+17:55:54 done {'key': 'jacks', 'started': '2026-11-13 17:49:07', 'errors': [], 'probe': {'MN_UpperMissRiver_6_B22': [182116, 86685]}, 'scan': 'MN_UpperMissRiver_6_B22', 'tiles': 45, 'grid': [1250, 2250, 432737, 5141979], 'tiles_retried': 0, 'points': 93068438, 'spikes': 127220, 'photo': 0.8775495111111111, 'reg': {'shift_m': [0.0, 0.76], 'depth_m': -0.07, 'depth0_m': -0.067, 'bunkers': 38}, 'crowns': 15156, 'kept': 12200, 'wet': 655, 'roofs': 485, 'clutter': 2663, 'flat': 22, 'tiny': 498, 'h_yd': [13.2, 24.1, 28.4], 'cr_yd': [3.3, 5.4, 7.7], 'cb_yd': [2.2, 6.6, 13.1], 'conifer': 0.113, 'contrast': [-0.1, 0.0, 0.1], 'dark_drop': 0, 'bytes': 113957, 'finished': '2026-11-13 17:55:54'}

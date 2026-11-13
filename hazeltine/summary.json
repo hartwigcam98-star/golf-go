@@ -1,0 +1,63 @@
+{
+ "key": "hazeltine",
+ "started": "2026-11-13 17:43:01",
+ "errors": [],
+ "probe": {
+  "MN_CentralMissRiver_6_B22": [
+   171654,
+   160677
+  ]
+ },
+ "scan": "MN_CentralMissRiver_6_B22",
+ "tiles": 54,
+ "grid": [
+  1500,
+  2250,
+  452931,
+  4965391
+ ],
+ "tiles_retried": 0,
+ "points": 48894993,
+ "spikes": 10289,
+ "photo": 0.9738343703703704,
+ "reg": {
+  "shift_m": [
+   1.16,
+   -1.0
+  ],
+  "depth_m": -0.396,
+  "depth0_m": -0.333,
+  "bunkers": 118
+ },
+ "crowns": 5318,
+ "kept": 4541,
+ "wet": 100,
+ "roofs": 631,
+ "clutter": 0,
+ "flat": 114,
+ "tiny": 32,
+ "h_yd": [
+  8.6,
+  16.9,
+  25.3
+ ],
+ "cr_yd": [
+  3.1,
+  5.2,
+  7.6
+ ],
+ "cb_yd": [
+  2.2,
+  4.4,
+  9.8
+ ],
+ "conifer": 0.069,
+ "contrast": [
+  -0.0,
+  0.0,
+  0.1
+ ],
+ "dark_drop": 0,
+ "bytes": 42474,
+ "finished": "2026-11-13 17:45:34"
+}

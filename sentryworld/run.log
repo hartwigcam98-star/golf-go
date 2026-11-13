@@ -1,0 +1,4 @@
+17:51:16 probe USGS_LPC_WI_Portage_2016 67742 pts 52223 ground
+17:52:26 points 13365714
+17:52:42 reg {'shift_m': [0.6, -2.4], 'depth_m': -0.379, 'depth0_m': -0.249, 'bunkers': 60}
+17:52:46 done {'key': 'sentryworld', 'started': '2026-11-13 17:51:12', 'errors': [], 'probe': {'USGS_LPC_WI_Portage_2016': [67742, 52223]}, 'scan': 'USGS_LPC_WI_Portage_2016', 'tiles': 48, 'grid': [2000, 1500, 295724, 4936361], 'tiles_retried': 0, 'points': 13365714, 'spikes': 154666, 'photo': 0.9532366666666666, 'reg': {'shift_m': [0.6, -2.4], 'depth_m': -0.379, 'depth0_m': -0.249, 'bunkers': 60}, 'crowns': 13540, 'kept': 13060, 'wet': 14, 'roofs': 336, 'clutter': 0, 'flat': 16, 'tiny': 139, 'h_yd': [9.3, 18.9, 25.6], 'cr_yd': [2.5, 3.7, 6.0], 'cb_yd': [2.2, 6.6, 13.1], 'conifer': 0.159, 'contrast': [-0.1, -0.0, 0.1], 'dark_drop': 0, 'bytes': 121990, 'finished': '2026-11-13 17:52:46'}

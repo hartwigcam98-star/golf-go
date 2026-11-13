@@ -1,0 +1,7 @@
+17:42:06 probe AZ_MaricopaPinal_1_2020 142835 pts 103169 ground
+17:47:33 points 116302200
+17:49:06   http 504 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+17:49:14   http 504 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+17:51:00   http 504 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+17:52:22 reg {'shift_m': [1.4, -0.24], 'depth_m': -0.348, 'depth0_m': -0.287, 'bunkers': 44}
+17:52:27 done {'key': 'dove', 'started': '2026-11-13 17:42:03', 'errors': [], 'probe': {'AZ_MaricopaPinal_1_2020': [142835, 103169]}, 'scan': 'AZ_MaricopaPinal_1_2020', 'tiles': 77, 'grid': [1750, 2750, 407704, 3740867], 'tiles_retried': 0, 'points': 116302200, 'spikes': 3752, 'photo': 0.911113974025974, 'reg': {'shift_m': [1.4, -0.24], 'depth_m': -0.348, 'depth0_m': -0.287, 'bunkers': 44}, 'crowns': 15653, 'kept': 5710, 'wet': 3, 'roofs': 1809, 'clutter': 0, 'flat': 363, 'tiny': 56, 'h_yd': [4.3, 6.2, 9.2], 'cr_yd': [2.8, 3.3, 4.1], 'cb_yd': [2.2, 2.2, 3.3], 'conifer': 0.0, 'contrast': [0.0, 0.0, 0.1], 'dark_drop': 7751, 'bytes': 53388, 'finished': '2026-11-13 17:52:27'}

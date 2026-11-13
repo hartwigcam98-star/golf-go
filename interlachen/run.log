@@ -1,0 +1,4 @@
+17:42:05 probe MN_CentralMissRiver_4_B22 117836 pts 43709 ground
+17:47:58 points 168575517
+17:48:26 reg {'shift_m': [0.84, -0.6], 'depth_m': -0.139, 'depth0_m': -0.13, 'bunkers': 107}
+17:48:27 done {'key': 'interlachen', 'started': '2026-11-13 17:42:02', 'errors': [], 'probe': {'MN_CentralMissRiver_4_B22': [117836, 43709]}, 'scan': 'MN_CentralMissRiver_4_B22', 'tiles': 40, 'grid': [1250, 2000, 469594, 4974594], 'tiles_retried': 0, 'points': 168575517, 'spikes': 8433, 'photo': 0.9617492, 'reg': {'shift_m': [0.84, -0.6], 'depth_m': -0.139, 'depth0_m': -0.13, 'bunkers': 107}, 'crowns': 7022, 'kept': 6287, 'wet': 4, 'roofs': 702, 'clutter': 0, 'flat': 19, 'tiny': 20, 'h_yd': [10.2, 19.9, 25.8], 'cr_yd': [3.5, 5.8, 8.0], 'cb_yd': [2.2, 4.4, 8.7], 'conifer': 0.295, 'contrast': [-0.1, 0.0, 0.1], 'dark_drop': 0, 'bytes': 58770, 'finished': '2026-11-13 17:48:27'}

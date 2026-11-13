@@ -1,0 +1,4 @@
+17:36:21 probe WI_Adams_2019 143886 pts 78586 ground
+17:38:45 points 36620929
+17:41:52 reg {'shift_m': [0.4, -2.24], 'depth_m': -0.136, 'depth0_m': -0.099, 'bunkers': 754}
+17:42:03 done {'key': 'mammoth', 'started': '2026-11-13 17:36:18', 'errors': [], 'probe': {'WI_Adams_2019': [143886, 78586]}, 'scan': 'WI_Adams_2019', 'tiles': 99, 'grid': [2250, 2750, 271515, 4896793], 'tiles_retried': 0, 'points': 36620929, 'spikes': 40483, 'photo': 0.8999817373737373, 'reg': {'shift_m': [0.4, -2.24], 'depth_m': -0.136, 'depth0_m': -0.099, 'bunkers': 754}, 'crowns': 41304, 'kept': 36422, 'wet': 0, 'roofs': 4774, 'clutter': 0, 'flat': 60, 'tiny': 66, 'h_yd': [5.0, 11.3, 14.8], 'cr_yd': [3.0, 3.9, 5.0], 'cb_yd': [2.2, 4.4, 6.6], 'conifer': 0.026, 'contrast': [-0.0, 0.0, 0.1], 'dark_drop': 0, 'bytes': 340019, 'finished': '2026-11-13 17:42:03'}

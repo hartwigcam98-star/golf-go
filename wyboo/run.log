@@ -1,0 +1,18 @@
+17:40:26 probe USGS_LPC_SC_East_Central_2017_LAS_2019 164249 pts 20484 ground
+17:42:45 points 38175913
+17:44:17   http 504 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+17:44:25   http 504 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+17:46:11   http 504 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+17:48:26   http 400 https://imagery.nationalmap.gov/arcgis/rest/directories/imagery_output/USGSNAIPI
+17:48:38   http 400 https://imagery.nationalmap.gov/arcgis/rest/directories/imagery_output/USGSNAIPI
+17:48:54   http 400 https://imagery.nationalmap.gov/arcgis/rest/directories/imagery_output/USGSNAIPI
+17:49:20   http 400 https://imagery.nationalmap.gov/arcgis/rest/directories/imagery_output/USGSNAIPI
+17:49:52   naip source failed https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage failed https://imagery.nationalmap.gov/arcgis/rest/directories/imagery_output/USGSNAIPImagery_ImageServer/_ags_1ad4cbb6_9ee4_4f76_8804_59d50259488d.jpg
+17:49:53   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+17:50:01   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+17:50:17   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+17:50:41   err ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+17:51:13   naip source failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage failed https://gis.apfo.usda.gov/arcgis/rest/services/NAIP/USDA_CONUS_PRIME/ImageServer/exportImage
+17:51:13 naip fail no NAIP
+17:51:14 reg {'shift_m': [-0.24, -0.16], 'depth_m': -0.367, 'depth0_m': -0.365, 'bunkers': 54}
+17:51:19 done {'key': 'wyboo', 'started': '2026-11-13 17:40:23', 'errors': ['naip: no NAIP'], 'probe': {'USGS_LPC_SC_East_Central_2017_LAS_2019': [164249, 20484]}, 'scan': 'USGS_LPC_SC_East_Central_2017_LAS_2019', 'tiles': 99, 'grid': [2750, 2250, 570582, 3718355], 'tiles_retried': 0, 'points': 38175913, 'spikes': 103724, 'reg': {'shift_m': [-0.24, -0.16], 'depth_m': -0.367, 'depth0_m': -0.365, 'bunkers': 54}, 'crowns': 30332, 'kept': 30072, 'wet': 0, 'roofs': 224, 'clutter': 0, 'flat': 19, 'tiny': 18, 'h_yd': [11.6, 21.7, 27.5], 'cr_yd': [3.4, 5.3, 7.3], 'cb_yd': [2.2, 5.5, 10.9], 'conifer': 0.008, 'contrast': [-0.0, 0.0, 0.0], 'dark_drop': 0, 'bytes': 280772, 'finished': '2026-11-13 17:51:19'}

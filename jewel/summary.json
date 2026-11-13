@@ -1,0 +1,63 @@
+{
+ "key": "jewel",
+ "started": "2026-11-13 17:48:47",
+ "errors": [],
+ "probe": {
+  "MN_SEDriftless_2_2021": [
+   319906,
+   107599
+  ]
+ },
+ "scan": "MN_SEDriftless_2_2021",
+ "tiles": 78,
+ "grid": [
+  1500,
+  3250,
+  555528,
+  4922950
+ ],
+ "tiles_retried": 0,
+ "points": 85569638,
+ "spikes": 41402,
+ "photo": 0.8327150769230769,
+ "reg": {
+  "shift_m": [
+   0.76,
+   -1.16
+  ],
+  "depth_m": -0.382,
+  "depth0_m": -0.324,
+  "bunkers": 60
+ },
+ "crowns": 13519,
+ "kept": 12933,
+ "wet": 35,
+ "roofs": 488,
+ "clutter": 0,
+ "flat": 40,
+ "tiny": 43,
+ "h_yd": [
+  8.9,
+  19.9,
+  26.1
+ ],
+ "cr_yd": [
+  3.2,
+  5.3,
+  7.5
+ ],
+ "cb_yd": [
+  2.2,
+  3.3,
+  6.6
+ ],
+ "conifer": 0.475,
+ "contrast": [
+  -0.1,
+  -0.0,
+  0.0
+ ],
+ "dark_drop": 0,
+ "bytes": 120791,
+ "finished": "2026-11-13 17:56:00"
+}

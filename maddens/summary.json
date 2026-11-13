@@ -1,0 +1,63 @@
+{
+ "key": "maddens",
+ "started": "2026-11-13 17:38:40",
+ "errors": [],
+ "probe": {
+  "MN_UpperMissRiver_6_B22": [
+   201133,
+   90379
+  ]
+ },
+ "scan": "MN_UpperMissRiver_6_B22",
+ "tiles": 45,
+ "grid": [
+  1250,
+  2250,
+  395295,
+  5138124
+ ],
+ "tiles_retried": 0,
+ "points": 75376422,
+ "spikes": 116619,
+ "photo": 0.836048,
+ "reg": {
+  "shift_m": [
+   3.24,
+   -2.16
+  ],
+  "depth_m": -0.201,
+  "depth0_m": -0.023,
+  "bunkers": 59
+ },
+ "crowns": 13335,
+ "kept": 12881,
+ "wet": 2,
+ "roofs": 307,
+ "clutter": 0,
+ "flat": 8,
+ "tiny": 160,
+ "h_yd": [
+  7.7,
+  20.6,
+  26.2
+ ],
+ "cr_yd": [
+  2.8,
+  5.1,
+  7.2
+ ],
+ "cb_yd": [
+  2.2,
+  4.4,
+  8.7
+ ],
+ "conifer": 0.105,
+ "contrast": [
+  -0.0,
+  0.0,
+  0.0
+ ],
+ "dark_drop": 0,
+ "bytes": 120313,
+ "finished": "2026-11-13 17:48:48"
+}

@@ -1,0 +1,63 @@
+{
+ "key": "santee",
+ "started": "2026-11-13 17:40:34",
+ "errors": [],
+ "probe": {
+  "USGS_LPC_SC_East_Central_2017_LAS_2019": [
+   115465,
+   21477
+  ]
+ },
+ "scan": "USGS_LPC_SC_East_Central_2017_LAS_2019",
+ "tiles": 72,
+ "grid": [
+  2250,
+  2000,
+  546231,
+  3706350
+ ],
+ "tiles_retried": 0,
+ "points": 36456965,
+ "spikes": 52122,
+ "photo": 0.8895102222222222,
+ "reg": {
+  "shift_m": [
+   1.0,
+   -0.76
+  ],
+  "depth_m": -0.083,
+  "depth0_m": -0.071,
+  "bunkers": 34
+ },
+ "crowns": 17811,
+ "kept": 16627,
+ "wet": 15,
+ "roofs": 1110,
+ "clutter": 0,
+ "flat": 30,
+ "tiny": 48,
+ "h_yd": [
+  8.5,
+  22.7,
+  30.8
+ ],
+ "cr_yd": [
+  3.2,
+  5.4,
+  8.0
+ ],
+ "cb_yd": [
+  2.2,
+  4.4,
+  8.0
+ ],
+ "conifer": 0.036,
+ "contrast": [
+  -0.1,
+  -0.0,
+  0.0
+ ],
+ "dark_drop": 0,
+ "bytes": 155296,
+ "finished": "2026-11-13 17:43:04"
+}

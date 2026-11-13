@@ -1,0 +1,7 @@
+17:48:55 probe MN_CentralMissRiver_4_B22 118549 pts 33681 ground
+18:04:10 points 326307448
+18:04:12   http 502 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+18:04:20   http 502 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+18:06:06   http 504 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+18:07:00 reg {'shift_m': [1.0, -0.84], 'depth_m': -0.452, 'depth0_m': -0.397, 'bunkers': 68}
+18:07:06 done {'key': 'edinburgh', 'started': '2026-11-13 17:48:51', 'errors': [], 'probe': {'MN_CentralMissRiver_4_B22': [118549, 33681]}, 'scan': 'MN_CentralMissRiver_4_B22', 'tiles': 81, 'grid': [2250, 2250, 473402, 4997010], 'tiles_retried': 0, 'points': 326307448, 'spikes': 18420, 'photo': 0.9656511604938272, 'reg': {'shift_m': [1.0, -0.84], 'depth_m': -0.452, 'depth0_m': -0.397, 'bunkers': 68}, 'crowns': 15691, 'kept': 12007, 'wet': 140, 'roofs': 3434, 'clutter': 0, 'flat': 212, 'tiny': 55, 'h_yd': [7.7, 13.8, 21.7], 'cr_yd': [3.2, 4.8, 6.7], 'cb_yd': [2.2, 3.3, 6.6], 'conifer': 0.131, 'contrast': [-0.0, 0.0, 0.1], 'dark_drop': 0, 'bytes': 112163, 'finished': '2026-11-13 18:07:06'}

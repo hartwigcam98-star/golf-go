@@ -1,0 +1,6 @@
+17:40:38 probe AL_11County_2_B23 158804 pts 97268 ground
+17:44:36 points 104027193
+17:46:08   http 504 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+17:46:16   http 504 https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer
+17:48:19 reg {'shift_m': [1.0, -1.0], 'depth_m': -0.361, 'depth0_m': -0.318, 'bunkers': 61}
+17:48:25 done {'key': 'valley', 'started': '2026-11-13 17:40:36', 'errors': [], 'probe': {'AL_11County_2_B23': [158804, 97268]}, 'scan': 'AL_11County_2_B23', 'tiles': 99, 'grid': [2750, 2250, 509014, 3698731], 'tiles_retried': 0, 'points': 104027193, 'spikes': 193917, 'photo': 0.9947665454545455, 'reg': {'shift_m': [1.0, -1.0], 'depth_m': -0.361, 'depth0_m': -0.318, 'bunkers': 61}, 'crowns': 31155, 'kept': 30267, 'wet': 57, 'roofs': 785, 'clutter': 0, 'flat': 55, 'tiny': 34, 'h_yd': [16.4, 26.1, 31.5], 'cr_yd': [3.2, 5.4, 7.7], 'cb_yd': [2.2, 10.9, 19.8], 'conifer': 0.017, 'contrast': [-0.1, -0.0, 0.0], 'dark_drop': 0, 'bytes': 282571, 'finished': '2026-11-13 17:48:25'}

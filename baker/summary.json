@@ -1,0 +1,63 @@
+{
+ "key": "baker",
+ "started": "2026-11-13 17:50:33",
+ "errors": [],
+ "probe": {
+  "MN_CentralMissRiver_4_B22": [
+   44516,
+   43842
+  ]
+ },
+ "scan": "MN_CentralMissRiver_4_B22",
+ "tiles": 66,
+ "grid": [
+  1500,
+  2750,
+  451206,
+  4988068
+ ],
+ "tiles_retried": 0,
+ "points": 277976655,
+ "spikes": 14699,
+ "photo": 0.8923037575757575,
+ "reg": {
+  "shift_m": [
+   1.16,
+   -1.0
+  ],
+  "depth_m": -0.353,
+  "depth0_m": -0.307,
+  "bunkers": 46
+ },
+ "crowns": 13442,
+ "kept": 13237,
+ "wet": 1,
+ "roofs": 165,
+ "clutter": 0,
+ "flat": 16,
+ "tiny": 28,
+ "h_yd": [
+  7.4,
+  16.7,
+  26.9
+ ],
+ "cr_yd": [
+  3.1,
+  4.9,
+  7.3
+ ],
+ "cb_yd": [
+  2.2,
+  3.3,
+  7.7
+ ],
+ "conifer": 0.226,
+ "contrast": [
+  -0.0,
+  0.0,
+  0.1
+ ],
+ "dark_drop": 0,
+ "bytes": 123643,
+ "finished": "2026-11-13 18:01:51"
+}
