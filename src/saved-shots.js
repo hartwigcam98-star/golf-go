@@ -28,13 +28,13 @@ function hlPlay(id,video){const e=hlList().find(x=>x.id===id);if(!e||!COURSES[e.
   if(SPEC.on)specEnd(false);
   Object.assign(HL,{on:true,e,video});G.mode='highlight';G.hlPin=e.pin;
   $('hlM').hidden=true;$('menuM').hidden=true;G.paused=false;$('game').classList.add('spec');resize();
-  setCourse(e.cid,false);G.scores=[];startHole(e.hi);$('introM').hidden=true;
+  setCourse(e.cid,false);G.scores=[];b10Then(CUR.id,()=>{if(!HL.on||HL.e!==e)return;startHole(e.hi);$('introM').hidden=true;
   if(e.ch&&typeof r3GolferSet==='function'&&R3.on)try{r3GolferSet(e.ch);}catch(err){}
   const s=e.s,rec=dailyDecShot(s);while(rec.length<6){const q=rec[rec.length-1];rec.push({...q,t:q.t+.05});}
   G.ball={x:rec[0].x,y:rec[0].y};G.prev={...G.ball};G.strokes=1;G.fromLie=lieAt(s.gx,s.gy);G.lie=G.fromLie;G.shotRot=s.a;G.aim=s.a;
   G.swingClub=s.c;G.swingType=s.k;G.swingBack=s.b;G.inCup=false;
   G.lastShot={rec,golferAt:{x:s.gx,y:s.gy,aim:s.a},launchAt:s.l||(s.k==='putt'?PUTT_IMPACT:IMPACT_T),holed:!!s.o,putt:s.k==='putt',flame:s.f===2?'red':s.f===1?'blue':null,saved:true};
-  later(1,()=>{if(!HL.on)return;if(video)recStart(e.title,e.sub);startReplay(()=>{if(REC.on)recStop();hlEnd();});});}
+  later(1,()=>{if(!HL.on)return;if(video)recStart(e.title,e.sub);startReplay(()=>{if(REC.on)recStop();hlEnd();});});});}
 function hlEnd(){if(!HL.on)return;HL.on=false;G.waitFn=null;$('game').classList.remove('spec');resize();
   if(typeof r3GolferSet==='function'&&R3.on)try{r3GolferSet(CHAR_ID);}catch(e){}
   G.state='intro';G.paused=true;G.hlPin=null;if(!REC.blob||$('vidM').hidden)openHl();}

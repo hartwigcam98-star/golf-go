@@ -92,6 +92,11 @@ function b10Trees(P){const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length
 function b10ClubReady(id,again){const L=typeof B10BAKE!=='undefined'&&B10BAKE.clubs;if(!L||!L[id]||(window.B10CLUBS&&B10CLUBS[id]))return true;
   if(!b10ClubReady.busy){b10ClubReady.busy=1;const e=document.createElement('script');e.src='b10/club/'+id+'.js?v='+L[id];e.onload=e.onerror=()=>{b10ClubReady.busy=0;
     window.B10CLUBS=window.B10CLUBS||{};if(!B10CLUBS[id])B10CLUBS[id]={none:1};again&&again();};document.head.appendChild(e);}return false;}
+/* run fn once this course's Blender clubhouse file is in (at once when it already is). startHole waits for the file on its own,
+   but a replay that starts the hole and then sets up its shot must wait first, or the late startHole wipes the shot and shows
+   the Tee off card. While another file is loading the request isn't queued, so try again shortly. */
+function b10Then(id,fn){let done=false;const once=()=>{if(!done){done=true;fn();}};
+  const t=()=>{if(done)return;const busy=b10ClubReady.busy;if(!b10On()||b10ClubReady(id,once))once();else if(busy)setTimeout(t,150);};t();}
 function b10ClubFor(h,q){const D=window.B10CLUBS&&B10CLUBS[CUR.id];if(!D||D.none||D.model||!q.club)return null;return Math.hypot(q.x+h.T0[0]-D.cx,q.y+h.T0[1]-D.cy)<3?D:null;}
 function b10ClubPush(h,out,D){if(!D.P){const dec=(s,T)=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return new T(u.buffer);};
     D.P=dec(D.pos,Int16Array);D.C=dec(D.col,Uint8Array);D.I=dec(D.idx,D.n<65536?Uint16Array:Uint32Array);}

@@ -33,7 +33,7 @@ function specStart(hi){if(DCARD&&courseGate(DCARD.cid,()=>specStart(hi)))return;
   if(S.ch&&S.ch!==CHAR_ID&&typeof r3GolferSet==='function')try{r3GolferSet(S.ch);}catch(e){}
   const h0=holes.includes(hi)?hi:(holes.find(h=>h>=hi)??holes[0]);specHole(h0);}
 function specHole(hi){if(!SPEC.on)return;SPEC.hi=hi;SPEC.list=SPEC.S.s.filter(x=>x.h===hi);SPEC.k=0;
-  G.scores=SPEC.sc.slice(0,hi);startHole(hi);$('introM').hidden=true;later(1.2,specShot);}
+  G.scores=SPEC.sc.slice(0,hi);b10Then(CUR.id,()=>{if(!SPEC.on||SPEC.hi!==hi)return;startHole(hi);$('introM').hidden=true;later(1.2,specShot);});}
 function specShot(){if(!SPEC.on)return;const s=SPEC.list[SPEC.k];
   if(!s){const v=SPEC.sc[SPEC.hi],par=TB[SPEC.hi].par,n=v?scoreName(v,par).replace('!',''):'';
     toast('HOLE '+(SPEC.hi+1),SPEC.name+(v?' · '+v+' · '+n.charAt(0)+n.slice(1).toLowerCase():''),'#8ee6a8');
