@@ -128,6 +128,38 @@ def main():
             if d is not None: add(d)
         except Exception as e: SUM['errors'].append(f'tile {ux},{uy}: {e}'[:300]); log('tile fail', e)
     SUM['tiles_retried'] = len(failed)
+    # gaps: where the chosen scan stops part-way across the course (Wilderness: Arrowhead B5 ends west of holes 12-16),
+    # fill the 5 m blocks it has no returns in from the other candidate scans, in order, so a scan edge isn't a treeless strip
+    B = 5; hb, wb = h // B, w // B
+    hit = np.zeros((hb, wb), bool)
+    def mark(d):
+        bx = np.floor((d['x'] - gx0) / B).astype(np.int64); by = np.floor((gy1 - d['y']) / B).astype(np.int64)
+        k = (bx >= 0) & (by >= 0) & (bx < wb) & (by < hb); hit[by[k], bx[k]] = True
+    hit[:] = (gn[:hb * B, :wb * B].reshape(hb, B, wb, B).sum((1, 3)) > 0) | (chm[:hb * B, :wb * B].reshape(hb, B, wb, B).max((1, 3)) > 0)
+    def gaps():
+        n = int(TS / B); out = []
+        for ux, uy in jobs:
+            bx0 = int((ux - gx0) / B); by0 = int((gy1 - uy - TS) / B); sub = hit[by0:by0 + n, bx0:bx0 + n]
+            if sub.size and sub.mean() < 0.97: out.append((ux, uy))
+        return out
+    fill = {}; gp = gaps(); SUM['gap_tiles'] = len(gp); log('tiles with gaps', len(gp))
+    for res2 in [c for c in CFG['cand'] if c != res]:
+        if not gp: break
+        before = npts; snap = hit.copy()
+        with ProcessPoolExecutor(3) as ex:
+            fs = {ex.submit(tile, res2, EPSG, ux, uy): (ux, uy) for ux, uy in gp}
+            for f in as_completed(fs):
+                try: _, _, d = f.result()
+                except Exception as e: log('gap tile fail', res2, e); continue
+                if d is None or not len(d['x']): continue
+                bx = np.floor((d['x'] - gx0) / B).astype(np.int64); by = np.floor((gy1 - d['y']) / B).astype(np.int64)
+                k = (bx >= 0) & (by >= 0) & (bx < wb) & (by < hb)
+                k[k] = ~snap[by[k], bx[k]]   # only blocks no earlier scan covered
+                if k.any():
+                    d = {kk: vv[k] for kk, vv in d.items()}; add(d); mark(d)
+        fill[res2] = npts - before; log('gap fill', res2, npts - before, 'pts')
+        gp = gaps()
+    SUM['gap_fill'] = fill; SUM['gap_tiles_left'] = len(gp)
     SUM['points'] = npts; save(); log('points', npts)
     gnd = np.where(gn > 0, gs / np.maximum(gn, 1), np.nan).astype(np.float32)
     # stray returns (birds, haze, a wire) above the canopy: a cell's top is capped 1 m above the highest 3-m band with 3+ returns

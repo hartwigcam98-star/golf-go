@@ -34,6 +34,10 @@ old photo trees. A course with no `L` (no public lidar, e.g. Kings North) keeps 
 
 ## What `tree_all.py` does
 - **Scan:** the first candidate (newest first) with points and ground over the middle of the course.
+- **Scan edges:** after the chosen scan, any 250 m tile with under 97% of its 5 m blocks covered is fetched again from the
+  other candidate scans in order, keeping only points in blocks nothing earlier covered (`gap_fill` in summary.json). Wilderness
+  (Nov 18 2026): Arrowhead B5 stops west of holes 12–16, which had no trees; MN_FullState filled 2.2 M points (20,086 → 28,690 trees).
+  Crowns from the fill scan come out ~25% narrower there (median 2.9 vs 3.9 yd), from its sparser returns.
 - **Grids (UTM, 250 m tiles, PDAL `filters.hag_nn`):** 1 m canopy height (highest return above ground), 1 m ground, and a
   2 m × 32-bin profile of returns by height above ground.
 - **Photo:** NAIP (TNM service, USDA PRIME as fallback) resampled onto the same grid.
