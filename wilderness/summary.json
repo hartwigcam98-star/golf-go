@@ -1,0 +1,74 @@
+{
+ "key": "wilderness",
+ "started": "2026-11-18 14:09:48",
+ "errors": [],
+ "probe": {
+  "MN_RainyLake_1_2020": [
+   0,
+   0
+  ],
+  "USGS_LPC_MN_Arrowhead_B5_2011_LAS_2016": [
+   11441,
+   8120
+  ]
+ },
+ "scan": "USGS_LPC_MN_Arrowhead_B5_2011_LAS_2016",
+ "tiles": 90,
+ "grid": [
+  2500,
+  2250,
+  547668,
+  5297745
+ ],
+ "tiles_retried": 0,
+ "gap_tiles": 56,
+ "gap_fill": {
+  "MN_RainyLake_1_2020": 0,
+  "MN_FullState": 2233429,
+  "USGS_LPC_MN_Arrowhead_B2_2011_LAS_2016": 0
+ },
+ "gap_tiles_left": 16,
+ "points": 7599035,
+ "spikes": 769754,
+ "photo": 0.9079091555555555,
+ "reg": {
+  "shift_m": [
+   1.4,
+   -1.6
+  ],
+  "depth_m": -0.445,
+  "depth0_m": -0.315,
+  "bunkers": 64
+ },
+ "crowns": 29188,
+ "kept": 28690,
+ "wet": 11,
+ "roofs": 269,
+ "clutter": 0,
+ "flat": 0,
+ "tiny": 236,
+ "h_yd": [
+  8.8,
+  15.9,
+  25.3
+ ],
+ "cr_yd": [
+  2.3,
+  3.5,
+  5.6
+ ],
+ "cb_yd": [
+  2.2,
+  3.3,
+  7.7
+ ],
+ "conifer": 0.08,
+ "contrast": [
+  -0.1,
+  0.0,
+  0.1
+ ],
+ "dark_drop": 0,
+ "bytes": 267884,
+ "finished": "2026-11-18 14:12:43"
+}
