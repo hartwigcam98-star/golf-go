@@ -56,8 +56,8 @@ const clubGroup=c=>{const id=tidOf(c);return c.kind==='wood'?'wood':c.kind==='hy
 // v65 rebalance (PGA 2K-style): every club loses something in the rough, stepping down smoothly from wedges to woods, and each shot
 // rolls its own number inside a range (the lie readout shows it), like 2K's "Rough 84-92%"; fescue is the heavy rough
 const LIE_T={cut:{wood:.97,hyb:.98,long:.97,mid:.98,short:.99,gap:.99,sand:.99},rough:{wood:.8,hyb:.86,long:.84,mid:.88,short:.91,gap:.92,sand:.93},fescue:{wood:.45,hyb:.6,long:.55,mid:.66,short:.74,gap:.78,sand:.82}};   // (dirt: DIRT_C)
-const LIE_E={cut:{wood:1.12,hyb:1.08,long:1.1,mid:1.06,short:1.04,gap:1.03,sand:1.03},rough:{wood:1.6,hyb:1.35,long:1.45,mid:1.3,short:1.2,gap:1.15,sand:1.15},fescue:{wood:2.6,hyb:1.9,long:2.2,mid:1.8,short:1.55,gap:1.45,sand:1.4},dirt:{wood:2.3,hyb:1.7,long:1.9,mid:1.55,short:1.4,gap:1.35,sand:1.35}};
-const LIE_V={cut:.015,rough:.04,fescue:.07,dirt:.08},LIE_VG={wood:1.25,hyb:1,long:1.1,mid:.9,short:.75,gap:.7,sand:.7};
+const LIE_E={cut:{wood:1.12,hyb:1.08,long:1.1,mid:1.06,short:1.04,gap:1.03,sand:1.03},rough:{wood:1.6,hyb:1.35,long:1.45,mid:1.3,short:1.2,gap:1.15,sand:1.15},fescue:{wood:2.6,hyb:1.9,long:2.2,mid:1.8,short:1.55,gap:1.45,sand:1.4},dirt:{wood:2.3,hyb:1.7,long:1.9,mid:1.55,short:1.4,gap:1.35,sand:1.35},path:{wood:1.2,hyb:1.12,long:1.14,mid:1.1,short:1.08,gap:1.08,sand:1.08}};   // path: clean but firm, a thin or a skull costs more
+const LIE_V={cut:.015,rough:.04,fescue:.07,dirt:.08,path:.02},LIE_VG={wood:1.25,hyb:1,long:1.1,mid:.9,short:.75,gap:.7,sand:.7};
 const lieVar=(c,lie)=>LIE_V[lie]?LIE_V[lie]*LIE_VG[clubGroup(c)]:0;
 function lieRange(c,lie){const v=lieVar(c,lie);if(!v)return'';const m=lieMul(c,lie);return Math.round((m-v)*100)+'\u2013'+Math.round(Math.min(1,m+v)*100)+'%';}
 const lieErr=(c,lie)=>LIE_E[lie]?LIE_E[lie][clubGroup(c)]:lie==='sand'?1.6:1;

@@ -68,7 +68,7 @@ function midResume(hi,fn){let n=0;const run=()=>{if(G.hi!==hi||!G.hole||G.state!
     if(!R3.on||typeof r3WarmGate!=='function'||document.hidden){run();return;}
     const b=$('teeBtn'),tx=b.textContent;r3WarmGate(p=>{b.textContent=p<100?'Getting ready\u2026 '+p+'%':'Getting ready\u2026';},()=>{b.textContent=tx;run();},2);};
   wait();}
-function shotLie(){let L=lieAt(G.ball.x,G.ball.y);if(L!=='water'&&L!=='ob'&&G.hole&&hyp(G.ball.x-((G.hole.line&&G.hole.line[0])||[0,0])[0],G.ball.y-((G.hole.line&&G.hole.line[0])||[0,0])[1])<5)L='tee';return L;}   // the teeing area (some mapped tee boxes are too small)
+function shotLie(){let L=lieAt(G.ball.x,G.ball.y);if(PATH_ON[L]&&onPath(G.ball.x,G.ball.y))L='path';if(L!=='water'&&L!=='ob'&&G.hole&&hyp(G.ball.x-((G.hole.line&&G.hole.line[0])||[0,0])[0],G.ball.y-((G.hole.line&&G.hole.line[0])||[0,0])[1])<5)L='tee';return L;}   // the teeing area (some mapped tee boxes are too small); a ball played off a cart path has the path lie
 function prepareShot(){
   if(G.hole&&R3.on&&(!RL.grassAt||hyp(G.ball.x-RL.grassAt[0],G.ball.y-RL.grassAt[1])>6))buildGrassPatch(G.hole,G.ball.x,G.ball.y);
   G.flight=null;G.roll=null;G.inCup=false;G.followT=0;G.golferAt=null;
@@ -300,12 +300,24 @@ function onPath(x,y,pad){const h=G.hole,I=h&&!h.range?pathIdx(h):null;if(!I)retu
 // the lie the ball's bounce and roll feel: the cart path where it shows, else the turf
 function physLie(x,y){const L=lieAt(x,y);return PATH_ON[L]&&onPath(x,y)?'path':L;}
 const pathClack=v=>tone(1300,.035,'triangle',Math.min(.16,.04+v*.006),900);
-function pathRelief(){const b=G.ball,h=G.hole;if(!h||h.range||physLie(b.x,b.y)!=='path')return false;const p=h.pin,d0=hyp(b.x-p[0],b.y-p[1]);
+// the free-relief spot for a ball at rest on a cart path (null when it isn't on one, or nowhere within 12 yd will do)
+function pathReliefSpot(){const b=G.ball,h=G.hole;if(!h||h.range||physLie(b.x,b.y)!=='path')return null;const p=h.pin,d0=hyp(b.x-p[0],b.y-p[1]);
   for(let r=.5;r<=12;r+=.5){let best=null;
     for(let k=0;k<32;k++){const a=k/32*TAU,x=b.x+Math.cos(a)*r,y=b.y+Math.sin(a)*r,d=hyp(x-p[0],y-p[1]);if(d<d0-.02)continue;
-      const L=lieAt(x,y);if(L==='water'||L==='ob'||L==='green'||L==='sand')continue;if(onPath(x,y,.35))continue;if(!best||d<best.d)best={x,y,d};}
-    if(best){b.x=best.x;b.y=best.y;G.bY=hAt(b.x,b.y);toast('FREE RELIEF','Cart path \u00b7 dropped beside it, no nearer the hole','#d8d2c4');return true;}}
-  return false;}
+      const L=lieAt(x,y);if(L==='water'||L==='ob'||L==='green'||L==='sand')continue;if(onPath(x,y,.35))continue;if(!best||d<best.d)best={x,y,d,L};}
+    if(best)return best;}
+  return null;}
+/* relief is the player's choice (Rule 16.1 is free relief, not a must): take the drop beside the path, or play it off the
+   concrete (a clean, firm lie: no flyer, no divot, a touch less forgiving). Rivals always take the drop. */
+function pathAsk(q){const take=()=>{$('reliefM').hidden=true;G.ball={x:q.x,y:q.y};G.bY=hAt(q.x,q.y);toast('FREE RELIEF','Dropped beside the cart path \u00b7 '+Math.round(q.d)+' yds','#8ee6a8');afterShot();},
+    play=()=>{$('reliefM').hidden=true;toast('PLAY IT','Off the cart path','#d8d2c4');afterShot();};
+  if(G.aiTurn||G.aiSkip){take();return;}
+  const p=G.hole.pin,d0=hyp(G.ball.x-p[0],G.ball.y-p[1]),el=$('reliefOpts');el.innerHTML='';
+  $('reliefEb').textContent='Cart path \u00b7 no penalty';$('reliefH').textContent='Free relief?';
+  for(const[o,best,nm,sub]of[[take,true,'Take free relief',Math.round(q.d)+' yds to the pin \u00b7 '+(lieNm(q.L)||q.L)+' \u00b7 dropped beside the path'],
+                             [play,false,'Play it as it lies',Math.round(d0)+' yds to the pin \u00b7 Cart path \u00b7 clean but firm, no spin shots']]){
+    const b=document.createElement('button');b.className='relopt'+(best?' best':'');b.innerHTML='<b>'+nm+'</b><span>'+sub+'</span>';b.onclick=()=>{A();o();};el.appendChild(b);}
+  $('reliefM').hidden=false;}
 function startRoll(L){const b=G.hop;let dx,dz;
   if(b.rollV<0){dx=-b.tx;dz=-b.ty;}else{const l=hyp(b.vx,b.vz);if(l>.3){dx=b.vx/l;dz=b.vz/l;}else{dx=b.tx;dz=b.ty;}}
   const v=Math.abs(b.rollV);G.roll={vx:dx*v,vy:dz*v,t:0,lip:false};G.hop=null;G.state='roll';G.bY=hAt(G.ball.x,G.ball.y);}
@@ -476,10 +488,10 @@ function stopBall(){
   const p=G.hole.pin;if(hyp(G.ball.x-p[0],G.ball.y-p[1])<CUP){holed();return;}
   // gimme: a ball at rest on the green within 4 ft of the cup is conceded, one more stroke (everyone, rivals too)
   if(lieAt(G.ball.x,G.ball.y)==='green'&&hyp(G.ball.x-p[0],G.ball.y-p[1])<=GIMME_YD){G.strokes++;later(.7,()=>{if(G.state==='wait')holed('Gimme');});return;}
-  const relief=pathRelief();
+  const pr=pathReliefSpot();
   if(!MATCH.on&&G.mode!=='practice')saveGame({mid:true});
   const L=lieAt(G.ball.x,G.ball.y);
-  if(relief){}
+  if(pr){toast('ON THE CART PATH','','#d8d2c4');later(R3.on?r3PostCutTime(1.1):1.1,()=>pathAsk(pr));shortPrep();return;}
   else if(L==='green'&&G.fromLie!=='green'){const reg=G.strokes<=G.hole.par-2;toast(reg?'NICE ON!':'ON THE GREEN',Math.round(pinDist()*3)+' ft to the cup','#8ee6a8');}
   else if(L==='sand'&&G.fromLie!=='sand')toast('BUNKER','','#f0e0ab');
   else if(L==='fescue'&&G.fromLie!=='fescue')toast(CUR.scen==='desert'?'IN THE DESERT':'IN THE FESCUE','Tough lie','#e3cf7e');
@@ -532,7 +544,7 @@ function reliefOpts(C){const o=[],p=G.hole.pin;
 function reliefBest(o){let b=o[0],bs=1e9;for(const q of o){const s=q.d+(RELIEF_LIE[q.L]??2)*6;if(s<bs){bs=s;b=q;}}return b;}
 function reliefApply(q){$('reliefM').hidden=true;G.ball={x:q.x,y:q.y};toast(q.k==='replay'?'REPLAY':'DROP',q.name+' \u00b7 '+Math.round(q.d)+' yds','#8ee6a8');afterShot();}
 function reliefAsk(o){if(G.aiTurn||G.aiSkip||o.length===1){reliefApply(reliefBest(o));return;}
-  const best=reliefBest(o),el=$('reliefOpts');el.innerHTML='';
+  const best=reliefBest(o),el=$('reliefOpts');el.innerHTML='';$('reliefEb').textContent='Penalty area \u00b7 +1 stroke';$('reliefH').textContent='Take relief';
   for(const q of o){const b=document.createElement('button');b.className='relopt'+(q===best?' best':'');
     b.innerHTML='<b>'+q.name+'</b><span>'+Math.round(q.d)+' yds to the pin \u00b7 '+(lieNm(q.L)||q.L)+' \u00b7 '+q.sub+'</span>';
     b.onclick=()=>{A();if(q.pick)dropStart(q,o);else reliefApply(q);};el.appendChild(b);}
