@@ -79,7 +79,7 @@ const R3B_TWIRL_YD=15;   // a twirl is possible when a pure approach is landing 
 const BLADE={chipAmp:.6,chipR:1.2,rel:{pitch:.2,flop:1.3,spin:1.2,pick:.5,splash:.2}},SG_RAMP=.01;   // short-game mishits ramp in over the first .01 of meter past the window (strikeShot)
 const SHORT_T={chip:1,pitch:1,flop:1,spin:1,splash:1,pick:1,blast:1},isShort=()=>!!SHORT_T[G.stype]&&!curClub().putter;
 const CHIP_R={'7I':3,'8I':2.5,'9I':2,'PW':1.6,'GW':1.25,'SW':1,'LW':.7},PITCH_R={'9I':.5,'PW':.42,'GW':.34,'SW':.27,'LW':.2};
-const SHORT_SURF={green:1,fairway:.7,tee:.7,cut:.5,rough:.28,fescue:.12,sand:0};
+const SHORT_SURF={green:1,fairway:.7,tee:.7,cut:.5,rough:.28,fescue:.12,sand:0,path:1.1};
 const SHORT_RK={spin:.035,flop:.1,splash:.42,pick:.16,blast:1.15};   // flop (was the .22 default): sky-high and stops dead
 function shortRoll(c,st,L){const k=st==='chip'?(CHIP_R[tidOf(c)]??1):st==='pitch'?(PITCH_R[tidOf(c)]??.3):SHORT_RK[st]??.22;return k*(SHORT_SURF[L]??.5);}
 // roll from a point with a starting speed over the real ground; returns where it stops and the path

@@ -54,14 +54,14 @@ const shotOK=(t,ci)=>SHOTS[t].clubs.includes(ci);
 // green speed from the stimpmeter: the ramp releases the ball at 6 ft/s and it rolls STIMP feet on a flat green, so the rolling deceleration is v^2/(2d)
 const STIMP=11,STIMP_V=2,MU_GREEN=STIMP_V*STIMP_V/(2*STIMP/3),CAP_YD=.85;
 const CAPV=Math.sqrt(2*MU_GREEN*CAP_YD);   // a centred ball that would have run on CAP_YD (2.5 ft) past still drops
-const MU={green:MU_GREEN,fairway:1.2,tee:1.2,cut:2.4,rough:11,sand:28,fescue:17,dirt:8};   // dirt (under the trees): runs on further than rough, stopped by leaves and roots   // Oct 13 2026: fairway/tee/cut friction cut from 3.2/3.2/5.5 so slopes kick the ball (a full shot's roll-out on flat ground is planned from this, so it is unchanged)
+const MU={green:MU_GREEN,fairway:1.2,tee:1.2,cut:2.4,rough:11,sand:28,fescue:17,dirt:8,path:.7};   // path: a hard cart path, faster than any turf   // dirt (under the trees): runs on further than rough, stopped by leaves and roots   // Oct 13 2026: fairway/tee/cut friction cut from 3.2/3.2/5.5 so slopes kick the ball (a full shot's roll-out on flat ground is planned from this, so it is unchanged)
 // a slow ball on a green: the grass holds it less as it dies, so it trickles on down a slope instead of parking on it.
 // Below 0.4 yd/s the green's rolling resistance eases to 45% (fully by 0.15 yd/s): a ball comes to rest only on slopes under
 // about 3% (the cup-slope rule); on anything steeper it keeps trickling downhill at a walking-pace crawl. Faster rolls are unchanged.
 // slow rolls lose less to the grass than fast ones (greens and, more mildly, fairways), so a dying ball still feeds down a slope
 const MU_REST=.45,MU_REST_FW=.65,muRoll=(L,sp)=>{const m=MU[L]||MU.fairway;return L==='green'?m*(MU_REST+(1-MU_REST)*smooth(.15,.4,sp)):(L==='fairway'||L==='tee')?m*(MU_REST_FW+(1-MU_REST_FW)*smooth(.2,.9,sp)):m;},
   muStill=L=>(MU[L]||MU.fairway)*(L==='green'?MU_REST:(L==='fairway'||L==='tee')?MU_REST_FW:1);
-const SURF={green:.9,fairway:1.08,tee:1.08,cut:.8,rough:.35,sand:.05,fescue:.15};
+const SURF={green:.9,fairway:1.08,tee:1.08,cut:.8,rough:.35,sand:.05,fescue:.15,path:1.8};
 /* v100 roll-out: how well a green holds a full shot, by club (rolls on a green vs the fairway). Low-spin woods still release,
    hybrids and irons check up: a 3 wood runs about 17 yd on, a hybrid 9, a 5 iron 6, a 7 iron 4 (good-amateur numbers) */
 const GREEN_HOLD={'1W':.8,'3W':.74,'5W':.73,'4H':.64,'5I':.62,'6I':.65,'7I':.72,'8I':.74,'9I':.8,'PW':.8,'GW':.8,'SW':.8,'LW':.8};   // v106: eased from v100 (greens were too sticky)

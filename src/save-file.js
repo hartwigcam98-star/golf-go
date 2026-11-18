@@ -255,7 +255,7 @@ function fullRoll(f,L,tx,ty){const c=f.club,ST=SHOTS[f.stype||'full'];
   return Ce*c.roll*ST.r*surf*(f.rollMul??1)*wind*fall;}
 function land(u){
   const f=G.flight;G.flight=null;G.shotInfo={carry:hyp(G.ball.x-f.sx,G.ball.y-f.sy),peak:f.apex,sx:f.sx,sy:f.sy};
-  const L=lieAt(G.ball.x,G.ball.y);
+  const L=physLie(G.ball.x,G.ball.y);
   if(L==='water'||L==='ob'){penalty(L);return;}
   const p=G.hole.pin;if(hyp(G.ball.x-p[0],G.ball.y-p[1])<.35){holed('Slam dunk');return;}
   const[tx,ty]=travelDir(f,u);
@@ -281,10 +281,31 @@ function land(u){
   G.bY=hAt(G.ball.x,G.ball.y)+.01;
   if(vyIn*e<1.6||L==='sand'){startRoll(L);}
   else{G.state='bounce';}
-  sfx.land();G.fx.push({x:G.ball.x,y:G.ball.y,t:0,type:L==='sand'?'sand':'land'});
+  sfx.land();if(L==='path'){pathClack(vyIn);toast('CART PATH!','','#d8d2c4');}G.fx.push({x:G.ball.x,y:G.ball.y,t:0,type:L==='sand'?'sand':'land'});
   if(spinBack&&R<0)setTimeout(()=>{if(G.state==='roll'||G.state==='bounce')toast('SPIN BACK!','','#8ee6a8');},500);
 }
-const HOP_E={green:.28,fairway:.36,tee:.36,cut:.28,rough:.17,sand:.02,fescue:.12,dirt:.22};   // dirt: hard ground under the leaves
+const HOP_E={green:.28,fairway:.36,tee:.36,cut:.28,rough:.17,sand:.02,fescue:.12,dirt:.22,path:.5};   // dirt: hard ground under the leaves; path: concrete
+/* cart paths (Nov 2026): a mapped cart path is hard and fast. A ball that lands on one kicks up high and skips on, and it runs
+   along the path far further than on turf. The path only counts where it shows on the ground (rough, fescue, under the trees):
+   fairways, tees, greens and bunkers are painted over it. A ball that comes to rest on a path gets free relief (Rule 16.1):
+   dropped at the nearest spot clear of the path, no nearer the hole, never in a bunker, on a green, in water or out of bounds. */
+const PATH_HW=1.25,PATH_ON={rough:1,fescue:1,dirt:1};
+function pathIdx(h){if(h._pidx!==undefined)return h._pidx;const C=8,m=new Map(),K=(i,j)=>i*100003+j;
+  for(const pl of h.paths||[])for(let i=0;i<pl.length-1;i++){const a=pl[i],b=pl[i+1],s=[a[0],a[1],b[0],b[1]];
+    const i0=Math.floor((Math.min(a[0],b[0])-PATH_HW-1)/C),i1=Math.floor((Math.max(a[0],b[0])+PATH_HW+1)/C),j0=Math.floor((Math.min(a[1],b[1])-PATH_HW-1)/C),j1=Math.floor((Math.max(a[1],b[1])+PATH_HW+1)/C);
+    for(let p=i0;p<=i1;p++)for(let q=j0;q<=j1;q++){const k=K(p,q);let L=m.get(k);if(!L)m.set(k,L=[]);L.push(s);}}
+  return h._pidx=m.size?{C,m,K}:null;}
+function onPath(x,y,pad){const h=G.hole,I=h&&!h.range?pathIdx(h):null;if(!I)return false;const L=I.m.get(I.K(Math.floor(x/I.C),Math.floor(y/I.C)));if(!L)return false;const w=PATH_HW+(pad||0);
+  for(const s of L){const dx=s[2]-s[0],dy=s[3]-s[1],l2=dx*dx+dy*dy||1,t=clamp(((x-s[0])*dx+(y-s[1])*dy)/l2,0,1);if(hyp(s[0]+dx*t-x,s[1]+dy*t-y)<=w)return true;}return false;}
+// the lie the ball's bounce and roll feel: the cart path where it shows, else the turf
+function physLie(x,y){const L=lieAt(x,y);return PATH_ON[L]&&onPath(x,y)?'path':L;}
+const pathClack=v=>tone(1300,.035,'triangle',Math.min(.16,.04+v*.006),900);
+function pathRelief(){const b=G.ball,h=G.hole;if(!h||h.range||physLie(b.x,b.y)!=='path')return false;const p=h.pin,d0=hyp(b.x-p[0],b.y-p[1]);
+  for(let r=.5;r<=12;r+=.5){let best=null;
+    for(let k=0;k<32;k++){const a=k/32*TAU,x=b.x+Math.cos(a)*r,y=b.y+Math.sin(a)*r,d=hyp(x-p[0],y-p[1]);if(d<d0-.02)continue;
+      const L=lieAt(x,y);if(L==='water'||L==='ob'||L==='green'||L==='sand')continue;if(onPath(x,y,.35))continue;if(!best||d<best.d)best={x,y,d};}
+    if(best){b.x=best.x;b.y=best.y;G.bY=hAt(b.x,b.y);toast('FREE RELIEF','Cart path \u00b7 dropped beside it, no nearer the hole','#d8d2c4');return true;}}
+  return false;}
 function startRoll(L){const b=G.hop;let dx,dz;
   if(b.rollV<0){dx=-b.tx;dz=-b.ty;}else{const l=hyp(b.vx,b.vz);if(l>.3){dx=b.vx/l;dz=b.vz/l;}else{dx=b.tx;dz=b.ty;}}
   const v=Math.abs(b.rollV);G.roll={vx:dx*v,vy:dz*v,t:0,lip:false};G.hop=null;G.state='roll';G.bY=hAt(G.ball.x,G.ball.y);}
@@ -296,16 +317,17 @@ function stepHop(dt){
       if(hp<.3&&Math.random()<.35){G.cupHard=true;holed('Off the pin');return;}b.vx*=-.25;b.vz*=-.25;toast('OFF THE PIN!','','#fff6dc');}}
     const gnd=hAt(G.ball.x,G.ball.y);
     if(G.bY<=gnd&&b.vy<0){
-      G.bY=gnd;const L=lieAt(G.ball.x,G.ball.y);
+      G.bY=gnd;const L=physLie(G.ball.x,G.ball.y);
       if(L==='water'||L==='ob'){penalty(L);return;}
       const vyIn=-b.vy;
       if(hyp(G.ball.x-p[0],G.ball.y-p[1])<CUP*1.6&&vyIn<7){holed('Dunked it');return;}
       const e=HOP_E[L]??.3;b.n++;
-      G.fx.push({x:G.ball.x,y:G.ball.y,t:.3,type:L==='sand'?'sand':'land'});tone(140,.06,'sine',Math.min(.2,vyIn*.012));
+      G.fx.push({x:G.ball.x,y:G.ball.y,t:.3,type:L==='sand'?'sand':'land'});if(L==='path')pathClack(vyIn);else tone(140,.06,'sine',Math.min(.2,vyIn*.012));
       if(vyIn*e<1.6||b.n>=4||L==='sand'){startRoll(L);return;}
       // each hop loses pace; slopes kick the ball away from the high side
       const[gx,gy]=gradAt(G.ball.x,G.ball.y);
-      b.vy=vyIn*e;b.vx=b.vx*.72-gx*vyIn*e*1.6;b.vz=b.vz*.72-gy*vyIn*e*1.6;
+      const keep=L==='path'?.86:.72;b.vy=vyIn*e;b.vx=b.vx*keep-gx*vyIn*e*1.6;b.vz=b.vz*keep-gy*vyIn*e*1.6;
+      if(L==='path'){const a=(Math.random()-.5)*.5,c=Math.cos(a),s=Math.sin(a),vx=b.vx;b.vx=vx*c-b.vz*s;b.vz=vx*s+b.vz*c;}   // the path's edge and grit kick it a little off line
     }
   }
   G.trail.push({x:G.ball.x,y:G.ball.y,Y:G.bY});if(G.trail.length>70)G.trail.shift();
@@ -318,7 +340,7 @@ function stepRoll(dt){
         const ox=Math.cos(R.a),oy=Math.sin(R.a),sg=Math.sign(R.w),tx=-oy*sg,ty=ox*sg,ex=tx+ox*.8,ey=ty+oy*.8,l=hyp(ex,ey);
         r.vx=ex/l*R.sp;r.vy=ey/l*R.sp;b.x=p[0]+ox*CUP*1.05;b.y=p[1]+oy*CUP*1.05;sfx.lip();toast('LIP OUT!','','#ff9b6a');}
       continue;}
-    const b=G.ball,L=lieAt(b.x,b.y);
+    const b=G.ball,L=physLie(b.x,b.y);
     if(L==='water'||L==='ob'){penalty(L,true);return;}
     let sp=hyp(r.vx,r.vy);const d=hyp(b.x-p[0],b.y-p[1]);
     if(d<CUP){
@@ -454,9 +476,11 @@ function stopBall(){
   const p=G.hole.pin;if(hyp(G.ball.x-p[0],G.ball.y-p[1])<CUP){holed();return;}
   // gimme: a ball at rest on the green within 4 ft of the cup is conceded, one more stroke (everyone, rivals too)
   if(lieAt(G.ball.x,G.ball.y)==='green'&&hyp(G.ball.x-p[0],G.ball.y-p[1])<=GIMME_YD){G.strokes++;later(.7,()=>{if(G.state==='wait')holed('Gimme');});return;}
+  const relief=pathRelief();
   if(!MATCH.on&&G.mode!=='practice')saveGame({mid:true});
   const L=lieAt(G.ball.x,G.ball.y);
-  if(L==='green'&&G.fromLie!=='green'){const reg=G.strokes<=G.hole.par-2;toast(reg?'NICE ON!':'ON THE GREEN',Math.round(pinDist()*3)+' ft to the cup','#8ee6a8');}
+  if(relief){}
+  else if(L==='green'&&G.fromLie!=='green'){const reg=G.strokes<=G.hole.par-2;toast(reg?'NICE ON!':'ON THE GREEN',Math.round(pinDist()*3)+' ft to the cup','#8ee6a8');}
   else if(L==='sand'&&G.fromLie!=='sand')toast('BUNKER','','#f0e0ab');
   else if(L==='fescue'&&G.fromLie!=='fescue')toast(CUR.scen==='desert'?'IN THE DESERT':'IN THE FESCUE','Tough lie','#e3cf7e');
   else if(L==='dirt'&&G.fromLie!=='dirt')toast('UNDER THE TREES',lieNm('dirt')+' · tough lie','#c9a27a');
