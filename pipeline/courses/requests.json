@@ -22,5 +22,11 @@
   "key": "gnshort",
   "date": "2026-11-07",
   "why": "Grand National Short (Opelika AL), Cam's request. OSM has 17 of 18 hole ways with no ref or name (ids 1098809319-337, 1319991738-5278) and one unclaimed green at ~32.67694,-85.41729; routing can be chained from the map but the published cards disagree (GolfingRecord purple 3292 with hole 9 = 250; Hole19 orange 2481 with different per-hole yards) and neither fits the mapped holes (60-90 yd off per hole, map total ~2,860). Needs the club's card or a routing map. Fetch box [-85.4215,32.6722,-85.4109,32.6818] (job 'boxes'), lidar GA_Central_2_2018."
+ },
+ "cam-2026-11-19-tiburon": {
+  "status": "built",
+  "key": "tiburon",
+  "date": "2026-11-19",
+  "why": "Built at Cam's request (chat). Gold course of the OSM Tiburón outline relation/5462396 (36 holes; Gold holes picked by course=gold). Card from GolfingRecord (Gold 7271, pars match OSM); 18Birdies' 'Gold' card is really the Black. Back tees set on 8 and 18; 7052 of 7271 yd. Range traced from the photo."
  }
 }
