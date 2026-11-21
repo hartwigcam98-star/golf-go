@@ -1,0 +1,130 @@
+Published files that differ from main's:
+- Files site-base/a/ga_COURSE_IMG.js and site-cand/a/ga_COURSE_IMG.js differ
+- Files site-base/b10/bake.js and site-cand/b10/bake.js differ
+- Only in site-base/b10/club: tiburon.js
+- Files site-base/b10/light/legend/h01.webp and site-cand/b10/light/legend/h01.webp differ
+- Files site-base/b10/light/legend/h02.webp and site-cand/b10/light/legend/h02.webp differ
+- Files site-base/b10/light/legend/h03.webp and site-cand/b10/light/legend/h03.webp differ
+- Files site-base/b10/light/legend/h04.webp and site-cand/b10/light/legend/h04.webp differ
+- Files site-base/b10/light/legend/h05.webp and site-cand/b10/light/legend/h05.webp differ
+- Files site-base/b10/light/legend/h06.webp and site-cand/b10/light/legend/h06.webp differ
+- Files site-base/b10/light/legend/h07.webp and site-cand/b10/light/legend/h07.webp differ
+- Files site-base/b10/light/legend/h08.webp and site-cand/b10/light/legend/h08.webp differ
+- Files site-base/b10/light/legend/h09.webp and site-cand/b10/light/legend/h09.webp differ
+- Files site-base/b10/light/legend/h10.webp and site-cand/b10/light/legend/h10.webp differ
+- Files site-base/b10/light/legend/h11.webp and site-cand/b10/light/legend/h11.webp differ
+- Files site-base/b10/light/legend/h12.webp and site-cand/b10/light/legend/h12.webp differ
+- Files site-base/b10/light/legend/h13.webp and site-cand/b10/light/legend/h13.webp differ
+- Files site-base/b10/light/legend/h14.webp and site-cand/b10/light/legend/h14.webp differ
+- Files site-base/b10/light/legend/h15.webp and site-cand/b10/light/legend/h15.webp differ
+- Files site-base/b10/light/legend/h16.webp and site-cand/b10/light/legend/h16.webp differ
+- Files site-base/b10/light/legend/h17.webp and site-cand/b10/light/legend/h17.webp differ
+- Files site-base/b10/light/legend/h18.webp and site-cand/b10/light/legend/h18.webp differ
+- Only in site-base/b10/light: tiburon
+- Files site-base/b10/light/wilderness/h01.webp and site-cand/b10/light/wilderness/h01.webp differ
+- Files site-base/b10/light/wilderness/h02.webp and site-cand/b10/light/wilderness/h02.webp differ
+- Files site-base/b10/light/wilderness/h03.webp and site-cand/b10/light/wilderness/h03.webp differ
+- Files site-base/b10/light/wilderness/h04.webp and site-cand/b10/light/wilderness/h04.webp differ
+- Files site-base/b10/light/wilderness/h05.webp and site-cand/b10/light/wilderness/h05.webp differ
+- Files site-base/b10/light/wilderness/h06.webp and site-cand/b10/light/wilderness/h06.webp differ
+- Files site-base/b10/light/wilderness/h07.webp and site-cand/b10/light/wilderness/h07.webp differ
+- Files site-base/b10/light/wilderness/h08.webp and site-cand/b10/light/wilderness/h08.webp differ
+- Files site-base/b10/light/wilderness/h09.webp and site-cand/b10/light/wilderness/h09.webp differ
+- Files site-base/b10/light/wilderness/h10.webp and site-cand/b10/light/wilderness/h10.webp differ
+- Files site-base/b10/light/wilderness/h11.webp and site-cand/b10/light/wilderness/h11.webp differ
+- Files site-base/b10/light/wilderness/h12.webp and site-cand/b10/light/wilderness/h12.webp differ
+- Files site-base/b10/light/wilderness/h13.webp and site-cand/b10/light/wilderness/h13.webp differ
+- Files site-base/b10/light/wilderness/h14.webp and site-cand/b10/light/wilderness/h14.webp differ
+- Files site-base/b10/light/wilderness/h15.webp and site-cand/b10/light/wilderness/h15.webp differ
+- Files site-base/b10/light/wilderness/h16.webp and site-cand/b10/light/wilderness/h16.webp differ
+- Files site-base/b10/light/wilderness/h17.webp and site-cand/b10/light/wilderness/h17.webp differ
+- Files site-base/b10/light/wilderness/h18.webp and site-cand/b10/light/wilderness/h18.webp differ
+- Files site-base/blender/gallery.json and site-cand/blender/gallery.json differ
+- Only in site-base/blender/img: tiburon_after.jpg
+- Only in site-base/blender/img: tiburon_before.jpg
+- Files site-base/blender/index.html and site-cand/blender/index.html differ
+- Files site-base/c/legend.js and site-cand/c/legend.js differ
+- Only in site-base/c: tiburon.js
+- Files site-base/c/wilderness.js and site-cand/c/wilderness.js differ
+- Files site-base/index.html and site-cand/index.html differ
+- Files 'site-base/lidar job.py' and 'site-cand/lidar job.py' differ
+- Files site-base/sw.js and site-cand/sw.js differ
+
+Compared 6 data blocks, 7 courses, 126 holes, 590 scripted shots, 7 pictures.
+
+75 difference(s):
+- course list differs
+- course tiburon: registry entry differs (id, name, town, tees, tb, course, dem, saveKey, scen, wide, surr)
+- legend hole 1: allTrees differs
+- legend hole 1: cover differs
+- legend hole 1: farTrees differs
+- legend hole 1: trees differs
+- legend hole 2: allTrees differs
+- legend hole 2: cover differs
+- legend hole 2: farTrees differs
+- legend hole 2: trees differs
+- legend hole 3: allTrees differs
+- legend hole 3: cover differs
+- legend hole 3: farTrees differs
+- legend hole 3: trees differs
+- legend hole 4: allTrees differs
+- legend hole 4: cover differs
+- legend hole 4: farTrees differs
+- legend hole 4: trees differs
+- legend hole 5: allTrees differs
+- legend hole 5: cover differs
+- legend hole 5: farTrees differs
+- legend hole 5: trees differs
+- legend hole 6: allTrees differs
+- legend hole 6: cover differs
+- legend hole 6: farTrees differs
+- legend hole 6: trees differs
+- legend hole 7: allTrees differs
+- legend hole 7: cover differs
+- legend hole 7: farTrees differs
+- legend hole 7: trees differs
+- legend hole 8: allTrees differs
+- legend hole 8: cover differs
+- legend hole 8: farTrees differs
+- legend hole 8: trees differs
+- legend hole 9: allTrees differs
+- legend hole 9: cover differs
+- legend hole 9: farTrees differs
+- legend hole 9: trees differs
+- legend hole 10: allTrees differs
+- legend hole 10: cover differs
+- legend hole 10: farTrees differs
+- legend hole 10: trees differs
+- legend hole 11: allTrees differs
+- legend hole 11: cover differs
+- legend hole 11: farTrees differs
+- legend hole 11: trees differs
+- legend hole 12: allTrees differs
+- legend hole 12: cover differs
+- legend hole 12: farTrees differs
+- legend hole 12: trees differs
+- legend hole 13: allTrees differs
+- legend hole 13: cover differs
+- legend hole 13: farTrees differs
+- legend hole 13: trees differs
+- legend hole 14: allTrees differs
+- legend hole 14: cover differs
+- legend hole 14: farTrees differs
+- legend hole 14: trees differs
+- legend hole 15: allTrees differs
+- legend hole 15: cover differs
+- legend hole 15: farTrees differs
+- legend hole 15: trees differs
+- legend hole 16: allTrees differs
+- legend hole 16: cover differs
+- legend hole 16: farTrees differs
+- legend hole 16: trees differs
+- legend hole 17: allTrees differs
+- legend hole 17: cover differs
+- legend hole 17: farTrees differs
+- legend hole 17: trees differs
+- legend hole 18: allTrees differs
+- legend hole 18: cover differs
+- legend hole 18: farTrees differs
+- legend hole 18: trees differs
+- legend: picture differs (2.35% of pixels) -> diff/legend.png

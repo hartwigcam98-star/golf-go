@@ -1,0 +1,86 @@
+Compared 126 data blocks, 7 courses, 126 holes, 590 scripted shots, 7 pictures.
+
+83 difference(s):
+- data BLDX: contents differ
+- data CLUBLID: contents differ
+- data COURSE_IMG: contents differ
+- data COURSE_TIB: missing in candidate
+- data LIDG: contents differ
+- data LIDW: contents differ
+- data R3NAIP: contents differ
+- data SURR_TIB: missing in candidate
+- course list differs
+- course tiburon: registry entry differs (id, name, town, tees, tb, course, dem, saveKey, scen, wide, surr)
+- legend hole 1: allTrees differs
+- legend hole 1: cover differs
+- legend hole 1: farTrees differs
+- legend hole 1: trees differs
+- legend hole 2: allTrees differs
+- legend hole 2: cover differs
+- legend hole 2: farTrees differs
+- legend hole 2: trees differs
+- legend hole 3: allTrees differs
+- legend hole 3: cover differs
+- legend hole 3: farTrees differs
+- legend hole 3: trees differs
+- legend hole 4: allTrees differs
+- legend hole 4: cover differs
+- legend hole 4: farTrees differs
+- legend hole 4: trees differs
+- legend hole 5: allTrees differs
+- legend hole 5: cover differs
+- legend hole 5: farTrees differs
+- legend hole 5: trees differs
+- legend hole 6: allTrees differs
+- legend hole 6: cover differs
+- legend hole 6: farTrees differs
+- legend hole 6: trees differs
+- legend hole 7: allTrees differs
+- legend hole 7: cover differs
+- legend hole 7: farTrees differs
+- legend hole 7: trees differs
+- legend hole 8: allTrees differs
+- legend hole 8: cover differs
+- legend hole 8: farTrees differs
+- legend hole 8: trees differs
+- legend hole 9: allTrees differs
+- legend hole 9: cover differs
+- legend hole 9: farTrees differs
+- legend hole 9: trees differs
+- legend hole 10: allTrees differs
+- legend hole 10: cover differs
+- legend hole 10: farTrees differs
+- legend hole 10: trees differs
+- legend hole 11: allTrees differs
+- legend hole 11: cover differs
+- legend hole 11: farTrees differs
+- legend hole 11: trees differs
+- legend hole 12: allTrees differs
+- legend hole 12: cover differs
+- legend hole 12: farTrees differs
+- legend hole 12: trees differs
+- legend hole 13: allTrees differs
+- legend hole 13: cover differs
+- legend hole 13: farTrees differs
+- legend hole 13: trees differs
+- legend hole 14: allTrees differs
+- legend hole 14: cover differs
+- legend hole 14: farTrees differs
+- legend hole 14: trees differs
+- legend hole 15: allTrees differs
+- legend hole 15: cover differs
+- legend hole 15: farTrees differs
+- legend hole 15: trees differs
+- legend hole 16: allTrees differs
+- legend hole 16: cover differs
+- legend hole 16: farTrees differs
+- legend hole 16: trees differs
+- legend hole 17: allTrees differs
+- legend hole 17: cover differs
+- legend hole 17: farTrees differs
+- legend hole 17: trees differs
+- legend hole 18: allTrees differs
+- legend hole 18: cover differs
+- legend hole 18: farTrees differs
+- legend hole 18: trees differs
+- legend: picture differs (2.35% of pixels) -> diff/legend.png
