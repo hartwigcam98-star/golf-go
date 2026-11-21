@@ -1,0 +1,5 @@
+07:29:36 probe MN_SEDriftless_5_2021 115512 pts 28219 ground
+07:39:41 tiles with gaps 0
+07:39:41 points 177060804
+07:40:01 reg {'shift_m': [2.84, -1.44], 'depth_m': -0.23, 'depth0_m': -0.103, 'bunkers': 16}
+07:40:03 done {'key': 'lesueur', 'started': '2026-11-21 07:29:33', 'errors': [], 'probe': {'MN_SEDriftless_5_2021': [115512, 28219]}, 'scan': 'MN_SEDriftless_5_2021', 'tiles': 35, 'grid': [1250, 1750, 429145, 4920391], 'tiles_retried': 0, 'gap_tiles': 0, 'gap_fill': {}, 'gap_tiles_left': 0, 'points': 177060804, 'spikes': 3128, 'photo': 0.7889696, 'reg': {'shift_m': [2.84, -1.44], 'depth_m': -0.23, 'depth0_m': -0.103, 'bunkers': 16}, 'crowns': 5083, 'kept': 4956, 'wet': 0, 'roofs': 102, 'clutter': 0, 'flat': 4, 'tiny': 23, 'h_yd': [10.4, 18.0, 23.4], 'cr_yd': [3.5, 5.4, 7.4], 'cb_yd': [2.2, 3.3, 6.6], 'conifer': 0.181, 'contrast': [-0.1, -0.0, 0.0], 'dark_drop': 0, 'bytes': 46338, 'finished': '2026-11-21 07:40:03'}
