@@ -1,0 +1,61 @@
+Published files that differ from main's:
+- Files site-base/a/ga_COURSE_IMG.js and site-cand/a/ga_COURSE_IMG.js differ
+- Files site-base/b10/bake.js and site-cand/b10/bake.js differ
+- Only in site-base/b10/club: tiburon.js
+- Files site-base/b10/light/legend/h01.webp and site-cand/b10/light/legend/h01.webp differ
+- Files site-base/b10/light/legend/h02.webp and site-cand/b10/light/legend/h02.webp differ
+- Files site-base/b10/light/legend/h03.webp and site-cand/b10/light/legend/h03.webp differ
+- Files site-base/b10/light/legend/h04.webp and site-cand/b10/light/legend/h04.webp differ
+- Files site-base/b10/light/legend/h05.webp and site-cand/b10/light/legend/h05.webp differ
+- Files site-base/b10/light/legend/h06.webp and site-cand/b10/light/legend/h06.webp differ
+- Files site-base/b10/light/legend/h07.webp and site-cand/b10/light/legend/h07.webp differ
+- Files site-base/b10/light/legend/h08.webp and site-cand/b10/light/legend/h08.webp differ
+- Files site-base/b10/light/legend/h09.webp and site-cand/b10/light/legend/h09.webp differ
+- Files site-base/b10/light/legend/h10.webp and site-cand/b10/light/legend/h10.webp differ
+- Files site-base/b10/light/legend/h11.webp and site-cand/b10/light/legend/h11.webp differ
+- Files site-base/b10/light/legend/h12.webp and site-cand/b10/light/legend/h12.webp differ
+- Files site-base/b10/light/legend/h13.webp and site-cand/b10/light/legend/h13.webp differ
+- Files site-base/b10/light/legend/h14.webp and site-cand/b10/light/legend/h14.webp differ
+- Files site-base/b10/light/legend/h15.webp and site-cand/b10/light/legend/h15.webp differ
+- Files site-base/b10/light/legend/h16.webp and site-cand/b10/light/legend/h16.webp differ
+- Files site-base/b10/light/legend/h17.webp and site-cand/b10/light/legend/h17.webp differ
+- Files site-base/b10/light/legend/h18.webp and site-cand/b10/light/legend/h18.webp differ
+- Only in site-base/b10/light: tiburon
+- Files site-base/b10/light/wilderness/h01.webp and site-cand/b10/light/wilderness/h01.webp differ
+- Files site-base/b10/light/wilderness/h02.webp and site-cand/b10/light/wilderness/h02.webp differ
+- Files site-base/b10/light/wilderness/h03.webp and site-cand/b10/light/wilderness/h03.webp differ
+- Files site-base/b10/light/wilderness/h04.webp and site-cand/b10/light/wilderness/h04.webp differ
+- Files site-base/b10/light/wilderness/h05.webp and site-cand/b10/light/wilderness/h05.webp differ
+- Files site-base/b10/light/wilderness/h06.webp and site-cand/b10/light/wilderness/h06.webp differ
+- Files site-base/b10/light/wilderness/h07.webp and site-cand/b10/light/wilderness/h07.webp differ
+- Files site-base/b10/light/wilderness/h08.webp and site-cand/b10/light/wilderness/h08.webp differ
+- Files site-base/b10/light/wilderness/h09.webp and site-cand/b10/light/wilderness/h09.webp differ
+- Files site-base/b10/light/wilderness/h10.webp and site-cand/b10/light/wilderness/h10.webp differ
+- Files site-base/b10/light/wilderness/h11.webp and site-cand/b10/light/wilderness/h11.webp differ
+- Files site-base/b10/light/wilderness/h12.webp and site-cand/b10/light/wilderness/h12.webp differ
+- Files site-base/b10/light/wilderness/h13.webp and site-cand/b10/light/wilderness/h13.webp differ
+- Files site-base/b10/light/wilderness/h14.webp and site-cand/b10/light/wilderness/h14.webp differ
+- Files site-base/b10/light/wilderness/h15.webp and site-cand/b10/light/wilderness/h15.webp differ
+- Files site-base/b10/light/wilderness/h16.webp and site-cand/b10/light/wilderness/h16.webp differ
+- Files site-base/b10/light/wilderness/h17.webp and site-cand/b10/light/wilderness/h17.webp differ
+- Files site-base/b10/light/wilderness/h18.webp and site-cand/b10/light/wilderness/h18.webp differ
+- Files site-base/blender/gallery.json and site-cand/blender/gallery.json differ
+- Only in site-base/blender/img: tiburon_after.jpg
+- Only in site-base/blender/img: tiburon_before.jpg
+- Files site-base/blender/index.html and site-cand/blender/index.html differ
+- Files site-base/c/legend.js and site-cand/c/legend.js differ
+- Only in site-base/c: tiburon.js
+- Files site-base/c/wilderness.js and site-cand/c/wilderness.js differ
+- Files site-base/index.html and site-cand/index.html differ
+- Files 'site-base/lidar job.py' and 'site-cand/lidar job.py' differ
+- Files site-base/sw.js and site-cand/sw.js differ
+
+Compared 6 data blocks, 8 courses, 143 holes, 580 scripted shots, 8 pictures.
+
+6 difference(s):
+- course list differs
+- course tiburon: registry entry differs (id, name, town, tees, tb, course, dem, saveKey, scen, wide, surr)
+- interlachen hole 7: shot 2 ["SW","full",1,281.9268,-261.303,"rough",2,"wait",1.2921,2] -> ["SW","full",1,278.996,-262.5189,"rough",2,"wait",1.2921,2]
+- prestwick hole 8: shot 1 ["1W","full",1,-24.5041,-290.9681,"fescue",1,"wait",-0.0902,4] -> ["1W","full",1,-23.7645,-288.0732,"fescue",1,"wait",-0.0902,4]
+- interlachen: picture differs (2.76% of pixels) -> diff/interlachen.png
+- sandbox: picture differs (2.76% of pixels) -> diff/sandbox.png
