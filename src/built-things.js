@@ -16,6 +16,7 @@ function boxO(out,cx,cy,cz,hx,hy,hz,rot,col,bottom){const c=Math.cos(rot),sn=Mat
    lo/lc a brick or stone ground storey (height, colour), r roof colour, v porch (wrap|front|none), c columns, po full-height portico, cu cupola, sh shutters,
    ch chimney colour, fl flat (pueblo) roof, tc tudor timber */
 const CLUBLOOK={
+  lesueur:{"w":"#8e98a3","m":"siding","t":"#efede6","r":"#4b4e54","s":"#9a958c","c":"#efede6","pt":"paver","um":"#2c4f9e,#2f6b3f,#e8e6df","fp":1},
   tiburon:{"w":"#e6d5a4","m":"stucco","t":"#efede6","r":"#a9573a","s":"#d6c7a0","c":"#efede6","pt":"paver","um":""},
   rushcreek:{"w":"#d8ccb4","m":"tudor","tc":"#4a3a2e","t":"#5a4a3c","r":"#6e675f","s":"#9a8f80","b":1.0,"ch":"#8f8577","c":"#5a4a3c","pt":"stone","um":"#d8c9a8,#d8c9a8,#d8c9a8","fp":1,"rw":1},
   sentryworld:{"w":"#6b4a34","m":"board","t":"#4a3324","r":"#7a3b2a","s":"#9c9384","b":1.4,"c":"#5a3d28","pt":"stone","fp":1,"um":""},
