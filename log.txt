@@ -1,0 +1,4 @@
+resources 2284
+lesueur MN_SEDriftless_5_2021 1123693 pts 43.9 /m2
+done lesueur {'epsg': 32615, 'cands': ['MN_SEDriftless_5_2021', 'USGS_LPC_MN_Phase1_LeSueurCO_2010_LAS_2016', 'MN_FullState'], 'src': 'MN_SEDriftless_5_2021', 'dens': 43.8942578125, 'gps': [303140769.3321639, 303141911.5775576], 'classes': {1: 632885, 2: 486179, 7: 4629}, 'aerial': ['fsa2025', 'naip']}
+all done

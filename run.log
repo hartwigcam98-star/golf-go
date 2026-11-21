@@ -1,0 +1,37 @@
+resources 2284
+(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directorylesueur MN_SEDriftless_5_2021 1123693 pts 43.9 /m2
+done lesueur {'epsg': 32615, 'cands': ['MN_SEDriftless_5_2021', 'USGS_LPC_MN_Phase1_LeSueurCO_2010_LAS_2016', 'MN_FullState'], 'src': 'MN_SEDriftless_5_2021', 'dens': 43.8942578125, 'gps': [303140769.3321639, 303141911.5775576], 'classes': {1: 632885, 2: 486179, 7: 4629}, 'aerial': ['fsa2025', 'naip']}
+all done
+bing http 200 10149
+bing http 200 9553
+bing Le Sueur Country Club golf course pond fountain kept 0
+lesueur_course Le Sueur Country Club golf course pond fountain bing 0 ddg 0
+bing http 200 147913
+bing http 200 54961
+bing Le Sueur Country Club Le Sueur MN golf clubhouse kept 0
+lesueur_club Le Sueur Country Club Le Sueur MN golf clubhouse bing 0 ddg 0
+bing http 200 9789
+bing http 200 28252
+bing Le Sueur Country Club golf course bridge kept 0
+lesueur_course Le Sueur Country Club golf course bridge bing 0 ddg 0
+bing http 200 154452
+bing http 200 158145
+bing Le Sueur Country Club Le Sueur MN clubhouse kept 0
+lesueur_club Le Sueur Country Club Le Sueur MN clubhouse bing 0 ddg 0
+bing http 200 9867
+bing http 200 30684
+bing Le Sueur Country Club signature hole kept 0
+lesueur_course Le Sueur Country Club signature hole bing 0 ddg 0
+bing http 200 9862
+bing http 200 31610
+bing Le Sueur Country Club clubhouse patio kept 0
+lesueur_club Le Sueur Country Club clubhouse patio bing 0 ddg 0
+bing http 200 126094
+bing http 200 157110
+bing Le Sueur Country Club golf course aerial kept 0
+lesueur_course Le Sueur Country Club golf course aerial bing 0 ddg 0
+lesueur_club search 0
+lesueur_course search 0
+lesueur_club 13
+lesueur_course 0
+extras job done 0
