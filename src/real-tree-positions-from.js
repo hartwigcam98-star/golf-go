@@ -9,6 +9,9 @@ function r3NaipLoad(id){const lt=tlOn()&&R3NAIP[id]&&R3NAIP[id].L,ck=lt?id+'|L':
   if(lt){const L=R3NAIP[id].L;return R3N[ck]={n:L.n,xy:r3b64(L.xy,Int16Array),r:r3b64(L.r,Uint8Array),h:r3b64(L.h,Uint8Array),cb:r3b64(L.cb,Uint8Array),ext:R3NAIP[id].ext,L:1};}
   const D=R3NAIP[id],xy=r3b64(D.xy,Int16Array),r=r3b64(D.r,Uint8Array);
   return R3N[id]={n:D.n,xy,r,ext:D.ext};}
+/* trees the tee-shot corridor must keep: real gaps you hit through (course id -> circles [x,y,r] in course yards). Measured trees
+   whose centre is inside one stay even in the line of play. Le Sueur 1: the creek-side gap ~100 yd off the back tee (aerial + lidar). */
+const TREE_KEEP={lesueur:[[-2,-240,28]]};
 function r3NaipApply(h){const N=r3NaipLoad(CUR.data||CUR.id);if(!N)return false;const T0=h.T0,b=h.bounds,E=N.ext;
   const blds=(h.buildings||[]).filter(q=>q.pts&&q.pts.length>2),houses=h.houses||[];
   const onHouse=(x,y)=>blds.some(q=>x>q.bb[0]-2&&x<q.bb[2]+2&&y>q.bb[1]-2&&y<q.bb[3]+2&&inPoly(q,x,y))||houses.some(q=>hyp(q.x-x,q.y-y)<q.w*.6);
@@ -20,7 +23,7 @@ function r3NaipApply(h){const N=r3NaipLoad(CUR.data||CUR.id);if(!N)return false;
   for(let i=0;i<N.n;i++){const x=N.xy[i*2]/2-T0[0],y=N.xy[i*2+1]/2-T0[1],rb=N.r[i],cr=(rb&127)/10,con=rb>>7;
     const d=Math.max(b[0]-x,x-b[2],b[1]-y,y-b[3],0);if(d>400)continue;
     const lie=lieCodeAt(h,x,y);if(lie>=2)continue;if(onHouse(x,y))continue;if(reedAt(x+T0[0],y+T0[1]))continue;   // a cattail bed, not a tree
-    if(d<1&&inCorridor(x,y,cr))continue;
+    if(d<1&&inCorridor(x,y,cr)&&!(TREE_KEEP[CUR.id]||[]).some(k=>hyp(x+T0[0]-k[0],y+T0[1]-k[1])<k[2]))continue;
     const sh=((Math.sin(i*12.9898)*43758.5453)%1+1)%1;
     const t={x,y,r:Math.max(3.2,cr/.9),con,shade:sh,naip:1,d};
     if(N.L){t.r=Math.max(1.2,cr);t.mh=N.h[i]/4;t.mb=N.cb[i]/4;}   // measured: crown radius, height and lowest branches (yds)
