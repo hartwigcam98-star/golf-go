@@ -24,7 +24,7 @@ function holeWind(i){
   if(daily&&G.dailyDay&&dailyNum(G.dailyDay)<WIND_ROUND_FROM){const wr=rng(1000+i*17+G.dailySeed);return{a:wr()*TAU,mph:Math.round(wr()*12)};}
   const sd=roundWindSeed(),rb=rng(sd*31+977),a0=rb()*TAU,m0=1+rb()*11,wr=rng(sd*31+1000+i*17);
   return{a:a0+(wr()-.5)*.35,mph:clamp(Math.round(m0+(wr()-.5)*4),0,16)};}
-function startHole(i){if(b10On()&&!b10ClubReady(CUR.id,()=>startHole(i)))return;   /* Blender trial: this course's clubhouse file first */
+function startHole(i){if(b10On()&&!b10ClubReady(CUR.id,()=>startHole(i)))return;G.buried=false;   /* Blender trial: this course's clubhouse file first */
   try{pstatFlush();}catch(e){}try{perfRetry();}catch(e){}try{if(PERF.pend!=null){const l=PERF.pend;PERF.pend=null;R3.dyn=.8;r3SetPerf(l);PERF.upQ=null;PERF.tryD=null;}}catch(e){}
   try{perfDynHole();}catch(e){}const h0=performance.now();
   G.hi=i;G.hole=hole(i);
@@ -182,6 +182,9 @@ function strikeShot(power,e){
   if(G.hole&&G.hole.range)G.tmShot={club,apex,miss:G.missBy||0,iy:(G.imp&&G.imp.y)||0,st:G.stype,aim:G.aim,pw:power};
   G.flight={sx:G.ball.x,sy:G.ball.y,y0:hAt(G.ball.x,G.ball.y)+.03,dx,dy,px,py,carry,lat,wx:w[0]*wk,wy:w[1]*wk,apex,T:flightTime(carry,apex),u:0,club,stype:G.stype,rollMul:M.roll*(1+.7*thin)*(mis?mis.r:1)*(flyer>1?1-(1-perfBite)*.5:perfBite)*flyer*(sgl?1+((G.stype==='chip'?sgl.chip:sgl.r)-1)*sgk:1)*(sgChunk?.5:1)*(cmod().roll?cmod().roll(club,G.stype):1),rel:mis&&mis.rel||0,back:(mis?mis.sp:1)*M.back*cmod().spin*(1-.8*thin)*(sgl?sgl.back:1),
     fly:flyer>1&&lie!=='cut',full:isShort()?0:clubCarry(club)*lm*ST.c*M.carry};
+  if(lie==='sand'){const F=G.flight,S=bkSand();F.rollMul*=S.rel;   // the sand it's played from (bunkers: sand and faces)
+    if(G.buried){F.carry*=.7;F.full*=.7;F.lat*=.7;F.apex*=.8;F.rollMul*=1.8;F.back=0;F.T=flightTime(F.carry,F.apex);}}
+  G.buried=false;
   // a pure approach that comes down close: he twirls the club as it drops from the finish (r3golfer.js)
   {const q=flightPos(G.flight,1),p=G.hole.pin;G.twirl=perfect===2&&!isShort()&&!(perfTee&&onTeeBox()&&G.hole.par>=4)&&hyp(q[0]-p[0],q[1]-p[1])<=R3B_TWIRL_YD;}
   // perfect contact lights the ball up: red flames at full power, blue otherwise
@@ -220,6 +223,7 @@ function stepFlight(dt){
     if(G.bY<=g0+.03){G.bY=g0;G.flight=null;G.roll={vx:D.vx*.6,vy:D.vz*.6,t:0,lip:false};G.state='roll';}return;}
   f.u+=dt/f.T;const u=f.u;
   const[x,y,Y]=flightPos(f,u);G.ball.x=x;G.ball.y=y;G.bY=Y;
+  if(G.hole.bkF){const px=f.bkx??f.sx,py=f.bky??f.sy;f.bkx=x;f.bky=y;const hit=bkFaceHit(px,py,x,y,Y-.03);if(hit){bkFaceStrike(f,u,hit);return;}}   // out of a bunker: did it clear the face?
   const gnd=hAt(x,y);
   G.trail.push({x,y,Y});if(G.trail.length>70)G.trail.shift();
   // the flagstick (in for every shot from off the green): the closest pass of this step to the stick, at the height it passed
@@ -258,6 +262,8 @@ function land(u){
   const L=physLie(G.ball.x,G.ball.y);
   if(L==='water'||L==='ob'){penalty(L);return;}
   const p=G.hole.pin;if(hyp(G.ball.x-p[0],G.ball.y-p[1])<.35){holed('Slam dunk');return;}
+  G.buried=false;if(L==='sand'&&!G.hole.range){const st=clamp((f.apex/Math.max(8,f.carry)-.1)/.22,0,1),pb=bkSand().bury*(.25+1.75*st);   // a steep drop into soft sand can plug
+    if(Math.random()<pb){G.buried=true;setTimeout(()=>{if(G.buried)toast('FRIED EGG!','Plugged in the sand \u00b7 only a blast will do','#ffb46a');},700);}}
   const[tx,ty]=travelDir(f,u);
   if(L==='green'&&f.apex>2.5){const h=G.hole;(h.pmarks=h.pmarks||[]).push({x:G.ball.x+tx*.03,y:G.ball.y+ty*.03,dx:tx,dy:ty});if(h.pmarks.length>12)h.pmarks.shift();}   // a pitch mark where it came down
   const ST=SHOTS[f.stype||'full'];
@@ -284,6 +290,14 @@ function land(u){
   sfx.land();if(L==='path'){pathClack(vyIn);toast('CART PATH!','','#d8d2c4');}G.fx.push({x:G.ball.x,y:G.ball.y,t:0,type:L==='sand'?'sand':'land'});
   if(spinBack&&R<0)setTimeout(()=>{if(G.state==='roll'||G.state==='bounce')toast('SPIN BACK!','','#8ee6a8');},500);
 }
+/* a shot out of a bunker that meets the face below its top (bunkers: sand and faces): caught near the top it pops over the lip and
+   trickles out; lower down it thuds into the face and drops back into the sand at its foot */
+function bkFaceStrike(f,u,q){G.flight=null;G.shotInfo={carry:hyp(q.x-f.sx,q.y-f.sy),peak:f.apex,sx:f.sx,sy:f.sy};const[tx,ty]=travelDir(f,u);
+  const over=q.below<Math.min(.12,.2*q.fh);sfx.land();
+  if(over){G.ball.x=q.x+q.nx*.3;G.ball.y=q.y+q.ny*.3;G.bY=hAt(G.ball.x,G.ball.y);G.roll={vx:tx*1.4,vy:ty*1.4,t:0,lip:false};G.state='roll';toast('JUST OVER!','Clipped the top of the lip','#f0e0ab');return;}
+  const tn=tx*-q.ny+ty*q.nx;G.ball.x=q.x-q.nx*.25;G.ball.y=q.y-q.ny*.25;G.bY=hAt(G.ball.x,G.ball.y);
+  G.roll={vx:-q.nx*.7+(-q.ny)*tn*.3,vy:-q.ny*.7+q.nx*tn*.3,t:0,lip:false};G.state='roll';G.fx.push({x:q.x,y:q.y,t:0,type:'sand'});
+  toast(q.fs==='sod'||G.hole.bkF.some(b=>b.fs==='sod')?'INTO THE SOD WALL':'CAUGHT THE LIP','Not enough height to clear the face','#ffb46a');}
 const HOP_E={green:.28,fairway:.36,tee:.36,cut:.28,rough:.17,sand:.02,fescue:.12,dirt:.22,path:.5};   // dirt: hard ground under the leaves; path: concrete
 /* cart paths (Nov 2026): a mapped cart path is hard and fast. A ball that lands on one kicks up high and skips on, and it runs
    along the path far further than on turf. The path only counts where it shows on the ground (rough, fescue, under the trees):
@@ -324,7 +338,8 @@ function startRoll(L){const b=G.hop;let dx,dz;
 function stepHop(dt){
   const b=G.hop,n=Math.max(1,Math.ceil(dt*120)),h=dt/n,p=G.hole.pin;
   for(let i=0;i<n;i++){
-    b.vy-=b.g*h;G.bY+=b.vy*h;G.ball.x+=b.vx*h;G.ball.y+=b.vz*h;
+    b.vy-=b.g*h;G.bY+=b.vy*h;{const ox=G.ball.x,oy=G.ball.y;G.ball.x+=b.vx*h;G.ball.y+=b.vz*h;
+      if(G.hole.bkF){const q=bkFaceHit(ox,oy,G.ball.x,G.ball.y,G.bY);if(q){const vn=b.vx*q.nx+b.vz*q.ny;b.vx-=1.25*vn*q.nx;b.vz-=1.25*vn*q.ny;G.ball.x=q.x-q.nx*.05;G.ball.y=q.y-q.ny*.05;sfx.land();}}}
     if(!b.pinHit&&hyp(G.ball.x-p[0],G.ball.y-p[1])<.075){const hp=G.bY-hAt(p[0],p[1]);if(hp<2.5){b.pinHit=true;sfx.pin(.8);
       if(hp<.3&&Math.random()<.35){G.cupHard=true;holed('Off the pin');return;}b.vx*=-.25;b.vz*=-.25;toast('OFF THE PIN!','','#fff6dc');}}
     const gnd=hAt(G.ball.x,G.ball.y);
@@ -369,6 +384,7 @@ function stepRoll(dt){
     let ax=sx,ay=sy;if(sp>1e-6){ax+=-mu*r.vx/sp;ay+=-mu*r.vy/sp;}
     r.vx+=ax*h;r.vy+=ay*h;
     if(hyp(r.vx,r.vy)<Math.max(.1,mu*h*1.5)&&smag<muStill(L)*.95){stopBall();return;}
+    if(G.hole.bkF&&L==='sand'){const q=bkFaceHit(b.x,b.y,b.x+r.vx*h,b.y+r.vy*h,hAt(b.x,b.y));if(q){const vn=r.vx*q.nx+r.vy*q.ny;r.vx-=1.25*vn*q.nx;r.vy-=1.25*vn*q.ny;continue;}}   // rolled into the face: back off it
     b.x+=r.vx*h;b.y+=r.vy*h;
   }
   if(r.t>30)stopBall();

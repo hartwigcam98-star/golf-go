@@ -141,9 +141,9 @@ function buildTerrain(h){
     g.save();polyPath(g,P);g.clip();g.fillStyle=GC;g.fill();g.translate(P.x,P.y);g.rotate(h.axis+.6);
     for(let k=-16;k<16;k++){if(k&1){g.fillStyle=GS;g.fillRect(-80,k*4,160,4);}}g.restore();}
   // white-sand bunkers
-  for(const b of h.bunkers){
-    g.lineWidth=2;g.strokeStyle=turfHex(TU.sand,[0,1.1,.82]);polyPath(g,b);g.stroke();
-    g.fillStyle=TU.sand;g.fill();
+  for(const b of h.bunkers){const sc=bkCol(b,TU.sand);   // each bunker's own sand (bunkers: sand and faces)
+    g.lineWidth=2;g.strokeStyle=turfHex(sc,[0,1.1,.82]);polyPath(g,b);g.stroke();
+    g.fillStyle=sc;g.fill();
     g.save();polyPath(g,b);g.clip();g.strokeStyle='rgba(170,150,110,.35)';g.lineWidth=1.4;polyPath(g,b);g.stroke();
     g.restore();
   }

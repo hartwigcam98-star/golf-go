@@ -114,7 +114,7 @@ function buildHole(d,idx){
   h.bounds=[Math.floor(bx0),Math.floor(by0),Math.ceil(bx1),Math.ceil(by1)];
   const B=h.bounds,inB=P=>!(P.bb[2]<B[0]||P.bb[0]>B[2]||P.bb[3]<B[1]||P.bb[1]>B[3]);
   const grab=k=>(COURSE.polys[k]||[]).map(p=>mkPoly(p.map(loc),k)).filter(inB);
-  h.fairways=grab('fairway');h.greens=grab('green');h.tees=grab('tee');h.bunkers=grab('bunker').map(P=>bunkerOffGreen(P,h.greens));h.water=grab('water');h.rough=grab('rough');
+  h.fairways=grab('fairway');h.greens=grab('green');h.tees=grab('tee');h.bunkers=grab('bunker').map(P=>bunkerOffGreen(P,h.greens));bkAttach(h);h.water=grab('water');h.rough=grab('rough');
   // some courses' maps have no tee box at the hole's tee spot (the Sand Valley resort): lay a 10 x 8 yd tee there, on top of any sand
   // every set of tees on this hole (Oct 2026): where it stands, which way it faces, and a tee box under it when the map has none
   const HL0=C.line;h.teeSets=teeSpots(idx).map((q,t,A)=>{if(t&&q===A[t-1])return null;const p=loc(q.p),n=loc(HL0[q.k+1]||HL0[HL0.length-1]);return{t,x:p[0],y:p[1],a:angTo(p[0],p[1],n[0],n[1])};}).filter(Boolean);

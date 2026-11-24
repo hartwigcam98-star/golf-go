@@ -56,7 +56,7 @@ function r3SetHole(h,canvas){const T=THREE,GU=R3.GU;
   r3Dispose(R3.terrain);
   { const g=h.hg;let k=1;while(Math.ceil(g.nx/k)*Math.ceil(g.ny/k)>140000)k++;
     const nx=Math.floor((g.nx-1)/k)+1,ny=Math.floor((g.ny-1)/k)+1,st=g.st*k,pos=new Float32Array(nx*ny*3),nor=new Float32Array(nx*ny*3);
-    for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const x=g.x0+i*st,y=g.y0+j*st,Hh=g.data[(j*k)*g.nx+i*k];const hx=hAtH(h,x+1,y)-hAtH(h,x-1,y),hy=hAtH(h,x,y+1)-hAtH(h,x,y-1);
+    for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const x=g.x0+i*st,y=g.y0+j*st,Hh=h.bkF?bkMeshH(h,x,y,g.data[(j*k)*g.nx+i*k]):g.data[(j*k)*g.nx+i*k];const hx=hAtH(h,x+1,y)-hAtH(h,x-1,y),hy=hAtH(h,x,y+1)-hAtH(h,x,y-1);
       const o=(j*nx+i)*3;pos[o]=x;pos[o+1]=Hh;pos[o+2]=y;const l=Math.hypot(hx/2,1,hy/2);nor[o]=-hx/2/l;nor[o+1]=1/l;nor[o+2]=-hy/2/l;}
     const id=new Uint32Array((nx-1)*(ny-1)*6);let q=0;for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){const a=j*nx+i,bb=a+1,c=a+nx,d=c+1;id[q++]=a;id[q++]=c;id[q++]=bb;id[q++]=bb;id[q++]=c;id[q++]=d;}
     const geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(pos,3));geo.setAttribute('normal',new T.BufferAttribute(nor,3));geo.setIndex(new T.BufferAttribute(id,1));geo.computeBoundingSphere();
@@ -64,6 +64,7 @@ function r3SetHole(h,canvas){const T=THREE,GU=R3.GU;
     const hd=new Float32Array(nx*ny);for(let q2=0;q2<nx*ny;q2++)hd[q2]=pos[q2*3+1];
     if(R3.hT)R3.hT.dispose();R3.hT=new T.DataTexture(hd,nx,ny,T.RedFormat,T.FloatType);R3.hT.minFilter=R3.hT.magFilter=T.NearestFilter;R3.hT.needsUpdate=true;
     R3.GRU.hT.value=R3.hT;R3.GRU.hB.value.set(g.x0,g.y0,st,nx);R3.GRU.hN.value=ny; }
+  r3BunkerFaces(h);   // bunkers: sand and faces
   r3Surround(h);
   // green slope map
   buildSlopeTex(h);

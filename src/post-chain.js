@@ -409,13 +409,17 @@ function renderScene(){
       mx=G.ball.x+dx*D;mz=G.ball.y+dz*D;landD=D;
       for(let i=1;i<=30;i++){const u=i/30,qx=G.ball.x+dx*D*u,qz=G.ball.y+dz*D*u;const p=projTo(qx,hAt(qx,qz)+.05,qz,PJ);if(p){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
     }else if(isShort()&&G.swMax){
-      const P=shortPlan(),c2=P.carry,y0=gB+.03,ap=shotApex(club,c2)*Mv.apex;
-      for(let i=1;i<=60;i++){const u=i/36,qx=G.ball.x+dx*c2*u,qz=G.ball.y+dz*c2*u,Y=y0+ap*arcH(u);if(u>.5&&Y<=hAt(qx,qz))break;const p=projTo(qx,Y,qz,PJ);if(p){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
+      const P=shortPlan(),c2=P.carry,y0=gB+.03,ap=shotApex(club,c2)*Mv.apex;let lx=G.ball.x,lz=G.ball.y,blk=null;
+      for(let i=1;i<=60;i++){const u=i/36,qx=G.ball.x+dx*c2*u,qz=G.ball.y+dz*c2*u,Y=y0+ap*arcH(u);if(u>.5&&Y<=hAt(qx,qz))break;
+        if(!blk&&G.hole.bkF&&G.lie==='sand'){blk=bkFaceHit(lx,lz,qx,qz,Y-.03);lx=qx;lz=qz;}   // bunkers: this shot runs into the face
+        const p=projTo(qx,Y,qz,PJ);if(p){sctx.fillStyle=blk?'rgba(255,90,70,.9)':'rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
+      G.lipBlk=blk;if(blk){const p=projTo(blk.x,blk.top+.25,blk.y,PJ);if(p){const tx=blk.below<Math.min(.12,.2*blk.fh)?'CATCHES THE TOP OF THE LIP':'WON\u2019T CLEAR THE LIP';sctx.font='800 12px "Barlow Semi Condensed",system-ui,sans-serif';const w=sctx.measureText(tx).width+16;
+        sctx.fillStyle='rgba(120,30,25,.88)';sctx.beginPath();sctx.roundRect(p[0]-w/2,p[1]-30,w,20,10);sctx.fill();sctx.fillStyle='#fff0e0';sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText(tx,p[0],p[1]-20);}}
       mx=P.land[0];mz=P.land[1];landD=hyp(mx-G.ball.x,mz-G.ball.y);
     }else{
-      const y0=gB+.03,wv=[dx,dz],wkD=D*windAlong(G.aim);let u=0;mx=G.ball.x;mz=G.ball.y;   // v93: the wind makes it fly longer or shorter (distance only; no sideways drift in the preview)
+      const y0=gB+.03,wv=[dx,dz],wkD=D*windAlong(G.aim);let u=0,lx=G.ball.x,lz=G.ball.y;mx=G.ball.x;mz=G.ball.y;G.lipBlk=null;   // v93: the wind makes it fly longer or shorter (distance only; no sideways drift in the preview)
       for(let i=1;i<=90;i++){u=i/36;const qx=G.ball.x+dx*D*u+pxv*cv*u*u+wv[0]*wkD*u*u,qz=G.ball.y+dz*D*u+pzv*cv*u*u+wv[1]*wkD*u*u,Y=y0+shotApex(club,D)*Mv.apex*arcH(u),gnd=hAt(qx,qz);mx=qx;mz=qz;
-        if(u>.5&&Y<=gnd)break;const p=projTo(qx,Y,qz,PJ);if(p&&i%1===0){sctx.fillStyle='rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
+        if(u>.5&&Y<=gnd)break;if(!G.lipBlk&&G.hole.bkF&&G.lie==='sand'){G.lipBlk=bkFaceHit(lx,lz,qx,qz,Y-.03);lx=qx;lz=qz;}const p=projTo(qx,Y,qz,PJ);if(p&&i%1===0){sctx.fillStyle=G.lipBlk?'rgba(255,90,70,.9)':'rgba(255,255,255,.9)';sctx.beginPath();sctx.arc(p[0],p[1],clamp(.06*p[3],1.4,3),0,TAU);sctx.fill();}}
       landD=hyp(mx-G.ball.x,mz-G.ball.y);
     }
     G.landPt=[mx,mz];const e=groundEllipse(mx,mz,club.putter?.35:3,13);G.landE=e;

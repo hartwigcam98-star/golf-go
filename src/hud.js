@@ -34,7 +34,7 @@ $('lieDot').style.background=LIE_COL[lie]||'#6db14a';
   const d=pinDist(),plw=curClub().putter?Math.round(d):Math.round(d/Math.max(.5,1+windAlong(G.aim)));setT('pinTxt',(G.lie==='green'||d<20)?'Cup '+Math.round(d*3)+' ft':'Pin '+Math.round(d)+(Math.abs(plw-d)>=2?' \u00b7 plays '+plw:' yds')+(Math.abs(pinRise())>=1.5?(pinRise()>0?' \u25b2':' \u25bc')+Math.round(Math.abs(pinRise())*3)+' ft':''));
   const aiming=G.state==='aim'&&!G.aiTurn;
   { const bk=bunkerSide();$('shots').classList.toggle('bunker',bk); }
-  for(const t in SHOTS){const b=$('st_'+t);b.disabled=!aiming||c.putter||!shotOK(t,G.clubIdx)&&!SHOTS[t].clubs.length||(t==='spin'&&!(G.lie==='fairway'||G.lie==='tee'||G.lie==='cut'))||(BUNKER_T[t]&&!bunkerSide());b.classList.toggle('on',!c.putter&&G.stype===t);b.setAttribute('aria-pressed',String(!c.putter&&G.stype===t));}
+  for(const t in SHOTS){const b=$('st_'+t);b.disabled=!aiming||c.putter||!shotOK(t,G.clubIdx)&&!SHOTS[t].clubs.length||(t==='spin'&&!(G.lie==='fairway'||G.lie==='tee'||G.lie==='cut'))||(BUNKER_T[t]&&!bunkerSide())||(G.buried&&(t==='splash'||t==='pick'));b.classList.toggle('on',!c.putter&&G.stype===t);b.setAttribute('aria-pressed',String(!c.putter&&G.stype===t));}
   $('clubPrev').disabled=$('clubNext').disabled=!aiming||G.lie==='green';$('clubName').disabled=!aiming||G.lie==='green';
   $('spinBtn').disabled=!aiming||c.putter;
   if(G.state!=='aim'||c.putter)$('impPop').hidden=true;

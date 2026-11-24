@@ -28,7 +28,7 @@ function aiPlan(){const r=MATCH.r,sk=r.sk,b=G.ball;
       E=est();}
     let power=clamp(want()/E.max,.12,1);if(isShort()){const P=shortPlan();tx=t[0];ty=t[1];power=clamp(P.carry/((G.swMax||natMax())*shotMods().carry),.05,1);}power=clamp(power*(1+gauss()*sk.perr),.03,1);
     let e=clamp(gauss()*sk.acc,-.12,.4);if(Math.random()<sk.miss)e=null;
-    plan={aim:angTo(b.x,b.y,tx,ty),power,e};}
+    plan={aim:angTo(b.x,b.y,tx,ty),power,e};if(G.lie==='sand'&&G.hole.bkF&&isShort())plan.aim=bkAiAim(plan.aim);}
   G.pshot=false;G.imp={x:0,y:0};G.traj=0;
   G.ai={...plan,t:0,think:G.lie==='green'?1.1:1.3+Math.random()*.5};}
 function aiStep(dt){const A=G.ai;if(!G.aiTurn||!A)return;const m=G.meter,fast=G.aiSkip;

@@ -530,6 +530,7 @@ function rawH(h,x,y){
   const dpl=dplayAt(h,x,y);if(dpl>0){const wf=smooth(0,16,dpl)*(1-wg)*(1-wl)*(1-ww)*smooth(18,45,dt);
     const m=Math.max(0,Math.sin(x*.07+h.ph[1]*2)*Math.sin(y*.06+h.ph[2])+.35*Math.sin(x*.16-y*.13+h.ph[0]));H+=wf*m*(h.back?.8:h.links?2.3:h.low?.5:1.9);}
   for(const b of h.bunkers){const q=polyDist(b,x,y,3);if(q<2.5){const deep=(b.area<220?1:b.area>2500?.35:.7)*(1-.75*wl);H-=deep*(1-smooth(-1.5,2,q));}}
+  if(h.bkF)H=bkDig(h,x,y,H);   // built faces (bunkers: sand and faces)
   for(const b of h.bumps){const q=hyp(x-b.x,y-b.y);if(q<b.r)H+=.6*b.h*(1-smooth(0,b.r,q));}
   const H0=H;
   let qw=99;for(const w of h.water){const q=polyDist(w,x,y,8);if(q<qw)qw=q;if(q<6){wLvlInit(h,w);const ww=1-smooth(-2,6,q);H=H*(1-ww)+wLvl(w,x,y)*ww;}}
@@ -650,6 +651,7 @@ function wLvlInit(h,w){if(w.lvl!==undefined)return;const P=w.pts,d=P.map(p=>demR
 function wLvl(w,x,y){if(!w.lv)return w.lvl;let sw=0,sv=0;const P=w.pts;for(let i=0;i<P.length;i++){const q=(P[i][0]-x)**2+(P[i][1]-y)**2+4,k=1/(q*q);sw+=k;sv+=k*w.lv[i];}return sv/sw;}
 function buildHeights(h){
   for(const w of h.water)wLvlInit(h,w);
+  bkRims(h);
   const b=h.bounds,st=2,nx=Math.ceil((b[2]-b[0])/st)+1,ny=Math.ceil((b[3]-b[1])/st)+1,data=new Float32Array(nx*ny);
   for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)data[j*nx+i]=rawH(h,b[0]+i*st,b[1]+j*st);
   h.hg={x0:b[0],y0:b[1],st,nx,ny,data};
@@ -662,9 +664,10 @@ function buildHeights(h){
 }
 // fine surface around the green: used for how the ball breaks (slope), while drawn heights stay on the mesh grid
 function hFineH(h,x,y){const q=h.gg;if(q){const fx=(x-q.x0)/q.st,fy=(y-q.y0)/q.st;if(fx>=0&&fy>=0&&fx<q.nx-1&&fy<q.ny-1){const i=fx|0,j=fy|0,tx=fx-i,ty=fy-j,d=q.data,n=q.nx;return(d[j*n+i]*(1-tx)+d[j*n+i+1]*tx)*(1-ty)+(d[(j+1)*n+i]*(1-tx)+d[(j+1)*n+i+1]*tx)*ty;}}return hAtH(h,x,y);}
-function hAtH(h,x,y){const g=h.hg;if(!g)return 0;const fx=(x-g.x0)/g.st,fy=(y-g.y0)/g.st;if(fx<0||fy<0||fx>=g.nx-1||fy>=g.ny-1)return demRel(h,x,y);const i=fx|0,j=fy|0,tx=fx-i,ty=fy-j,d=g.data,n=g.nx;const a=d[j*n+i],b2=d[j*n+i+1],c=d[(j+1)*n+i],e=d[(j+1)*n+i+1];return(a*(1-tx)+b2*tx)*(1-ty)+(c*(1-tx)+e*tx)*ty;}
+function hAtH(h,x,y){const g=h.hg;if(!g)return 0;const fx=(x-g.x0)/g.st,fy=(y-g.y0)/g.st;if(fx<0||fy<0||fx>=g.nx-1||fy>=g.ny-1)return demRel(h,x,y);const i=fx|0,j=fy|0,tx=fx-i,ty=fy-j,d=g.data,n=g.nx;const a=d[j*n+i],b2=d[j*n+i+1],c=d[(j+1)*n+i],e=d[(j+1)*n+i+1],v=(a*(1-tx)+b2*tx)*(1-ty)+(c*(1-tx)+e*tx)*ty;return h.bkF?bkHFix(h,x,y,v):v;}
 const hAt=(x,y)=>hAtH(G.hole,x,y);
 const hFine=(x,y)=>hFineH(G.hole,x,y);
 const gradAt=(x,y)=>[(hFine(x+.5,y)-hFine(x-.5,y))/1.0,(hFine(x,y+.5)-hFine(x,y-.5))/1.0];
 function lieAt(x,y){const c=lieCodeAt(G.hole,x,y);if((c===0||c===1)&&G.hole.cover){const v=coverAt(G.hole,x,y);if(v&&v!==3)return'dirt';}return c<0?'ob':LIE_CODES[c];}   // under the trees: leaves, needles, roots, bare dirt
+
 

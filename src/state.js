@@ -22,7 +22,7 @@ function hfixApply(C,id){const F=HFIX[id];if(!F||C._hfix)return;C._hfix=1;for(co
 var LDT={boot:null,hole:null,sc:null,p:null};
 function setCourse(id,persist=true,tee=0){const C=COURSES[id]||COURSES.troy;if(C===CUR&&TB===C.tb&&COURSE===C.course&&COURSE&&TEE===tee)return;TEE=tee;   // (split build: the starting course's data arrives after CUR first points at it)
   if(!courseReady(C.id))courseSync(C.id);if(!courseReady(C.id)){console.warn('[course] not loaded, staying on',CUR&&CUR.id);if(CUR)return;}const sc0=performance.now();try{setCourseRun(C,persist);}finally{LDT.sc={c:C.id,ms:Math.round(performance.now()-sc0)};}}
-function setCourseRun(C,persist){if(CUR)CUR.__seen=1;C.__seen=1;CUR=C;TB=C.tb;COURSE=C.course;hfixApply(COURSE,C.id);
+function setCourseRun(C,persist){if(CUR)CUR.__seen=1;C.__seen=1;CUR=C;TB=C.tb;COURSE=C.course;hfixApply(COURSE,C.id);bkSandSet();
   if(HFIX[C.id])for(const k in HFIX[C.id])if(HFIX[C.id][k].tip&&TB[k-1])TB[k-1].tip=HFIX[C.id][k].tip;DEM=C.dem;WIDE=C.wide;SAVE_KEY=C.saveKey;SURR.ready=null;
   HOLES.length=0;for(let i=0;i<TB.length;i++)HOLES[i]=null;G.terrains=[];G.hole=null;TOTAL_PAR=TB.reduce((s,h)=>s+h.par,0);
   if(persist)try{localStorage.setItem('golf-course',C.id);}catch(e){}
@@ -129,7 +129,7 @@ function setShortMax(){if(!isShort()){G.swMax=0;G.shortP=null;return;}G.swMax=0;
   const p=G.hole.pin,ka=windAlong(angTo(G.ball.x,G.ball.y,p[0],p[1]));
   G.swMax=clamp(pinDist()/(1+shortRoll(curClub(),G.stype,G.lie==='rough'?'fairway':'green'))*1.8/(shotMods().carry*Math.max(.6,1+Math.min(0,ka)))+1.5,Math.min(6,mx),mx);/* Oct 28 2026: sized from the carry the shot needs (a chip rolls most of the way), so the flag sits high on the meter */G.shortP=null;}
 // pick the short-game shot: chip when it can land on the green and run, pitch when it has to carry more, the club that finishes closest
-function chooseShort(){const d=pinDist(),L=G.lie;if(bunkerSide()){G.stype='splash';G.clubIdx=CI('SW');G.shortP=null;setShortMax();return true;}if(L==='sand'||L==='green'||d>70)return false;
+function chooseShort(){const d=pinDist(),L=G.lie;if(bunkerSide()){G.stype=G.buried?'blast':'splash';G.clubIdx=CI('SW');G.shortP=null;setShortMax();return true;}if(L==='sand'||L==='green'||d>70)return false;
   const J=shortJobFor();while(J.k<J.cands.length)shortEval(J,J.k++);
   if(!J.best)return false;
   G.stype=J.best.st;G.clubIdx=CI(J.best.id);G.shortP=null;setShortMax();return true;}

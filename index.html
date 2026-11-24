@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="gg-build" content="374b256b75">
+<meta name="gg-build" content="f3413a2d2c">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1078,6 +1078,7 @@ window.THREE={ACESFilmicToneMapping:et,AddEquation:y,AddOperation:J,AdditiveAnim
 <script src="data/COURSE_LSU.js?v=870980d52a"></script>
 <script src="data/SURR_GNP.js?v=8e1124a96a"></script>
 <script src="data/COURSE_GNP.js?v=8dea72e705"></script>
+<script src="data/BUNK.js?v=7c66203839"></script>
 <script src="data/REAL_STRIKE.js?v=a47b70e5d4"></script>
 <script src="data/REAL_DRIVER.js?v=d0692d41cb"></script>
 <script src="data/CHAR_PIC.js?v=fb13822186"></script>
@@ -1088,12 +1089,16 @@ window.THREE={ACESFilmicToneMapping:et,AddEquation:y,AddOperation:J,AdditiveAnim
 <script src="data/COURSE_IMG.js?v=ad3086c075"></script>
 <!-- /data files -->
 <!-- game code: tools/datafiles.py (the game is in src/) -->
-<script>(function(){var P=["src/start.js?v=d8ceba60e2","src/clubs-and-surfaces.js?v=2366f36b03","src/hole-construction-from-the.js?v=b62c1e0787","src/terrain-height.js?v=93cf4b6875","src/terrain-texture.js?v=a3e96548c6","src/lighting-shared-by-every.js?v=cd5a62476a","src/realism.js?v=aa16e80b0d","src/surroundings.js?v=74bd8e969d","src/built-things.js?v=caf12313ab","src/sky-dome.js?v=1c137437ce","src/webgl-ground.js?v=5d371faab8","src/state.js?v=5c08b2329b","src/sound.js?v=e6a171fee3","src/ui-helpers.js?v=101dacc8d1","src/flow.js?v=395fe450d7","src/save-file.js?v=e43f4a4f59","src/daily-round.js?v=2f4c842bb7","src/a-golfer-s-daily.js?v=69fbae0731","src/menu.js?v=58010d20df","src/pause-screen-and-feedback.js?v=b5ab620041","src/v107-help-and-faq.js?v=73740ead25","src/course-requests.js?v=1b264636bf","src/career.js?v=8c56e6444d","src/golfers.js?v=ac0e2525f8","src/match-state.js?v=7a407e7535","src/the-rival-s-shot.js?v=aedfc0dd26","src/career-screens.js?v=834dde70da","src/camera.js?v=72b4256890","src/3d-meshes.js?v=031d0e6eb9","src/divots.js?v=5d712295af","src/feel.js?v=cc5f67f75b","src/render.js?v=bbfcd83bef","src/choosing-a-golfer.js?v=59f6ffe37b","src/arm-ik.js?v=cd673d7dbd","src/real-tree-positions-from.js?v=47b995f4ab","src/shader-patches-shared-by.js?v=1d67bace22","src/ground.js?v=95a21c663d","src/sky.js?v=cb305a137b","src/weather.js?v=1fc7d09e82","src/per-hole-scene-content.js?v=c82f72a098","src/immediate-mode-primitives.js?v=0052447815","src/camera-straight-from-v.js?v=1bad554182","src/post-chain.js?v=d105739265","src/hud.js?v=49f3bf64c8","src/loop.js?v=25bd5af309","src/saved-shots.js?v=fceb4c1d72","src/input.js?v=318dc1902c","src/home-screen.js?v=124d004c02","src/sizing.js?v=67b1e861b4","src/boot.js?v=364c778f34"],t="",i,x;for(i=0;i<P.length;i++){x=new XMLHttpRequest();x.open("GET",P[i],false);x.send();if(x.status!==200&&x.status!==0)throw new Error("game code: could not load "+P[i]);t+=x.responseText;}var s=document.createElement("script");s.text="\n"+t+"//# sourceURL=game.js\n";document.currentScript.after(s);})();</script>
+<script>(function(){var P=["src/start.js?v=d8ceba60e2","src/clubs-and-surfaces.js?v=bac53f3b79","src/hole-construction-from-the.js?v=eeb337b72b","src/terrain-height.js?v=e0255f1835","src/bunkers.js?v=159d04c538","src/terrain-texture.js?v=7d18dfe769","src/lighting-shared-by-every.js?v=cd5a62476a","src/realism.js?v=aa16e80b0d","src/surroundings.js?v=74bd8e969d","src/built-things.js?v=caf12313ab","src/sky-dome.js?v=1c137437ce","src/webgl-ground.js?v=5d371faab8","src/state.js?v=ca8adfe0f4","src/sound.js?v=e6a171fee3","src/ui-helpers.js?v=101dacc8d1","src/flow.js?v=395fe450d7","src/save-file.js?v=50cb89632f","src/daily-round.js?v=2f4c842bb7","src/a-golfer-s-daily.js?v=69fbae0731","src/menu.js?v=58010d20df","src/pause-screen-and-feedback.js?v=b5ab620041","src/v107-help-and-faq.js?v=73740ead25","src/course-requests.js?v=1b264636bf","src/career.js?v=8c56e6444d","src/golfers.js?v=ac0e2525f8","src/match-state.js?v=7a407e7535","src/the-rival-s-shot.js?v=392b008613","src/career-screens.js?v=834dde70da","src/camera.js?v=72b4256890","src/3d-meshes.js?v=031d0e6eb9","src/divots.js?v=5d712295af","src/feel.js?v=cc5f67f75b","src/render.js?v=bbfcd83bef","src/choosing-a-golfer.js?v=59f6ffe37b","src/arm-ik.js?v=cd673d7dbd","src/real-tree-positions-from.js?v=47b995f4ab","src/shader-patches-shared-by.js?v=1d67bace22","src/ground.js?v=95a21c663d","src/sky.js?v=cb305a137b","src/weather.js?v=1fc7d09e82","src/per-hole-scene-content.js?v=93199d5ecf","src/immediate-mode-primitives.js?v=0052447815","src/camera-straight-from-v.js?v=1bad554182","src/post-chain.js?v=d759e8a68d","src/hud.js?v=ffbbdf4d1a","src/loop.js?v=25bd5af309","src/saved-shots.js?v=fceb4c1d72","src/input.js?v=b8545bb157","src/home-screen.js?v=124d004c02","src/sizing.js?v=67b1e861b4","src/boot.js?v=364c778f34"],t="",i,x;for(i=0;i<P.length;i++){x=new XMLHttpRequest();x.open("GET",P[i],false);x.send();if(x.status!==200&&x.status!==0)throw new Error("game code: could not load "+P[i]);t+=x.responseText;}var s=document.createElement("script");s.text="\n"+t+"//# sourceURL=game.js\n";document.currentScript.after(s);})();</script>
 <!-- /game code -->
 
 <script>/* What's New. Add the newest update at the TOP of UPDATES; its id must be new each time. */
 (()=>{
 const UPDATES=[
+  {id:"2026-11-24-bunkers",date:"Nov 24, 2026",title:"Real bunkers",items:[
+    "Every bunker's sand now takes its colour from the course's own aerial photo, so bunkers vary course to course and bunker to bunker.",
+    "Tibur\u00f3n Gold's stacked sod-wall bunkers are built: a steep turf wall on the high side of each bunker, measured from the course's lidar. Requested by a player.",
+    "A bunker shot that can't climb the wall catches the lip and drops back into the sand. When your line won't clear it, the aim line turns red and says so."]},
   {id:"2026-11-24-10a6",date:"Nov 24, 2026",title:"New course: Geneva National Palmer",items:[
     "Geneva National Palmer in Lake Geneva, WI: Arnold Palmer's course along Lake Como, from the Black tees (6,948 of 7,083 yd), with Gold and White tees. Requested by a player."]},
   {id:"2026-11-21-84d3",date:"Nov 21, 2026",title:"New course: Le Sueur Country Club",items:[

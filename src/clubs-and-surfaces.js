@@ -72,7 +72,7 @@ const FLYER={cut:{wood:1,hyb:1.05,long:1.1,mid:1.15,short:1.2,gap:1.2,sand:1.2},
 // short game out of the rough / fescue: distance range, extra release (chips run a bit more, pitches and flops a lot more), spin kept, fescue grabs
 const SG_LIE={cut:{v:.03,r:1.08,chip:1.03,back:.8},rough:{v:.07,r:1.3,chip:1.12,back:.5},fescue:{v:.11,r:1.5,chip:1.22,back:0,chunk:.1}};
 const LIE_NAME={tee:'Tee box',fairway:'Fairway',cut:'First cut',rough:'Rough',sand:'Bunker',green:'Green',fescue:'Fescue',dirt:'Dirt & leaves',water:'Water',ob:'Out of bounds',path:'Cart path'};
-const lieNm=k=>k==='fescue'&&typeof CUR!=='undefined'&&CUR.scen==='desert'?'Desert':k==='dirt'&&typeof CUR!=='undefined'&&CUR?({1:'Pine straw',4:'Bare dirt'}[coverRegion()]||LIE_NAME.dirt):LIE_NAME[k];   // v108: desert courses: the native area is desert, not fescue
+const lieNm=k=>k==='sand'&&typeof G!=='undefined'&&G.buried&&G.state!=='flight'?'Bunker \u00b7 plugged':k==='fescue'&&typeof CUR!=='undefined'&&CUR.scen==='desert'?'Desert':k==='dirt'&&typeof CUR!=='undefined'&&CUR?({1:'Pine straw',4:'Bare dirt'}[coverRegion()]||LIE_NAME.dirt):LIE_NAME[k];   // v108: desert courses: the native area is desert, not fescue
 const LIE_COL={tee:'#7cc257',fairway:'#6db14a',cut:'#5ea247',rough:'#3f7d35',sand:'#f4efe2',green:'#9ad873',fescue:'#c9b35f',dirt:'#9b7651',path:'#c9c4b8'};
 const CUP_R=.059, CUP=.059, IMPACT=.12;   // the cup is 4.25 in across (0.059 yd radius); the ball drops once its centre is just inside the rim
 
