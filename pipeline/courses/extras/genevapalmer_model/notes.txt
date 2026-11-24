@@ -1,0 +1,10 @@
+Geneva National clubhouse (shared by the Palmer, Player and Trevino courses), modelled from USGS WI_SEWRPC_2017 lidar (~3 pts/m2).
+block 1 H: main two-storey hip roof with a flat top along the ridge (centre roof deck / skylight area).
+block 2 F: west flat-roofed wing (parapet edge).
+block 3 GV: north entry projection, low gable.
+blocks 4-7 GV: four dormers on the north (parking) roof slope.
+blocks 8-11 GV: four dormers on the south (course) roof slope.
+block 12 F: small flat-roofed vestibule at the north-east corner.
+fit: median 0.06 yd, rms 0.41, 2.4% of cells off by >1 yd; residual blobs only at the dormer ends and the entry gable edge.
+No photo of the clubhouse came back from the extras job: shape from lidar only, look left at the region default.
+Lidar is from 2015-2017; the building may have changed since.

@@ -112,7 +112,8 @@ const R3_FLAGS={
   rushcreek:{bg:'#1f3a5f',fg:'#f2efe6',ac:'#6b2d5c',m:'thistle'},
   sandbox:{bg:'#e9dcc0',fg:'#2f3b2a',ac:'#c4572e',m:'dunes'},
   tiburon:{bg:'#0f3b4a',fg:'#f4ecd8',ac:'#c9a227',m:'fish'},
-  lesueur:{bg:'#2f4a2a',fg:'#f3efe2',ac:'#b8892f',m:'oak'}};
+  lesueur:{bg:'#2f4a2a',fg:'#f3efe2',ac:'#b8892f',m:'oak'},
+  genevapalmer:{bg:'#1f3550',fg:'#f3efe2',ac:'#c9a44a',m:'heron'}};
 function r3FlagStyle(id){return R3_FLAGS[id]||{bg:'#ff6a48',fg:'#ffffff',ac:'#ffd23c',m:''};}
 // emblems, drawn in a box about 100 units across centred on the origin
 const R3_EMB={
