@@ -1,0 +1,6 @@
+21:04:54 probe USGS_LPC_SC_Georgetown_2016_LAS_2019 80052 pts 16708 ground
+21:05:06 ground points 2488441
+21:05:18   http 502 https://imagery.nationalmap.gov/arcgis/rest/directories/imagery_output/USGSNAIPI
+21:05:26   http 502 https://imagery.nationalmap.gov/arcgis/rest/directories/imagery_output/USGSNAIPI
+21:06:26 reg {'shift_m': [-0.24, -1.24], 'depth_m': -0.217}
+21:06:27 done 40

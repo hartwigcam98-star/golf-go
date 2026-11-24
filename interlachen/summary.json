@@ -1,0 +1,38 @@
+{
+ "key": "interlachen",
+ "started": "2026-11-24 21:09:51",
+ "errors": [],
+ "bunkers": 107,
+ "tiles": 20,
+ "scan": "MN_CentralMissRiver_4_B22",
+ "points": 44988915,
+ "photo": 0.9617492,
+ "reg": {
+  "shift_m": [
+   0.84,
+   -0.6
+  ],
+  "depth_m": -0.141
+ },
+ "measured": 106,
+ "lip_max_cm": {
+  "p25": 53.25,
+  "med": 108.0,
+  "p75": 160.25,
+  "p95": 227.25
+ },
+ "floor_cm": {
+  "med": 17.0,
+  "p90": 77.5
+ },
+ "steep_deg": {
+  "med": 13.9,
+  "p90": 26.1
+ },
+ "rgb_med": [
+  121.0,
+  150.0,
+  120.0
+ ],
+ "done": "2026-11-24 21:11:57"
+}

@@ -1,0 +1,6 @@
+21:13:31 probe USGS_LPC_FL_Southwest_B_2018_LAS_2019 315040 pts 59844 ground
+21:14:55 ground points 9919437
+21:15:45   http 502 https://imagery.nationalmap.gov/arcgis/rest/directories/imagery_output/USGSNAIPI
+21:15:53   http 502 https://imagery.nationalmap.gov/arcgis/rest/directories/imagery_output/USGSNAIPI
+21:16:12 reg {'shift_m': [0.16, -0.84], 'depth_m': -0.189}
+21:16:14 done 77
