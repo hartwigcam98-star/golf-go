@@ -46,6 +46,8 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/keys"
           printf '%s\n' "$P8" > "$RUNNER_TEMP/keys/AuthKey_$KID.p8"
+      # Archived unsigned: automatic signing at archive time wants a development profile, and that needs a registered iPhone
+      # ("Your team has no devices"). The export below signs it for the App Store through the API key (cloud signing, no device).
       - name: Archive
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
@@ -57,7 +59,7 @@ jobs:
             -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/App.xcarchive" \
             -allowProvisioningUpdates \
             -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_$KID.p8" -authenticationKeyID "$KID" -authenticationKeyIssuerID "$ISS" \
-            DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             MARKETING_VERSION="${{ inputs.version }}" CURRENT_PROJECT_VERSION="${{ github.run_number }}"
       - name: Upload to App Store Connect
         env:
