@@ -53,6 +53,7 @@ jobs:
           unity auth login --help 2>&1 | sed -n '/Options:/,/Global/p' | head -20 || true
           # sign in through the editor's licensing client (email + password), then claim the free Personal seat with the CLI
           "$UNITY_EDITOR_PATH" -batchmode -quit -nographics -username "$E" -password "$W" -logFile - 2>&1 | grep -E "Licensing::(Client|Module)\] (Success|Error)" | grep -v -i password | sort -u | head -12 || true
+          ( timeout 25 unity auth login --insecure-storage 2>&1 | head -30 ) || true   # (probe: what the browser sign-in prints on a machine with no browser)
           unity license activate --personal --accept-eula --non-interactive 2>&1 | tail -15 || true
           unity license status 2>&1 | tail -15 || true
       - name: Unity build (Xcode project)
