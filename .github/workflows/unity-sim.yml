@@ -1,0 +1,18 @@
+name: Unity sim parity
+# The ported game mechanics (unity/Assets/Scripts/Sim, plain C#) must play exactly like the web game: no Unity licence needed.
+on:
+  push:
+    paths: ['unity/Assets/Scripts/Sim/**', 'unity/SimTests/**', 'unity/Assets/Resources/tuning.json', '.github/workflows/unity-sim.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Parity with the web game
+        run: dotnet run --project unity/SimTests -c Release 2>&1 | tail -60
