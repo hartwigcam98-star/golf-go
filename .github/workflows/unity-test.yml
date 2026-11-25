@@ -27,15 +27,32 @@ jobs:
           P: ${{ secrets.ASC_KEY_P8 }}
         run: |
           for v in E W T K I P; do if [ -z "${!v}" ]; then echo "::error::Missing secret ($v): UNITY_EMAIL, UNITY_PASSWORD and the four Apple secrets are all needed"; exit 1; fi; done
-      - uses: buildalon/unity-setup@v1
-        with:
-          version-file: unity/ProjectSettings/ProjectVersion.txt
-          build-targets: iOS
-      - uses: buildalon/activate-unity-license@v1
-        with:
-          license: Personal
-          username: ${{ secrets.UNITY_EMAIL }}
-          password: ${{ secrets.UNITY_PASSWORD }}
+      # Unity's own standalone CLI installs the editor (the Unity Hub based actions broke when Hub dropped its 'editors' command)
+      - name: Install Unity
+        run: |
+          curl -fsSL https://unity.com/install.sh | bash
+          for d in "$HOME/.local/bin" "$HOME/.unity/bin" /usr/local/bin /opt/homebrew/bin; do [ -x "$d/unity" ] && echo "$d" >> "$GITHUB_PATH" && export PATH="$d:$PATH"; done
+          unity --version
+          export UNITY_NON_INTERACTIVE=1 UNITY_NO_UPDATE_CHECK=1
+          unity install lts -m ios --non-interactive 2>&1 | tail -20
+          unity editors -i --format json | tee editors.json
+          V=$(python3 -c "import json;d=json.load(open('editors.json'));d=d.get('editors',d) if isinstance(d,dict) else d;print(sorted([e.get('version') for e in d])[-1])")
+          ED=$(python3 -c "import json;d=json.load(open('editors.json'));d=d.get('editors',d) if isinstance(d,dict) else d;e=sorted(d,key=lambda e:e.get('version'))[-1];print(e.get('path') or e.get('location') or '')")
+          case "$ED" in *.app) ED="$ED/Contents/MacOS/Unity";; esac
+          [ -x "$ED" ] || ED=$(ls -d /Applications/Unity/Hub/Editor/*/Unity.app/Contents/MacOS/Unity "$HOME"/Applications/Unity/Hub/Editor/*/Unity.app/Contents/MacOS/Unity 2>/dev/null | sort -V | tail -1)
+          echo "version $V  editor $ED"; test -x "$ED"
+          echo "UNITY_EDITOR_PATH=$ED" >> "$GITHUB_ENV"
+          printf 'm_EditorVersion: %s\n' "$V" > unity/ProjectSettings/ProjectVersion.txt
+          unity license --help 2>&1 | head -40 || true
+      - name: Activate the Personal licence
+        env:
+          E: ${{ secrets.UNITY_EMAIL }}
+          W: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          unity license --help >/dev/null 2>&1 && { unity license activate --help 2>&1 | head -30 || true; }
+          # the editor's own activation: signs in and takes a Personal seat when no serial is given
+          "$UNITY_EDITOR_PATH" -batchmode -quit -nographics -username "$E" -password "$W" -logFile - 2>&1 | grep -i -E "licen|entitle|activat|error|seat|personal" | grep -v -i "password" | head -40 || true
+          ls -la "/Library/Application Support/Unity" 2>/dev/null || true
       - name: Unity build (Xcode project)
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
@@ -88,6 +105,11 @@ jobs:
             -allowProvisioningUpdates \
             -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_$KID.p8" -authenticationKeyID "$KID" -authenticationKeyIssuerID "$ISS"
           echo "::notice::Uploaded the Unity test, version ${{ inputs.version }} build ${{ github.run_number }}. It shows in TestFlight after Apple's processing."
-      - name: Remove the key
+      - name: Remove the key and return the licence
         if: always()
-        run: rm -rf "$RUNNER_TEMP/keys"
+        env:
+          E: ${{ secrets.UNITY_EMAIL }}
+          W: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          rm -rf "$RUNNER_TEMP/keys"
+          [ -n "$UNITY_EDITOR_PATH" ] && "$UNITY_EDITOR_PATH" -batchmode -quit -nographics -returnlicense -username "$E" -password "$W" -logFile - 2>&1 | grep -i -E "licen|return" | grep -v -i password | head -10 || true
