@@ -35,9 +35,9 @@ jobs:
           unity --version
           export UNITY_NON_INTERACTIVE=1 UNITY_NO_UPDATE_CHECK=1
           unity install lts -m ios --non-interactive 2>&1 | tail -20
-          unity editors -i --format json | tee editors.json
-          V=$(python3 -c "import json;d=json.load(open('editors.json'));d=d.get('editors',d) if isinstance(d,dict) else d;print(sorted([e.get('version') for e in d])[-1])")
-          ED=$(python3 -c "import json;d=json.load(open('editors.json'));d=d.get('editors',d) if isinstance(d,dict) else d;e=sorted(d,key=lambda e:e.get('version'))[-1];print(e.get('path') or e.get('location') or '')")
+          unity editors -i --format json > editors.json
+          V=$(python3 -c "import json;d=json.load(open('editors.json'))['data']['items'];print(sorted(e['version'] for e in d)[-1])")
+          ED=$(python3 -c "import json;d=json.load(open('editors.json'))['data']['items'];print(sorted(d,key=lambda e:e['version'])[-1]['location'])")
           case "$ED" in *.app) ED="$ED/Contents/MacOS/Unity";; esac
           [ -x "$ED" ] || ED=$(ls -d /Applications/Unity/Hub/Editor/*/Unity.app/Contents/MacOS/Unity "$HOME"/Applications/Unity/Hub/Editor/*/Unity.app/Contents/MacOS/Unity 2>/dev/null | sort -V | tail -1)
           echo "version $V  editor $ED"; test -x "$ED"
