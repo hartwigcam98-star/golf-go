@@ -1,0 +1,63 @@
+name: Unity compile check
+# Compiles the Unity test's scripts (unity/Assets/Scripts and Assets/Editor) against the real Unity engine and uGUI, on Linux,
+# with no Unity licence: the editor is only installed to borrow its assemblies, never run. A C# mistake shows up here in a few
+# minutes instead of after the iPhone build's sign-in (unity-test.yml).
+on:
+  push:
+    paths: ['unity/Assets/**', '.github/workflows/unity-compile.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet/sdk/6* /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true; df -h / | tail -1
+      - name: Install the Unity editor (assemblies only)
+        run: |
+          curl -fsSL https://unity.com/install.sh | bash
+          for d in "$HOME/.local/bin" "$HOME/.unity/bin" /usr/local/bin; do [ -x "$d/unity" ] && export PATH="$d:$PATH" && echo "$d" >> "$GITHUB_PATH"; done
+          export UNITY_NON_INTERACTIVE=1 UNITY_NO_UPDATE_CHECK=1
+          unity install lts --non-interactive 2>&1 | tail -5
+          unity editors -i --format json > editors.json
+          ED=$(python3 -c "import json;d=json.load(open('editors.json'))['data']['items'];print(sorted(d,key=lambda e:e['version'])[-1]['location'])")
+          echo "editor at $ED"
+          DATA=$(dirname "$(find "$ED" -path '*Editor/Data/Managed/UnityEngine' -type d | head -1)")
+          DATA=$(dirname "$DATA")
+          echo "UDATA=$DATA" >> "$GITHUB_ENV"; ls "$DATA/Managed" | head -20
+          ls "$DATA/Resources/PackageManager/BuiltInPackages" | grep -i ugui
+      - name: Compile
+        run: |
+          M="$UDATA/Managed"; UG=$(ls -d "$UDATA"/Resources/PackageManager/BuiltInPackages/com.unity.ugui* | head -1)
+          mkdir -p cc && cd cc
+          DEF="UNITY_6000_0_OR_NEWER;UNITY_2023_1_OR_NEWER;UNITY_2022_1_OR_NEWER;UNITY_2021_1_OR_NEWER;UNITY_2020_1_OR_NEWER;UNITY_2019_1_OR_NEWER;UNITY_2018_1_OR_NEWER;UNITY_5_3_OR_NEWER;PACKAGE_PHYSICS;PACKAGE_PHYSICS2D;PACKAGE_ANIMATION;PACKAGE_INPUTSYSTEM_DISABLED"
+          refs(){ for f in "$M"/UnityEngine/*.dll "$M"/UnityEngine.dll; do [ -f "$f" ] && printf '<Reference Include="%s"><HintPath>%s</HintPath><Private>false</Private></Reference>\n' "$(basename "$f" .dll)" "$f"; done; }
+          ed_refs(){ for f in "$M"/UnityEditor*.dll "$M"/UnityEditor/*.dll; do [ -f "$f" ] && printf '<Reference Include="%s"><HintPath>%s</HintPath><Private>false</Private></Reference>\n' "$(basename "$f" .dll)" "$f"; done; }
+          proj(){ cat > "$1/$1.csproj" <<EOF
+          <Project Sdk="Microsoft.NET.Sdk">
+            <PropertyGroup><TargetFramework>netstandard2.1</TargetFramework><LangVersion>9.0</LangVersion><Nullable>disable</Nullable>
+              <EnableDefaultCompileItems>false</EnableDefaultCompileItems><AllowUnsafeBlocks>true</AllowUnsafeBlocks><NoWarn>0169;0414;0649;0219;0168;0618;0067;8632</NoWarn>
+              <DefineConstants>$DEF$3</DefineConstants><GenerateDocumentationFile>false</GenerateDocumentationFile><DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences></PropertyGroup>
+            <ItemGroup>$2</ItemGroup>
+          </Project>
+          EOF
+          }
+          # uGUI (UnityEngine.UI) from the editor's built-in package source
+          mkdir -p ugui; proj ugui "<Compile Include=\"$UG/Runtime/UGUI/**/*.cs\" />$(refs)" ""
+          dotnet build ugui -c Release -o out > ugui.log 2>&1 || { grep -E "error" ugui.log | sort -u | head -80; echo "::error::ugui did not compile"; exit 1; }
+          grep -E "warning CS" ugui.log | grep -v "/BuiltInPackages/" | sort -u | head -30 || true; echo "ugui: compiled"
+          # the game's scripts
+          mkdir -p game; proj game "<Compile Include=\"$GITHUB_WORKSPACE/unity/Assets/Scripts/**/*.cs\" />$(refs)<Reference Include=\"ugui\"><HintPath>$PWD/out/ugui.dll</HintPath></Reference>" ""
+          dotnet build game -c Release -o out > game.log 2>&1 || { grep -E "error" game.log | sort -u | head -80; echo "::error::game did not compile"; exit 1; }
+          grep -E "warning CS" game.log | grep -v "/BuiltInPackages/" | sort -u | head -30 || true; echo "game: compiled"
+          # the build script (editor), without the iOS-only part
+          mkdir -p editor; proj editor "<Compile Include=\"$GITHUB_WORKSPACE/unity/Assets/Editor/**/*.cs\" />$(refs)$(ed_refs)<Reference Include=\"ugui\"><HintPath>$PWD/out/ugui.dll</HintPath></Reference><Reference Include=\"game\"><HintPath>$PWD/out/game.dll</HintPath></Reference>" ";UNITY_EDITOR"
+          dotnet build editor -c Release -o out > editor.log 2>&1 || { grep -E "error" editor.log | sort -u | head -80; echo "::error::editor did not compile"; exit 1; }
+          grep -E "warning CS" editor.log | grep -v "/BuiltInPackages/" | sort -u | head -30 || true; echo "editor: compiled"
+          test -f out/game.dll && test -f out/editor.dll

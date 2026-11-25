@@ -9,7 +9,8 @@ using UnityEngine.UI;
 public class HoleTest : MonoBehaviour
 {
     GolfGo.Sim.Tuning TU; GolfGo.Sim.Course CO; GolfGo.Sim.Strike SK; GolfGo.Sim.Flight FL; List<GolfGo.Sim.Club> Clubs;
-    const float IMPACT = .12f; float mpos, mdir = 1, mPower; double windA, windMph; RectTransform meterCursor2, powerMark;
+    const float IMPACT = .12f; float mpos, mdir = 1, mPower; double windA, windMph;
+    Hud hud; bool pshot, mapView; float tapMark = -1, aimHeld; bool tapGood;
     static readonly Dictionary<string, float> Mu = new Dictionary<string, float> { { "green", .545f }, { "fairway", 1.2f }, { "tee", 1.2f }, { "cut", 2.4f }, { "rough", 11 }, { "sand", 28 }, { "fescue", 17 } };
     static readonly Dictionary<string, float> Surf = new Dictionary<string, float> { { "green", .9f }, { "fairway", 1.08f }, { "tee", 1.08f }, { "cut", .8f }, { "rough", .35f }, { "sand", .05f }, { "fescue", .15f } };
     const float GACC = 10.7f, CUP = .059f, DRAG = 1.1f;
@@ -18,7 +19,6 @@ public class HoleTest : MonoBehaviour
     HoleData D;
     Camera cam; Transform ball, golfer, club, flag; Mesh ground;
     LineRenderer aimLine; Transform ring;
-    Text fpsT, infoT, clubT, hintT, btnT; Image meterFill; RectTransform meterCursor;
     Vector2 b, prev; float bY; float aim; int ci, strokes;
     enum S { Aim, Power, Acc, Flight, Roll, Holed } S st = S.Aim;
     float meter, meterDir = 1; // swing meter
@@ -39,7 +39,7 @@ public class HoleTest : MonoBehaviour
         TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); CO = new GolfGo.Sim.Course(Resources.Load<TextAsset>("troy1").text);
         SK = new GolfGo.Sim.Strike(TU, CO); Clubs = TU.Clubs();
         windA = Random.value * Mathf.PI * 2; windMph = Mathf.Round(Random.value * 14);
-        BuildWorld(); BuildUI();
+        BuildWorld(); BuildHud();
         b = new Vector2(D.tee[0], D.tee[1]); bY = D.H(b.x, b.y); strokes = 0;
         AimAtPin(); ci = 0; PrepareShot(true);
     }
@@ -159,50 +159,37 @@ public class HoleTest : MonoBehaviour
         var m = new Mesh { name = "Cone", vertices = v.ToArray(), triangles = t.ToArray() }; m.RecalculateNormals(); m.RecalculateBounds(); return m;
     }
 
-    // ---------- UI ----------
-    Font F => Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-    Text Label(Transform p, string s, int size, TextAnchor a, Vector2 anchor, Vector2 pos, Vector2 sizeDelta, Color c)
+    // ---------- HUD (Hud.cs: the web game's own HUD, rebuilt) ----------
+    static readonly Dictionary<string, string> LieName = new Dictionary<string, string> { { "tee", "Tee box" }, { "fairway", "Fairway" }, { "cut", "First cut" }, { "rough", "Rough" }, { "sand", "Bunker" }, { "green", "Green" }, { "fescue", "Fescue" }, { "dirt", "Dirt & leaves" }, { "water", "Water" }, { "ob", "Out of bounds" }, { "path", "Cart path" } };
+    static readonly Dictionary<string, string> LieCol = new Dictionary<string, string> { { "tee", "#7cc257" }, { "fairway", "#6db14a" }, { "cut", "#5ea247" }, { "rough", "#3f7d35" }, { "sand", "#f4efe2" }, { "green", "#9ad873" }, { "fescue", "#c9b35f" }, { "dirt", "#9b7651" }, { "path", "#c9c4b8" } };
+    void BuildHud()
     {
-        var o = new GameObject("T", typeof(RectTransform)); o.transform.SetParent(p, false); var rt = (RectTransform)o.transform;
-        rt.anchorMin = rt.anchorMax = anchor; rt.pivot = anchor; rt.anchoredPosition = pos; rt.sizeDelta = sizeDelta;
-        var t = o.AddComponent<Text>(); t.font = F; t.text = s; t.fontSize = size; t.alignment = a; t.color = c; t.raycastTarget = false; return t;
+        hud = new Hud(IMPACT);
+        hud.onSwing = Swing; hud.onMeter = () => { if (st == S.Power || st == S.Acc) Swing(); };
+        hud.onClub = d => { if (st != S.Aim || D.Lie(b.x, b.y) == "green") return; ci = Mathf.Clamp(ci + d, 0, Clubs.Count - 1); if (C.putter) pshot = false; PrepareShot(false); };
+        hud.onAimTap = d => { if (st != S.Aim) return; float Dd = Mathf.Max(MaxDist, 3); aim += d * Mathf.Max(.4f, Dd * .006f) / Dd; aimHeld = 0; PlaceGolfer(); };
+        hud.onPower = () => { if (st != S.Aim || C.putter) return; pshot = !pshot; RefreshHud(); };
+        hud.onShotType = t => { if (st != S.Aim) return; if (t != "full") hud.SetHint("Punch, pitch, chip, flop and spin come over with the short game (stage 3)"); };
+        hud.onSpin = () => { if (st == S.Aim) hud.SetHint("Strike point and shot height come over with stage 3"); };
+        hud.onMap = () => { if (st == S.Aim) mapView = !mapView; };
+        hud.onMenu = () => { if (st == S.Aim || st == S.Holed) { CancelInvoke(); ArmRestart(); } };
     }
-    Button Btn(Transform p, string s, Vector2 anchor, Vector2 pos, Vector2 size, Color bg, System.Action f, out Text label)
+    GolfGo.Sim.ShotIn Si(float? e = null) => new GolfGo.Sim.ShotIn { bx = b.x, by = b.y, aim = aim, power = mPower, e = e, club = C.id, lie = D.Lie(b.x, b.y), stype = "full", pshot = pshot && !C.putter, onTeeBox = strokes == 0, windA = windA, windMph = windMph };
+    float winC = .03f;
+    float Win => C.putter ? .03f : (float)SK.PerfectWin(C, Si());
+    void RefreshHud()
     {
-        var o = new GameObject("B", typeof(RectTransform)); o.transform.SetParent(p, false); var rt = (RectTransform)o.transform;
-        rt.anchorMin = rt.anchorMax = anchor; rt.pivot = new Vector2(.5f, 0); rt.anchoredPosition = pos; rt.sizeDelta = size;
-        var img = o.AddComponent<Image>(); img.color = bg; var b = o.AddComponent<Button>(); b.onClick.AddListener(() => f());
-        label = Label(o.transform, s, 30, TextAnchor.MiddleCenter, new Vector2(.5f, .5f), Vector2.zero, size, new Color(.06f, .13f, .2f)); label.rectTransform.pivot = new Vector2(.5f, .5f);
-        return b;
+        string lie = D.Lie(b.x, b.y); float pd = PinDist;
+        hud.SetTop(D.course + " · Hudson, WI", D.hole, "Par " + D.par + " · " + D.len + " yds", "Stroke " + (strokes + 1) + " · Round E");
+        hud.SetClub(C.id == "1W" ? "Driver" : C.id, C.putter ? "Putter · " + Mathf.RoundToInt(MaxDist * 3) + " ft" : (C.id == "1W" ? (strokes == 0 ? "Off the tee" : "Off the deck") : C.name) + " · " + Mathf.RoundToInt(MaxDist) + "y", ci > 0, ci < Clubs.Count - 1);
+        hud.SetLie(LieName.TryGetValue(lie, out var ln) ? ln : Cap(lie), Hud.Hex(LieCol.TryGetValue(lie, out var lc) ? lc : "#6db14a"), lie == "green" || pd < 20 ? "Cup " + Mathf.RoundToInt(pd * 3) + " ft" : "Pin " + Mathf.RoundToInt(pd) + " yds");
+        hud.SetShot("full", C.putter, st == S.Aim, pshot && !C.putter); winC = Win;
+        // the meter's scale: carry yards along it (feet of roll for a putt on the green)
+        bool pg = C.putter && lie == "green"; float mx = C.putter ? MaxDist * 3 : MaxDist;
+        string L(float f) => Mathf.Max(1, Mathf.RoundToInt(mx * f)) + (pg ? " ft" : "y");
+        hud.SetLabels(L(.25f), L(.5f), L(.75f), L(1));
     }
-    void BuildUI()
-    {
-        var c = new GameObject("UI", typeof(RectTransform)).AddComponent<Canvas>(); c.renderMode = RenderMode.ScreenSpaceOverlay;
-        var sc = c.gameObject.AddComponent<CanvasScaler>(); sc.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; sc.referenceResolution = new Vector2(393, 852); sc.matchWidthOrHeight = .5f;
-        c.gameObject.AddComponent<GraphicRaycaster>();
-        var es = new GameObject("Events"); es.AddComponent<UnityEngine.EventSystems.EventSystem>(); es.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-        var tp = c.transform; Color navy = new Color(.06f, .13f, .2f, .88f), cream = new Color(1, .96f, .86f);
-        var top = new GameObject("Top", typeof(RectTransform)).AddComponent<Image>(); top.transform.SetParent(tp, false); top.color = navy;
-        var trt = top.rectTransform; trt.anchorMin = new Vector2(0, 1); trt.anchorMax = new Vector2(1, 1); trt.pivot = new Vector2(.5f, 1); trt.sizeDelta = new Vector2(0, 120); trt.anchoredPosition = Vector2.zero;
-        fpsT = Label(tp, "-- FPS", 15, TextAnchor.UpperLeft, new Vector2(0, 1), new Vector2(14, -58), new Vector2(200, 24), new Color(.48f, .89f, .54f));
-        infoT = Label(tp, "", 15, TextAnchor.UpperRight, new Vector2(1, 1), new Vector2(-14, -58), new Vector2(260, 60), cream);
-        Label(tp, "UNITY TEST", 11, TextAnchor.UpperLeft, new Vector2(0, 1), new Vector2(14, -84), new Vector2(200, 20), new Color(1, .8f, .25f));
-        hintT = Label(tp, "", 13, TextAnchor.LowerCenter, new Vector2(.5f, 0), new Vector2(0, 14), new Vector2(380, 40), cream);
-        // meter
-        var mbg = new GameObject("Meter", typeof(RectTransform)).AddComponent<Image>(); mbg.transform.SetParent(tp, false); mbg.color = navy;
-        var mrt = mbg.rectTransform; mrt.anchorMin = mrt.anchorMax = new Vector2(.5f, 0); mrt.pivot = new Vector2(.5f, 0); mrt.anchoredPosition = new Vector2(0, 150); mrt.sizeDelta = new Vector2(340, 22);
-        meterFill = new GameObject("Fill", typeof(RectTransform)).AddComponent<Image>(); meterFill.transform.SetParent(mbg.transform, false); meterFill.color = new Color(.36f, .77f, .45f);
-        var frt = meterFill.rectTransform; frt.anchorMin = new Vector2(0, 0); frt.anchorMax = new Vector2(0, 1); frt.pivot = new Vector2(0, .5f); frt.sizeDelta = new Vector2(0, -6); frt.anchoredPosition = new Vector2(3, 0);
-        RectTransform Bar(string n, Color c, float w) { var im = new GameObject(n, typeof(RectTransform)).AddComponent<Image>(); im.transform.SetParent(mbg.transform, false); im.color = c; var r = im.rectTransform; r.anchorMin = new Vector2(0, 0); r.anchorMax = new Vector2(0, 1); r.pivot = new Vector2(.5f, .5f); r.sizeDelta = new Vector2(w, 8); return r; }
-        Bar("Impact", new Color(1, 1, 1, .9f), 3).anchoredPosition = new Vector2(3 + 334 * IMPACT, 0);
-        powerMark = Bar("Power", new Color(1, .8f, .25f), 4); meterCursor2 = Bar("Cursor", Color.white, 5);
-        // controls
-        Btn(tp, "<", new Vector2(.5f, 0), new Vector2(-150, 70), new Vector2(60, 64), cream, () => { if (st == S.Aim) { ci = Mathf.Max(0, ci - 1); PrepareShot(false); } }, out _);
-        Btn(tp, ">", new Vector2(.5f, 0), new Vector2(150, 70), new Vector2(60, 64), cream, () => { if (st == S.Aim) { ci = Mathf.Min(Clubs.Count - 2, ci + 1); PrepareShot(false); } }, out _);
-        { var sb = Btn(tp, "SWING", new Vector2(.5f, 0), new Vector2(0, 70), new Vector2(210, 64), new Color(1, .8f, .25f), () => { }, out btnT);
-          sb.transition = Selectable.Transition.None; sb.gameObject.AddComponent<PressHandler>().onPress = Swing; }   // reacts on touch-down, like the web game
-        clubT = Label(tp, "", 17, TextAnchor.MiddleCenter, new Vector2(.5f, 0), new Vector2(0, 182), new Vector2(380, 30), cream);
-    }
+    static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s.Substring(1);
 
     // ---------- play ----------
     GolfGo.Sim.Club C => Clubs[ci];
@@ -222,14 +209,10 @@ public class HoleTest : MonoBehaviour
             else { ci = pt - 1; for (int k = 0; k < pt; k++) if (Clubs[k].carry <= pd * 1.02f) { ci = k; break; } if (strokes == 0 && D.par >= 4) ci = 0; }
             AimAtPin();
         }
-        st = S.Aim; mpos = IMPACT; btnT.text = "SWING";
-        clubT.text = C.name + (C.putter ? "" : " · " + Mathf.RoundToInt(MaxDist) + "y") + "   ·   " + Cap(lie);
-        infoT.text = D.course + " · Hole 1 · Par " + D.par + "\nStroke " + (strokes + 1) + " · Pin " + (C.putter ? Mathf.RoundToInt(PinDist * 3) + " ft" : Mathf.RoundToInt(PinDist) + " yds") + "\nWind " + windMph + " mph " + Arrow(windA - aim);
-        hintT.text = "Drag to aim · Swing starts the meter · tap to set power · tap again on the white line";
+        st = S.Aim; mpos = IMPACT; mapView = false; hud.SetSwing("SWING", 0, true); RefreshHud();
+        hud.SetHint("Drag to aim · Tap Swing to start");
         PlaceGolfer(); swingT = -1;
     }
-    static string Arrow(double rel) { int k = (int)Mathf.Repeat(Mathf.Round((float)(rel / (Mathf.PI / 4))), 8); return new[] { "↑", "↗", "→", "↘", "↓", "↙", "←", "↖" }[k]; }
-    static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s.Substring(1);
     void PlaceGolfer()
     {
         var d = Dir(aim); var right = new Vector2(-d.y, d.x) * -1;
@@ -242,24 +225,30 @@ public class HoleTest : MonoBehaviour
     // on the way back down strikes it: how far from the white line that tap lands decides perfect, nice, hook or slice
     void Swing()
     {
-        if (st == S.Aim) { st = S.Power; mpos = IMPACT; mdir = 1; btnT.text = "POWER"; return; }
-        if (st == S.Power) { mPower = (mpos - IMPACT) / (1 - IMPACT); st = S.Acc; btnT.text = "HIT"; return; }
+        if (st == S.Aim) { st = S.Power; mpos = IMPACT; mdir = 1; mapView = false; tapMark = -1; hud.SetSwing("POWER", 1, true); hud.SetHint("Tap to set power"); RefreshHud(); return; }
+        if (st == S.Power) { mPower = (mpos - IMPACT) / (1 - IMPACT); st = S.Acc; hud.SetSwing("IMPACT!", 2, true); hud.SetHint("Tap on the white line"); return; }
         if (st == S.Acc) StrikeNow(Mathf.Clamp(mpos - IMPACT, -.12f, .4f));
     }
     float SpeedP => C.putter ? .7f : 1f;
-    float SpeedA => C.putter ? .6f : .95f;
+    float SpeedA => C.putter ? .6f : .95f * (pshot ? 1.2f : 1);
     void StrikeNow(float? e)
     {
-        strokes++; prev = b; swingT = 0; btnT.text = "..."; hintT.text = ""; aimLine.positionCount = 0; ring.gameObject.SetActive(false);
+        float win = Win; tapMark = e.HasValue ? IMPACT + e.Value : -1; tapGood = e.HasValue && Mathf.Abs(e.Value) <= win;
+        strokes++; prev = b; swingT = 0; hud.SetSwing("SWING", 0, false); hud.SetHint(""); aimLine.positionCount = 0; ring.gameObject.SetActive(false);
         if (C.putter)
         {
             float pe = e ?? (Random.value < .5f ? -.12f : .12f), pw = e == null ? mPower * .4f : mPower;
             var d = Dir(aim - pe * 1.45f); float dist = MaxDist * pw; rv = d * Mathf.Sqrt(2 * Mu["green"] * dist); st = S.Roll; fPutt = true; return;
         }
-        var si = new GolfGo.Sim.ShotIn { bx = b.x, by = b.y, aim = aim, power = mPower, e = e, club = C.id, lie = D.Lie(b.x, b.y), stype = "full", onTeeBox = strokes == 1, windA = windA, windMph = windMph };
+        strokes--; var si = Si(e); strokes++;   // (onTeeBox: the stroke being played is the first)
         FL = SK.Hit(si, Random.Range(1, int.MaxValue));
-        string msg = FL.miss ? "MISHIT" : FL.perfect == 2 ? "PERFECT!" : FL.perfect == 1 ? "NICE SHOT" : Mathf.Abs(e ?? 0) > .035f ? ((e ?? 0) > 0 ? "HOOK" : "SLICE") : ((e ?? 0) > 0 ? "PULLED" : "PUSHED");
-        hintT.text = msg + " · " + Mathf.RoundToInt((float)FL.carry) + " yd carry";
+        // the web game's strike toasts (save-file.js strikeShot)
+        float ev = e ?? 0;
+        if (FL.miss) hud.Toast("MISHIT!", "Timing missed the impact line", Hud.Coral);
+        else if (FL.perfect == 2) hud.Toast("PERFECT!", (pshot ? "Full-power fireball" : "Dead centre") + (C.kind == "wood" ? " · +3% carry" : " · bites on landing"), pshot ? Hud.Hex("#ff8a3c") : Hud.Hex("#7cc8ff"));
+        else if (FL.perfect == 1) hud.Toast("NICE SHOT!", "", Hud.Sun);
+        else if (Mathf.Abs(ev) > .035f) hud.Toast(ev > 0 ? "HOOK!" : "SLICE!", ev > 0 ? "Tapped early" : "Tapped late", Hud.Hex("#ff9b6a"));
+        else if (ev != 0) hud.Toast(ev > 0 ? "PULLED" : "PUSHED", ev > 0 ? "A touch early" : "A touch late", Hud.Hex("#ffd2a8"));
         fs = b; var td = new Vector2((float)FL.dx, (float)FL.dy); fd = td; fCarry = (float)FL.carry; fT = (float)FL.T; fu = 0; fRollMul = (float)FL.rollMul; fPutt = false; st = S.Flight;
     }
     static float FlightS(float u) => u <= 1 ? (1 - Mathf.Exp(-DRAG * u)) / DRAG_N : 1 + (u - 1) * DRAG * Mathf.Exp(-DRAG) / DRAG_N;
@@ -278,13 +267,19 @@ public class HoleTest : MonoBehaviour
         if (st == S.Power)
         {
             mpos += mdir * dt * SpeedP; if (mpos >= 1) { mpos = 1; mdir = -1; }
-            else if (mdir < 0 && mpos <= IMPACT) { PrepareShot(false); hintT.text = "No power set · tap once more on the way up"; }
+            else if (mdir < 0 && mpos <= IMPACT) { PrepareShot(false); hud.SetHint("No power set · tap once more on the way up"); }
         }
         else if (st == S.Acc) { mpos -= dt * SpeedA; if (mpos <= 0) { mpos = 0; StrikeNow(null); } }
         bool live = st == S.Power || st == S.Acc;
-        meterFill.rectTransform.sizeDelta = new Vector2(334 * (live ? mpos : 0), -6);
-        meterCursor2.anchoredPosition = new Vector2(3 + 334 * (live ? mpos : IMPACT), 0); meterCursor2.gameObject.SetActive(live);
-        powerMark.anchoredPosition = new Vector2(3 + 334 * (IMPACT + mPower * (1 - IMPACT)), 0); powerMark.gameObject.SetActive(st == S.Acc);
+        float lockAt = IMPACT + mPower * (1 - IMPACT);
+        hud.SetMeter(IMPACT, live ? mpos : IMPACT, st == S.Power ? mpos : st == S.Acc ? lockAt : IMPACT, st == S.Acc ? lockAt : -1, winC, live ? -1 : tapMark, tapGood);
+        if (st == S.Aim && hud.aimHold != 0)
+        {   // loop.js: holding an aim arrow turns faster the longer it's held
+            aimHeld += dt; float Dd = Mathf.Max(MaxDist, 3); aim += hud.aimHold * Mathf.Max(.6f, Dd * .04f) / Dd * (1 + aimHeld * 2.5f) * dt; PlaceGolfer();
+        }
+        else aimHeld = 0;
+        hud.SetWind((int)windMph, (float)(windA - aim) * Mathf.Rad2Deg);
+        hud.Tick(dt);
         if (swingT >= 0) { swingT += dt; float a = swingT < .35f ? -110 * (swingT / .35f) : Mathf.Lerp(-110, 120, Mathf.Clamp01((swingT - .35f) / .25f)); club.localRotation = Quaternion.Euler(0, 0, a); if (swingT > 1.4f) swingT = -1; }
         if (st == S.Flight) StepFlight(dt);
         else if (st == S.Roll) StepRoll(dt);
@@ -341,21 +336,26 @@ public class HoleTest : MonoBehaviour
         }
         bY = D.H(b.x, b.y);
     }
-    void Penalty(string L) { strokes++; b = prev; bY = D.H(b.x, b.y); hintT.text = L == "water" ? "In the water · one-stroke penalty" : "Out of bounds · one-stroke penalty"; Invoke(nameof(Next), 1.2f); st = S.Holed; }
+    void Penalty(string L) { strokes++; b = prev; bY = D.H(b.x, b.y); hud.Toast(L == "water" ? "IN THE WATER" : "OUT OF BOUNDS", "One-stroke penalty", Hud.Hex("#ff9b6a")); hud.SetHint(""); Invoke(nameof(Next), 1.2f); st = S.Holed; }
     void Stop() { st = S.Holed; Invoke(nameof(Next), .9f); }
     void Next() { PrepareShot(true); }
     void Holed()
     {
         st = S.Holed; b = new Vector2(D.pin[0], D.pin[1]); bY = D.H(b.x, b.y) - .08f; int tp = strokes - D.par;
         string nm = strokes == 1 ? "HOLE IN ONE" : tp <= -3 ? "ALBATROSS" : tp == -2 ? "EAGLE" : tp == -1 ? "BIRDIE" : tp == 0 ? "PAR" : tp == 1 ? "BOGEY" : "+" + tp;
-        hintT.text = nm + " · " + strokes + " strokes · tap Swing to play again"; btnT.text = "AGAIN"; Invoke(nameof(ArmRestart), .6f);
+        hud.Toast(nm, strokes + (strokes == 1 ? " stroke" : " strokes"), tp < 0 ? Hud.Sun : tp == 0 ? Hud.Mint : Hud.Cream); hud.SetHint(""); hud.SetSwing("AGAIN", 0, false); Invoke(nameof(ArmRestart), .6f);
     }
     void ArmRestart() { st = S.Aim; strokes = 0; b = new Vector2(D.tee[0], D.tee[1]); bY = D.H(b.x, b.y); PrepareShot(true); }
 
     void CameraUpdate(float dt)
     {
         Vector3 pos, look; var bp = HoleData.U(b.x, b.y, bY);
-        if (st == S.Flight) { var d3 = new Vector3(fd.x, 0, -fd.y); pos = HoleData.U(fs.x, fs.y, D.H(fs.x, fs.y)) - d3 * 10 + Vector3.up * 4; look = bp; }
+        if (mapView && st == S.Aim)
+        {   // the map button: the whole hole from above (the web's overview, simplified)
+            var pin = new Vector2(D.pin[0], D.pin[1]); var mid = (b + pin) / 2; var dd = Dir(aim); var d3m = new Vector3(dd.x, 0, -dd.y);
+            look = HoleData.U(mid.x, mid.y, D.H(mid.x, mid.y)); pos = look - d3m * (PinDist * .25f) + Vector3.up * (PinDist * 1.1f + 30);
+        }
+        else if (st == S.Flight) { var d3 = new Vector3(fd.x, 0, -fd.y); pos = HoleData.U(fs.x, fs.y, D.H(fs.x, fs.y)) - d3 * 10 + Vector3.up * 4; look = bp; }
         else
         {
             var d = Dir(aim); var d3 = new Vector3(d.x, 0, -d.y); bool putt = C.putter && st != S.Flight;
@@ -374,8 +374,7 @@ public class HoleTest : MonoBehaviour
         if (fAcc >= .5f)
         {
             int f = Mathf.RoundToInt(fN / fAcc);
-            fpsT.text = f + " FPS · worst " + Mathf.RoundToInt(fMax * 1000) + " ms · max " + Screen.currentResolution.refreshRateRatio.value.ToString("0") + " Hz";
-            fpsT.color = f >= 100 ? new Color(.48f, .89f, .54f) : f >= 55 ? new Color(1, .83f, .3f) : new Color(1, .48f, .42f);
+            hud.SetFps(f + " FPS · worst " + Mathf.RoundToInt(fMax * 1000) + " ms · " + Screen.currentResolution.refreshRateRatio.value.ToString("0") + " Hz");
             fN = 0; fAcc = 0; fMax = 0;
         }
     }

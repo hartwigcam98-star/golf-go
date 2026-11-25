@@ -71,6 +71,14 @@ jobs:
             unity license activate --personal --accept-eula --non-interactive 2>&1 | tail -8
           fi
           unity license status 2>&1 | tail -6
+      # the web game's two Google Fonts (SIL Open Font Licence), for the HUD (Hud.cs loads them from Resources/Fonts)
+      - name: Fonts
+        run: |
+          mkdir -p unity/Assets/Resources/Fonts
+          for f in lilitaone/LilitaOne-Regular.ttf barlowsemicondensed/BarlowSemiCondensed-Medium.ttf barlowsemicondensed/BarlowSemiCondensed-Bold.ttf barlowsemicondensed/OFL.txt; do
+            curl -fsSL -o "unity/Assets/Resources/Fonts/$(basename $f)" "https://raw.githubusercontent.com/google/fonts/main/ofl/$f" || echo "::warning::font $f not fetched (the HUD falls back to the built-in font)"
+          done
+          ls -la unity/Assets/Resources/Fonts
       - name: Unity build (Xcode project)
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
