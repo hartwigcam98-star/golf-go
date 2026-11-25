@@ -199,7 +199,8 @@ public class HoleTest : MonoBehaviour
         // controls
         Btn(tp, "<", new Vector2(.5f, 0), new Vector2(-150, 70), new Vector2(60, 64), cream, () => { if (st == S.Aim) { ci = Mathf.Max(0, ci - 1); PrepareShot(false); } }, out _);
         Btn(tp, ">", new Vector2(.5f, 0), new Vector2(150, 70), new Vector2(60, 64), cream, () => { if (st == S.Aim) { ci = Mathf.Min(Clubs.Count - 2, ci + 1); PrepareShot(false); } }, out _);
-        Btn(tp, "SWING", new Vector2(.5f, 0), new Vector2(0, 70), new Vector2(210, 64), new Color(1, .8f, .25f), Swing, out btnT);
+        { var sb = Btn(tp, "SWING", new Vector2(.5f, 0), new Vector2(0, 70), new Vector2(210, 64), new Color(1, .8f, .25f), () => { }, out btnT);
+          sb.transition = Selectable.Transition.None; sb.gameObject.AddComponent<PressHandler>().onPress = Swing; }   // reacts on touch-down, like the web game
         clubT = Label(tp, "", 17, TextAnchor.MiddleCenter, new Vector2(.5f, 0), new Vector2(0, 182), new Vector2(380, 30), cream);
     }
 
