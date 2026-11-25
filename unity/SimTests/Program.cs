@@ -40,7 +40,8 @@ static class Program
         Console.WriteLine($"strike parity: {n - bad}/{n} cases match the web game");
         int lbad = Landings(root, S, C);
         int sbad = ShortGame(root, S, C);
-        return bad == 0 && lbad == 0 && sbad == 0 ? 0 : 1;
+        int pbad = Putting(root, S, C);
+        return bad == 0 && lbad == 0 && sbad == 0 && pbad == 0 ? 0 : 1;
     }
 
     /* Stage 2: each case in land_cases.json is a shot the web game struck on Troy Burne 1, then flew, bounced and rolled to rest
@@ -164,6 +165,52 @@ static class Program
         }
         var ks = new List<string>(); foreach (var kv in kinds) ks.Add(kv.Key + " " + kv.Value);
         Console.WriteLine($"short-game parity: {n - bad}/{n} cases match the web game ({string.Join(", ", ks)})");
+        return bad;
+    }
+    /* Stage 4: putts on Troy 1's green and fringe (putt_cases.json): the meter's length, the need, the flag, the window, flag out,
+       the stroke's starting velocity, then the roll to rest. */
+    static int Putting(string root, Strike S, Course C)
+    {
+        var H = new SimHole(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy1_sim.json")));
+        var P = new Putt(S, H, C);
+        var cases = (List<object>)MiniJson.Parse(File.ReadAllText(Path.Combine(root, "SimTests/putt_cases.json")));
+        int bad = 0, n = 0; var kinds = new Dictionary<string, int>();
+        foreach (Dictionary<string, object> c in cases)
+        {
+            n++; var pre = (Dictionary<string, object>)c["pre"]; var diffs = new List<string>();
+            void Chk(string k, double a, double b, double tol = 1e-6) { if (Math.Abs(a - b) > tol * Math.Max(1, Math.Abs(b))) diffs.Add($"{k} {a:G9} vs web {b:G9}"); }
+            double bx = D(c["bx"]), by = D(c["by"]); string lie = (string)pre["lie"];
+            var q = P.Need(bx, by, lie); Chk("need", q.need, D(pre["need"])); Chk("d", q.d, D(pre["d"]));
+            double pm = P.Max(bx, by, lie); Chk("puttMax", pm, D(pre["puttMax"]));
+            var tp = P.TargetPower(bx, by, lie, D(pre["puttMax"]));
+            if ((tp == null) != (pre["tp"] == null)) diffs.Add("flag shown differs"); else if (tp != null) Chk("flag", tp.Value, D(pre["tp"]));
+            bool fo = Putt.FlagOut(lie, q.d); if (fo != (bool)pre["flagOut"]) diffs.Add("flag out differs");
+            if (P.LineClean(bx, by) != (bool)pre["clean"]) diffs.Add("clean line differs");
+            Chk("window", P.Window(false), D(pre["win"]));
+            var st = P.Hit(bx, by, D(pre["aim"]), lie, D(pre["puttMax"]), D(pre["power"]), c["e"] == null ? (double?)null : D(c["e"]), false, (int)D(c["seed"]));
+            var v0 = (List<object>)c["v0"]; Chk("vx", st.vx, D(v0[0])); Chk("vy", st.vy, D(v0[1]));
+            if (diffs.Count == 0)
+            {
+                var b = new Ball(H, C, S) { flagOut = (bool)pre["flagOut"] };
+                b.LaunchRoll(bx, by, D(v0[0]), D(v0[1]), (int)D(c["lseed"])); int frames = 0; while (b.Moving && frames < 60 * 40) { frames++; b.Step(1.0 / 60); }
+                var o = (Dictionary<string, object>)c["out"]; var oc = b.outcome;
+                string wk = (string)o["kind"]; bool gim = o.TryGetValue("gimme", out var gv) && gv is bool gb && gb; if (wk == "rest" && gim) wk = "holed";
+                string how = gim ? "Gimme" : o.TryGetValue("how", out var hw) ? (string)hw ?? "" : "";
+                if (oc == null) diffs.Add("no outcome");
+                else
+                {
+                    if (oc.kind != wk) diffs.Add($"kind {oc.kind} vs web {wk}");
+                    else if (wk == "holed" && oc.how != how) diffs.Add($"how '{oc.how}' vs web '{how}'");
+                    Chk("rest x", oc.x, D(o["x"])); Chk("rest y", oc.y, D(o["y"]));
+                    if (oc.dice != (int)D(o["d"])) diffs.Add($"dice {oc.dice} vs web {D(o["d"])}");
+                    if (frames != (int)D(c["frames"])) diffs.Add($"frames {frames} vs web {D(c["frames"])}");
+                }
+                string key = lie + ":" + wk + (how != "" ? "/" + how : ""); kinds[key] = kinds.TryGetValue(key, out var kc) ? kc + 1 : 1;
+            }
+            if (diffs.Count > 0) { bad++; if (bad <= 40) Console.WriteLine($"putt {n} ({lie} {bx:F2},{by:F2} e{c["e"]}): " + string.Join("; ", diffs)); }
+        }
+        var ks = new List<string>(); foreach (var kv in kinds) ks.Add(kv.Key + " " + kv.Value);
+        Console.WriteLine($"putting parity: {n - bad}/{n} cases match the web game ({string.Join(", ", ks)})");
         return bad;
     }
     static double D(object o) => Convert.ToDouble(o);
