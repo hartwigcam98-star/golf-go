@@ -125,6 +125,17 @@ namespace GolfGo.Sim
     {
         public static double Clamp(double v, double a, double b) => v < a ? a : v > b ? b : v;
         public static double Hyp(double a, double b) => Math.Sqrt(a * a + b * b);
+        // Math.hypot as V8 computes it (scaled by the larger value, Kahan sum): plain sqrt(a*a+b*b) can differ in the last bit,
+        // and a roll that runs thousands of steps can carry that difference to a stop/no-stop decision
+        public static double Hypot(double a, double b)
+        {
+            a = Math.Abs(a); b = Math.Abs(b); double max = Math.Max(a, b);
+            if (double.IsInfinity(max)) return double.PositiveInfinity; if (double.IsNaN(a) || double.IsNaN(b)) return double.NaN; if (max == 0) return 0;
+            double sum = 0, comp = 0;
+            double n = a / max, summand = n * n - comp, pre = sum + summand; comp = (pre - sum) - summand; sum = pre;   // (unrolled: no allocation per call)
+            n = b / max; summand = n * n - comp; pre = sum + summand; sum = pre;
+            return Math.Sqrt(sum) * max;
+        }
         public static (double, double) Dir(double a) => (Math.Sin(a), -Math.Cos(a));
         public static double Sign(double v) => v > 0 ? 1 : v < 0 ? -1 : 0;
     }
