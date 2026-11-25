@@ -28,8 +28,8 @@ jobs:
           unity editors -i --format json > editors.json
           ED=$(python3 -c "import json;d=json.load(open('editors.json'))['data']['items'];print(sorted(d,key=lambda e:e['version'])[-1]['location'])")
           echo "editor at $ED"
-          DATA=$(dirname "$(find "$ED" -path '*Editor/Data/Managed/UnityEngine' -type d | head -1)")
-          DATA=$(dirname "$DATA")
+          [ -f "$ED" ] && ED=$(dirname "$ED")   # the CLI may give the Unity binary itself
+          [ -d "$ED/Data/Managed" ] && DATA="$ED/Data" || DATA=$(dirname "$(dirname "$(find "$ED/.." -path '*Data/Managed/UnityEngine' -type d | head -1)")")
           echo "UDATA=$DATA" >> "$GITHUB_ENV"; ls "$DATA/Managed" | head -20
           ls "$DATA/Resources/PackageManager/BuiltInPackages" | grep -i ugui
       - name: Compile
