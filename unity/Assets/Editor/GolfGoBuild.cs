@@ -57,6 +57,19 @@ public static class GolfGoBuild
             var team = Environment.GetEnvironmentVariable("TEAM"); if (!string.IsNullOrEmpty(team)) PlayerSettings.iOS.appleDeveloperTeamID = team;
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
             PlayerSettings.SplashScreen.show = false;
+            // the app icon (the same gold flag as the web app); App Store Connect refuses a build without the 1024 one
+            AssetDatabase.ImportAsset("Assets/Icon.png");
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Icon.png");
+            if (icon)
+            {
+                PlayerSettings.SetIcons(UnityEditor.Build.NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
+                foreach (IconKind k in new[] { IconKind.Application, IconKind.Store, IconKind.Settings, IconKind.Notification, IconKind.Spotlight })
+                {
+                    int n = PlayerSettings.GetIconSizes(UnityEditor.Build.NamedBuildTarget.iOS, k).Length;
+                    if (n > 0) { var a = new Texture2D[n]; for (int i = 0; i < n; i++) a[i] = icon; PlayerSettings.SetIcons(UnityEditor.Build.NamedBuildTarget.iOS, a, k); }
+                }
+            }
+            else Debug.LogError("GolfGoBuild: Assets/Icon.png missing");
             PlayerSettings.statusBarHidden = true;
             QualitySettings.antiAliasing = 4;
             var r = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = new[] { "Assets/Scenes/Hole.unity" }, locationPathName = "build/iOS", target = BuildTarget.iOS, options = BuildOptions.None });
