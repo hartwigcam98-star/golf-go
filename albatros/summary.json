@@ -1,0 +1,108 @@
+{
+ "key": "albatros",
+ "started": "2026-11-25 13:34:26",
+ "errors": [],
+ "scan": "FR_LiDARHD",
+ "fr_tiles": [
+  {
+   "t": "LHD_FXX_0633_6852_PTS_LAMB93_IGN69.copc.laz",
+   "start": "2022-02-12Z",
+   "end": "2022-02-26Z"
+  },
+  {
+   "t": "LHD_FXX_0633_6850_PTS_LAMB93_IGN69.copc.laz",
+   "start": "2022-02-26Z",
+   "end": "2022-02-26Z"
+  },
+  {
+   "t": "LHD_FXX_0633_6851_PTS_LAMB93_IGN69.copc.laz",
+   "start": "2022-02-26Z",
+   "end": "2022-02-26Z"
+  },
+  {
+   "t": "LHD_FXX_0631_6852_PTS_LAMB93_IGN69.copc.laz",
+   "start": "2022-02-12Z",
+   "end": "2022-02-26Z"
+  },
+  {
+   "t": "LHD_FXX_0632_6852_PTS_LAMB93_IGN69.copc.laz",
+   "start": "2022-02-12Z",
+   "end": "2022-02-26Z"
+  },
+  {
+   "t": "LHD_FXX_0632_6850_PTS_LAMB93_IGN69.copc.laz",
+   "start": "2022-02-26Z",
+   "end": "2022-02-26Z"
+  },
+  {
+   "t": "LHD_FXX_0632_6851_PTS_LAMB93_IGN69.copc.laz",
+   "start": "2022-02-26Z",
+   "end": "2022-02-26Z"
+  },
+  {
+   "t": "LHD_FXX_0631_6851_PTS_LAMB93_IGN69.copc.laz",
+   "start": "2022-02-26Z",
+   "end": "2022-02-26Z"
+  },
+  {
+   "t": "LHD_FXX_0631_6850_PTS_LAMB93_IGN69.copc.laz",
+   "start": "2022-02-26Z",
+   "end": "2022-02-26Z"
+  }
+ ],
+ "fr_files": 9,
+ "tiles": 56,
+ "grid": [
+  2000,
+  1750,
+  431426,
+  5401088
+ ],
+ "tiles_retried": 0,
+ "gap_tiles": 5,
+ "gap_fill": {},
+ "gap_tiles_left": 5,
+ "points": 69622990,
+ "spikes": 11900,
+ "photo": 0.868716,
+ "reg": {
+  "shift_m": [
+   0.16,
+   -0.24
+  ],
+  "depth_m": -0.56,
+  "depth0_m": -0.554,
+  "bunkers": 72
+ },
+ "crowns": 7814,
+ "kept": 6790,
+ "wet": 316,
+ "roofs": 706,
+ "clutter": 0,
+ "flat": 216,
+ "tiny": 4,
+ "h_yd": [
+  7.8,
+  15.5,
+  28.5
+ ],
+ "cr_yd": [
+  3.3,
+  4.7,
+  7.4
+ ],
+ "cb_yd": [
+  2.2,
+  4.4,
+  7.7
+ ],
+ "conifer": 0.284,
+ "contrast": [
+  -0.1,
+  -0.0,
+  0.0
+ ],
+ "dark_drop": 0,
+ "bytes": 63455,
+ "finished": "2026-11-25 13:42:14"
+}
