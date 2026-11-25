@@ -11,7 +11,7 @@ namespace GolfGo.Sim
          - rolling: slopes, friction by surface, the cup (centred or off-centre pace, the flagstick in), rim rides, lip-outs
          - at rest: holed, a gimme inside 4 ft on the green, free relief from a cart path (the spot), or where it lies
        The web game steps it every frame at 60 a second, the flight then the hops then the roll in one frame, and so does this.
-       Not yet: bunker faces (Troy Burne 1 has none), short-game roll-outs (stage 3), the water relief options (stage 5).
+       Not yet: bunker faces (Troy Burne 1 has none; they come with the courses that have them), the water relief options (stage 5).
        Sounds, toasts, leaves and birds are left to the Unity side: only the dice they cost here are drawn. */
     public class SimHole
     {
@@ -20,6 +20,7 @@ namespace GolfGo.Sim
         public List<Tree> trees = new List<Tree>();
         public List<double[][]> paths = new List<double[][]>();
         public Dictionary<string, double> MU = new Dictionary<string, double>(), HOP_E = new Dictionary<string, double>(), SURF = new Dictionary<string, double>();
+        public double sandRel = 1;
         public double MU_REST, MU_REST_FW, CUP, CAPV, GACC, GIMME_YD, PATH_HW, bury;
         public HashSet<string> PATH_ON = new HashSet<string>();
         public double wx0, wy0, wst; public int wnx, wny; public double[] wide;   // heights beyond the hole's grid (see Course.SetOuter)
@@ -48,7 +49,7 @@ namespace GolfGo.Sim
             }
             Tab((Dictionary<string, object>)o["MU"], MU); Tab((Dictionary<string, object>)o["HOP_E"], HOP_E); Tab((Dictionary<string, object>)o["SURF"], SURF);
             MU_REST = D(o["MU_REST"]); MU_REST_FW = D(o["MU_REST_FW"]); CUP = D(o["CUP"]); CAPV = D(o["CAPV"]); GACC = D(o["GACC"]); GIMME_YD = D(o["GIMME_YD"]);
-            PATH_HW = D(o["PATH_HW"]); bury = D(o["bury"]);
+            PATH_HW = D(o["PATH_HW"]); bury = D(o["bury"]); if (o.TryGetValue("sandRel", out var sr) && sr is double srd) sandRel = srd;
             foreach (var kv in (Dictionary<string, object>)o["PATH_ON"]) PATH_ON.Add(kv.Key);
             if (o.TryGetValue("wide", out var wo) && wo is Dictionary<string, object> w)
             {
@@ -257,12 +258,12 @@ namespace GolfGo.Sim
             string st = f.stype ?? "full";
             double R0;
             if (st == "punch") R0 = f.carry * .22 * Surf(L) * f.rollMul;
-            else if (st != "full") throw new NotSupportedException("short-game roll-out comes in stage 3 (" + st + ")");
+            else if (Strike.IsShort(st)) R0 = f.carry * Short.Roll(S.T, fc, st, L) * f.rollMul;
             else R0 = FullRoll(L, tx, ty);
             if (f.rel != 0) R0 += f.carry * f.rel * Surf(L);
             bool spinBack = L == "green" && ((f.back > 0) || (fc.loft >= 1.15 && st == "full" && f.carry > 45 && !f.fly));
             if (spinBack) R0 = f.back > 0 ? -Math.Min(3.5, f.carry * .03) * f.back : Math.Min(R0, f.carry * (fc.loft >= 1.25 ? .012 : fc.loft >= 1.19 ? .018 : .024));
-            double mu = H.Mu(L);
+            double mu = Strike.IsShort(st) ? H.MU["green"] : H.Mu(L);
             double Tb = Math.Max(.8 + f.carry / 140, .55 + Math.Sqrt(f.apex) * .28);
             double g = M.Clamp(8 * f.apex / (Tb * Tb), 16, 42), vyIn = M.Clamp(4 * f.apex / Tb * (1 + Math.Max(0, u - 1)), 1, 60);
             double e = HopE(L);

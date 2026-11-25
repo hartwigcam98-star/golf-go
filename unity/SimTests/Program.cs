@@ -39,7 +39,8 @@ static class Program
         }
         Console.WriteLine($"strike parity: {n - bad}/{n} cases match the web game");
         int lbad = Landings(root, S, C);
-        return bad == 0 && lbad == 0 ? 0 : 1;
+        int sbad = ShortGame(root, S, C);
+        return bad == 0 && lbad == 0 && sbad == 0 ? 0 : 1;
     }
 
     /* Stage 2: each case in land_cases.json is a shot the web game struck on Troy Burne 1, then flew, bounced and rolled to rest
@@ -101,6 +102,68 @@ static class Program
         }
         var ks = new List<string>(); foreach (var kv in kinds) ks.Add(kv.Key + " " + kv.Value);
         Console.WriteLine($"landing parity: {n - bad}/{n} cases match the web game ({string.Join(", ", ks)})");
+        return bad;
+    }
+    /* Stage 3: short-game shots round the green (short_cases.json, a neutral golfer in the web game). Before the swing the meter's
+       size, the planned carry and finish and chooseShort's pick must match; then the strike (flight fields, 1e-6) and the landing. */
+    static int ShortGame(string root, Strike S, Course C)
+    {
+        var H = new SimHole(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy1_sim.json")));
+        var SG = new Short(S, H, C);
+        var cases = (List<object>)MiniJson.Parse(File.ReadAllText(Path.Combine(root, "SimTests/short_cases.json")));
+        int bad = 0, n = 0; var kinds = new Dictionary<string, int>();
+        foreach (Dictionary<string, object> c in cases)
+        {
+            n++; var pre = (Dictionary<string, object>)c["pre"]; var w = (Dictionary<string, object>)c["wind"]; var diffs = new List<string>();
+            void Chk(string k, double a, double b, double tol = 1e-6) { if (Math.Abs(a - b) > tol * Math.Max(1, Math.Abs(b))) diffs.Add($"{k} {a:G9} vs web {b:G9}"); }
+            var s = new ShotIn { bx = D(c["bx"]), by = D(c["by"]), aim = D(pre["aim"]), lie = (string)pre["lie"], onTeeBox = (bool)pre["onTee"], buried = (bool)c["buried"], windA = D(w["a"]), windMph = D(w["mph"]) };
+            if (c["chose"] is Dictionary<string, object> ch)
+            {
+                var pick = SG.Choose(new ShotIn { bx = s.bx, by = s.by, aim = s.aim, lie = s.lie, onTeeBox = s.onTeeBox, buried = s.buried, windA = s.windA, windMph = s.windMph, stype = "full", club = "PW" });
+                string want = ch["stype"] + " " + ch["club"], got = pick == null ? "none" : pick.Value.stype + " " + pick.Value.club;
+                if (want != got) diffs.Add($"chooseShort {got} vs web {want}");
+            }
+            s.stype = (string)pre["stype"]; s.club = (string)pre["club"];
+            s.swMax = SG.SetMax(s); Chk("swMax", s.swMax, D(pre["swMax"]));
+            Chk("natMax", SG.NatMax(S.Club(s.club), s), D(pre["natMax"])); Chk("window", S.PerfectWin(S.Club(s.club), s), D(pre["win"]));
+            if (pre["plan"] is Dictionary<string, object> pl)
+            {
+                var P = SG.PlanFor(s); Chk("plan carry", P.carry, D(pl["carry"])); var fin = (List<object>)pl["fin"]; Chk("plan finish x", P.F.x, D(fin[0])); Chk("plan finish y", P.F.y, D(fin[1]));
+                if (P.F.L != (string)pl["landL"]) diffs.Add($"plan lands on {P.F.L} vs web {pl["landL"]}");
+                if (P.over != (bool)pl["over"]) diffs.Add("plan over differs");
+            }
+            s.swMax = D(pre["swMax"]);   // (the strike from the web game's own numbers, so one difference doesn't hide the next)
+            s.power = D(pre["power"]); s.e = c["e"] == null ? (double?)null : D(c["e"]); s.sandRel = H.sandRel;
+            Flight f = null;
+            try { f = S.Hit(s, (int)D(c["seed"])); } catch (Exception ex) { diffs.Add("strike: " + ex.Message); }
+            var fl = (Dictionary<string, object>)c["flight"];
+            double F(string k) => fl.TryGetValue(k, out var v) && v is double d ? d : 0;
+            if (f != null)
+            {
+                foreach (var k in new[] { "carry", "lat", "apex", "T", "rollMul", "rel", "back", "full", "wx", "wy", "y0" })
+                    Chk(k, k == "carry" ? f.carry : k == "lat" ? f.lat : k == "apex" ? f.apex : k == "T" ? f.T : k == "rollMul" ? f.rollMul : k == "rel" ? f.rel : k == "back" ? f.back : k == "full" ? f.full : k == "wx" ? f.wx : k == "wy" ? f.wy : f.y0, F(k));
+                bool wf = fl.TryGetValue("fly", out var fy) && fy is bool fb && fb; if (f.fly != wf) diffs.Add("fly differs");
+                if (diffs.Count == 0)
+                {
+                    var b = new Ball(H, C, S) { windA = s.windA, windMph = s.windMph, flagOut = false };
+                    b.Launch(f, (int)D(c["lseed"])); int frames = 0; while (b.Moving && frames < 60 * 40) { frames++; b.Step(1.0 / 60); }
+                    var o = (Dictionary<string, object>)c["out"]; var q = b.outcome;
+                    string wk = (string)o["kind"]; bool gim = o.TryGetValue("gimme", out var gv) && gv is bool gb && gb; if (wk == "rest" && gim) wk = "holed";
+                    if (q == null) diffs.Add("no outcome");
+                    else
+                    {
+                        if (q.kind != wk) diffs.Add($"kind {q.kind} vs web {wk}");
+                        Chk("rest x", q.x, D(o["x"])); Chk("rest y", q.y, D(o["y"]));
+                        if (q.dice != (int)D(o["d"])) diffs.Add($"dice {q.dice} vs web {D(o["d"])}");
+                        if (frames != (int)D(c["frames"])) diffs.Add($"frames {frames} vs web {D(c["frames"])}");
+                    }
+                }
+            }
+            string key = s.stype + "@" + s.lie; kinds[key] = kinds.TryGetValue(key, out var kc) ? kc + 1 : 1;
+            if (diffs.Count > 0) { bad++; if (bad <= 40) Console.WriteLine($"short {n} ({s.stype} {s.club} from {s.lie} {D(c["bx"]):F1},{D(c["by"]):F1} e{c["e"]}): " + string.Join("; ", diffs)); }
+        }
+        var ks = new List<string>(); foreach (var kv in kinds) ks.Add(kv.Key + " " + kv.Value);
+        Console.WriteLine($"short-game parity: {n - bad}/{n} cases match the web game ({string.Join(", ", ks)})");
         return bad;
     }
     static double D(object o) => Convert.ToDouble(o);
