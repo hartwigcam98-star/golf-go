@@ -8,7 +8,8 @@ using UnityEngine.UI;
    is top left. Everything is built in code at start, from Resources/troy1.json and troy1_ground.png. */
 public class HoleTest : MonoBehaviour
 {
-    GolfGo.Sim.Tuning TU; GolfGo.Sim.Course CO; GolfGo.Sim.Strike SK; GolfGo.Sim.Flight FL; GolfGo.Sim.SimHole SH; GolfGo.Sim.Ball SB; GolfGo.Sim.Short SG; float simAcc; int evSeen;
+    GolfGo.Sim.Tuning TU; GolfGo.Sim.Course CO; GolfGo.Sim.Strike SK; GolfGo.Sim.Flight FL; GolfGo.Sim.SimHole SH; GolfGo.Sim.Ball SB; GolfGo.Sim.Short SG; GolfGo.Sim.Putt PT; float simAcc; int evSeen;
+    double puttMax = 10; bool flagOut;   // stage 4: the putter meter's length (yards of roll), the flag out inside 15 ft
     List<GolfGo.Sim.Club> Clubs;
     string stype = "full"; double swMax; bool buried;   // stage 3: the shot type, the short-game meter's size, a plugged lie
     const float IMPACT = .12f; float mpos, mdir = 1, mPower; double windA, windMph;
@@ -40,7 +41,7 @@ public class HoleTest : MonoBehaviour
         // the game's own mechanics (GolfGo.Sim, checked shot for shot against the web game) and its numbers
         TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); CO = new GolfGo.Sim.Course(Resources.Load<TextAsset>("troy1").text);
         SK = new GolfGo.Sim.Strike(TU, CO); Clubs = TU.Clubs();
-        SH = new GolfGo.Sim.SimHole(Resources.Load<TextAsset>("troy1_sim").text); SB = new GolfGo.Sim.Ball(SH, CO, SK); SG = new GolfGo.Sim.Short(SK, SH, CO);   // stage 2: what the ball does after the strike
+        SH = new GolfGo.Sim.SimHole(Resources.Load<TextAsset>("troy1_sim").text); SB = new GolfGo.Sim.Ball(SH, CO, SK); SG = new GolfGo.Sim.Short(SK, SH, CO); PT = new GolfGo.Sim.Putt(SK, SH, CO);   // stage 2: what the ball does after the strike
         windA = Random.value * Mathf.PI * 2; windMph = Mathf.Round(Random.value * 14);
         BuildWorld(); BuildHud();
         b = new Vector2(D.tee[0], D.tee[1]); bY = D.H(b.x, b.y); strokes = 0;
@@ -198,14 +199,21 @@ public class HoleTest : MonoBehaviour
     string flagKey; double flagTp;
     void ShortFlag()
     {
-        if (!Short || swMax <= 0 || !(st == S.Aim || st == S.Power || st == S.Acc)) { hud.SetFlag(-1, "", false); return; }
+        if (!(st == S.Aim || st == S.Power || st == S.Acc)) { hud.SetFlag(-1, "", false); return; }
+        if (C.putter)
+        {   // puttTargetPower: the flag where a stroke finishes just past the cup (none inside a foot)
+            var tp = PT.TargetPower(b.x, b.y, Lie0, puttMax);
+            if (tp == null) { hud.SetFlag(-1, "", false); return; }
+            bool po = tp.Value > 1; hud.SetFlag(IMPACT + Mathf.Min(1, (float)tp.Value) * (1 - IMPACT), po ? "Beyond max" : Mathf.RoundToInt(PinDist * 3) + " ft", po); return;
+        }
+        if (!Short || swMax <= 0) { hud.SetFlag(-1, "", false); return; }
         string key = ci + "|" + stype + "|" + aim.ToString("F4") + "|" + b.x.ToString("F2") + "|" + b.y.ToString("F2") + "|" + pshot;
         if (key != flagKey) { var s = Si(); flagTp = SG.FlagPower(s, SG.PlanFor(s)); flagKey = key; }
         bool over = flagTp > 1; float pos = IMPACT + (float)SG.PowerToMeter(Mathf.Min(1, (float)flagTp)) * (1 - IMPACT);
         hud.SetFlag(pos, over ? "Beyond max" : Mathf.RoundToInt(PinDist) + " y", over);
     }
     float winC = .03f;
-    float Win => C.putter ? .03f : (float)SK.PerfectWin(C, Si());
+    float Win => C.putter ? (float)PT.Window(false) : (float)SK.PerfectWin(C, Si());
     void RefreshHud()
     {
         string lie = Lie0; float pd = PinDist;
@@ -214,9 +222,9 @@ public class HoleTest : MonoBehaviour
         hud.SetLie(LieName.TryGetValue(lie, out var ln) ? ln : Cap(lie), Hud.Hex(LieCol.TryGetValue(lie, out var lc) ? lc : "#6db14a"), lie == "green" || pd < 20 ? "Cup " + Mathf.RoundToInt(pd * 3) + " ft" : "Pin " + Mathf.RoundToInt(pd) + " yds");
         hud.SetShot(stype, C.putter, st == S.Aim, pshot && !C.putter, ShotEnabled, GolfGo.Sim.Short.BunkerSide(lie, pd)); winC = Win;
         // the meter's scale: carry yards along it (feet of roll for a putt on the green)
-        bool pg = C.putter && lie == "green"; float mx = C.putter ? MaxDist * 3 : MaxDist * (float)SK.ShotMods(C, Si()).carry;
-        string L(float f) => Mathf.Max(1, Mathf.RoundToInt(mx * (Short ? (float)SG.MeterToPower(f) : f))) + (pg ? " ft" : "y");
-        hud.SetLabels(L(.25f), L(.5f), L(.75f), L(1));
+        bool pg = C.putter && lie == "green", pct = C.putter && !pg; float mx = C.putter ? MaxDist * 3 : MaxDist * (float)SK.ShotMods(C, Si()).carry;
+        string L(float f) => pct ? Mathf.RoundToInt(f * 100).ToString() : Mathf.Max(1, Mathf.RoundToInt(mx * (Short ? (float)SG.MeterToPower(f) : f))) + (pg ? " ft" : "y");
+        hud.SetLabels(L(.25f), L(.5f), L(.75f), pct ? "Max" : L(1));   // off the green the putter's meter reads in percent
     }
     static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s.Substring(1);
 
@@ -226,7 +234,7 @@ public class HoleTest : MonoBehaviour
     void AimAtPin() { var d = new Vector2(D.pin[0], D.pin[1]) - b; aim = Mathf.Atan2(d.x, -d.y); }
     Vector2 Dir(float a) => new Vector2(Mathf.Sin(a), -Mathf.Cos(a));
     // previewDist: the putt's reach, the short-game meter's size, or the club's natural distance from this lie with this shot
-    float MaxDist => C.putter ? Mathf.Max(3, PinDist * 1.6f) : Short && swMax > 0 ? (float)swMax : (float)(C.carry * SK.LieMul(C, Lie0, stype, strokes == 0) * TU.ShotK(stype, "c"));
+    float MaxDist => C.putter ? (float)puttMax : Short && swMax > 0 ? (float)swMax : (float)(C.carry * SK.LieMul(C, Lie0, stype, strokes == 0) * TU.ShotK(stype, "c"));
 
     void PrepareShot(bool pick)
     {
@@ -235,14 +243,18 @@ public class HoleTest : MonoBehaviour
         {
             float pd = PinDist;
             int pt = Clubs.FindIndex(k => k.putter);
-            if (lie == "green") ci = pt;
+            if (lie == "green" || (pd < 14 && (lie == "fairway" || lie == "tee" || lie == "cut"))) ci = pt;   // autoClub
             else { ci = pt - 1; for (int k = 0; k < pt; k++) if (Clubs[k].carry <= pd * 1.02f) { ci = k; break; } if (strokes == 0 && D.par >= 4) ci = 0; }
             AimAtPin();
+            if (ci == pt && lie != "green" && !PT.LineClean(b.x, b.y)) ci = Clubs.FindIndex(k => k.id == "PW");   // a putt from off the green only when the line is all mown grass
             stype = "full";
             if (ci != pt) { var pk = SG.Choose(Si()); if (pk != null) { stype = pk.Value.stype; ci = Clubs.FindIndex(k => k.id == pk.Value.club); } }   // chooseShort
         }
         if (C.putter) stype = "full"; else if (!SG.ShotOK(stype, ci) && !GolfGo.Sim.Strike.BunkerT(stype)) stype = "full";
         SizeShort();
+        if (C.putter) puttMax = PT.Max(b.x, b.y, Lie0);
+        flagOut = GolfGo.Sim.Putt.FlagOut(Lie0, PinDist);   // inside 15 ft on the green the flag comes out (a ball needs less pace to drop)
+        for (int k = 0; k < 2 && k < flag.childCount; k++) flag.GetChild(k).gameObject.SetActive(!flagOut);
         st = S.Aim; mpos = IMPACT; mapView = false; hud.SetSwing("SWING", 0, true); RefreshHud();
         hud.SetHint("Drag to aim · Tap Swing to start");
         PlaceGolfer(); swingT = -1;
@@ -263,17 +275,19 @@ public class HoleTest : MonoBehaviour
         if (st == S.Power) { mPower = (mpos - IMPACT) / (1 - IMPACT); st = S.Acc; hud.SetSwing("IMPACT!", 2, true); hud.SetHint("Tap on the white line"); return; }
         if (st == S.Acc) StrikeNow(Mathf.Clamp(mpos - IMPACT, -.12f, .4f));
     }
-    float SpeedP => C.putter ? .7f : 1f;
-    float SpeedA => C.putter ? .6f : .95f * (pshot ? 1.2f : 1);
+    // meterSpeed (loop.js): the putter and the short game run slower
+    float SpeedP => C.putter ? .7f : Short ? .85f : 1f;
+    float SpeedA => C.putter ? .6f : Short ? .8f : .95f * (pshot ? 1.2f : 1);
     void StrikeNow(float? e)
     {
         float win = Win; tapMark = e.HasValue ? IMPACT + e.Value : -1; tapGood = e.HasValue && Mathf.Abs(e.Value) <= win;
         fromLie = Lie0; strokes++; prev = b; swingT = 0; hud.SetSwing("SWING", 0, false); hud.SetHint(""); aimLine.positionCount = 0; ring.gameObject.SetActive(false);
         if (C.putter)
         {
-            float pe = e ?? (Random.value < .5f ? -.12f : .12f), pw = e == null ? mPower * .4f : mPower;
-            var d = Dir(aim - pe * 1.45f); float dist = MaxDist * pw; rv = d * Mathf.Sqrt(2 * (float)SH.MU["green"] * dist); fPutt = true;
-            SB.flagOut = false; SB.LaunchRoll(b.x, b.y, rv.x, rv.y, Random.Range(1, int.MaxValue)); simAcc = 0; evSeen = 0; st = S.Roll; return;   // the putt's pace is still the stand-in (stage 4); the roll, cup, rim and lip are the web game's
+            // the web game's putter stroke (GolfGo.Sim.Putt): the window, a pull or push and a short miss, then the roll on the same ball
+            var pst = PT.Hit(b.x, b.y, aim, Lie0, puttMax, mPower, e, false, Random.Range(1, int.MaxValue)); fPutt = true;
+            if (pst.miss) hud.Toast("MISHIT!", "Timing missed the impact line", Hud.Coral); else if (pst.perfect == 2) hud.Toast("PURE STROKE", "", Hud.Hex("#ffe27a"));
+            SB.flagOut = flagOut; SB.LaunchRoll(b.x, b.y, pst.vx, pst.vy, Random.Range(1, int.MaxValue)); simAcc = 0; evSeen = 0; st = S.Roll; return;
         }
         strokes--; var si = Si(e); strokes++;   // (onTeeBox: the stroke being played is the first)
         FL = SK.Hit(si, Random.Range(1, int.MaxValue));
@@ -288,7 +302,7 @@ public class HoleTest : MonoBehaviour
         else if (Mathf.Abs(ev) > .035f) hud.Toast(ev > 0 ? "HOOK!" : "SLICE!", ev > 0 ? "Tapped early" : "Tapped late", Hud.Hex("#ff9b6a"));
         else if (ev != 0) hud.Toast(ev > 0 ? "PULLED" : "PUSHED", ev > 0 ? "A touch early" : "A touch late", Hud.Hex("#ffd2a8"));
         fs = b; var td = new Vector2((float)FL.dx, (float)FL.dy); fd = td; fCarry = (float)FL.carry; fT = (float)FL.T; fu = 0; fRollMul = (float)FL.rollMul; fPutt = false;
-        SB.windA = windA; SB.windMph = windMph; SB.flagOut = false; SB.Launch(FL, Random.Range(1, int.MaxValue)); simAcc = 0; evSeen = 0; st = S.Flight;
+        SB.windA = windA; SB.windMph = windMph; SB.flagOut = flagOut; SB.Launch(FL, Random.Range(1, int.MaxValue)); simAcc = 0; evSeen = 0; st = S.Flight;
     }
     static float FlightS(float u) => u <= 1 ? (1 - Mathf.Exp(-DRAG * u)) / DRAG_N : 1 + (u - 1) * DRAG * Mathf.Exp(-DRAG) / DRAG_N;
     static float ArcH(float s) => 2.802f * s * (1 - s) * (1 + .8f * s);
