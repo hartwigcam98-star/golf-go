@@ -142,7 +142,7 @@ public class HoleTest : MonoBehaviour
         var sc = c.gameObject.AddComponent<CanvasScaler>(); sc.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; sc.referenceResolution = new Vector2(393, 852); sc.matchWidthOrHeight = .5f;
         c.gameObject.AddComponent<GraphicRaycaster>();
         var es = new GameObject("Events"); es.AddComponent<UnityEngine.EventSystems.EventSystem>(); es.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-        var tp = c.transform; var navy = new Color(.06f, .13f, .2f, .88f), cream = new Color(1, .96f, .86f);
+        var tp = c.transform; Color navy = new Color(.06f, .13f, .2f, .88f), cream = new Color(1, .96f, .86f);
         var top = new GameObject("Top", typeof(RectTransform)).AddComponent<Image>(); top.transform.SetParent(tp, false); top.color = navy;
         var trt = top.rectTransform; trt.anchorMin = new Vector2(0, 1); trt.anchorMax = new Vector2(1, 1); trt.pivot = new Vector2(.5f, 1); trt.sizeDelta = new Vector2(0, 120); trt.anchoredPosition = Vector2.zero;
         fpsT = Label(tp, "-- FPS", 15, TextAnchor.UpperLeft, new Vector2(0, 1), new Vector2(14, -58), new Vector2(200, 24), new Color(.48f, .89f, .54f));
