@@ -6,3 +6,6 @@ build/
 obj/
 *.csproj
 *.sln
+!SimTests/SimTests.csproj
+SimTests/bin/
+SimTests/obj/

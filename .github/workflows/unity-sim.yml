@@ -15,4 +15,6 @@ jobs:
         with:
           dotnet-version: '8.0.x'
       - name: Parity with the web game
-        run: dotnet run --project unity/SimTests -c Release 2>&1 | tail -60
+        run: |
+          set -o pipefail
+          dotnet run --project unity/SimTests -c Release 2>&1 | tail -60
