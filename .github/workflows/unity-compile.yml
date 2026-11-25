@@ -38,7 +38,7 @@ jobs:
           mkdir -p cc && cd cc
           DEF="UNITY_6000_0_OR_NEWER;UNITY_2023_1_OR_NEWER;UNITY_2022_1_OR_NEWER;UNITY_2021_1_OR_NEWER;UNITY_2020_1_OR_NEWER;UNITY_2019_1_OR_NEWER;UNITY_2018_1_OR_NEWER;UNITY_5_3_OR_NEWER;PACKAGE_PHYSICS;PACKAGE_PHYSICS2D;PACKAGE_ANIMATION;PACKAGE_INPUTSYSTEM_DISABLED"
           refs(){ for f in "$M"/UnityEngine/*.dll; do [ -f "$f" ] && printf '<Reference Include="%s"><HintPath>%s</HintPath><Private>false</Private></Reference>\n' "$(basename "$f" .dll)" "$f"; done; }
-          ed_refs(){ E=$(ls "$M"/UnityEditor/*.dll >/dev/null 2>&1 && echo "$M/UnityEditor/*.dll" || echo "$M/UnityEditor.dll"); for f in $E; do [ -f "$f" ] && printf '<Reference Include="%s"><HintPath>%s</HintPath><Private>false</Private></Reference>\n' "$(basename "$f" .dll)" "$f"; done; }
+          ed_refs(){ E=$(ls "$M"/UnityEditor/*.dll >/dev/null 2>&1 && echo "$M/UnityEditor/*.dll" || echo "$M/UnityEditor.dll"); for f in $E; do [ "$E" != "$M/UnityEditor.dll" ] && [ "$(basename "$f")" = UnityEditor.dll ] && continue; [ -f "$f" ] && printf '<Reference Include="%s"><HintPath>%s</HintPath><Private>false</Private></Reference>\n' "$(basename "$f" .dll)" "$f"; done; }
           proj(){ cat > "$1/$1.csproj" <<EOF
           <Project Sdk="Microsoft.NET.Sdk">
             <PropertyGroup><TargetFramework>netstandard2.1</TargetFramework><LangVersion>9.0</LangVersion><Nullable>disable</Nullable>
