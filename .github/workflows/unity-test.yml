@@ -49,10 +49,12 @@ jobs:
           E: ${{ secrets.UNITY_EMAIL }}
           W: ${{ secrets.UNITY_PASSWORD }}
         run: |
-          unity license --help >/dev/null 2>&1 && { unity license activate --help 2>&1 | head -30 || true; }
-          # the editor's own activation: signs in and takes a Personal seat when no serial is given
-          "$UNITY_EDITOR_PATH" -batchmode -quit -nographics -username "$E" -password "$W" -logFile - 2>&1 | grep -i -E "licen|entitle|activat|error|seat|personal" | grep -v -i "password" | head -40 || true
-          ls -la "/Library/Application Support/Unity" 2>/dev/null || true
+          unity auth --help 2>&1 | sed -n '/Commands:/,$p' | head -20 || true
+          unity auth login --help 2>&1 | sed -n '/Options:/,/Global/p' | head -20 || true
+          # sign in through the editor's licensing client (email + password), then claim the free Personal seat with the CLI
+          "$UNITY_EDITOR_PATH" -batchmode -quit -nographics -username "$E" -password "$W" -logFile - 2>&1 | grep -E "Licensing::(Client|Module)\] (Success|Error)" | grep -v -i password | sort -u | head -12 || true
+          unity license activate --personal --accept-eula --non-interactive 2>&1 | tail -15 || true
+          unity license status 2>&1 | tail -15 || true
       - name: Unity build (Xcode project)
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
