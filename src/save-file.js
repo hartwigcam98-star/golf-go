@@ -44,7 +44,7 @@ function startHole(i){if(b10On()&&!b10ClubReady(CUR.id,()=>startHole(i)))return;
   $('iWind').textContent=G.wind.mph?'Wind '+G.wind.mph+' mph':'Calm';
   $('iTip').textContent=rg?'Warm up as long as you like: every ball comes back to the mat. Tap First tee when you\u2019re ready.':G.hole.tip;$('teeBtn').textContent=rg?'Start hitting':'Tee off';$('matchTag').hidden=!MATCH.on;
   $('howto').hidden=!(i===0&&G.mode==='round');$('iFine').hidden=i!==0;$('rangeGo').hidden=!rg;$('iRange').hidden=!(i===0&&(G.mode==='round'||G.mode==='daily')&&!MATCH.on&&!!rangeOf(CUR));
-  if(i===0){const cn=(COURSES[CUR.id]&&COURSES[CUR.id].name||'the club').split(' \u00b7 ')[0];$('iFine').textContent='Unofficial re-creation built from the mapped course layout (\u00a9 OpenStreetMap contributors), aerial photos, USGS 3DEP elevation and published hole descriptions. Not affiliated with '+cn+'.';}
+  if(i===0){const cn=(COURSES[CUR.id]&&COURSES[CUR.id].name||'the club').split(' \u00b7 ')[0];$('iFine').textContent='Unofficial re-creation built from the mapped course layout (\u00a9 OpenStreetMap contributors), aerial photos, '+(stateOf(CUR.id)==='FR'?'IGN LiDAR HD':'USGS 3DEP')+' elevation and published hole descriptions. Not affiliated with '+cn+'.';}
   $('iEyebrow').textContent=G.mode==='practice'?CUR.name+' \u00b7 practice hole':G.mode==='daily'?'Daily round \u00b7 '+dailyNice(G.dailyDay)+' \u00b7 '+CUR.name:G.mode==='tourney'?tourEyebrow():courseLine();
   $('cardM').hidden=true;$('reliefM').hidden=true;$('introM').hidden=false;
   setTimeout(()=>$('teeBtn').focus({preventScroll:true}),50);

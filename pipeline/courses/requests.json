@@ -42,9 +42,9 @@
   "why": "Requested by Pappa ('geneva national: palmer, player and trevino nines'; Geneva National has three 18-hole courses, one per request: built the Palmer, the others can be requested). OSM outline relation/8400251 is unnamed and holds all 3 courses (53 hole ways); Palmer's 17 picked by id (pars match the card), hole 16 (missing in OSM) added from its mapped tees and green. Card: GolfPass Black 7083 par 72; built 6948 yd; sets Gold and White. 3DEP lon/lat export returned HTTP 500, so demll was resampled locally from the UTM 1 m grid. Lidar WI_SEWRPC_2017 (~3-6 pts/m2), greens unsoftened: 1 (6.0%), 6 and 7 (5.3%), 3 (4.8%), 2 (4.3%) median with outlines checked against the photo; all pins <= 2.43%. Range mapped in OSM. Clubhouse measured from lidar (12 blocks, median 0.06 yd); no clubhouse or course photos found, so default look and no landmarks."
  },
  "00025": {
-  "status": "skipped",
-  "key": null,
+  "status": "built",
+  "key": "albatros",
   "date": "2026-11-25",
-  "why": "Requested by OgTwig ('Le Golf National — France'). Outside the lower 48 US states (Le Golf National is in Saint-Quentin-en-Yvelines, France): the pipeline's data sources (USGS 3DEP lidar, NAIP photos) cover the US only. Cam can decide if he wants it built another way."
+  "why": "Requested by OgTwig ('Le Golf National — France'). First skipped (outside the lower 48), then built the same night at Cam's request with new France data sources (IGN: BD ORTHO photo, LiDAR HD terrain model and classified points, LiDAR HD for the clubhouse and measured trees). Built L'Albatros (the Ryder Cup / Olympic course; L'Aigle and L'Oiselet can be requested). OSM outline way/290619725 'Golf National' holds all three courses; Albatros's 18 holes picked by id. Card: GolfPass Black 7272 par 72 (club card: 18 is par 5; tour events play it as a par 4, par 71); built 7156 yd, 14 is 553 (card 595, the mapped back tee matches the Olympic 552). Sets White and Yellow. Lidar IGN LiDAR HD Feb 2022 (10-17 ground pts/m2), greens unsoftened, all medians <= 3.2%, pins <= 2.2%. RGE ALTI 1 m was tried first and predates the 2016-17 rebuild (bunkers ~7 cm deep), so the terrain is the LiDAR HD MNT (bunkers -64 cm). Range mapped in OSM. Clubhouse (the golfnational/ffgolf building next to the Novotel) measured from lidar, 2 blocks, median 0.07 yd; look from photos; timber bulkheads and grey timber bridges. Game map: FR badge in the Atlantic (home-screen.js)."
  }
 }

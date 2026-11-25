@@ -285,7 +285,7 @@ def greens_points(key, b, osm, resources, rings):
     log(key, 'points saved', os.path.getsize(f'{OUT}/pts_{key}.npz') // 1024, 'KB'); save()
 
 # ---------- France (IGN Geoplateforme, open data): same output files as the US steps.
-#   photo: BD ORTHO 20 cm (WMS HR.ORTHOIMAGERY.ORTHOPHOTOS); elevation: RGE ALTI 1 m (WMS ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES,
+#   photo: BD ORTHO 20 cm (WMS HR.ORTHOIMAGERY.ORTHOPHOTOS); elevation: LiDAR HD MNT, else RGE ALTI 1 m (WMS,
 #   image/x-bil;bits=32, little-endian float32); points: LiDAR HD classified COPC tiles (1 km, Lambert-93, IGN69 heights),
 #   listed by the WFS layer IGNF_LIDAR-HD_METADONNEE:metadata. Downstream files keep the US convention epsg = 26900 + UTM zone
 #   (lidar2/utm.py does its own GRS80 maths); the transforms here use WGS84 UTM (326xx), the same projection to well under 1 mm.
@@ -300,12 +300,18 @@ def wms(layer, fmt, crs, bbox, w, h):
     r = get(WMSR, p)
     if 'xml' in (r.headers.get('content-type') or ''): raise RuntimeError('wms ' + r.text[:300])
     return r.content
-FR_DEM = 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES'
+FR_DEM = ['IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.LAMB93', 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES']
+# LiDAR HD terrain model first (same 2020s survey as the points; RGE ALTI can predate a course's rebuild: Le Golf National's
+# bunkers were ~0 deep in it), RGE ALTI 1 m only where LiDAR HD has no data
 def fr_bil(crs, bbox, w, h):
-    c = wms(FR_DEM, 'image/x-bil;bits=32', crs, bbox, w, h)
-    if len(c) < w * h * 4: raise RuntimeError('short bil %d for %dx%d' % (len(c), w, h))
-    a = np.frombuffer(c[:w * h * 4], '<f4').reshape(h, w).astype(np.float32).copy(); a[(a < -1000) | (a > 10000)] = np.nan
-    return a
+    out = None
+    for L in FR_DEM:
+        c = wms(L, 'image/x-bil;bits=32', crs, bbox, w, h)
+        if len(c) < w * h * 4: raise RuntimeError('short bil %d for %dx%d' % (len(c), w, h))
+        a = np.frombuffer(c[:w * h * 4], '<f4').reshape(h, w).astype(np.float32).copy(); a[(a < -1000) | (a > 10000)] = np.nan
+        out = a if out is None else np.where(np.isnan(out), a, out)
+        if not np.isnan(out).any(): break
+    return out
 def fr_grid_ll(W, S_, E, N, w, h, T=1000):
     """RGE ALTI over a lon/lat box as an h x w grid of pixel areas (row 0 = north), fetched in tiles"""
     Z = np.full((h, w), np.nan, np.float32); dx = (E - W) / w; dy = (N - S_) / h
@@ -328,7 +334,7 @@ def ned_grids_fr(key, b):
     Zw = fr_grid_ll(cx - hx - sx / 2, cy - hy - sy / 2, cx + hx + sx / 2, cy + hy + sy / 2, wn, wn)
     Zw = np.where(np.isnan(Zw), np.nanmean(Zw), Zw)
     json.dump(dict(latN=cy + hy, latS=cy - hy, lonW=cx - hx, lonE=cx + hx, N=wn, z=[round(float(v), 2) for v in Zw.ravel()]), open(f'{OUT}/nedwide_{key}.json', 'w'))
-    log(key, 'ned (RGE ALTI)', NR, 'x', NC, 'wide', wn, 'nan', int(np.isnan(Z).sum()), int(np.isnan(Zw).sum()))
+    log(key, 'ned (IGN)', NR, 'x', NC, 'wide', wn, 'nan', int(np.isnan(Z).sum()), int(np.isnan(Zw).sum()))
 def naip_fr(key, b):
     b = grow(b, 60); lat = (b[1] + b[3]) / 2
     w = int((b[2] - b[0]) * 111320 * math.cos(math.radians(lat)) / .6); h = int((b[3] - b[1]) * 110574 / .6)
@@ -343,7 +349,7 @@ def dem_ll_fr(key, b):
     w = int((b[2] - b[0]) * 111320 * math.cos(math.radians(lat))); h = int((b[3] - b[1]) * 110574)
     Z = fr_grid_ll(b[0], b[1], b[2], b[3], w, h)
     np.savez_compressed(f'{OUT}/demll_{key}.npz', z=Z)
-    json.dump(dict(bbox=b, size=[w, h], fmt='bsq', ext=list(b), src='IGN RGE ALTI 1 m'), open(f'{OUT}/lidar_{key}.json', 'w')); log(key, 'dem lon/lat (RGE ALTI)', w, h, 'nan', int(np.isnan(Z).sum()))
+    json.dump(dict(bbox=b, size=[w, h], fmt='bsq', ext=list(b), src='IGN LiDAR HD MNT (RGE ALTI 1 m where missing)'), open(f'{OUT}/lidar_{key}.json', 'w')); log(key, 'dem lon/lat (IGN)', w, h, 'nan', int(np.isnan(Z).sum()))
 def dem_utm_fr(key, b):
     W, S_, E, N = grow(b, 120); zone = int((((W + E) / 2) + 180) // 6) + 1; EPSG = 26900 + zone
     tf = Transformer.from_crs(4326, 32600 + zone, always_xy=True)
@@ -357,9 +363,9 @@ def dem_utm_fr(key, b):
             r0 = y1 - (ty + th); Z[r0:r0 + th, tx - x0:tx - x0 + tw] = a
     np.savez_compressed(f'{OUT}/dem_{key}.npz', z=Z, x0=x0, y1=y1, res=1.0, epsg=EPSG)
     lo = np.linspace(W, E, 5); la = np.linspace(S_, N, 5); LO, LA = np.meshgrid(lo, la); X, Y = tf.transform(LO.ravel(), LA.ravel())
-    SUM['courses'][key]['dem'] = dict(epsg=EPSG, x0=x0, y0=y0, x1=x1, y1=y1, w=w, h=h, nan=int(np.isnan(Z).sum()), src='IGN RGE ALTI 1 m',
+    SUM['courses'][key]['dem'] = dict(epsg=EPSG, x0=x0, y0=y0, x1=x1, y1=y1, w=w, h=h, nan=int(np.isnan(Z).sum()), src='IGN LiDAR HD MNT (RGE ALTI 1 m where missing)',
         ctrl=[[float(a), float(b_), float(c), float(d)] for a, b_, c, d in zip(LO.ravel(), LA.ravel(), X, Y)])
-    log(key, 'dem utm (RGE ALTI)', w, 'x', h)
+    log(key, 'dem utm (IGN)', w, 'x', h)
 def fr_tiles(box):
     """LiDAR HD tiles over a lon/lat box: [(name, url, (X0, Y0, X1, Y1) Lambert-93, props)]"""
     W, S_, E, N = box

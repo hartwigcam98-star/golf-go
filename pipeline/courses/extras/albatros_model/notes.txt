@@ -1,0 +1,6 @@
+Le Golf National clubhouse (golfnational / ffgolf entrance building), lidar IGN LiDAR HD Feb 2022 (13 pts/m2).
+Block 1 F u-36..0: the tall entrance hall (grey render box under a thin dark overhanging roof; photos 02/04), flat 8.7 yd.
+Block 2 F u0..45: the low beige stone wing with rooftop plant, flat 4.5 yd.
+median 0.07 yd, rms 2.41 (most of the residual is the link building to the Novotel at u<-8, v<0, left out on purpose: it belongs to the hotel).
+Doubtful: the light frame (stone pilasters / brise-soleil) along both long sides of the low wing (lidar ~2.5 yd, gappy) is not modelled.
+The Novotel hotel next door (cand 0) is a separate building and stays a map building.

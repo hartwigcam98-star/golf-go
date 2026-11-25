@@ -24,7 +24,7 @@ blk = []
 for k in keys:
     m = M[k]; S = m['SUF']; D = G + f'auto/{k}/'
     C = json.load(open(D + f'{k}_course.json')); TB = json.load(open(D + f'{k}_tb.json')); SU = json.load(open(D + f'{k}_surr.json'))
-    blk.append(f'// {m["town"]}: {m["name"]} (player request): OpenStreetMap, USGS NED/3DEP, USDA NAIP')
+    blk.append(f'// {m["town"]}: {m["name"]} (player request): OpenStreetMap, ' + ('IGN LiDAR HD and BD ORTHO' if m['town'].endswith(', FR') else 'USGS NED/3DEP, USDA NAIP'))
     blk += open(D + f'{k}_consts.js').read().strip().split('\n')
     blk.append(f'const TB_{S}=' + json.dumps(TB) + ';')
     blk.append(f'let SURR_{S}=' + json.dumps(SU, separators=(',', ':')) + ';')
@@ -63,7 +63,7 @@ for k, (la, lo) in ref.items():
     X, Y = prj(lo, la); A += [[X, 1, 0], [Y, 0, 1]]; b += dots[k]
 sc, tx, ty = np.linalg.lstsq(np.array(A), np.array(b, float), rcond=None)[0]
 for k in keys:
-    la, lo = M[k]['ll']; X, Y = prj(lo, la); dots[k] = [round(X * sc + tx), round(Y * sc + ty)]
+    la, lo = M[k]['ll']; X, Y = prj(lo, la); dots[k] = M[k].get('dot') or [round(X * sc + tx), round(Y * sc + ty)]   # meta 'dot': courses outside the US map (France: by its badge)
 s = s[:i] + seg[:seg.index('dots:') + 5] + json.dumps(dots, separators=(',', ':')) + s[j:]
 # 7. daily rotation
 rep("DAILY_POOL=[", "DAILY_POOL=[" + ''.join(f"['{k}',{int(M[k]['day'])}]," for k in keys if not M[k].get('short')))
