@@ -8,7 +8,7 @@ using UnityEngine.UI;
    is top left. Everything is built in code at start, from Resources/troy1.json and troy1_ground.png. */
 public class HoleTest : MonoBehaviour
 {
-    GolfGo.Sim.Tuning TU; GolfGo.Sim.Course CO; GolfGo.Sim.Strike SK; GolfGo.Sim.Flight FL; List<GolfGo.Sim.Club> Clubs;
+    GolfGo.Sim.Tuning TU; GolfGo.Sim.Course CO; GolfGo.Sim.Strike SK; GolfGo.Sim.Flight FL; GolfGo.Sim.SimHole SH; GolfGo.Sim.Ball SB; float simAcc; int evSeen; List<GolfGo.Sim.Club> Clubs;
     const float IMPACT = .12f; float mpos, mdir = 1, mPower; double windA, windMph;
     Hud hud; bool pshot, mapView; float tapMark = -1, aimHeld; bool tapGood;
     static readonly Dictionary<string, float> Mu = new Dictionary<string, float> { { "green", .545f }, { "fairway", 1.2f }, { "tee", 1.2f }, { "cut", 2.4f }, { "rough", 11 }, { "sand", 28 }, { "fescue", 17 } };
@@ -38,6 +38,7 @@ public class HoleTest : MonoBehaviour
         // the game's own mechanics (GolfGo.Sim, checked shot for shot against the web game) and its numbers
         TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); CO = new GolfGo.Sim.Course(Resources.Load<TextAsset>("troy1").text);
         SK = new GolfGo.Sim.Strike(TU, CO); Clubs = TU.Clubs();
+        SH = new GolfGo.Sim.SimHole(Resources.Load<TextAsset>("troy1_sim").text); SB = new GolfGo.Sim.Ball(SH, CO, SK);   // stage 2: what the ball does after the strike
         windA = Random.value * Mathf.PI * 2; windMph = Mathf.Round(Random.value * 14);
         BuildWorld(); BuildHud();
         b = new Vector2(D.tee[0], D.tee[1]); bY = D.H(b.x, b.y); strokes = 0;
@@ -234,11 +235,12 @@ public class HoleTest : MonoBehaviour
     void StrikeNow(float? e)
     {
         float win = Win; tapMark = e.HasValue ? IMPACT + e.Value : -1; tapGood = e.HasValue && Mathf.Abs(e.Value) <= win;
-        strokes++; prev = b; swingT = 0; hud.SetSwing("SWING", 0, false); hud.SetHint(""); aimLine.positionCount = 0; ring.gameObject.SetActive(false);
+        fromLie = D.Lie(b.x, b.y); strokes++; prev = b; swingT = 0; hud.SetSwing("SWING", 0, false); hud.SetHint(""); aimLine.positionCount = 0; ring.gameObject.SetActive(false);
         if (C.putter)
         {
             float pe = e ?? (Random.value < .5f ? -.12f : .12f), pw = e == null ? mPower * .4f : mPower;
-            var d = Dir(aim - pe * 1.45f); float dist = MaxDist * pw; rv = d * Mathf.Sqrt(2 * Mu["green"] * dist); st = S.Roll; fPutt = true; return;
+            var d = Dir(aim - pe * 1.45f); float dist = MaxDist * pw; rv = d * Mathf.Sqrt(2 * (float)SH.MU["green"] * dist); fPutt = true;
+            SB.flagOut = false; SB.LaunchRoll(b.x, b.y, rv.x, rv.y, Random.Range(1, int.MaxValue)); simAcc = 0; evSeen = 0; st = S.Roll; return;   // the putt's pace is still the stand-in (stage 4); the roll, cup, rim and lip are the web game's
         }
         strokes--; var si = Si(e); strokes++;   // (onTeeBox: the stroke being played is the first)
         FL = SK.Hit(si, Random.Range(1, int.MaxValue));
@@ -249,7 +251,8 @@ public class HoleTest : MonoBehaviour
         else if (FL.perfect == 1) hud.Toast("NICE SHOT!", "", Hud.Sun);
         else if (Mathf.Abs(ev) > .035f) hud.Toast(ev > 0 ? "HOOK!" : "SLICE!", ev > 0 ? "Tapped early" : "Tapped late", Hud.Hex("#ff9b6a"));
         else if (ev != 0) hud.Toast(ev > 0 ? "PULLED" : "PUSHED", ev > 0 ? "A touch early" : "A touch late", Hud.Hex("#ffd2a8"));
-        fs = b; var td = new Vector2((float)FL.dx, (float)FL.dy); fd = td; fCarry = (float)FL.carry; fT = (float)FL.T; fu = 0; fRollMul = (float)FL.rollMul; fPutt = false; st = S.Flight;
+        fs = b; var td = new Vector2((float)FL.dx, (float)FL.dy); fd = td; fCarry = (float)FL.carry; fT = (float)FL.T; fu = 0; fRollMul = (float)FL.rollMul; fPutt = false;
+        SB.windA = windA; SB.windMph = windMph; SB.flagOut = false; SB.Launch(FL, Random.Range(1, int.MaxValue)); simAcc = 0; evSeen = 0; st = S.Flight;
     }
     static float FlightS(float u) => u <= 1 ? (1 - Mathf.Exp(-DRAG * u)) / DRAG_N : 1 + (u - 1) * DRAG * Mathf.Exp(-DRAG) / DRAG_N;
     static float ArcH(float s) => 2.802f * s * (1 - s) * (1 + .8f * s);
@@ -281,8 +284,7 @@ public class HoleTest : MonoBehaviour
         hud.SetWind((int)windMph, (float)(windA - aim) * Mathf.Rad2Deg);
         hud.Tick(dt);
         if (swingT >= 0) { swingT += dt; float a = swingT < .35f ? -110 * (swingT / .35f) : Mathf.Lerp(-110, 120, Mathf.Clamp01((swingT - .35f) / .25f)); club.localRotation = Quaternion.Euler(0, 0, a); if (swingT > 1.4f) swingT = -1; }
-        if (st == S.Flight) StepFlight(dt);
-        else if (st == S.Roll) StepRoll(dt);
+        if (st == S.Flight || st == S.Roll) StepSim(dt);
         ball.position = HoleData.U(b.x, b.y, bY + .035f);
         CameraUpdate(dt);
     }
@@ -306,36 +308,57 @@ public class HoleTest : MonoBehaviour
         aimLine.widthMultiplier = C.putter ? .03f : .25f;
         var e = b + d * dist; ring.gameObject.SetActive(true); ring.position = HoleData.U(e.x, e.y, D.H(e.x, e.y) + .03f); ring.localScale = C.putter ? new Vector3(.4f, .01f, .4f) : new Vector3(Mathf.Max(3, dist * .03f), .01f, Mathf.Max(3, dist * .03f));
     }
-    void StepFlight(float dt)
+    /* the ball after the strike: the web game's own flight, trees, landing, hops, roll and cup (GolfGo.Sim.Ball), stepped at its
+       60 a second whatever the screen runs at, so a shot plays out exactly as it would in the web game */
+    const float SIM_DT = 1f / 60;
+    void StepSim(float dt)
     {
-        fu += dt / fT; var p = FlightPos(fu, out var g); b = g; bY = p.y - .035f;
-        if ((fu > .5f && p.y <= D.H(g.x, g.y) + .03f) || fu > 2.4f) Land(g);
+        simAcc += dt;
+        while (simAcc >= SIM_DT && SB.Moving) { SB.Step(SIM_DT); simAcc -= SIM_DT; }
+        b = new Vector2((float)SB.x, (float)SB.y); bY = (float)SB.bY;
+        if (st == S.Flight && SB.state != GolfGo.Sim.BallState.Flight) st = S.Roll;
+        var o = SB.outcome;
+        if (o != null) for (; evSeen < o.events.Count; evSeen++) ShotEvent(o.events[evSeen], o);
+        if (!SB.Moving) Finish(o);
     }
-    void Land(Vector2 g)
+    // the web game's toasts for what happened on the way (save-file.js)
+    void ShotEvent(string e, GolfGo.Sim.Outcome o)
     {
-        b = g; bY = D.H(g.x, g.y); string L = D.Lie(g.x, g.y);
-        if (L == "water" || L == "ob") { Penalty(L); return; }
-        float R = fCarry * fRollMul * (Surf.TryGetValue(L, out var sf) ? sf : 1) * 3;
-        if (L == "green" && C.carry < 150) R = Mathf.Min(R, 3);   // (landing and roll-out are stage 2)
-        float mu = Mu.TryGetValue(L, out var m) ? m : 1.2f; FlightPos(fu - .02f, out var g0); var td = (g - g0).normalized; if (td.sqrMagnitude < .5f) td = fd;
-        rv = td * Mathf.Sqrt(2 * mu * Mathf.Max(0, R)); st = S.Roll;
+        if (e == "trunk") hud.Toast("THWACK!", "Off the trunk", Hud.Hex("#ff9b6a"));
+        else if (e == "branch") hud.Toast("TIMBER!", "Knocked down by a branch", Hud.Hex("#ff9b6a"));
+        else if (e == "cactus") hud.Toast("OUCH!", "Off a saguaro", Hud.Hex("#ff9b6a"));
+        else if (e == "pin" && !fPutt) hud.Toast("OFF THE PIN!", "", Hud.Cream);
+        else if (e == "path" && st != S.Holed) hud.Toast("CART PATH!", "", Hud.Hex("#d8d2c4"));
+        else if (e == "lip") hud.Toast("LIP OUT!", "", Hud.Hex("#ff9b6a"));
+        else if (e == "plug") hud.Toast("FRIED EGG!", "Plugged in the sand · only a blast will do", Hud.Hex("#ffb46a"));
+        if (o.spinBack && e == "spinback") hud.Toast("SPIN BACK!", "", Hud.Mint);
     }
-    void StepRoll(float dt)
+    void Finish(GolfGo.Sim.Outcome o)
     {
-        int n = Mathf.Max(1, Mathf.CeilToInt(dt * 240)); float h = dt / n; var pin = new Vector2(D.pin[0], D.pin[1]);
-        for (int i = 0; i < n; i++)
+        if (o == null) { Stop(); return; }
+        if (o.kind == "water" || o.kind == "ob") { Penalty(o.kind); return; }
+        if (o.kind == "holed")
         {
-            string L = D.Lie(b.x, b.y); if (L == "water" || L == "ob") { Penalty(L); return; }
-            float sp = rv.magnitude;
-            if (Vector2.Distance(b, pin) < CUP && sp < 1.4f) { Holed(); return; }
-            float mu = Mu.TryGetValue(L, out var m) ? m : 1.2f; var gr = D.Grad(b.x, b.y); var a = -GACC * gr;
-            if (sp > 1e-5f) a -= mu * rv / sp;
-            rv += a * h;
-            if (rv.magnitude < Mathf.Max(.05f, mu * h * 1.5f) && (GACC * gr.magnitude) < mu * .95f) { rv = Vector2.zero; Stop(); return; }
-            b += rv * h;
+            if (o.gimme) { strokes++; hud.Toast("GIMME", "Inside 4 ft · conceded", Hud.Mint); Invoke(nameof(Holed), .7f); st = S.Holed; return; }
+            holedHow = o.how; Holed(); return;
         }
-        bY = D.H(b.x, b.y);
+        if (o.spinBack) hud.Toast("SPIN BACK!", "", Hud.Mint);
+        if (o.relief != null)
+        {   // free relief from the cart path (Rule 16.1): the drop beside it (the web game asks first; that choice comes with round flow)
+            b = new Vector2((float)o.relief[0], (float)o.relief[1]); bY = D.H(b.x, b.y);
+            hud.Toast("FREE RELIEF", "Dropped beside the cart path · " + Mathf.RoundToInt(PinDist) + " yds", Hud.Mint);
+        }
+        else
+        {
+            string L = o.lie, from = fromLie;
+            if (L == "green" && from != "green") hud.Toast(strokes <= D.par - 2 ? "NICE ON!" : "ON THE GREEN", Mathf.RoundToInt(PinDist * 3) + " ft to the cup", Hud.Mint);
+            else if (L == "sand" && from != "sand") hud.Toast("BUNKER", "", Hud.Hex("#f0e0ab"));
+            else if (L == "fescue" && from != "fescue") hud.Toast("IN THE FESCUE", "Tough lie", Hud.Hex("#e3cf7e"));
+            else if (L == "dirt" && from != "dirt") hud.Toast("UNDER THE TREES", "Leaves and dirt · tough lie", Hud.Hex("#c9a27a"));
+        }
+        Stop();
     }
+    string holedHow = "", fromLie = "tee";
     void Penalty(string L) { strokes++; b = prev; bY = D.H(b.x, b.y); hud.Toast(L == "water" ? "IN THE WATER" : "OUT OF BOUNDS", "One-stroke penalty", Hud.Hex("#ff9b6a")); hud.SetHint(""); Invoke(nameof(Next), 1.2f); st = S.Holed; }
     void Stop() { st = S.Holed; Invoke(nameof(Next), .9f); }
     void Next() { PrepareShot(true); }
@@ -343,7 +366,8 @@ public class HoleTest : MonoBehaviour
     {
         st = S.Holed; b = new Vector2(D.pin[0], D.pin[1]); bY = D.H(b.x, b.y) - .08f; int tp = strokes - D.par;
         string nm = strokes == 1 ? "HOLE IN ONE" : tp <= -3 ? "ALBATROSS" : tp == -2 ? "EAGLE" : tp == -1 ? "BIRDIE" : tp == 0 ? "PAR" : tp == 1 ? "BOGEY" : "+" + tp;
-        hud.Toast(nm, strokes + (strokes == 1 ? " stroke" : " strokes"), tp < 0 ? Hud.Sun : tp == 0 ? Hud.Mint : Hud.Cream); hud.SetHint(""); hud.SetSwing("AGAIN", 0, false); Invoke(nameof(ArmRestart), .6f);
+        string how = holedHow; holedHow = "";
+        hud.Toast(nm, strokes + (strokes == 1 ? " stroke" : " strokes") + (how != "" ? " · " + how : ""), tp < 0 ? Hud.Sun : tp == 0 ? Hud.Mint : Hud.Cream); hud.SetHint(""); hud.SetSwing("AGAIN", 0, false); Invoke(nameof(ArmRestart), .6f);
     }
     void ArmRestart() { st = S.Aim; strokes = 0; b = new Vector2(D.tee[0], D.tee[1]); bY = D.H(b.x, b.y); PrepareShot(true); }
 
