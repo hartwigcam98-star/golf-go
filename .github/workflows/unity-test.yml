@@ -1,0 +1,93 @@
+name: Unity test to TestFlight
+# The one-hole Unity test (unity/): Unity builds the Xcode project on GitHub's Mac, then it is archived unsigned and signed for
+# the App Store at export (same as the web-wrapper app, testflight.yml). It goes to the same App Store Connect app (GolfGo Tour,
+# bundle ID Golfgo) as version 2.0, so it shows in TestFlight next to the 1.0 builds.
+# Secrets: UNITY_EMAIL, UNITY_PASSWORD (a free Unity Personal account) plus the four Apple ones testflight.yml uses.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: App version for this build
+        default: '2.0'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check secrets
+        env:
+          E: ${{ secrets.UNITY_EMAIL }}
+          W: ${{ secrets.UNITY_PASSWORD }}
+          T: ${{ secrets.APPLE_TEAM_ID }}
+          K: ${{ secrets.ASC_KEY_ID }}
+          I: ${{ secrets.ASC_ISSUER_ID }}
+          P: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          for v in E W T K I P; do if [ -z "${!v}" ]; then echo "::error::Missing secret ($v): UNITY_EMAIL, UNITY_PASSWORD and the four Apple secrets are all needed"; exit 1; fi; done
+      - uses: buildalon/unity-setup@v1
+        with:
+          version-file: unity/ProjectSettings/ProjectVersion.txt
+          build-targets: iOS
+      - uses: buildalon/activate-unity-license@v1
+        with:
+          license: Personal
+          username: ${{ secrets.UNITY_EMAIL }}
+          password: ${{ secrets.UNITY_PASSWORD }}
+      - name: Unity build (Xcode project)
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          APP_VERSION: ${{ inputs.version }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          echo "editor: $UNITY_EDITOR_PATH"
+          "$UNITY_EDITOR_PATH" -batchmode -quit -nographics -projectPath "$GITHUB_WORKSPACE/unity" -buildTarget iOS \
+            -executeMethod GolfGoBuild.BuildIOS -logFile - 2>&1 | tee unity.log | grep -E "error|Error|GolfGoBuild|Exception|warning CS" | head -200
+          test -d unity/build/iOS/Unity-iPhone.xcodeproj || { echo "::error::Unity did not write the Xcode project (see the log above)"; tail -80 unity.log; exit 1; }
+      - name: Xcode
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+          xcodebuild -version
+      - name: API key
+        env:
+          P8: ${{ secrets.ASC_KEY_P8 }}
+          KID: ${{ secrets.ASC_KEY_ID }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          printf '%s\n' "$P8" > "$RUNNER_TEMP/keys/AuthKey_$KID.p8"
+      - name: Archive (unsigned; signed at export)
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcodebuild archive \
+            -project unity/build/iOS/Unity-iPhone.xcodeproj -scheme Unity-iPhone -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            DEVELOPMENT_TEAM="$TEAM" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" | tail -40
+          test -d "$RUNNER_TEMP/App.xcarchive" || exit 1
+      - name: Upload to App Store Connect
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          KID: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/export.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>$TEAM</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/export.plist" -exportPath "$RUNNER_TEMP/out" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_$KID.p8" -authenticationKeyID "$KID" -authenticationKeyIssuerID "$ISS"
+          echo "::notice::Uploaded the Unity test, version ${{ inputs.version }} build ${{ github.run_number }}. It shows in TestFlight after Apple's processing."
+      - name: Remove the key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
