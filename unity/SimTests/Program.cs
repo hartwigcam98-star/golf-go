@@ -53,6 +53,11 @@ static class Program
         foreach (Dictionary<string, object> c in cases)
         {
             n++;
+            var w = (Dictionary<string, object>)c["wind"];
+            var b = new Ball(H, C, S) { windA = D(w["a"]), windMph = D(w["mph"]), flagOut = false };
+            bool roll = c.ContainsKey("roll"); string label = roll ? "roll" : "";
+            if (roll) b.LaunchRoll(D(c["bx"]), D(c["by"]), D(c["vx"]), D(c["vy"]), (int)D(c["lseed"]));
+            else {
             var fl = (Dictionary<string, object>)c["flight"];
             double F(string k) => fl.TryGetValue(k, out var v) && v is double d ? d : 0;
             var f = new Flight
@@ -61,9 +66,7 @@ static class Program
                 apex = F("apex"), T = F("T"), rollMul = fl.ContainsKey("rollMul") ? F("rollMul") : 1, rel = F("rel"), back = F("back"), full = F("full"),
                 fly = fl.TryGetValue("fly", out var fy) && fy is bool fb && fb, club = (string)fl["club"], stype = fl.TryGetValue("stype", out var st) ? (string)st : "full"
             };
-            var w = (Dictionary<string, object>)c["wind"];
-            var b = new Ball(H, C, S) { windA = D(w["a"]), windMph = D(w["mph"]), flagOut = false };
-            b.Launch(f, (int)D(c["lseed"]));
+            b.Launch(f, (int)D(c["lseed"])); label = f.club; }
             var trace = (List<object>)c["trace"]; int frames = 0, ti = 0; string firstOff = null;
             while (b.Moving && frames < 60 * 40)
             {
@@ -94,7 +97,7 @@ static class Program
                 if (Math.Abs(frames - (int)D(c["frames"])) > (beyond ? 2 : 0)) diffs.Add($"frames {frames} vs web {D(c["frames"])}");
             }
             string key = wk + (wk == "rest" ? ":" + o["lie"] : ""); kinds[key] = kinds.TryGetValue(key, out var kc) ? kc + 1 : 1;
-            if (diffs.Count > 0) { bad++; Console.WriteLine($"land {n} ({f.club} from {D(c["bx"]):F0},{D(c["by"]):F0}): " + string.Join("; ", diffs) + (firstOff != null ? " | first off at " + firstOff : "")); }
+            if (diffs.Count > 0) { bad++; Console.WriteLine($"land {n} ({label} from {D(c["bx"]):F0},{D(c["by"]):F0}): " + string.Join("; ", diffs) + (firstOff != null ? " | first off at " + firstOff : "")); }
         }
         var ks = new List<string>(); foreach (var kv in kinds) ks.Add(kv.Key + " " + kv.Value);
         Console.WriteLine($"landing parity: {n - bad}/{n} cases match the web game ({string.Join(", ", ks)})");

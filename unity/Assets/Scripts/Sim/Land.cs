@@ -130,6 +130,12 @@ namespace GolfGo.Sim
             R = new Rng(seed); dice = 0; outcome = null; rim = false;
             x = fl.sx; y = fl.sy; bY = fl.y0; state = BallState.Flight;
         }
+        // a ball already rolling (a putt, a chip's run-out, or a test): from (x, y) at (vx, vy) yd/s
+        public void LaunchRoll(double x0, double y0, double vx, double vy, int seed)
+        {
+            f = null; fc = null; u = 0; pinHitF = false; knocked = false; hPinHit = false; dropping = false; R = new Rng(seed); dice = 0; outcome = null;
+            x = x0; y = y0; bY = C.HAt(x0, y0); StartRollV(vx, vy, false);
+        }
         public bool Moving => state == BallState.Flight || state == BallState.Bounce || state == BallState.Roll;
         // one frame of the game loop: the flight, then the hops, then the roll
         public void Step(double dt)

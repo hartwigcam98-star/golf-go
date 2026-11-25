@@ -63,15 +63,28 @@ const SITE = process.argv[2], OUT = process.argv[3];
       add(bx, by, c[0], aimTo(bx, by, x, y) + off / Math.max(30, Math.min(D, tl)), [1, .97, .92][i % 3], [0, .012, -.008, null][i % 4], 1); i++;
     }
   }
+  { let i = 0; for (const [x, y] of pick(T.pts.tree, 30)) { const D = [45, 60, 75][i % 3], tl = Math.hypot(tee[0] - x, tee[1] - y) || 1, bx = x + (tee[0] - x) / tl * D, by = y + (tee[1] - y) / tl * D;
+      add(bx, by, ['4H', '5I', '6I'][i % 3], aimTo(bx, by, x, y), [.55, .45, .6][i % 3], [0, .01, -.01][i % 3], 1); i++; } }
+  // rolls: the ball already rolling, at the cup (centred and off-centre, a range of paces) and along the cart paths
+  const rolls = [];
+  for (let k = 0; k < 70; k++) {
+    const d = 1 + (k % 7) * .8, a = k * 2.399, sx = pin[0] + Math.cos(a) * d, sy = pin[1] + Math.sin(a) * d, off = ((k % 9) - 4) / 4 * .07, sp = [.6, 1, 1.4, 1.9, 2.5, 3.2, 4.2, 1.2, 2.1][k % 9];
+    const ux = (pin[0] - sx) / d, uy = (pin[1] - sy) / d; rolls.push({ roll: 1, bx: sx - uy * off, by: sy + ux * off, vx: ux * sp * (1 + d * .35), vy: uy * sp * (1 + d * .35), seed: 0, lseed: 700000 + k * 13, strokes: 1 });
+  }
+  { let k = 0; for (const [x, y] of pick(T.pts.path, 25)) { const a = k * 1.7; rolls.push({ roll: 1, bx: x, by: y, vx: Math.cos(a) * (2 + k % 5 * 2), vy: Math.sin(a) * (2 + k % 5 * 2), seed: 0, lseed: 710000 + k * 17, strokes: 1 }); k++; } }
+  cases.push(...rolls);
   const res = [];
   for (const c of cases) {
     const r = JSON.parse(await g.ev(`(()=>{try{
       const c=${JSON.stringify(c)};
       G.ball={x:c.bx,y:c.by};G.lie=lieAt(c.bx,c.by);if(G.lie==='water'||G.lie==='ob')return JSON.stringify({skip:G.lie});G.strokes=c.strokes;G.clubIdx=CI(c.club);G.stype='full';G.aim=c.aim;G.flagOut=false;G.buried=false;
-      G.wind={a:${'(c.seed*0.37)%6.283'},mph:(c.seed*7)%13};G.followT=0;G.state='acc';G.meter.power=c.power;G.aiTurn=false;G.fromLie=undefined;
-      executeShot(c.power,c.e,c.seed);
+      G.wind={a:(c.seed*0.37)%6.283,mph:(c.seed*7)%13};G.followT=0;G.state='acc';G.meter.power=c.power;G.aiTurn=false;G.fromLie=undefined;
+      let fl=null;
+      if(c.roll){G.prev={x:c.bx,y:c.by};G.fromLie=G.lie;G.flight=null;G.hop=null;G.roll={vx:c.vx,vy:c.vy,t:0,lip:false};G.state='roll';G.bY=hAt(c.bx,c.by);}
+      else{executeShot(c.power,c.e,c.seed);
       const f=G.flight;if(!f)return JSON.stringify({err:'no flight',state:G.state});
-      const fl={};for(const k of Object.keys(f)){const v=f[k];if(typeof v==='number'||typeof v==='boolean'||typeof v==='string')fl[k]=v;}fl.club=f.club.id;
+      fl={};for(const k of Object.keys(f)){const v=f[k];if(typeof v==='number'||typeof v==='boolean'||typeof v==='string')fl[k]=v;}fl.club=f.club.id;}
+      const evs={};for(const k of ['tree','rustle','pin','lip','rim','land','splash'])sfx[k]=()=>{evs[k]=(evs[k]||0)+1;};
       const lie0=G.lie,prev={...G.prev};
       let draws=0;const R=rng(c.lseed);Math.random=()=>{draws++;return R();};
       let out=null;const P0=penalty,H0=holed,S0=stopBall,A0=typeof pathAsk==='function'?pathAsk:null;
@@ -88,13 +101,14 @@ const SITE = process.argv[2], OUT = process.argv[3];
         if(!['flight','bounce','roll'].includes(G.state))break;}}
       finally{penalty=P0;holed=H0;stopBall=S0;}
       if(out&&out.kind==='rest'&&G.strokes>c.strokes+1)out.gimme=true;
-      return JSON.stringify({...c,lie0,flight:fl,wind:G.wind,frames:n,draws,state:G.state,strokes:G.strokes,out,trace:tr,end:[G.ball.x,G.ball.y],shotInfo:G.shotInfo,prev});
+      return JSON.stringify({...c,lie0,flight:fl,evs,wind:G.wind,frames:n,draws,state:G.state,strokes:G.strokes,out,trace:tr,end:[G.ball.x,G.ball.y],shotInfo:G.shotInfo,prev});
     }catch(e){return JSON.stringify({err:String(e&&e.stack||e)});}})()`));
     if (r.err) console.log('ERR', r.err.slice(0, 400));
     if (!r.skip) res.push(r);
   }
   fs.writeFileSync(path.join(OUT, 'land_cases.json'), JSON.stringify(res));
-  const tally = {}; for (const r of res) { const k = r.out ? r.out.kind + (r.out.lie ? ':' + r.out.lie : '') : 'none:' + r.state; tally[k] = (tally[k] || 0) + 1; }
+  const ev = {}; for (const r of res) for (const k in r.evs || {}) ev[k] = (ev[k] || 0) + 1; console.log('cases with each sound', JSON.stringify(ev));
+  const tally = {}; for (const r of res) { const k = r.out ? r.out.kind + (r.out.how ? ':' + r.out.how : '') + (r.out.gimme ? ':gimme' : '') + (r.out.lie ? ':' + r.out.lie : '') + (r.out.plie === 'path' ? '(path)' : '') : 'none:' + r.state; tally[k] = (tally[k] || 0) + 1; }
   console.log(res.length, 'cases', JSON.stringify(tally), 'errors', g.errs.slice(0, 3));
   await g.close();
 })();
