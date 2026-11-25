@@ -30,7 +30,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 class GameViewController: CAPBridgeViewController {
     override func webViewConfiguration(for instanceConfiguration: InstanceConfiguration) -> WKWebViewConfiguration {
         let config = super.webViewConfiguration(for: instanceConfiguration)
-        Self.setWebKitFeature("PreferPageRenderingUpdatesNear60FPSEnabled", on: false, in: config.preferences)
+        // Nov 25 2026: the first TestFlight build (1.0 (9)) ran locked at 30 fps (every frame 33 ms, even idle ones) while Safari ran 60
+        // on the same phone. Trying without WebKit's internal 120 Hz switch first; setWebKitFeature stays below if it turns out not to be the cause.
+        if ProcessInfo.processInfo.environment["GG_120"] == "1" { Self.setWebKitFeature("PreferPageRenderingUpdatesNear60FPSEnabled", on: false, in: config.preferences) }
         return config
     }
 
