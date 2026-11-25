@@ -1,15 +1,9 @@
-# Minnesota: The Jewel, The Ridges at Sand Creek, Edinburgh USA, Willinger's, The Links at Northfork.
-# Fetches OSM, NED, NAIP, 3DEP 1 m and lidar ground points around the greens; results go to the "course-data" branch.
+# Golf Go course fetch job (template auto/fetch_job_tmpl.py, filled by auto/mkjob.py). Results go to the 'course-data' branch (this run only).
+# Fetches OSM, NED, NAIP, 3DEP 1 m and lidar ground points around the greens (France: IGN ortho, RGE ALTI and LiDAR HD instead); results go to the "course-data" branch.
 import json, math, os, sys, time, re, traceback
 import numpy as np, requests
 from concurrent.futures import ProcessPoolExecutor, as_completed
-JOB = {"name": "minnesota 5, second pass: ridges at sand creek (full outline), willingers (box from its holes)",
-       "search": [[44.60, -93.66, 44.68, -93.55], [44.46, -93.36, 44.52, -93.28]],
-       "want": {"ridges": r"^zzz$", "willingers": r"willinger"},
-       "holes": {"ridges": r"^zzz$", "willingers": r"willinger"},
-       "ids": {"ridges": "way/175655077"},
-       "boxes": {"willingers": [-93.3232, 44.4864, -93.3051, 44.4984]},
-       "steps": {"ridges": "all", "willingers": "all"}}
+JOB = json.loads(r'''{"name": "Le Golf National (Albatros)", "search": [[48.72, 2.03, 48.79, 2.12]], "want": {"albatros": "^golf national$"}, "holes": {"albatros": "albatros"}, "steps": {"albatros": "all"}}''')
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 SUM = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'courses': {}, 'errors': [], 'naip_src': None}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
@@ -290,12 +284,154 @@ def greens_points(key, b, osm, resources, rings):
     np.savez_compressed(f'{OUT}/pts_{key}.npz', **pack); SUM['courses'][key]['points'] = info_all
     log(key, 'points saved', os.path.getsize(f'{OUT}/pts_{key}.npz') // 1024, 'KB'); save()
 
+# ---------- France (IGN Geoplateforme, open data): same output files as the US steps.
+#   photo: BD ORTHO 20 cm (WMS HR.ORTHOIMAGERY.ORTHOPHOTOS); elevation: LiDAR HD MNT, else RGE ALTI 1 m (WMS,
+#   image/x-bil;bits=32, little-endian float32); points: LiDAR HD classified COPC tiles (1 km, Lambert-93, IGN69 heights),
+#   listed by the WFS layer IGNF_LIDAR-HD_METADONNEE:metadata. Downstream files keep the US convention epsg = 26900 + UTM zone
+#   (lidar2/utm.py does its own GRS80 maths); the transforms here use WGS84 UTM (326xx), the same projection to well under 1 mm.
+def in_france(b):
+    cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
+    return -5.5 < cx < 9.8 and 41.2 < cy < 51.2
+WMSR = 'https://data.geopf.fr/wms-r'
+def wms(layer, fmt, crs, bbox, w, h):
+    # WMS 1.3.0: EPSG:4326 bbox is lat,lon order (S,W,N,E); projected CRS bbox is x,y order
+    p = dict(SERVICE='WMS', VERSION='1.3.0', REQUEST='GetMap', LAYERS=layer, STYLES='', CRS=crs, BBOX=','.join(f'{v:.8f}' for v in bbox),
+             WIDTH=int(w), HEIGHT=int(h), FORMAT=fmt)
+    r = get(WMSR, p)
+    if 'xml' in (r.headers.get('content-type') or ''): raise RuntimeError('wms ' + r.text[:300])
+    return r.content
+FR_DEM = ['IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.LAMB93', 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES']
+# LiDAR HD terrain model first (same 2020s survey as the points; RGE ALTI can predate a course's rebuild: Le Golf National's
+# bunkers were ~0 deep in it), RGE ALTI 1 m only where LiDAR HD has no data
+def fr_bil(crs, bbox, w, h):
+    out = None
+    for L in FR_DEM:
+        c = wms(L, 'image/x-bil;bits=32', crs, bbox, w, h)
+        if len(c) < w * h * 4: raise RuntimeError('short bil %d for %dx%d' % (len(c), w, h))
+        a = np.frombuffer(c[:w * h * 4], '<f4').reshape(h, w).astype(np.float32).copy(); a[(a < -1000) | (a > 10000)] = np.nan
+        out = a if out is None else np.where(np.isnan(out), a, out)
+        if not np.isnan(out).any(): break
+    return out
+def fr_grid_ll(W, S_, E, N, w, h, T=1000):
+    """RGE ALTI over a lon/lat box as an h x w grid of pixel areas (row 0 = north), fetched in tiles"""
+    Z = np.full((h, w), np.nan, np.float32); dx = (E - W) / w; dy = (N - S_) / h
+    for r0 in range(0, h, T):
+        for c0 in range(0, w, T):
+            tw, th = min(T, w - c0), min(T, h - r0)
+            n_ = N - r0 * dy; s_ = n_ - th * dy; w_ = W + c0 * dx; e_ = w_ + tw * dx
+            Z[r0:r0 + th, c0:c0 + tw] = fr_bil('EPSG:4326', [s_, w_, n_, e_], tw, th)
+    return Z
+def ned_grids_fr(key, b):
+    W, S_, E, N = grow(b, 150); st = 0.0005
+    latN = math.ceil(N / st) * st; latS = math.floor(S_ / st) * st; lonW = math.floor(W / st) * st; lonE = math.ceil(E / st) * st
+    NR = int(round((latN - latS) / st)) + 1; NC = int(round((lonE - lonW) / st)) + 1
+    # pixel centres on the lattice points: widen the box by half a step
+    Z = fr_grid_ll(lonW - st / 2, latS - st / 2, lonE + st / 2, latN + st / 2, NC, NR)
+    Z = np.where(np.isnan(Z), np.nanmean(Z), Z)
+    json.dump(dict(latN=latN, latS=latS, lonW=lonW, lonE=lonE, st=st, NR=NR, NC=NC, z=[round(float(v), 2) for v in Z.ravel()]), open(f'{OUT}/ned_{key}.json', 'w'))
+    cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2; hy = 0.018; hx = hy / math.cos(math.radians(cy)) * 1.0; wn = 17
+    sy, sx = 2 * hy / (wn - 1), 2 * hx / (wn - 1)
+    Zw = fr_grid_ll(cx - hx - sx / 2, cy - hy - sy / 2, cx + hx + sx / 2, cy + hy + sy / 2, wn, wn)
+    Zw = np.where(np.isnan(Zw), np.nanmean(Zw), Zw)
+    json.dump(dict(latN=cy + hy, latS=cy - hy, lonW=cx - hx, lonE=cx + hx, N=wn, z=[round(float(v), 2) for v in Zw.ravel()]), open(f'{OUT}/nedwide_{key}.json', 'w'))
+    log(key, 'ned (IGN)', NR, 'x', NC, 'wide', wn, 'nan', int(np.isnan(Z).sum()), int(np.isnan(Zw).sum()))
+def naip_fr(key, b):
+    b = grow(b, 60); lat = (b[1] + b[3]) / 2
+    w = int((b[2] - b[0]) * 111320 * math.cos(math.radians(lat)) / .6); h = int((b[3] - b[1]) * 110574 / .6)
+    sc = min(1, 4000 / max(w, h)); size = [int(w * sc), int(h * sc)]
+    img = wms('HR.ORTHOIMAGERY.ORTHOPHOTOS', 'image/jpeg', 'EPSG:4326', [b[1], b[0], b[3], b[2]], size[0], size[1])
+    if len(img) < 50000: raise RuntimeError('tiny image %d' % len(img))
+    open(f'{OUT}/naip_{key}.jpg', 'wb').write(img)
+    json.dump(dict(bbox=b, size=size, ext=list(b), src='IGN BD ORTHO (HR.ORTHOIMAGERY.ORTHOPHOTOS)'), open(f'{OUT}/naip_{key}.json', 'w'))
+    SUM['naip_src'] = 'IGN BD ORTHO'; log(key, 'ortho', size, len(img) // 1024, 'KB')
+def dem_ll_fr(key, b):
+    b = grow(b, 120); lat = (b[1] + b[3]) / 2
+    w = int((b[2] - b[0]) * 111320 * math.cos(math.radians(lat))); h = int((b[3] - b[1]) * 110574)
+    Z = fr_grid_ll(b[0], b[1], b[2], b[3], w, h)
+    np.savez_compressed(f'{OUT}/demll_{key}.npz', z=Z)
+    json.dump(dict(bbox=b, size=[w, h], fmt='bsq', ext=list(b), src='IGN LiDAR HD MNT (RGE ALTI 1 m where missing)'), open(f'{OUT}/lidar_{key}.json', 'w')); log(key, 'dem lon/lat (IGN)', w, h, 'nan', int(np.isnan(Z).sum()))
+def dem_utm_fr(key, b):
+    W, S_, E, N = grow(b, 120); zone = int((((W + E) / 2) + 180) // 6) + 1; EPSG = 26900 + zone
+    tf = Transformer.from_crs(4326, 32600 + zone, always_xy=True)
+    xs, ys = tf.transform([W, E, W, E], [S_, S_, N, N])
+    x0, y0, x1, y1 = math.floor(min(xs)), math.floor(min(ys)), math.ceil(max(xs)), math.ceil(max(ys))
+    w, h = x1 - x0, y1 - y0; Z = np.full((h, w), np.nan, np.float32); T = 1000
+    for ty in range(y0, y1, T):
+        for tx in range(x0, x1, T):
+            tw, th = min(T, x1 - tx), min(T, y1 - ty)
+            a = fr_bil(f'EPSG:{32600 + zone}', [tx, ty, tx + tw, ty + th], tw, th)
+            r0 = y1 - (ty + th); Z[r0:r0 + th, tx - x0:tx - x0 + tw] = a
+    np.savez_compressed(f'{OUT}/dem_{key}.npz', z=Z, x0=x0, y1=y1, res=1.0, epsg=EPSG)
+    lo = np.linspace(W, E, 5); la = np.linspace(S_, N, 5); LO, LA = np.meshgrid(lo, la); X, Y = tf.transform(LO.ravel(), LA.ravel())
+    SUM['courses'][key]['dem'] = dict(epsg=EPSG, x0=x0, y0=y0, x1=x1, y1=y1, w=w, h=h, nan=int(np.isnan(Z).sum()), src='IGN LiDAR HD MNT (RGE ALTI 1 m where missing)',
+        ctrl=[[float(a), float(b_), float(c), float(d)] for a, b_, c, d in zip(LO.ravel(), LA.ravel(), X, Y)])
+    log(key, 'dem utm (IGN)', w, 'x', h)
+def fr_tiles(box):
+    """LiDAR HD tiles over a lon/lat box: [(name, url, (X0, Y0, X1, Y1) Lambert-93, props)]"""
+    W, S_, E, N = box
+    p = dict(SERVICE='WFS', VERSION='2.0.0', REQUEST='GetFeature', TYPENAMES='IGNF_LIDAR-HD_METADONNEE:metadata', COUNT=500,
+             OUTPUTFORMAT='application/json', BBOX=f'{S_},{W},{N},{E},urn:ogc:def:crs:EPSG::4326')
+    out = []
+    for f in get('https://data.geopf.fr/wfs/ows', p).json().get('features', []):
+        pr = f['properties']; u = pr.get('url_npl')
+        if not u: continue
+        cx_, cy_ = (int(v) * 1000 for v in pr['coordonnees_nw'].split('-'))
+        out.append(('FR_LiDARHD_' + pr.get('code_mission', 'x'), u, (cx_, cy_ - 1000, cx_ + 1000, cy_), pr))
+    return out
+def read_tile_ground(url, zone, boxes):
+    """ground points of one LiDAR HD tile, cropped to each green box (UTM): [(gi, X, Y, Z)]"""
+    import pdal
+    spec = [{'type': 'readers.las', 'filename': url}, {'type': 'filters.range', 'limits': 'Classification[2:2]'}]
+    t = time.time(); p = pdal.Pipeline(json.dumps(spec)); n = p.execute(); a = p.arrays[0]
+    tf = Transformer.from_crs(2154, 32600 + zone, always_xy=True); X, Y = tf.transform(a['X'], a['Y']); X = np.asarray(X); Y = np.asarray(Y); Z = np.asarray(a['Z'], float)
+    out = []
+    for gi, (x0, y0, x1, y1) in boxes:
+        m = (X >= x0) & (X <= x1) & (Y >= y0) & (Y <= y1)
+        if m.any(): out.append((gi, X[m], Y[m], Z[m]))
+    return url, out, len(X), round(time.time() - t, 1)
+def greens_points_fr(key, b, osm, rings):
+    W, S_, E, N = grow(b, 60); zone = int((((W + E) / 2) + 180) // 6) + 1
+    greens = [dict(id=f'traced/{i}', bbox=grow(list(bb), 25)) for i, bb in enumerate(JOB.get('greens', {}).get(key, []))]
+    for el in ([] if greens else osm['elements']):
+        if el.get('tags', {}).get('golf') != 'green': continue
+        bb = bbox_of(el)
+        if not bb: continue
+        c = ((bb[0] + bb[2]) / 2, (bb[1] + bb[3]) / 2)
+        if not any(len(r) > 2 and pip(c, r) for r in rings): continue
+        greens.append(dict(id=el['type'] + '/' + str(el['id']), bbox=grow(bb, 25)))
+    tiles = fr_tiles([W, S_, E, N]); l93 = Transformer.from_crs(4326, 2154, always_xy=True); tf = Transformer.from_crs(4326, 32600 + zone, always_xy=True)
+    SUM['courses'][key]['fr_tiles'] = [dict(name=t[0], url=t[1], box=t[2], start=t[3].get('date_debut_acquisition'), end=t[3].get('date_fin_acquisition'),
+                                            pts=t[3].get('nombre_points'), classed=t[3].get('procede_classement')) for t in tiles]
+    need = {}
+    for gi, g in enumerate(greens):
+        x0, y0, x1, y1 = g['bbox']; xs, ys = l93.transform([x0, x1, x0, x1], [y0, y0, y1, y1]); gb = (min(xs), min(ys), max(xs), max(ys))
+        ux, uy = tf.transform([x0, x1, x0, x1], [y0, y0, y1, y1]); ub = (min(ux), min(uy), max(ux), max(uy))
+        hit = [t for t in tiles if t[2][0] < gb[2] and t[2][2] > gb[0] and t[2][1] < gb[3] and t[2][3] > gb[1]]
+        g['cand'] = sorted({t[0] for t in hit})
+        g['wesm'] = [dict(project=t[0], collect_start=t[3].get('date_debut_acquisition'), collect_end=t[3].get('date_fin_acquisition'), ql='LiDAR HD') for t in hit][:1]
+        for t in hit: need.setdefault(t[1], []).append((gi, ub))
+    SUM['courses'][key]['greens'] = greens; save()
+    per = {}
+    with ProcessPoolExecutor(3) as ex:
+        fs = [ex.submit(read_tile_ground, u, zone, bx) for u, bx in need.items()]
+        for f in as_completed(fs):
+            try: u, parts, ng, sec = f.result()
+            except Exception as e: err(f'tile {key}', e); continue
+            log(key, 'tile', u.rsplit('/', 1)[-1], ng, 'ground pts', sec, 's')
+            name = next(t[0] for t in tiles if t[1] == u)
+            for gi, X, Y, Z in parts: per.setdefault((gi, name), []).append((X, Y, Z))
+    pack = {}; info_all = {}
+    for (gi, name), parts in per.items():
+        X = np.concatenate([p[0] for p in parts]); Y = np.concatenate([p[1] for p in parts]); Z = np.concatenate([p[2] for p in parts])
+        ox, oy = math.floor(X.min()), math.floor(Y.min())
+        d = dict(ox=ox, oy=oy, x=np.round((X - ox) * 100).astype(np.int32), y=np.round((Y - oy) * 100).astype(np.int32), z=np.round(Z * 1000).astype(np.int32))
+        for kk, v in d.items(): pack[f'g{gi}|{name}|{kk}'] = np.asarray(v)
+        info_all.setdefault(str(gi), {})[name] = dict(n=int(len(X)), ground=int(len(X)), classes={2: int(len(X))},
+                                                      gdens=round(len(X) / max((X.max() - X.min()) * (Y.max() - Y.min()), 1), 2))
+    np.savez_compressed(f'{OUT}/pts_{key}.npz', **pack); SUM['courses'][key]['points'] = info_all
+    log(key, 'points saved', os.path.getsize(f'{OUT}/pts_{key}.npz') // 1024, 'KB', len(info_all), 'greens'); save()
+
 def main():
-    import subprocess   # keep the earlier courses' files on the results branch
-    try:
-        subprocess.run(['git', 'clone', '-q', '--depth', '1', '-b', 'course-data', f"https://github.com/{os.environ.get('GITHUB_REPOSITORY','hartwigcam98-star/golf-go')}", '/tmp/prev'], check=True)
-        subprocess.run('cp -rn /tmp/prev/. out/ 2>/dev/null; rm -rf out/.git; [ -f out/summary.json ] && mv out/summary.json out/summary_prev_mn5a.json; [ -f out/run.log ] && mv out/run.log out/run_prev_mn5a.log; true', shell=True)
-    except Exception as e: SUM['errors'].append(f'keep old: {e}')
     try: res = discover()
     except Exception as e: err('discover', e); return
     if not res: err('discover', 'none of the wanted courses found; see osm_golf_courses'); return
@@ -327,12 +463,14 @@ def main():
             c = res[key]; SUM['courses'][key] = {k: v for k, v in c.items() if k != 'rings'}; save(); b = c['bbox']
             mode = JOB['steps'].get(key)
             if not mode: continue
-            for step in ((ned_grids, naip, dem_ll, dem_utm) if mode == 'all' else ()):   # mode 'points': green point clouds only
+            FR = in_france(b); SUM['courses'][key]['region'] = 'FR' if FR else 'US'
+            steps = (ned_grids_fr, naip_fr, dem_ll_fr, dem_utm_fr) if FR else (ned_grids, naip, dem_ll, dem_utm)
+            for step in (steps if mode == 'all' else ()):   # mode 'points': green point clouds only
                 try: step(key, b)
                 except Exception as e: err(f'{step.__name__} {key}', e)
                 save()
             if osm is not None:
-                try: greens_points(key, b, osm, resources, c['rings'])
+                try: greens_points_fr(key, b, osm, c['rings']) if in_france(b) else greens_points(key, b, osm, resources, c['rings'])
                 except Exception as e: err(f'greens {key}', e)
     SUM['finished'] = time.strftime('%Y-%m-%d %H:%M:%S'); save()
 
