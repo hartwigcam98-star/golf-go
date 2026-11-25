@@ -48,6 +48,32 @@ jobs:
           printf '%s\n' "$P8" > "$RUNNER_TEMP/keys/AuthKey_$KID.p8"
       # Archived unsigned: automatic signing at archive time wants a development profile, and that needs a registered iPhone
       # ("Your team has no devices"). The export below signs it for the App Store through the API key (cloud signing, no device).
+      # Does the key work, and does App Store Connect have an app with this bundle ID? (prints only statuses and the app's name)
+      - name: Check the key and the app
+        env:
+          KID: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          python3 -m pip install -q --break-system-packages pyjwt cryptography 2>/dev/null || python3 -m pip install -q pyjwt cryptography
+          python3 - <<'PY'
+          import os, time, json, urllib.request, urllib.error, jwt
+          kid, iss = os.environ['KID'].strip(), os.environ['ISS'].strip()
+          key = open(f"{os.environ['RUNNER_TEMP']}/keys/AuthKey_{os.environ['KID']}.p8").read()
+          print('key id length', len(kid), '| issuer id length', len(iss), '| key file lines', len(key.strip().splitlines()))
+          tok = jwt.encode({'iss': iss, 'iat': int(time.time()), 'exp': int(time.time()) + 600, 'aud': 'appstoreconnect-v1'}, key, algorithm='ES256', headers={'kid': kid, 'typ': 'JWT'})
+          def get(u):
+              r = urllib.request.Request('https://api.appstoreconnect.apple.com' + u, headers={'Authorization': 'Bearer ' + tok})
+              try:
+                  with urllib.request.urlopen(r) as f: return f.status, json.load(f)
+              except urllib.error.HTTPError as e: return e.code, json.loads(e.read() or b'{}')
+          st, j = get('/v1/apps?limit=50&fields[apps]=name,bundleId')
+          print('list apps: HTTP', st)
+          if st != 200: print('::error::App Store Connect refused the key:', [x.get('title', '') + ': ' + x.get('detail', '') for x in j.get('errors', [])])
+          else:
+              apps = [(a['attributes']['name'], a['attributes']['bundleId']) for a in j['data']]
+              print('apps on the account:', apps)
+              if not any(b == 'io.github.hartwigcam98.golfgo' for _, b in apps): print('::error::No App Store Connect app with bundle ID io.github.hartwigcam98.golfgo')
+          PY
       - name: Archive
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
@@ -78,10 +104,12 @@ jobs:
             <key>manageAppVersionAndBuildNumber</key><false/>
           </dict></plist>
           EOF
+          rc=0
           xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
             -exportOptionsPlist "$RUNNER_TEMP/export.plist" -exportPath "$RUNNER_TEMP/out" \
             -allowProvisioningUpdates \
-            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_$KID.p8" -authenticationKeyID "$KID" -authenticationKeyIssuerID "$ISS"
+            -authenticationKeyPath "$RUNNER_TEMP/keys/AuthKey_$KID.p8" -authenticationKeyID "$KID" -authenticationKeyIssuerID "$ISS" || rc=$?
+          if [ $rc -ne 0 ]; then for f in $(ls -d "${TMPDIR:-/tmp}"/App_*.xcdistributionlogs 2>/dev/null); do echo "== $f"; grep -h -i -E "error|fail|denied|forbidden|not found|status" "$f"/*.log 2>/dev/null | tail -40; done; exit $rc; fi
           echo "::notice::Uploaded build ${{ github.run_number }} (version ${{ inputs.version }}). It shows in TestFlight after Apple's processing (usually 5-30 min)."
       - name: Remove the key
         if: always()
