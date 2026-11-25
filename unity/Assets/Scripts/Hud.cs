@@ -143,8 +143,9 @@ public class Hud
     float meterW, fillMax;
     CanvasGroup toastCG; float toastT = -1;
 
-    public static readonly string[] ShotTypes = { "full", "punch", "pitch", "chip", "flop", "spin" };
-    static readonly string[] ShotNames = { "Full", "Punch", "Pitch", "Chip", "Flop", "Spin" };
+    public static readonly string[] ShotTypes = { "full", "punch", "pitch", "chip", "flop", "spin", "splash", "pick", "blast" };
+    static readonly string[] ShotNames = { "Full", "Punch", "Pitch", "Chip", "Flop", "Spin", "Splash", "Pick", "Blast" };
+    RectTransform shotsRT; float shotsIW; bool bunkerRow = true;   // (the row is laid out on the first SetShot)
 
     public Hud(float impact)
     {
@@ -242,9 +243,9 @@ public class Hud
         pinT = Txt(chipsRT, "Pin", fBold, 14, Cream); At(pinT.rectTransform, 0, 26, 220, 18);
 
         // shot types: panel2, radius 12, padding 3; six 1fr cells and a .7fr power cell, gap 4
-        var shots = Box(inner, "Shots", 12, Panel2); At(shots.rectTransform, 0, yShots, iw, 36);
+        var shots = Box(inner, "Shots", 12, Panel2); At(shots.rectTransform, 0, yShots, iw, 36); shotsRT = shots.rectTransform; shotsIW = iw;
         float cw = (iw - 6 - 6 * 4) / 6.7f;
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < ShotTypes.Length; i++)
         {
             string id = ShotTypes[i];
             var b = Box(shots.transform, id, 9, Color.clear); At(b.rectTransform, 3 + i * (cw + 4), 3, cw, 30);
@@ -324,6 +325,31 @@ public class Hud
             c = Over(c, Ink, Cov(d - 2)); return Over(c, Color.white, Cov(d));
         }));
         cursor = At(cur.rectTransform, 0, -21, 34, 72);
+        // .pflag: the pin on the meter (short game and putts): a red pennant on a white pole above the bar, the pole down through it,
+        // the distance beside it (amber when it's beyond the meter's reach)
+        flagRT = RT("Flag", pad); At(flagRT, 0, -26, 2, 54);
+        Texture2D Pennant(Color fill) => Tex(20, 24, (x, yy) =>
+        {
+            var c = Over(Color.clear, Color.white, Cov(SdSeg(x, yy, 2, 1, 2, 23) - 1.1f));
+            float d = SdPoly(x, yy, new[] { new Vector2(3.2f, 1.5f), new Vector2(18.2f, 6.7f), new Vector2(3.2f, 11.9f) });
+            return Over(Over(c, Ink, Cov(d - .5f)), fill, Cov(d + .5f));
+        });
+        flagTex = Pennant(Hex("#ff4d4d")); flagTexOver = Pennant(Hex("#ffb03a"));
+        flagPic = Pic(flagRT, "Pennant", flagTex); At(flagPic.rectTransform, 0, 0, 20, 24);
+        var pole = Box(flagRT, "Pole", 0, Color.white); At(pole.rectTransform, 1, 22, 2, 30);
+        var ring = Box(pole.transform, "Ring", 0, A(Ink, .6f)); ring.transform.SetAsFirstSibling(); At(ring.rectTransform, -1, -1, 4, 32);
+        flagT = Txt(flagRT, "Txt", fBold, 11, Color.white); At(flagT.rectTransform, 21, 0, 120, 14);
+        flagRT.gameObject.SetActive(false);
+    }
+    RectTransform flagRT; RawImage flagPic; Texture2D flagTex, flagTexOver; Text flagT;
+    // pos: where on the meter (0..1) the planned power sits, < 0 hides it; over: the pin is beyond the meter's reach
+    public void SetFlag(float pos, string txt, bool over)
+    {
+        flagRT.gameObject.SetActive(pos >= 0); if (pos < 0) return;
+        float pw = meterW - 4; flagRT.anchoredPosition = new Vector2(pos * pw - 2, 26);
+        flagPic.texture = over ? flagTexOver : flagTex; Set(flagT, txt);
+        bool flip = pos > .8f; flagT.alignment = flip ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft;
+        At(flagT.rectTransform, flip ? -124 : 21, 0, 120, 14);
     }
     RawImage tapRaw;
 
@@ -342,11 +368,23 @@ public class Hud
         clubPrevT.color = A(Cream, prevOK ? .9f : .25f); clubNextT.color = A(Cream, nextOK ? .9f : .25f);
     }
     public void SetLie(string name, Color c, string pin) { Set(lieT, name); lieDot.color = c; Set(pinT, pin); }
-    public void SetShot(string stype, bool putter, bool aiming, bool pshot)
+    // .shots: six 1fr cells and a .7fr power cell; .shots.bunker (in the sand by the green): Full, Splash, Pick, Blast and power
+    void ShotRow(bool bunker)
     {
+        if (bunker == bunkerRow) return; bunkerRow = bunker;
+        string[] row = bunker ? new[] { "full", "splash", "pick", "blast" } : new[] { "full", "punch", "pitch", "chip", "flop", "spin" };
+        float n = row.Length, cw = (shotsIW - 6 - n * 4) / (n + .7f);
+        foreach (var kv in shotBtns) kv.Value.bg.gameObject.SetActive(Array.IndexOf(row, kv.Key) >= 0);
+        for (int i = 0; i < row.Length; i++) { var b = shotBtns[row[i]]; At(b.bg.rectTransform, 3 + i * (cw + 4), 3, cw, 30); At(b.t.rectTransform, 0, 0, cw, 30); }
+        float pbw = cw * .7f; At(powerBtn.rectTransform, 3 + n * (cw + 4), 3, pbw, 30); At(powerOn.rectTransform, 0, 0, pbw, 30); At(bolt.rectTransform, pbw / 2 - 8, 7, 16, 16);
+    }
+    // enabled: which shot types this club and lie allow (hud.js greys the rest out)
+    public void SetShot(string stype, bool putter, bool aiming, bool pshot, Func<string, bool> enabled = null, bool bunker = false)
+    {
+        ShotRow(bunker);
         foreach (var kv in shotBtns)
         {
-            bool on = !putter && kv.Key == stype, en = aiming && !putter;
+            bool on = !putter && kv.Key == stype, en = aiming && !putter && (enabled == null || enabled(kv.Key));
             kv.Value.bg.color = on ? Sun : Color.clear; kv.Value.t.color = on ? Ink : A(Cream, en ? .85f : .22f);
         }
         powerOn.enabled = pshot; bolt.texture = Icon(pshot ? "boltW" : "bolt");

@@ -8,7 +8,8 @@ using UnityEngine.UI;
    is top left. Everything is built in code at start, from Resources/troy1.json and troy1_ground.png. */
 public class HoleTest : MonoBehaviour
 {
-    GolfGo.Sim.Tuning TU; GolfGo.Sim.Course CO; GolfGo.Sim.Strike SK; GolfGo.Sim.Flight FL; GolfGo.Sim.SimHole SH; GolfGo.Sim.Ball SB; float simAcc; int evSeen; List<GolfGo.Sim.Club> Clubs;
+    GolfGo.Sim.Tuning TU; GolfGo.Sim.Course CO; GolfGo.Sim.Strike SK; GolfGo.Sim.Flight FL; GolfGo.Sim.SimHole SH; GolfGo.Sim.Ball SB; GolfGo.Sim.Short SG; float simAcc; int evSeen;
+    string stype = "full"; double swMax; bool buried;   // stage 3: the shot type, the short-game meter's size, a plugged lie List<GolfGo.Sim.Club> Clubs;
     const float IMPACT = .12f; float mpos, mdir = 1, mPower; double windA, windMph;
     Hud hud; bool pshot, mapView; float tapMark = -1, aimHeld; bool tapGood;
     static readonly Dictionary<string, float> Mu = new Dictionary<string, float> { { "green", .545f }, { "fairway", 1.2f }, { "tee", 1.2f }, { "cut", 2.4f }, { "rough", 11 }, { "sand", 28 }, { "fescue", 17 } };
@@ -38,7 +39,7 @@ public class HoleTest : MonoBehaviour
         // the game's own mechanics (GolfGo.Sim, checked shot for shot against the web game) and its numbers
         TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); CO = new GolfGo.Sim.Course(Resources.Load<TextAsset>("troy1").text);
         SK = new GolfGo.Sim.Strike(TU, CO); Clubs = TU.Clubs();
-        SH = new GolfGo.Sim.SimHole(Resources.Load<TextAsset>("troy1_sim").text); SB = new GolfGo.Sim.Ball(SH, CO, SK);   // stage 2: what the ball does after the strike
+        SH = new GolfGo.Sim.SimHole(Resources.Load<TextAsset>("troy1_sim").text); SB = new GolfGo.Sim.Ball(SH, CO, SK); SG = new GolfGo.Sim.Short(SK, SH, CO);   // stage 2: what the ball does after the strike
         windA = Random.value * Mathf.PI * 2; windMph = Mathf.Round(Random.value * 14);
         BuildWorld(); BuildHud();
         b = new Vector2(D.tee[0], D.tee[1]); bY = D.H(b.x, b.y); strokes = 0;
@@ -167,27 +168,53 @@ public class HoleTest : MonoBehaviour
     {
         hud = new Hud(IMPACT);
         hud.onSwing = Swing; hud.onMeter = () => { if (st == S.Power || st == S.Acc) Swing(); };
-        hud.onClub = d => { if (st != S.Aim || D.Lie(b.x, b.y) == "green") return; ci = Mathf.Clamp(ci + d, 0, Clubs.Count - 1); if (C.putter) pshot = false; PrepareShot(false); };
+        hud.onClub = d => { if (st != S.Aim || Lie0 == "green") return; ci = Mathf.Clamp(ci + d, 0, Clubs.Count - 1); if (C.putter) pshot = false; else if (!SG.ShotOK(stype, ci)) stype = "full"; PrepareShot(false); };
         hud.onAimTap = d => { if (st != S.Aim) return; float Dd = Mathf.Max(MaxDist, 3); aim += d * Mathf.Max(.4f, Dd * .006f) / Dd; aimHeld = 0; PlaceGolfer(); };
         hud.onPower = () => { if (st != S.Aim || C.putter) return; pshot = !pshot; RefreshHud(); };
-        hud.onShotType = t => { if (st != S.Aim) return; if (t != "full") hud.SetHint("Punch, pitch, chip, flop and spin come over with the short game (stage 3)"); };
+        hud.onShotType = SetShot;
         hud.onSpin = () => { if (st == S.Aim) hud.SetHint("Strike point and shot height come over with stage 3"); };
         hud.onMap = () => { if (st == S.Aim) mapView = !mapView; };
         hud.onMenu = () => { if (st == S.Aim || st == S.Holed) { CancelInvoke(); ArmRestart(); } };
     }
-    GolfGo.Sim.ShotIn Si(float? e = null) => new GolfGo.Sim.ShotIn { bx = b.x, by = b.y, aim = aim, power = mPower, e = e, club = C.id, lie = D.Lie(b.x, b.y), stype = "full", pshot = pshot && !C.putter, onTeeBox = strokes == 0, windA = windA, windMph = windMph };
+    // the lie the shot is played from (shotLie): the turf, or the cart path where it shows
+    string Lie0 => SH.PhysLie(b.x, b.y);
+    bool Short => !C.putter && GolfGo.Sim.Strike.IsShort(stype);
+    // the meter's power: the short game's meter is curved (power = meter^SG_K), so small swings are easier to judge
+    double Power => Short ? SG.MeterToPower(mPower) : mPower;
+    GolfGo.Sim.ShotIn Si(float? e = null) => new GolfGo.Sim.ShotIn { bx = b.x, by = b.y, aim = aim, power = Power, e = e, club = C.id, lie = Lie0, stype = C.putter ? "full" : stype, pshot = pshot && !C.putter, onTeeBox = strokes == 0, windA = windA, windMph = windMph, swMax = Short ? swMax : 0, buried = buried, sandRel = SH.sandRel };
+    // setShot (input.js): bunker shots only in the sand by the green, only a blast from a plugged lie, the spinner from a clean lie;
+    // a shot the club can't play moves to the nearest club that can
+    void SetShot(string t)
+    {
+        if (st != S.Aim || C.putter) return;
+        string why = SG.Why(t, Lie0, PinDist, buried); if (why != null) { var w = why.Split('·'); hud.Toast(w.Length > 1 ? w[0].Trim() : "", w[w.Length - 1].Trim(), Hud.Cream); return; }
+        ci = SG.ClubFor(t, ci); stype = t; SizeShort(); RefreshHud();
+    }
+    bool ShotEnabled(string t) => !(GolfGo.Sim.Strike.BunkerT(t) && !GolfGo.Sim.Short.BunkerSide(Lie0, PinDist)) && !(buried && (t == "splash" || t == "pick"))
+        && !(t == "spin" && !(Lie0 == "fairway" || Lie0 == "tee" || Lie0 == "cut"));
+    void SizeShort() { swMax = 0; flagKey = null; if (Short) swMax = SG.SetMax(Si()); }
+    // the flag on the meter: where the planned carry sits (shortPlan, worked out again only when the shot changes)
+    string flagKey; double flagTp;
+    void ShortFlag()
+    {
+        if (!Short || swMax <= 0 || !(st == S.Aim || st == S.Power || st == S.Acc)) { hud.SetFlag(-1, "", false); return; }
+        string key = ci + "|" + stype + "|" + aim.ToString("F4") + "|" + b.x.ToString("F2") + "|" + b.y.ToString("F2") + "|" + pshot;
+        if (key != flagKey) { var s = Si(); flagTp = SG.FlagPower(s, SG.PlanFor(s)); flagKey = key; }
+        bool over = flagTp > 1; float pos = IMPACT + (float)SG.PowerToMeter(Mathf.Min(1, (float)flagTp)) * (1 - IMPACT);
+        hud.SetFlag(pos, over ? "Beyond max" : Mathf.RoundToInt(PinDist) + " y", over);
+    }
     float winC = .03f;
     float Win => C.putter ? .03f : (float)SK.PerfectWin(C, Si());
     void RefreshHud()
     {
-        string lie = D.Lie(b.x, b.y); float pd = PinDist;
+        string lie = Lie0; float pd = PinDist;
         hud.SetTop(D.course + " · Hudson, WI", D.hole, "Par " + D.par + " · " + D.len + " yds", "Stroke " + (strokes + 1) + " · Round E");
         hud.SetClub(C.id == "1W" ? "Driver" : C.id, C.putter ? "Putter · " + Mathf.RoundToInt(MaxDist * 3) + " ft" : (C.id == "1W" ? (strokes == 0 ? "Off the tee" : "Off the deck") : C.name) + " · " + Mathf.RoundToInt(MaxDist) + "y", ci > 0, ci < Clubs.Count - 1);
         hud.SetLie(LieName.TryGetValue(lie, out var ln) ? ln : Cap(lie), Hud.Hex(LieCol.TryGetValue(lie, out var lc) ? lc : "#6db14a"), lie == "green" || pd < 20 ? "Cup " + Mathf.RoundToInt(pd * 3) + " ft" : "Pin " + Mathf.RoundToInt(pd) + " yds");
-        hud.SetShot("full", C.putter, st == S.Aim, pshot && !C.putter); winC = Win;
+        hud.SetShot(stype, C.putter, st == S.Aim, pshot && !C.putter, ShotEnabled, GolfGo.Sim.Short.BunkerSide(lie, pd)); winC = Win;
         // the meter's scale: carry yards along it (feet of roll for a putt on the green)
-        bool pg = C.putter && lie == "green"; float mx = C.putter ? MaxDist * 3 : MaxDist;
-        string L(float f) => Mathf.Max(1, Mathf.RoundToInt(mx * f)) + (pg ? " ft" : "y");
+        bool pg = C.putter && lie == "green"; float mx = C.putter ? MaxDist * 3 : MaxDist * (float)SK.ShotMods(C, Si()).carry;
+        string L(float f) => Mathf.Max(1, Mathf.RoundToInt(mx * (Short ? (float)SG.MeterToPower(f) : f))) + (pg ? " ft" : "y");
         hud.SetLabels(L(.25f), L(.5f), L(.75f), L(1));
     }
     static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s.Substring(1);
@@ -197,11 +224,12 @@ public class HoleTest : MonoBehaviour
     float PinDist => Vector2.Distance(b, new Vector2(D.pin[0], D.pin[1]));
     void AimAtPin() { var d = new Vector2(D.pin[0], D.pin[1]) - b; aim = Mathf.Atan2(d.x, -d.y); }
     Vector2 Dir(float a) => new Vector2(Mathf.Sin(a), -Mathf.Cos(a));
-    float MaxDist => C.putter ? Mathf.Max(3, PinDist * 1.6f) : (float)(C.carry * SK.LieMul(C, D.Lie(b.x, b.y), "full", strokes == 0));
+    // previewDist: the putt's reach, the short-game meter's size, or the club's natural distance from this lie with this shot
+    float MaxDist => C.putter ? Mathf.Max(3, PinDist * 1.6f) : Short && swMax > 0 ? (float)swMax : (float)(C.carry * SK.LieMul(C, Lie0, stype, strokes == 0) * TU.ShotK(stype, "c"));
 
     void PrepareShot(bool pick)
     {
-        string lie = D.Lie(b.x, b.y);
+        string lie = Lie0;
         if (pick)
         {
             float pd = PinDist;
@@ -209,7 +237,11 @@ public class HoleTest : MonoBehaviour
             if (lie == "green") ci = pt;
             else { ci = pt - 1; for (int k = 0; k < pt; k++) if (Clubs[k].carry <= pd * 1.02f) { ci = k; break; } if (strokes == 0 && D.par >= 4) ci = 0; }
             AimAtPin();
+            stype = "full";
+            if (ci != pt) { var pk = SG.Choose(Si()); if (pk != null) { stype = pk.Value.stype; ci = Clubs.FindIndex(k => k.id == pk.Value.club); } }   // chooseShort
         }
+        if (C.putter) stype = "full"; else if (!SG.ShotOK(stype, ci) && !GolfGo.Sim.Strike.BunkerT(stype)) stype = "full";
+        SizeShort();
         st = S.Aim; mpos = IMPACT; mapView = false; hud.SetSwing("SWING", 0, true); RefreshHud();
         hud.SetHint("Drag to aim · Tap Swing to start");
         PlaceGolfer(); swingT = -1;
@@ -235,7 +267,7 @@ public class HoleTest : MonoBehaviour
     void StrikeNow(float? e)
     {
         float win = Win; tapMark = e.HasValue ? IMPACT + e.Value : -1; tapGood = e.HasValue && Mathf.Abs(e.Value) <= win;
-        fromLie = D.Lie(b.x, b.y); strokes++; prev = b; swingT = 0; hud.SetSwing("SWING", 0, false); hud.SetHint(""); aimLine.positionCount = 0; ring.gameObject.SetActive(false);
+        fromLie = Lie0; strokes++; prev = b; swingT = 0; hud.SetSwing("SWING", 0, false); hud.SetHint(""); aimLine.positionCount = 0; ring.gameObject.SetActive(false);
         if (C.putter)
         {
             float pe = e ?? (Random.value < .5f ? -.12f : .12f), pw = e == null ? mPower * .4f : mPower;
@@ -249,6 +281,9 @@ public class HoleTest : MonoBehaviour
         if (FL.miss) hud.Toast("MISHIT!", "Timing missed the impact line", Hud.Coral);
         else if (FL.perfect == 2) hud.Toast("PERFECT!", (pshot ? "Full-power fireball" : "Dead centre") + (C.kind == "wood" ? " · +3% carry" : " · bites on landing"), pshot ? Hud.Hex("#ff8a3c") : Hud.Hex("#7cc8ff"));
         else if (FL.perfect == 1) hud.Toast("NICE SHOT!", "", Hud.Sun);
+        else if (FL.misKind != null && FL.misT >= .5) hud.Toast(FL.misKind == "chunk" ? "CHUNKED!" : "BLADED!", FL.misKind == "chunk" ? "Tapped early · caught it fat" : "Tapped late · caught it thin", Hud.Hex("#ff9b6a"));
+        else if (FL.misKind != null) hud.Toast(FL.misKind == "chunk" ? "A TOUCH FAT" : "A TOUCH THIN", FL.misKind == "chunk" ? "A touch early" : "A touch late", Hud.Hex("#ffd2a8"));
+        else if (FL.sgChunk) hud.Toast("GRABBED!", "The fescue caught the club", Hud.Hex("#ffb46a"));
         else if (Mathf.Abs(ev) > .035f) hud.Toast(ev > 0 ? "HOOK!" : "SLICE!", ev > 0 ? "Tapped early" : "Tapped late", Hud.Hex("#ff9b6a"));
         else if (ev != 0) hud.Toast(ev > 0 ? "PULLED" : "PUSHED", ev > 0 ? "A touch early" : "A touch late", Hud.Hex("#ffd2a8"));
         fs = b; var td = new Vector2((float)FL.dx, (float)FL.dy); fd = td; fCarry = (float)FL.carry; fT = (float)FL.T; fu = 0; fRollMul = (float)FL.rollMul; fPutt = false;
@@ -275,6 +310,7 @@ public class HoleTest : MonoBehaviour
         else if (st == S.Acc) { mpos -= dt * SpeedA; if (mpos <= 0) { mpos = 0; StrikeNow(null); } }
         bool live = st == S.Power || st == S.Acc;
         float lockAt = IMPACT + mPower * (1 - IMPACT);
+        ShortFlag();
         hud.SetMeter(IMPACT, live ? mpos : IMPACT, st == S.Power ? mpos : st == S.Acc ? lockAt : IMPACT, st == S.Acc ? lockAt : -1, winC, live ? -1 : tapMark, tapGood);
         if (st == S.Aim && hud.aimHold != 0)
         {   // loop.js: holding an aim arrow turns faster the longer it's held
@@ -343,6 +379,7 @@ public class HoleTest : MonoBehaviour
             holedHow = o.how; Holed(); return;
         }
         if (o.spinBack) hud.Toast("SPIN BACK!", "", Hud.Mint);
+        buried = o.buried && o.lie == "sand";   // a plugged ball stays plugged: only a blast
         if (o.relief != null)
         {   // free relief from the cart path (Rule 16.1): the drop beside it (the web game asks first; that choice comes with round flow)
             b = new Vector2((float)o.relief[0], (float)o.relief[1]); bY = D.H(b.x, b.y);
@@ -359,7 +396,7 @@ public class HoleTest : MonoBehaviour
         Stop();
     }
     string holedHow = "", fromLie = "tee";
-    void Penalty(string L) { strokes++; b = prev; bY = D.H(b.x, b.y); hud.Toast(L == "water" ? "IN THE WATER" : "OUT OF BOUNDS", "One-stroke penalty", Hud.Hex("#ff9b6a")); hud.SetHint(""); Invoke(nameof(Next), 1.2f); st = S.Holed; }
+    void Penalty(string L) { strokes++; buried = false; b = prev; bY = D.H(b.x, b.y); hud.Toast(L == "water" ? "IN THE WATER" : "OUT OF BOUNDS", "One-stroke penalty", Hud.Hex("#ff9b6a")); hud.SetHint(""); Invoke(nameof(Next), 1.2f); st = S.Holed; }
     void Stop() { st = S.Holed; Invoke(nameof(Next), .9f); }
     void Next() { PrepareShot(true); }
     void Holed()
