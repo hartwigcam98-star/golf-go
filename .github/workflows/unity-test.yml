@@ -54,14 +54,20 @@ jobs:
         run: |
           "$UNITY_EDITOR_PATH" -batchmode -quit -nographics -username "$E" -password "$W" -logFile - 2>&1 | grep -E "Licensing::(Client|Module)\] (Success|Error)" | grep -v -i password | sort -u | head -8 || true
           if unity license status 2>&1 | grep -q -i "none active"; then
-            ( unity auth login --insecure-storage > "$RUNNER_TEMP/login.txt" 2>&1 & )
-            for i in $(seq 1 20); do URL=$(grep -o 'https://services.api.unity.com[^ ]*' "$RUNNER_TEMP/login.txt" | head -1); [ -n "$URL" ] && break; sleep 2; done
-            mkdir -p "$RUNNER_TEMP/s" && cd "$RUNNER_TEMP/s" && git init -q && printf '%s\n%s\n' "$URL" "$(date -u +%FT%TZ)" > url.txt && git add url.txt \
-              && git -c user.name=unity-bot -c user.email=unity-bot@users.noreply.github.com commit -qm "Unity sign-in link (run $GITHUB_RUN_ID)" \
-              && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" HEAD:refs/heads/unity-signin && cd -
-            echo "::notice::Waiting up to 15 minutes for the Unity sign-in (link on the unity-signin branch)"
-            for i in $(seq 1 90); do sleep 10; grep -q -i -E "signed in|success|welcome" "$RUNNER_TEMP/login.txt" && break; unity auth status 2>&1 | grep -q -i "signed in as" && break; done
-            tail -5 "$RUNNER_TEMP/login.txt"; unity auth status 2>&1 | tail -3
+            # Unity's sign-in link times out after a few minutes: hand over a fresh one each time, up to 5 (about 25 minutes)
+            mkdir -p "$RUNNER_TEMP/s" && (cd "$RUNNER_TEMP/s" && git init -q)
+            for n in 1 2 3 4 5; do
+              : > "$RUNNER_TEMP/login.txt"; unity auth login --insecure-storage > "$RUNNER_TEMP/login.txt" 2>&1 & LP=$!
+              for i in $(seq 1 20); do URL=$(grep -o 'https://services.api.unity.com[^ ]*' "$RUNNER_TEMP/login.txt" | head -1); [ -n "$URL" ] && break; sleep 2; done
+              (cd "$RUNNER_TEMP/s" && printf '%s\n%s attempt %s\n' "$URL" "$(date -u +%FT%TZ)" "$n" > url.txt && git add url.txt \
+                && git -c user.name=unity-bot -c user.email=unity-bot@users.noreply.github.com commit -qm "Unity sign-in link (run $GITHUB_RUN_ID, $n)" \
+                && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" HEAD:refs/heads/unity-signin)
+              echo "::notice::Unity sign-in link $n is on the unity-signin branch"
+              while kill -0 $LP 2>/dev/null; do sleep 3; done
+              tail -3 "$RUNNER_TEMP/login.txt"
+              unity auth status 2>&1 | grep -q -i "not signed in" || break
+            done
+            unity auth status 2>&1 | tail -3
             unity license activate --personal --accept-eula --non-interactive 2>&1 | tail -8
           fi
           unity license status 2>&1 | tail -6
