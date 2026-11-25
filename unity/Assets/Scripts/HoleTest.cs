@@ -9,7 +9,8 @@ using UnityEngine.UI;
 public class HoleTest : MonoBehaviour
 {
     GolfGo.Sim.Tuning TU; GolfGo.Sim.Course CO; GolfGo.Sim.Strike SK; GolfGo.Sim.Flight FL; GolfGo.Sim.SimHole SH; GolfGo.Sim.Ball SB; GolfGo.Sim.Short SG; float simAcc; int evSeen;
-    string stype = "full"; double swMax; bool buried;   // stage 3: the shot type, the short-game meter's size, a plugged lie List<GolfGo.Sim.Club> Clubs;
+    List<GolfGo.Sim.Club> Clubs;
+    string stype = "full"; double swMax; bool buried;   // stage 3: the shot type, the short-game meter's size, a plugged lie
     const float IMPACT = .12f; float mpos, mdir = 1, mPower; double windA, windMph;
     Hud hud; bool pshot, mapView; float tapMark = -1, aimHeld; bool tapGood;
     static readonly Dictionary<string, float> Mu = new Dictionary<string, float> { { "green", .545f }, { "fairway", 1.2f }, { "tee", 1.2f }, { "cut", 2.4f }, { "rough", 11 }, { "sand", 28 }, { "fescue", 17 } };
@@ -279,7 +280,7 @@ public class HoleTest : MonoBehaviour
         // the web game's strike toasts (save-file.js strikeShot)
         float ev = e ?? 0;
         if (FL.miss) hud.Toast("MISHIT!", "Timing missed the impact line", Hud.Coral);
-        else if (FL.perfect == 2) hud.Toast("PERFECT!", (pshot ? "Full-power fireball" : "Dead centre") + (C.kind == "wood" ? " · +3% carry" : " · bites on landing"), pshot ? Hud.Hex("#ff8a3c") : Hud.Hex("#7cc8ff"));
+        else if (FL.perfect == 2) hud.Toast("PERFECT!", (pshot ? "Full-power fireball" : "Dead centre") + (Short ? "" : C.kind == "wood" ? " · +3% carry" : " · bites on landing"), pshot ? Hud.Hex("#ff8a3c") : Hud.Hex("#7cc8ff"));
         else if (FL.perfect == 1) hud.Toast("NICE SHOT!", "", Hud.Sun);
         else if (FL.misKind != null && FL.misT >= .5) hud.Toast(FL.misKind == "chunk" ? "CHUNKED!" : "BLADED!", FL.misKind == "chunk" ? "Tapped early · caught it fat" : "Tapped late · caught it thin", Hud.Hex("#ff9b6a"));
         else if (FL.misKind != null) hud.Toast(FL.misKind == "chunk" ? "A TOUCH FAT" : "A TOUCH THIN", FL.misKind == "chunk" ? "A touch early" : "A touch late", Hud.Hex("#ffd2a8"));
