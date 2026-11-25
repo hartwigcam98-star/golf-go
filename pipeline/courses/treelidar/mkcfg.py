@@ -45,7 +45,9 @@ for k,v in C.items():
         cov=float(ins.mean())
         if cov>.3:cand.append((year(n),cov,n))
     cand.sort(key=lambda c:(-(c[1]>.9),-c[0],-c[1]))
-    out[k]=dict(xf=X,bbox=[round(x,6) for x in bb],epsg=26900+zone,cand=[c[2] for c in cand][:4],cov=[round(c[1],2) for c in cand][:4],
+    fr=-5.5<(lo0+lo1)/2<9.8 and 41.2<(la0+la1)/2<51.2   # France: IGN LiDAR HD (tree_all.py fetches the tiles itself), real WGS84 UTM epsg
+    if fr:cand=[(2022,1.0,'FR_LiDARHD')]
+    out[k]=dict(xf=X,bbox=[round(x,6) for x in bb],epsg=(32600 if fr else 26900)+zone,**({'fr':1} if fr else {}),cand=[c[2] for c in cand][:4],cov=[round(c[1],2) for c in cand][:4],
                 yrs=[c[0] for c in cand][:4],bunker=v['bunker'],scen=v['scen'],area_km2=round((bb[2]-bb[0])*(bb[3]-bb[1])*111*111*math.cos(math.radians(la0)),2))
     print(k.ljust(12),out[k]['epsg'],out[k]['area_km2'],list(zip(out[k]['cand'],out[k]['cov'])) or 'NO LIDAR COVERAGE (keeps the photo trees)')
 F=os.path.join(HERE,'cfg_trees.json');old=json.load(open(F)) if os.path.exists(F) else {}

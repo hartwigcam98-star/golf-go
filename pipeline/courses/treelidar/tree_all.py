@@ -16,7 +16,7 @@ SUM = {'key': KEY, 'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'errors': []}
 def save(): json.dump(SUM, open(f'{OUT}/summary.json', 'w'), indent=1)
 def log(*a): print(time.strftime('%H:%M:%S'), *a, flush=True)
 EPT = 'https://s3-us-west-2.amazonaws.com/usgs-lidar-public/%s/ept.json'
-NB = 32; TS = 250.0; BUF = 15.0; YD = 1.09361
+NB = 32; TS = 250.0; BUF = 15.0; YD = 1.09361; FRG = (0, 0)
 EPSG = CFG['epsg']; X = np.array(CFG['xf']); A = X[:2, :2]; T = X[2]; Ai = np.linalg.inv(A)
 LL2U = Transformer.from_crs(4326, EPSG, always_xy=True); U2LL = Transformer.from_crs(EPSG, 4326, always_xy=True)
 def c2u(cx, cy):
@@ -34,7 +34,53 @@ def read(res, epsg, ux0, uy0, w, h, buf, extra=None):
             {'type': 'filters.reprojection', 'in_srs': 'EPSG:3857', 'out_srs': f'EPSG:{epsg}'}]
     p = pdal.Pipeline(json.dumps(spec)); p.execute(); return p.arrays[0] if p.arrays else None
 
+# ---- France: IGN LiDAR HD (1 km classified COPC tiles, Lambert-93 / IGN69). Each tile is downloaded and read once
+# (fr_prepare), with height above ground, and cut into the TS-metre job tiles that tile() then loads from /tmp/fr.
+FRD = '/tmp/fr'
+def fr_one(url, epsg, gx0, gy0, nx, ny):
+    import pdal
+    fn = f'{FRD}/' + url.rsplit('/', 1)[-1]
+    for k in range(4):
+        try:
+            with S.get(url, stream=True, timeout=600) as r:
+                r.raise_for_status()
+                with open(fn, 'wb') as f:
+                    for ch in r.iter_content(1 << 22): f.write(ch)
+            break
+        except Exception as e:
+            if k == 3: raise
+            time.sleep(10 * (k + 1))
+    spec = [{'type': 'readers.las', 'filename': fn}, {'type': 'filters.range', 'limits': 'Classification![7:7],Classification![18:18]'},
+            {'type': 'filters.reprojection', 'in_srs': 'EPSG:2154', 'out_srs': f'EPSG:{epsg}'}, {'type': 'filters.hag_nn', 'count': 4}]
+    p = pdal.Pipeline(json.dumps(spec)); p.execute(); a = p.arrays[0]; os.remove(fn)
+    X = np.asarray(a['X']); Y = np.asarray(a['Y']); i = np.floor((X - gx0) / TS).astype(int); j = np.floor((Y - gy0) / TS).astype(int)
+    k = (i >= 0) & (j >= 0) & (i < nx) & (j < ny); base = url.rsplit('/', 1)[-1][:-9]; n = 0
+    for (ii, jj) in set(zip(i[k].tolist(), j[k].tolist())):
+        m = k & (i == ii) & (j == jj)
+        np.savez(f'{FRD}/t_{ii}_{jj}_{base}.npz', x=X[m], y=Y[m], z=np.asarray(a['Z'])[m].astype(np.float32), hag=np.asarray(a['HeightAboveGround'])[m].astype(np.float32),
+                 g=(np.asarray(a['Classification'])[m] == 2)); n += int(m.sum())
+    return url, n
+def fr_prepare(gx0, gy0, gx1, gy1):
+    import glob
+    os.makedirs(FRD, exist_ok=True)
+    W, S_ = U2LL.transform(gx0 - BUF, gy0 - BUF); E, N = U2LL.transform(gx1 + BUF, gy1 + BUF)
+    p = dict(SERVICE='WFS', VERSION='2.0.0', REQUEST='GetFeature', TYPENAMES='IGNF_LIDAR-HD_METADONNEE:metadata', COUNT=500,
+             OUTPUTFORMAT='application/json', BBOX=f'{S_},{W},{N},{E},urn:ogc:def:crs:EPSG::4326')
+    fs = [f['properties'] for f in get('https://data.geopf.fr/wfs/ows', p).json().get('features', []) if f['properties'].get('url_npl')]
+    SUM['fr_tiles'] = [dict(t=f['url_npl'].rsplit('/', 1)[-1], start=f.get('date_debut_acquisition'), end=f.get('date_fin_acquisition')) for f in fs]; save()
+    nx, ny = int((gx1 - gx0) / TS), int((gy1 - gy0) / TS)
+    with ProcessPoolExecutor(2) as ex:
+        for f in as_completed([ex.submit(fr_one, pr['url_npl'], EPSG, gx0, gy0, nx, ny) for pr in fs]):
+            u, n = f.result(); log('fr tile', u.rsplit('/', 1)[-1], n, 'pts')
+    return len(fs)
+def tile_fr(ux0, uy0, gx0, gy0):
+    import glob
+    i, j = int(round((ux0 - gx0) / TS)), int(round((uy0 - gy0) / TS)); parts = [np.load(f) for f in glob.glob(f'{FRD}/t_{i}_{j}_*.npz')]
+    if not parts: return ux0, uy0, None
+    return ux0, uy0, {k: np.concatenate([p_[k] for p_ in parts]) for k in ('x', 'y', 'z', 'hag', 'g')}
+
 def tile(res, epsg, ux0, uy0):
+    if CFG.get('fr'): return tile_fr(ux0, uy0, *FRG)
     import pdal, tempfile
     td = f'/tmp/pd{os.getpid()}'; os.makedirs(td, exist_ok=True); os.environ['TMPDIR'] = td; tempfile.tempdir = td   # PDAL's temp tiles: one folder per worker
     tf = Transformer.from_crs(epsg, 3857, always_xy=True)
@@ -84,6 +130,12 @@ def get(url, params=None, tries=4, timeout=300):
         time.sleep(8 * (k + 1))
     raise RuntimeError('failed ' + url)
 def naip_piece(b, size):
+    if CFG.get('fr'):   # IGN BD ORTHO 20 cm, WMS 1.3.0 (EPSG:4326 box in lat,lon order); the box comes back exactly as asked
+        r = get('https://data.geopf.fr/wms-r', dict(SERVICE='WMS', VERSION='1.3.0', REQUEST='GetMap', LAYERS='HR.ORTHOIMAGERY.ORTHOPHOTOS', STYLES='',
+                CRS='EPSG:4326', BBOX=f'{b[1]},{b[0]},{b[3]},{b[2]}', WIDTH=size[0], HEIGHT=size[1], FORMAT='image/jpeg'))
+        img = cv2.imdecode(np.frombuffer(r.content, np.uint8), cv2.IMREAD_COLOR)
+        if img is None: raise RuntimeError('bad IGN image ' + r.text[:200])
+        return img, list(b)
     for u in NAIP:
         try:
             p = dict(bbox=','.join(map(str, b)), bboxSR=4326, imageSR=4326, size=f'{size[0]},{size[1]}', f='json', format='jpg', compressionQuality=90)
@@ -101,7 +153,11 @@ def main():
     gx0, gy0 = math.floor(min(xs)), math.floor(min(ys)); gx1, gy1 = math.ceil(max(xs)), math.ceil(max(ys))
     gx1 = gx0 + int(math.ceil((gx1 - gx0) / TS) * TS); gy1 = gy0 + int(math.ceil((gy1 - gy0) / TS) * TS)
     w, h = gx1 - gx0, gy1 - gy0; w2, h2 = w // 2, h // 2
-    res = pick_scan(gx0, gy1, w, h); SUM['scan'] = res; save()
+    global FRG
+    FRG = (gx0, gy0)
+    if CFG.get('fr'):
+        res = CFG['cand'][0]; SUM['scan'] = res; SUM['fr_files'] = fr_prepare(gx0, gy0, gx1, gy1); save()
+    else: res = pick_scan(gx0, gy1, w, h); SUM['scan'] = res; save()
     if not res: raise RuntimeError('no scan with ground over the course')
     chm = np.zeros((h, w), np.float32); gs = np.zeros((h, w), np.float32); gn = np.zeros((h, w), np.uint16)
     prof = np.zeros((h2, w2, NB), np.uint16)

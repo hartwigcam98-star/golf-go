@@ -30,6 +30,27 @@ def year(n):
     m = re.findall(r'(20\d\d)', n); return int(m[-1]) if m else (2022 if re.search(r'_B2[0-4]', n) else 2000)
 def utm_epsg(lon, lat): return (32600 if lat >= 0 else 32700) + int((lon + 180) // 6) + 1
 def merc(lon, lat): R = 6378137.0; return R * math.radians(lon), R * math.log(math.tan(math.pi / 4 + math.radians(lat) / 2))
+def lidar_fr(cid, lon, lat, R, W, S, Ea, N, E, info):
+    """France: the LiDAR HD tiles (IGN, classified COPC, Lambert-93 / IGN69) over the box, cropped to it"""
+    import pdal
+    p = dict(SERVICE='WFS', VERSION='2.0.0', REQUEST='GetFeature', TYPENAMES='IGNF_LIDAR-HD_METADONNEE:metadata', COUNT=50,
+             OUTPUTFORMAT='application/json', BBOX=f'{S},{W},{N},{Ea},urn:ogc:def:crs:EPSG::4326')
+    r = get('https://data.geopf.fr/wfs/ows', p)
+    fs = [f['properties'] for f in (r.json().get('features', []) if r else []) if f['properties'].get('url_npl')]
+    if not fs: return None
+    l93 = Transformer.from_crs(4326, 2154, always_xy=True); xs, ys = l93.transform([W, Ea, W, Ea], [S, S, N, N])
+    arrs = []
+    for pr in fs:
+        spec = [{'type': 'readers.las', 'filename': pr['url_npl']}, {'type': 'filters.crop', 'bounds': f'([{min(xs):.2f},{max(xs):.2f}],[{min(ys):.2f},{max(ys):.2f}])'}]
+        pl = pdal.Pipeline(json.dumps(spec)); pl.execute(); a = pl.arrays[0]; log(cid, 'tile', pr['url_npl'].rsplit('/', 1)[-1], len(a))
+        if len(a):
+            from numpy.lib import recfunctions as rfn
+            arrs.append(rfn.repack_fields(a[['X', 'Y', 'Z', 'Classification'] + (['GpsTime'] if 'GpsTime' in a.dtype.names else [])]))
+    if not arrs: return None
+    a = np.concatenate(arrs); n = len(a); dens = n / (4 * R * R); name = 'FR_LiDARHD_' + fs[0].get('code_mission', 'x')
+    info['fr'] = dict(start=fs[0].get('date_debut_acquisition'), end=fs[0].get('date_fin_acquisition'), tiles=[f['url_npl'].rsplit('/', 1)[-1] for f in fs])
+    log(cid, name, n, 'pts', round(dens, 1), '/m2')
+    return (name, a, dens) if n >= 2000 else None
 def lidar(cid, c):
     import pdal
     from shapely.geometry import Point
@@ -43,6 +64,11 @@ def lidar(cid, c):
     info = dict(box=[X0, Y0, X1, Y1], epsg=E, ll=[W, S, Ea, N], cands=order)
     mx0, my0 = merc(W, S); mx1, my1 = merc(Ea, N); t3 = Transformer.from_crs(3857, E, always_xy=True)
     best = None
+    if -5.5 < lon < 9.8 and 41.2 < lat < 51.2:   # France: IGN LiDAR HD tiles (Lambert-93), all classes
+        order = []
+        try: best = lidar_fr(cid, lon, lat, R, W, S, Ea, N, E, info)
+        except Exception as e: log(cid, 'lidar fr', str(e)[:200])
+        if not best: info['err'] = 'no lidar'; return info
     for res in order:
         try:
             spec = [{'type': 'readers.ept', 'filename': f'https://s3-us-west-2.amazonaws.com/usgs-lidar-public/{res}/ept.json', 'bounds': f'([{mx0:.2f},{mx1:.2f}],[{my0:.2f},{my1:.2f}])', 'threads': 4}]
@@ -53,6 +79,7 @@ def lidar(cid, c):
         except Exception as e: log(cid, 'lidar', res, str(e)[:120])
     if not best: info['err'] = 'no lidar'; return info
     res, a, dens = best; info.update(src=res, dens=dens)
+    if res.startswith('FR_'): t3 = Transformer.from_crs(2154, E, always_xy=True)
     X, Y = t3.transform(a['X'], a['Y']); X = np.asarray(X); Y = np.asarray(Y); Z = np.asarray(a['Z'], float); cl = np.asarray(a['Classification'])
     rs = 0.25; n_ = int(2 * R / rs); ix = np.clip(((X - X0) / rs).astype(int), 0, n_ - 1); iy = np.clip(((Y1 - Y) / rs).astype(int), 0, n_ - 1)
     dsm = np.full((n_, n_), np.nan, np.float32); np.fmax.at(dsm, (iy, ix), Z.astype(np.float32))
@@ -73,6 +100,12 @@ def aerial(cid, c, info):
                     bbox=f'{W},{S},{Ea},{N}', width=1600, height=1600, format='image/jpeg'))
             if r and r.headers.get('content-type', '').startswith('image') and len(r.content) > 60000:
                 open(f'{OUT}/{cid}_{lay}.jpg', 'wb').write(r.content); got.append(lay); break
+    if -5.5 < c['lon'] < 9.8 and 41.2 < c['lat'] < 51.2:   # France: IGN BD ORTHO 20 cm (lon/lat corners of the UTM box, like met25)
+        r = get('https://data.geopf.fr/wms-r', dict(SERVICE='WMS', VERSION='1.3.0', REQUEST='GetMap', LAYERS='HR.ORTHOIMAGERY.ORTHOPHOTOS', STYLES='',
+                CRS='EPSG:4326', BBOX=f'{S},{W},{N},{Ea}', WIDTH=1600, HEIGHT=1600, FORMAT='image/jpeg'))
+        if r and r.headers.get('content-type', '').startswith('image') and len(r.content) > 60000:
+            open(f'{OUT}/{cid}_ign.jpg', 'wb').write(r.content); got.append('ign')
+        info['aerial'] = got; return
     r = get('https://imagery.nationalmap.gov/arcgis/rest/services/USGSNAIPImagery/ImageServer/exportImage',
             dict(bbox=f'{X0},{Y0},{X1},{Y1}', bboxSR=E, imageSR=E, size='1000,1000', format='jpg', f='image'), tries=4)
     if r and len(r.content) > 20000: open(f'{OUT}/{cid}_naip.jpg', 'wb').write(r.content); got.append('naip')

@@ -130,7 +130,7 @@ def cmd_prep(cid):
     # aerial in the frame: prefer the Minnesota high-res photo (lon/lat bbox), else NAIP (UTM box)
     D=np.load(f'{A}/data/{cid}_lidar.npz');X0,Y0,X1,Y1=[float(x) for x in D['box']];zone=Gg.zone
     aer=None
-    for lay in ['met25','fsa2025']:   # (the NAIP downloads are not registered to the lidar box, so they are left out)
+    for lay in ['met25','fsa2025','ign']:   # ign = France (IGN BD ORTHO, lon/lat box like met25). (The NAIP downloads are not registered to the lidar box, so they are left out)
         f=f'{A}/data/{cid}_{lay}.jpg'
         if not os.path.exists(f): continue
         im=cv2.imread(f)
