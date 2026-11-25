@@ -10,7 +10,7 @@ on:
         description: App version for this build
         default: '2.0'
 permissions:
-  contents: read
+  contents: write   # (only to hand the one-time Unity sign-in link over on the unity-signin branch)
 jobs:
   build:
     runs-on: macos-15
@@ -44,18 +44,27 @@ jobs:
           echo "UNITY_EDITOR_PATH=$ED" >> "$GITHUB_ENV"
           printf 'm_EditorVersion: %s\n' "$V" > unity/ProjectSettings/ProjectVersion.txt
           unity license --help 2>&1 | head -40 || true
+      # The free Personal seat can only be claimed by a signed-in Unity account (not a service account, and not with the
+      # password alone). Unity's CLI prints a sign-in link for headless machines: it is pushed to the unity-signin branch,
+      # the owner opens it on his phone, and the seat is claimed here. Later runs may already find the seat (then no link).
       - name: Activate the Personal licence
         env:
           E: ${{ secrets.UNITY_EMAIL }}
           W: ${{ secrets.UNITY_PASSWORD }}
         run: |
-          unity auth --help 2>&1 | sed -n '/Commands:/,$p' | head -20 || true
-          unity auth login --help 2>&1 | sed -n '/Options:/,/Global/p' | head -20 || true
-          # sign in through the editor's licensing client (email + password), then claim the free Personal seat with the CLI
-          "$UNITY_EDITOR_PATH" -batchmode -quit -nographics -username "$E" -password "$W" -logFile - 2>&1 | grep -E "Licensing::(Client|Module)\] (Success|Error)" | grep -v -i password | sort -u | head -12 || true
-          ( perl -e "alarm 25; exec @ARGV" unity auth login --insecure-storage 2>&1 | head -30 ) || true   # (probe: what the browser sign-in prints on a machine with no browser)
-          unity license activate --personal --accept-eula --non-interactive 2>&1 | tail -15 || true
-          unity license status 2>&1 | tail -15 || true
+          "$UNITY_EDITOR_PATH" -batchmode -quit -nographics -username "$E" -password "$W" -logFile - 2>&1 | grep -E "Licensing::(Client|Module)\] (Success|Error)" | grep -v -i password | sort -u | head -8 || true
+          if unity license status 2>&1 | grep -q -i "none active"; then
+            ( unity auth login --insecure-storage > "$RUNNER_TEMP/login.txt" 2>&1 & )
+            for i in $(seq 1 20); do URL=$(grep -o 'https://services.api.unity.com[^ ]*' "$RUNNER_TEMP/login.txt" | head -1); [ -n "$URL" ] && break; sleep 2; done
+            mkdir -p "$RUNNER_TEMP/s" && cd "$RUNNER_TEMP/s" && git init -q && printf '%s\n%s\n' "$URL" "$(date -u +%FT%TZ)" > url.txt && git add url.txt \
+              && git -c user.name=unity-bot -c user.email=unity-bot@users.noreply.github.com commit -qm "Unity sign-in link (run $GITHUB_RUN_ID)" \
+              && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" HEAD:refs/heads/unity-signin && cd -
+            echo "::notice::Waiting up to 15 minutes for the Unity sign-in (link on the unity-signin branch)"
+            for i in $(seq 1 90); do sleep 10; grep -q -i -E "signed in|success|welcome" "$RUNNER_TEMP/login.txt" && break; unity auth status 2>&1 | grep -q -i "signed in as" && break; done
+            tail -5 "$RUNNER_TEMP/login.txt"; unity auth status 2>&1 | tail -3
+            unity license activate --personal --accept-eula --non-interactive 2>&1 | tail -8
+          fi
+          unity license status 2>&1 | tail -6
       - name: Unity build (Xcode project)
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
