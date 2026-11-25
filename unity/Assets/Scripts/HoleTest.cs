@@ -421,6 +421,8 @@ public class HoleTest : MonoBehaviour
         else
         {
             var d = Dir(aim); var d3 = new Vector3(d.x, 0, -d.y); bool putt = C.putter && st != S.Flight;
+            // Cam (Nov 25): keep this aiming height for full shots (9 back, 3.6 up, looking 45 ahead at 4 up, FOV 50): lower than the
+            // web game's, and it shows the slopes. Stage 6 (the look) keeps it.
             pos = bp - d3 * (putt ? 4.5f : 9) + Vector3.up * (putt ? 1.7f : 3.6f);
             look = bp + d3 * (putt ? 6 : 45) + Vector3.up * (putt ? 0 : 4);
             float gy = D.H(pos.x, -pos.z) + .8f; if (pos.y < gy) pos.y = gy;
