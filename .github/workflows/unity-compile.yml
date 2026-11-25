@@ -43,7 +43,7 @@ jobs:
           <Project Sdk="Microsoft.NET.Sdk">
             <PropertyGroup><TargetFramework>netstandard2.1</TargetFramework><LangVersion>9.0</LangVersion><Nullable>disable</Nullable>
               <EnableDefaultCompileItems>false</EnableDefaultCompileItems><AllowUnsafeBlocks>true</AllowUnsafeBlocks><NoWarn>0169;0414;0649;0219;0168;0618;0067;8632</NoWarn>
-              <DefineConstants>$DEF$3</DefineConstants><GenerateDocumentationFile>false</GenerateDocumentationFile><DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences></PropertyGroup>
+              <DefineConstants>$DEF$3</DefineConstants><GenerateDocumentationFile>false</GenerateDocumentationFile><GenerateAssemblyInfo>false</GenerateAssemblyInfo><DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences></PropertyGroup>
             <ItemGroup>$2</ItemGroup>
           </Project>
           EOF
