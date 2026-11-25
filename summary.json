@@ -1,0 +1,1981 @@
+{
+ "started": "2026-11-25 13:04:34",
+ "courses": {
+  "albatros": {
+   "osm": [
+    "way/290619725"
+   ],
+   "names": [
+    "Golf National"
+   ],
+   "bbox": [
+    2.0687652,
+    48.7445546,
+    2.1048071,
+    48.756643
+   ],
+   "via": "course outline",
+   "region": "FR",
+   "dem": {
+    "epsg": 26931,
+    "x0": 431418,
+    "y0": 5399324,
+    "x1": 434327,
+    "y1": 5400944,
+    "w": 2909,
+    "h": 1620,
+    "nan": 0,
+    "src": "IGN LiDAR HD MNT (RGE ALTI 1 m where missing)",
+    "ctrl": [
+     [
+      2.0671302669620566,
+      48.74346935392045,
+      431418.2164483563,
+      5399358.861062806
+     ],
+     [
+      2.0769582084810283,
+      48.74346935392045,
+      432140.72910533805,
+      5399350.063343099
+     ],
+     [
+      2.08678615,
+      48.74346935392045,
+      432863.24202020874,
+      5399341.358812674
+     ],
+     [
+      2.0966140915189717,
+      48.74346935392045,
+      433585.7551902167,
+      5399332.7474711165
+     ],
+     [
+      2.1064420330379434,
+      48.74346935392045,
+      434308.26861261047,
+      5399324.229318013
+     ],
+     [
+      2.0671302669620566,
+      48.747034076960226,
+      431423.0670854416,
+      5399755.110024355
+     ],
+     [
+      2.0769582084810283,
+      48.747034076960226,
+      432145.52863293455,
+      5399746.312446906
+     ],
+     [
+      2.08678615,
+      48.747034076960226,
+      432867.9904385451,
+      5399737.608057227
+     ],
+     [
+      2.0966140915189717,
+      48.747034076960226,
+      433590.45249951934,
+      5399728.996854907
+     ],
+     [
+      2.1064420330379434,
+      48.747034076960226,
+      434312.9148131034,
+      5399720.478839532
+     ],
+     [
+      2.0671302669620566,
+      48.7505988,
+      431427.9179901589,
+      5400151.359225778
+     ],
+     [
+      2.0769582084810283,
+      48.7505988,
+      432150.32842534466,
+      5400142.5617907215
+     ],
+     [
+      2.08678615,
+      48.7505988,
+      432872.7391188768,
+      5400133.857541925
+     ],
+     [
+      2.0966140915189717,
+      48.7505988,
+      433595.15006799897,
+      5400125.246478976
+     ],
+     [
+      2.1064420330379434,
+      48.7505988,
+      434317.5612699548,
+      5400116.728601461
+     ],
+     [
+      2.0671302669620566,
+      48.75416352303977,
+      431432.76916248957,
+      5400547.608667072
+     ],
+     [
+      2.0769582084810283,
+      48.75416352303977,
+      432155.12848255003,
+      5400538.811374545
+     ],
+     [
+      2.08678615,
+      48.75416352303977,
+      432877.4880611857,
+      5400530.107266766
+     ],
+     [
+      2.0966140915189717,
+      48.75416352303977,
+      433599.8478956376,
+      5400521.49634332
+     ],
+     [
+      2.1064420330379434,
+      48.75416352303977,
+      434322.20798314695,
+      5400512.978603798
+     ],
+     [
+      2.0671302669620566,
+      48.757728246079544,
+      431437.6206024152,
+      5400943.858348233
+     ],
+     [
+      2.0769582084810283,
+      48.757728246079544,
+      432159.9288045325,
+      5400935.061198371
+     ],
+     [
+      2.08678615,
+      48.757728246079544,
+      432882.2372654537,
+      5400926.357231745
+     ],
+     [
+      2.0966140915189717,
+      48.757728246079544,
+      433604.5459824173,
+      5400917.7464479385
+     ],
+     [
+      2.1064420330379434,
+      48.757728246079544,
+      434326.85495266225,
+      5400909.22884654
+     ]
+    ]
+   },
+   "fr_tiles": [
+    {
+     "name": "FR_LiDARHD_21LHDJE",
+     "url": "https://data.geopf.fr/telechargement/download/LiDARHD-NUALID/NUALHD_1-0__LAZ_LAMB93_JE_2025-06-05/LHD_FXX_0634_6852_PTS_LAMB93_IGN69.copc.laz",
+     "box": [
+      634000,
+      6851000,
+      635000,
+      6852000
+     ],
+     "start": "2022-02-12Z",
+     "end": "2022-02-26Z",
+     "pts": 11577289,
+     "classed": "IGN_AUTO_V5"
+    },
+    {
+     "name": "FR_LiDARHD_21LHDJE",
+     "url": "https://data.geopf.fr/telechargement/download/LiDARHD-NUALID/NUALHD_1-0__LAZ_LAMB93_JE_2025-06-05/LHD_FXX_0634_6851_PTS_LAMB93_IGN69.copc.laz",
+     "box": [
+      634000,
+      6850000,
+      635000,
+      6851000
+     ],
+     "start": "2022-02-26Z",
+     "end": "2022-02-26Z",
+     "pts": 11214652,
+     "classed": "IGN_AUTO_V5"
+    },
+    {
+     "name": "FR_LiDARHD_21LHDJE",
+     "url": "https://data.geopf.fr/telechargement/download/LiDARHD-NUALID/NUALHD_1-0__LAZ_LAMB93_JE_2025-06-05/LHD_FXX_0634_6850_PTS_LAMB93_IGN69.copc.laz",
+     "box": [
+      634000,
+      6849000,
+      635000,
+      6850000
+     ],
+     "start": "2022-02-26Z",
+     "end": "2022-02-26Z",
+     "pts": 12172732,
+     "classed": "IGN_AUTO_V5"
+    },
+    {
+     "name": "FR_LiDARHD_21LHDJE",
+     "url": "https://data.geopf.fr/telechargement/download/LiDARHD-NUALID/NUALHD_1-0__LAZ_LAMB93_JE_2025-06-05/LHD_FXX_0633_6852_PTS_LAMB93_IGN69.copc.laz",
+     "box": [
+      633000,
+      6851000,
+      634000,
+      6852000
+     ],
+     "start": "2022-02-12Z",
+     "end": "2022-02-26Z",
+     "pts": 2946569,
+     "classed": "IGN_AUTO_V5"
+    },
+    {
+     "name": "FR_LiDARHD_21LHDJE",
+     "url": "https://data.geopf.fr/telechargement/download/LiDARHD-NUALID/NUALHD_1-0__LAZ_LAMB93_JE_2025-06-05/LHD_FXX_0633_6850_PTS_LAMB93_IGN69.copc.laz",
+     "box": [
+      633000,
+      6849000,
+      634000,
+      6850000
+     ],
+     "start": "2022-02-26Z",
+     "end": "2022-02-26Z",
+     "pts": 3443370,
+     "classed": "IGN_AUTO_V5"
+    },
+    {
+     "name": "FR_LiDARHD_21LHDJE",
+     "url": "https://data.geopf.fr/telechargement/download/LiDARHD-NUALID/NUALHD_1-0__LAZ_LAMB93_JE_2025-06-05/LHD_FXX_0633_6851_PTS_LAMB93_IGN69.copc.laz",
+     "box": [
+      633000,
+      6850000,
+      634000,
+      6851000
+     ],
+     "start": "2022-02-26Z",
+     "end": "2022-02-26Z",
+     "pts": 3327291,
+     "classed": "IGN_AUTO_V5"
+    },
+    {
+     "name": "FR_LiDARHD_21LHDJE",
+     "url": "https://data.geopf.fr/telechargement/download/LiDARHD-NUALID/NUALHD_1-0__LAZ_LAMB93_JE_2025-06-05/LHD_FXX_0631_6852_PTS_LAMB93_IGN69.copc.laz",
+     "box": [
+      631000,
+      6851000,
+      632000,
+      6852000
+     ],
+     "start": "2022-02-12Z",
+     "end": "2022-02-26Z",
+     "pts": 20784774,
+     "classed": "IGN_AUTO_V5"
+    },
+    {
+     "name": "FR_LiDARHD_21LHDJE",
+     "url": "https://data.geopf.fr/telechargement/download/LiDARHD-NUALID/NUALHD_1-0__LAZ_LAMB93_JE_2025-06-05/LHD_FXX_0632_6852_PTS_LAMB93_IGN69.copc.laz",
+     "box": [
+      632000,
+      6851000,
+      633000,
+      6852000
+     ],
+     "start": "2022-02-12Z",
+     "end": "2022-02-26Z",
+     "pts": 20972145,
+     "classed": "IGN_AUTO_V5"
+    },
+    {
+     "name": "FR_LiDARHD_21LHDJE",
+     "url": "https://data.geopf.fr/telechargement/download/LiDARHD-NUALID/NUALHD_1-0__LAZ_LAMB93_JE_2025-06-05/LHD_FXX_0632_6850_PTS_LAMB93_IGN69.copc.laz",
+     "box": [
+      632000,
+      6849000,
+      633000,
+      6850000
+     ],
+     "start": "2022-02-26Z",
+     "end": "2022-02-26Z",
+     "pts": 30554628,
+     "classed": "IGN_AUTO_V5"
+    },
+    {
+     "name": "FR_LiDARHD_21LHDJE",
+     "url": "https://data.geopf.fr/telechargement/download/LiDARHD-NUALID/NUALHD_1-0__LAZ_LAMB93_JE_2025-06-05/LHD_FXX_0632_6851_PTS_LAMB93_IGN69.copc.laz",
+     "box": [
+      632000,
+      6850000,
+      633000,
+      6851000
+     ],
+     "start": "2022-02-26Z",
+     "end": "2022-02-26Z",
+     "pts": 14833652,
+     "classed": "IGN_AUTO_V5"
+    },
+    {
+     "name": "FR_LiDARHD_21LHDJE",
+     "url": "https://data.geopf.fr/telechargement/download/LiDARHD-NUALID/NUALHD_1-0__LAZ_LAMB93_JE_2025-06-05/LHD_FXX_0631_6851_PTS_LAMB93_IGN69.copc.laz",
+     "box": [
+      631000,
+      6850000,
+      632000,
+      6851000
+     ],
+     "start": "2022-02-26Z",
+     "end": "2022-02-26Z",
+     "pts": 21066512,
+     "classed": "IGN_AUTO_V5"
+    },
+    {
+     "name": "FR_LiDARHD_21LHDJE",
+     "url": "https://data.geopf.fr/telechargement/download/LiDARHD-NUALID/NUALHD_1-0__LAZ_LAMB93_JE_2025-06-05/LHD_FXX_0631_6850_PTS_LAMB93_IGN69.copc.laz",
+     "box": [
+      631000,
+      6849000,
+      632000,
+      6850000
+     ],
+     "start": "2022-02-26Z",
+     "end": "2022-02-26Z",
+     "pts": 28819828,
+     "classed": "IGN_AUTO_V5"
+    }
+   ],
+   "greens": [
+    {
+     "id": "way/290619774",
+     "bbox": [
+      2.0857401277973877,
+      48.74454260706676,
+      2.0870297722026123,
+      48.745191992933236
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290619776",
+     "bbox": [
+      2.0803116076359816,
+      48.74749660706676,
+      2.081355892364018,
+      48.748187692933236
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290619778",
+     "bbox": [
+      2.077339588724014,
+      48.75019000706676,
+      2.0783039112759862,
+      48.75107439293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290619779",
+     "bbox": [
+      2.0831972105111083,
+      48.747048407066764,
+      2.084342489488892,
+      48.74778749293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290619783",
+     "bbox": [
+      2.075486292090361,
+      48.74972710706676,
+      2.076401807909639,
+      48.75054409293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620531",
+     "bbox": [
+      2.085317070067792,
+      48.75302310706676,
+      2.0863950299322083,
+      48.75374509293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620532",
+     "bbox": [
+      2.0743887735404134,
+      48.75251060706676,
+      2.0754974264595862,
+      48.75323319293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620533",
+     "bbox": [
+      2.0725215936528407,
+      48.74956890706676,
+      2.073574306347159,
+      48.75024129293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620534",
+     "bbox": [
+      2.0850843751258403,
+      48.75226180706676,
+      2.0861264248741596,
+      48.75301429293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620535",
+     "bbox": [
+      2.086341678114944,
+      48.75186110706676,
+      2.087570221885056,
+      48.75253319293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620536",
+     "bbox": [
+      2.082306376848194,
+      48.75198630706676,
+      2.083326923151806,
+      48.75278169293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620537",
+     "bbox": [
+      2.0757394978609307,
+      48.74894670706676,
+      2.0769311021390693,
+      48.74962189293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620538",
+     "bbox": [
+      2.0751780713061363,
+      48.75281920706676,
+      2.0764264286938636,
+      48.75358369293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620539",
+     "bbox": [
+      2.0823474962473267,
+      48.74912510706676,
+      2.083533203752673,
+      48.74991959293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620540",
+     "bbox": [
+      2.0790376841437768,
+      48.75094800706676,
+      2.0801946158562235,
+      48.75166769293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620541",
+     "bbox": [
+      2.081472708420175,
+      48.74733380706676,
+      2.0824930915798245,
+      48.74811909293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620542",
+     "bbox": [
+      2.0780434724515855,
+      48.75268760706676,
+      2.0792604275484146,
+      48.75337739293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290620543",
+     "bbox": [
+      2.0734704656553467,
+      48.75365370706676,
+      2.0745242343446533,
+      48.75441609293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290697724",
+     "bbox": [
+      2.071570165576019,
+      48.75371290706676,
+      2.0725543344239807,
+      48.75438029293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290697727",
+     "bbox": [
+      2.071984665474656,
+      48.75375520706676,
+      2.0729341345253443,
+      48.75436789293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290697731",
+     "bbox": [
+      2.072687262843924,
+      48.75407340706676,
+      2.073876437156076,
+      48.75482569293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290697732",
+     "bbox": [
+      2.0721521626313613,
+      48.75408440706676,
+      2.073383637368639,
+      48.75487739293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290697733",
+     "bbox": [
+      2.0724415608121873,
+      48.75432980706676,
+      2.0736880391878123,
+      48.75516859293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774946",
+     "bbox": [
+      2.0813297169131397,
+      48.74617150706676,
+      2.0822475830868603,
+      48.74677519293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774947",
+     "bbox": [
+      2.0945648606111478,
+      48.75446410706676,
+      2.095588539388852,
+      48.75509359293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774949",
+     "bbox": [
+      2.0897052731071883,
+      48.752618507066764,
+      2.0907122268928116,
+      48.75325309293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774950",
+     "bbox": [
+      2.0901302777217343,
+      48.75194090706676,
+      2.091151222278266,
+      48.75256939293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774953",
+     "bbox": [
+      2.094261875157366,
+      48.75233040706676,
+      2.095320324842634,
+      48.752936392933236
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774955",
+     "bbox": [
+      2.1033077585410647,
+      48.75475140706676,
+      2.1042362414589353,
+      48.75541689293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774956",
+     "bbox": [
+      2.099343552212618,
+      48.75570900706676,
+      2.100317547787382,
+      48.75632589293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-12Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774957",
+     "bbox": [
+      2.079004414006309,
+      48.74653550706676,
+      2.0801290859936907,
+      48.747268992933236
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774958",
+     "bbox": [
+      2.096589259200132,
+      48.75467940706676,
+      2.097608840799868,
+      48.75529449293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774959",
+     "bbox": [
+      2.078249411573505,
+      48.74691140706676,
+      2.079371288426495,
+      48.74761099293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774960",
+     "bbox": [
+      2.0831992663503107,
+      48.75361680706676,
+      2.084183833649689,
+      48.75424799293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774961",
+     "bbox": [
+      2.094674776314643,
+      48.75214520706676,
+      2.0957182236853567,
+      48.75278019293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774962",
+     "bbox": [
+      2.092774566240134,
+      48.75361490706676,
+      2.0938618337598665,
+      48.75428239293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774963",
+     "bbox": [
+      2.094145371320035,
+      48.75283170706676,
+      2.095127028679965,
+      48.75356709293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774964",
+     "bbox": [
+      2.0923070761536287,
+      48.75213520706676,
+      2.0933891238463715,
+      48.75283769293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774965",
+     "bbox": [
+      2.073263195506099,
+      48.74933590706676,
+      2.0742576044939005,
+      48.74992749293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774966",
+     "bbox": [
+      2.0783061681019412,
+      48.75332690706676,
+      2.079384031898059,
+      48.75402119293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774967",
+     "bbox": [
+      2.088364060314504,
+      48.75446110706676,
+      2.089473539685496,
+      48.75518409293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774968",
+     "bbox": [
+      2.0995919626645843,
+      48.75413770706676,
+      2.1006719373354157,
+      48.75481429293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774969",
+     "bbox": [
+      2.0982683599819225,
+      48.75454720706676,
+      2.0993426400180777,
+      48.75519609293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774970",
+     "bbox": [
+      2.0838073662889505,
+      48.75364340706676,
+      2.0849407337110493,
+      48.75423949293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/290774973",
+     "bbox": [
+      2.102383460139568,
+      48.75453740706676,
+      2.103379139860432,
+      48.75515939293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/440690839",
+     "bbox": [
+      2.0760519612756285,
+      48.75428370706676,
+      2.0770483387243717,
+      48.75507799293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/440690845",
+     "bbox": [
+      2.0762007659546904,
+      48.75355510706676,
+      2.0773943340453096,
+      48.75442639293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/440690891",
+     "bbox": [
+      2.079226410865919,
+      48.74698870706676,
+      2.080334689134081,
+      48.74774249293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/1306250504",
+     "bbox": [
+      2.0793241673110496,
+      48.75349660706676,
+      2.0803017326889504,
+      48.75408479293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/1306353800",
+     "bbox": [
+      2.0776391098594322,
+      48.74715640706676,
+      2.078747690140568,
+      48.74787179293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    },
+    {
+     "id": "way/1306353801",
+     "bbox": [
+      2.0780610094758125,
+      48.74726700706676,
+      2.0790535905241874,
+      48.74787439293324
+     ],
+     "cand": [
+      "FR_LiDARHD_21LHDJE"
+     ],
+     "wesm": [
+      {
+       "project": "FR_LiDARHD_21LHDJE",
+       "collect_start": "2022-02-26Z",
+       "collect_end": "2022-02-26Z",
+       "ql": "LiDAR HD"
+      }
+     ]
+    }
+   ],
+   "points": {
+    "1": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 77324,
+      "ground": 77324,
+      "classes": {
+       "2": 77324
+      },
+      "gdens": 12.8
+     }
+    },
+    "2": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 70395,
+      "ground": 70395,
+      "classes": {
+       "2": 70395
+      },
+      "gdens": 9.85
+     }
+    },
+    "3": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 117890,
+      "ground": 117890,
+      "classes": {
+       "2": 117890
+      },
+      "gdens": 16.64
+     }
+    },
+    "4": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 65242,
+      "ground": 65242,
+      "classes": {
+       "2": 65242
+      },
+      "gdens": 10.41
+     }
+    },
+    "5": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 73802,
+      "ground": 73802,
+      "classes": {
+       "2": 73802
+      },
+      "gdens": 11.33
+     }
+    },
+    "6": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 39797,
+      "ground": 39797,
+      "classes": {
+       "2": 39797
+      },
+      "gdens": 5.94
+     }
+    },
+    "8": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 100537,
+      "ground": 100537,
+      "classes": {
+       "2": 100537
+      },
+      "gdens": 15.32
+     }
+    },
+    "9": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 118360,
+      "ground": 118360,
+      "classes": {
+       "2": 118360
+      },
+      "gdens": 17.12
+     }
+    },
+    "10": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 116486,
+      "ground": 116486,
+      "classes": {
+       "2": 116486
+      },
+      "gdens": 17.14
+     }
+    },
+    "11": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 77082,
+      "ground": 77082,
+      "classes": {
+       "2": 77082
+      },
+      "gdens": 11.44
+     }
+    },
+    "12": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 57427,
+      "ground": 57427,
+      "classes": {
+       "2": 57427
+      },
+      "gdens": 7.19
+     }
+    },
+    "13": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 90311,
+      "ground": 90311,
+      "classes": {
+       "2": 90311
+      },
+      "gdens": 11.46
+     }
+    },
+    "14": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 120460,
+      "ground": 120460,
+      "classes": {
+       "2": 120460
+      },
+      "gdens": 17.29
+     }
+    },
+    "15": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 67913,
+      "ground": 67913,
+      "classes": {
+       "2": 67913
+      },
+      "gdens": 10.13
+     }
+    },
+    "16": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 92420,
+      "ground": 92420,
+      "classes": {
+       "2": 92420
+      },
+      "gdens": 13.15
+     }
+    },
+    "23": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 76829,
+      "ground": 76829,
+      "classes": {
+       "2": 76829
+      },
+      "gdens": 16.57
+     }
+    },
+    "30": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 105891,
+      "ground": 105891,
+      "classes": {
+       "2": 105891
+      },
+      "gdens": 15.34
+     }
+    },
+    "32": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 113412,
+      "ground": 113412,
+      "classes": {
+       "2": 113412
+      },
+      "gdens": 17.26
+     }
+    },
+    "33": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 59024,
+      "ground": 59024,
+      "classes": {
+       "2": 59024
+      },
+      "gdens": 11.35
+     }
+    },
+    "39": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 71302,
+      "ground": 71302,
+      "classes": {
+       "2": 71302
+      },
+      "gdens": 11.39
+     }
+    },
+    "40": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 69790,
+      "ground": 69790,
+      "classes": {
+       "2": 69790
+      },
+      "gdens": 10.4
+     }
+    },
+    "43": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 64228,
+      "ground": 64228,
+      "classes": {
+       "2": 64228
+      },
+      "gdens": 11.36
+     }
+    },
+    "45": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 55712,
+      "ground": 55712,
+      "classes": {
+       "2": 55712
+      },
+      "gdens": 8.41
+     }
+    },
+    "46": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 94724,
+      "ground": 94724,
+      "classes": {
+       "2": 94724
+      },
+      "gdens": 10.88
+     }
+    },
+    "47": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 108700,
+      "ground": 108700,
+      "classes": {
+       "2": 108700
+      },
+      "gdens": 15.55
+     }
+    },
+    "48": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 54690,
+      "ground": 54690,
+      "classes": {
+       "2": 54690
+      },
+      "gdens": 11.37
+     }
+    },
+    "49": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 100307,
+      "ground": 100307,
+      "classes": {
+       "2": 100307
+      },
+      "gdens": 15.11
+     }
+    },
+    "50": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 74690,
+      "ground": 74690,
+      "classes": {
+       "2": 74690
+      },
+      "gdens": 14.8
+     }
+    },
+    "7": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 72043,
+      "ground": 72043,
+      "classes": {
+       "2": 72043
+      },
+      "gdens": 12.16
+     }
+    },
+    "17": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 65424,
+      "ground": 65424,
+      "classes": {
+       "2": 65424
+      },
+      "gdens": 9.73
+     }
+    },
+    "18": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 55023,
+      "ground": 55023,
+      "classes": {
+       "2": 55023
+      },
+      "gdens": 10.01
+     }
+    },
+    "19": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 54180,
+      "ground": 54180,
+      "classes": {
+       "2": 54180
+      },
+      "gdens": 11.13
+     }
+    },
+    "20": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 84381,
+      "ground": 84381,
+      "classes": {
+       "2": 84381
+      },
+      "gdens": 11.27
+     }
+    },
+    "21": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 92343,
+      "ground": 92343,
+      "classes": {
+       "2": 92343
+      },
+      "gdens": 11.3
+     }
+    },
+    "22": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 98302,
+      "ground": 98302,
+      "classes": {
+       "2": 98302
+      },
+      "gdens": 11.23
+     }
+    },
+    "38": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 56153,
+      "ground": 56153,
+      "classes": {
+       "2": 56153
+      },
+      "gdens": 11.4
+     }
+    },
+    "28": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 55766,
+      "ground": 55766,
+      "classes": {
+       "2": 55766
+      },
+      "gdens": 10.79
+     }
+    },
+    "44": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 58261,
+      "ground": 58261,
+      "classes": {
+       "2": 58261
+      },
+      "gdens": 11.25
+     }
+    },
+    "0": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 97673,
+      "ground": 97673,
+      "classes": {
+       "2": 97673
+      },
+      "gdens": 13.92
+     }
+    },
+    "24": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 59598,
+      "ground": 59598,
+      "classes": {
+       "2": 59598
+      },
+      "gdens": 11.06
+     }
+    },
+    "25": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 77459,
+      "ground": 77459,
+      "classes": {
+       "2": 77459
+      },
+      "gdens": 14.49
+     }
+    },
+    "26": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 92307,
+      "ground": 92307,
+      "classes": {
+       "2": 92307
+      },
+      "gdens": 17.19
+     }
+    },
+    "27": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 89192,
+      "ground": 89192,
+      "classes": {
+       "2": 89192
+      },
+      "gdens": 16.62
+     }
+    },
+    "29": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 81985,
+      "ground": 81985,
+      "classes": {
+       "2": 81985
+      },
+      "gdens": 16.31
+     }
+    },
+    "31": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 59135,
+      "ground": 59135,
+      "classes": {
+       "2": 59135
+      },
+      "gdens": 11.27
+     }
+    },
+    "34": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 93585,
+      "ground": 93585,
+      "classes": {
+       "2": 93585
+      },
+      "gdens": 16.88
+     }
+    },
+    "35": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 67133,
+      "ground": 67133,
+      "classes": {
+       "2": 67133
+      },
+      "gdens": 11.06
+     }
+    },
+    "36": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 77253,
+      "ground": 77253,
+      "classes": {
+       "2": 77253
+      },
+      "gdens": 12.79
+     }
+    },
+    "37": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 103966,
+      "ground": 103966,
+      "classes": {
+       "2": 103966
+      },
+      "gdens": 16.35
+     }
+    },
+    "41": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 67076,
+      "ground": 67076,
+      "classes": {
+       "2": 67076
+      },
+      "gdens": 10.98
+     }
+    },
+    "42": {
+     "FR_LiDARHD_21LHDJE": {
+      "n": 65491,
+      "ground": 65491,
+      "classes": {
+       "2": 65491
+      },
+      "gdens": 11.23
+     }
+    }
+   }
+  }
+ },
+ "errors": [],
+ "naip_src": "IGN BD ORTHO",
+ "osm_golf_courses": [
+  [
+   "Golf National",
+   "way/290619725",
+   [
+    2.0687652,
+    48.7445546,
+    2.1048071,
+    48.756643
+   ]
+  ],
+  [
+   "",
+   "way/1263279760",
+   [
+    2.092819,
+    48.7191603,
+    2.0943082,
+    48.7201796
+   ]
+  ]
+ ],
+ "osm_hole_names": [
+  "L'Aigle - Trou n\u00b01",
+  "L'Aigle - Trou n\u00b010",
+  "L'Aigle - Trou n\u00b011",
+  "L'Aigle - Trou n\u00b012",
+  "L'Aigle - Trou n\u00b013",
+  "L'Aigle - Trou n\u00b014",
+  "L'Aigle - Trou n\u00b015",
+  "L'Aigle - Trou n\u00b016",
+  "L'Aigle - Trou n\u00b017",
+  "L'Aigle - Trou n\u00b018",
+  "L'Aigle - Trou n\u00b02",
+  "L'Aigle - Trou n\u00b03",
+  "L'Aigle - Trou n\u00b04",
+  "L'Aigle - Trou n\u00b05",
+  "L'Aigle - Trou n\u00b06",
+  "L'Aigle - Trou n\u00b07",
+  "L'Aigle - Trou n\u00b08",
+  "L'Aigle - Trou n\u00b09",
+  "L'Albatros - Trou n\u00b01",
+  "L'Albatros - Trou n\u00b010",
+  "L'Albatros - Trou n\u00b011",
+  "L'Albatros - Trou n\u00b012",
+  "L'Albatros - Trou n\u00b013",
+  "L'Albatros - Trou n\u00b014",
+  "L'Albatros - Trou n\u00b015",
+  "L'Albatros - Trou n\u00b016",
+  "L'Albatros - Trou n\u00b017",
+  "L'Albatros - Trou n\u00b018",
+  "L'Albatros - Trou n\u00b02",
+  "L'Albatros - Trou n\u00b03",
+  "L'Albatros - Trou n\u00b04",
+  "L'Albatros - Trou n\u00b05",
+  "L'Albatros - Trou n\u00b06",
+  "L'Albatros - Trou n\u00b07",
+  "L'Albatros - Trou n\u00b08",
+  "L'Albatros - Trou n\u00b09",
+  "L'Oiselet - Trou n\u00b05",
+  "L'Oiselet - Trou n\u00b06",
+  "L'Oiselet - Trou n\u00b07",
+  "L'Oiselet - Trou n\u00b08"
+ ],
+ "picked": {
+  "albatros": {
+   "osm": [
+    "way/290619725"
+   ],
+   "names": [
+    "Golf National"
+   ],
+   "bbox": [
+    2.0687652,
+    48.7445546,
+    2.1048071,
+    48.756643
+   ],
+   "via": "course outline"
+  }
+ },
+ "osm_all": {
+  "bbox": [
+   2.0251669856548364,
+   48.715614704545374,
+   2.1484053143451636,
+   48.785582895454624
+  ],
+  "n": 61804
+ },
+ "finished": "2026-11-25 13:24:32"
+}

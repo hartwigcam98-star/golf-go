@@ -1,0 +1,79 @@
+13:04:35   http 502 https://overpass-api.de/api/interpreter # 502 Gateway Timeout
+
+This Overpass API server is currently at capacity. All query workers are busy
+and the request queue is full.
+
+## What to do
+
+Retry your request using exponential backoff: wait a
+13:04:43   http 502 https://overpass-api.de/api/interpreter # 502 Gateway Timeout
+
+This Overpass API server is currently at capacity. All query workers are busy
+and the request queue is full.
+
+## What to do
+
+Retry your request using exponential backoff: wait a
+13:04:59   overpass mirror failed https://overpass-api.de/api/interpreter failed https://overpass-api.de/api/interpreter
+13:07:17   http 504 https://overpass.private.coffee/api/interpreter <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:
+13:11:37   http 502 https://overpass.private.coffee/api/interpreter <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.30.7</center>
+</body>
+</html>
+
+13:11:53   overpass mirror failed https://overpass.private.coffee/api/interpreter failed https://overpass.private.coffee/api/interpreter
+13:14:21   http 504 https://overpass.kumi.systems/api/interpreter <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:
+13:19:29   err HTTPSConnectionPool(host='overpass.kumi.systems', port=443): Read timed out. (read timeout=300)
+13:19:45   overpass mirror failed https://overpass.kumi.systems/api/interpreter failed https://overpass.kumi.systems/api/interpreter
+13:19:47   http 504 https://maps.mail.ru/osm/tools/overpass/api/interpreter <html>
+<head><title>504 Gateway Time-out</title></head>
+<body>
+<center><h1>504 Gateway Time-out</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+13:19:55   http 504 https://maps.mail.ru/osm/tools/overpass/api/interpreter <html>
+<head><title>504 Gateway Time-out</title></head>
+<body>
+<center><h1>504 Gateway Time-out</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+13:20:11   overpass mirror failed https://maps.mail.ru/osm/tools/overpass/api/interpreter failed https://maps.mail.ru/osm/tools/overpass/api/interpreter
+13:20:11   err HTTPSConnectionPool(host='overpass.osm.jp', port=443): Max retries exceeded with url: /api/interpreter (Caused by NameResolutionError("HTTPSConnection(host='overpass.osm.jp', port=443): Failed to resolve 'overpass.osm.jp' ([Errno -2] Name or service not known)"))
+13:20:19   err HTTPSConnectionPool(host='overpass.osm.jp', port=443): Max retries exceeded with url: /api/interpreter (Caused by NameResolutionError("HTTPSConnection(host='overpass.osm.jp', port=443): Failed to resolve 'overpass.osm.jp' ([Errno -2] Name or service not known)"))
+13:20:35   overpass mirror failed https://overpass.osm.jp/api/interpreter failed https://overpass.osm.jp/api/interpreter
+13:20:35   falling back to the OSM API for 48.72 2.03 48.79 2.12
+13:21:15   osm api 20 tiles 295920 nodes 43977 ways 1300 relations
+13:21:15 golf courses: [('Golf National', 'way/290619725', [2.0687652, 48.7445546, 2.1048071, 48.756643]), ('', 'way/1263279760', [2.092819, 48.7191603, 2.0943082, 48.7201796])]
+13:21:17   http 502 https://overpass-api.de/api/interpreter # 502 Gateway Timeout
+
+This Overpass API server is currently at capacity. All query workers are busy
+and the request queue is full.
+
+## What to do
+
+Retry your request using exponential backoff: wait a
+13:22:33 osm features 61804
+13:22:34 albatros ned (IGN) 31 x 82 wide 17 nan 0 0
+13:22:39 albatros ortho [4000, 2106] 1136 KB
+13:22:46 albatros dem lon/lat (IGN) 2885 1576 nan 0
+13:22:53 albatros dem utm (IGN) 2909 x 1620
+(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory((PDALPDAL  ErrorError) ) Can't load library Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: : Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directoryFailed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory((PDALPDAL  ErrorError) ) Can't load library Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: : Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directoryFailed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory((PDALPDAL  ErrorError) ) Can't load library Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: : Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directoryFailed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory((PDALPDAL  ErrorError) ) Can't load library Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: : Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directoryFailed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory13:23:25 albatros tile LHD_FXX_0632_6851_PTS_LAMB93_IGN69.copc.laz 13128315 ground pts 31.7 s
+13:23:29 albatros tile LHD_FXX_0631_6851_PTS_LAMB93_IGN69.copc.laz 11432290 ground pts 35.3 s
+13:23:58 albatros tile LHD_FXX_0634_6851_PTS_LAMB93_IGN69.copc.laz 12891053 ground pts 28.8 s
+13:23:58 albatros tile LHD_FXX_0632_6850_PTS_LAMB93_IGN69.copc.laz 12446594 ground pts 64.5 s
+13:23:58 albatros tile LHD_FXX_0633_6851_PTS_LAMB93_IGN69.copc.laz 13641232 ground pts 32.9 s
+13:24:27 albatros tile LHD_FXX_0633_6852_PTS_LAMB93_IGN69.copc.laz 13761635 ground pts 29.1 s
+13:24:32 albatros points saved 21957 KB 51 greens
