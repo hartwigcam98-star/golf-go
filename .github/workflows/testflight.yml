@@ -72,7 +72,7 @@ jobs:
           else:
               apps = [(a['attributes']['name'], a['attributes']['bundleId']) for a in j['data']]
               print('apps on the account:', apps)
-              if not any(b == 'io.github.hartwigcam98.golfgo' for _, b in apps): print('::error::No App Store Connect app with bundle ID io.github.hartwigcam98.golfgo')
+              if not any(b == 'Golfgo' for _, b in apps): print('::error::No App Store Connect app with bundle ID Golfgo')
           PY
       - name: Archive
         env:

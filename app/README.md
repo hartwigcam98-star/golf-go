@@ -15,9 +15,9 @@ One-time setup, all in the Apple and GitHub websites:
 
 1. Join the Apple Developer Program ($99/yr, developer.apple.com/programs). Approval can take a day or two.
 2. developer.apple.com → Account → Certificates, IDs & Profiles → Identifiers → **+** → App IDs → App:
-   description "Golf Go", Bundle ID (explicit) `io.github.hartwigcam98.golfgo`.
+   description "Golf Go", Bundle ID (explicit) `Golfgo` (the ID the App Store Connect app was made with; it can't be changed).
 3. appstoreconnect.apple.com → Apps → **+** → New App: iOS, name "Golf Go" (or any free name), language English,
-   bundle ID `io.github.hartwigcam98.golfgo`, SKU `golfgo`.
+   bundle ID `Golfgo`, SKU `golfgo`. The store name "Golf Go" was taken; the app is "GolfGo Tour" in App Store Connect (the home-screen name is still Golf Go).
 4. App Store Connect → Users and Access → Integrations → App Store Connect API → Team Keys → **+**: name "GitHub", access
    **Admin** (needed so Xcode can create the signing certificate). Download the .p8 file (it can be downloaded only once) and note
    the **Key ID** and the **Issuer ID** shown above the list.
