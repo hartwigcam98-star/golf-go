@@ -1,0 +1,29 @@
+resources 2284
+(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_hdf.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directory(PDAL Error) Can't load library /home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so: Failed to load "/home/runner/micromamba/envs/pd/lib/libpdal_plugin_reader_icebridge.so": libhdf5_cpp.so.320: cannot open shared object file: No such file or directoryalbatros tile LHD_FXX_0631_6852_PTS_LAMB93_IGN69.copc.laz 0
+albatros tile LHD_FXX_0632_6851_PTS_LAMB93_IGN69.copc.laz 477678
+albatros tile LHD_FXX_0631_6851_PTS_LAMB93_IGN69.copc.laz 168909
+albatros FR_LiDARHD_21LHDJE 646587 pts 13.4 /m2
+done albatros {'epsg': 32631, 'cands': ['FR_LiDARHD_21LHDJE'], 'fr': {'start': '2022-02-12Z', 'end': '2022-02-26Z', 'tiles': ['LHD_FXX_0631_6852_PTS_LAMB93_IGN69.copc.laz', 'LHD_FXX_0632_6851_PTS_LAMB93_IGN69.copc.laz', 'LHD_FXX_0631_6851_PTS_LAMB93_IGN69.copc.laz']}, 'src': 'FR_LiDARHD_21LHDJE', 'dens': 13.359235537190083, 'gps': [0.0, 329911014.9886941], 'classes': {1: 18584, 2: 467043, 3: 4866, 4: 11925, 5: 100618, 6: 42741, 17: 782, 66: 28}, 'aerial': ['ign']}
+all done
+bing http 200 208696
+bing http 200 206130
+albatros_course Le Golf National golf course pond fountain bing 14 ddg 0
+bing http 200 217874
+albatros_club Le Golf National Guyancourt, France golf clubhouse bing 14 ddg 0
+bing http 200 222768
+albatros_course Le Golf National golf course bridge bing 14 ddg 0
+bing http 200 221914
+albatros_club Le Golf National Guyancourt, France clubhouse bing 14 ddg 0
+bing http 200 218962
+albatros_course Le Golf National signature hole bing 14 ddg 0
+bing http 200 226961
+bing http 200 223016
+bing Le Golf National clubhouse patio kept 9
+albatros_club Le Golf National clubhouse patio bing 9 ddg 0
+bing http 200 333152
+albatros_course Le Golf National golf course aerial bing 14 ddg 0
+albatros_club search 37
+albatros_course search 56
+albatros_club 28
+albatros_course 28
+extras job done 0

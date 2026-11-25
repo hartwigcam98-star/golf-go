@@ -1,0 +1,7 @@
+resources 2284
+albatros tile LHD_FXX_0631_6852_PTS_LAMB93_IGN69.copc.laz 0
+albatros tile LHD_FXX_0632_6851_PTS_LAMB93_IGN69.copc.laz 477678
+albatros tile LHD_FXX_0631_6851_PTS_LAMB93_IGN69.copc.laz 168909
+albatros FR_LiDARHD_21LHDJE 646587 pts 13.4 /m2
+done albatros {'epsg': 32631, 'cands': ['FR_LiDARHD_21LHDJE'], 'fr': {'start': '2022-02-12Z', 'end': '2022-02-26Z', 'tiles': ['LHD_FXX_0631_6852_PTS_LAMB93_IGN69.copc.laz', 'LHD_FXX_0632_6851_PTS_LAMB93_IGN69.copc.laz', 'LHD_FXX_0631_6851_PTS_LAMB93_IGN69.copc.laz']}, 'src': 'FR_LiDARHD_21LHDJE', 'dens': 13.359235537190083, 'gps': [0.0, 329911014.9886941], 'classes': {1: 18584, 2: 467043, 3: 4866, 4: 11925, 5: 100618, 6: 42741, 17: 782, 66: 28}, 'aerial': ['ign']}
+all done
