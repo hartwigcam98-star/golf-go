@@ -64,6 +64,13 @@ density per green; good scans are 2020+ with several pts/m²).
   OpenStreetMap` (tell Cam; he or the player can map it).
 - If a course spans two outlines, merge both runs' green point sets (course-pipeline-8.md, Ridges).
 
+## France (since Nov 25 2026; Le Golf National)
+The fetch, clubhouse (extras) and measured-trees jobs also work in France: they switch by location to IGN open data
+(BD ORTHO 20 cm photo, LiDAR HD terrain model with RGE ALTI 1 m only where it is missing, LiDAR HD classified points,
+lidar project name `FR_LiDARHD_<mission>`). Everything downstream is unchanged. For a French course: town `"<Town>, FR"`
+in meta.json (the home map shows an FR badge) and `"dot": [958, 470]` (meta.json; a dot beside the badge).
+Nightly runs still skip requests outside the lower 48 unless Cam says otherwise.
+
 ## 4. Build the map and check it against the photo
 `cd auto/<key> && python3 ../build_course.py <key> ../../run_<key> [holeIds.json]` → prints each hole's length vs the card.
 Draw it: `python3 auto/draw.py <key> run_<key> /tmp/<key>.jpg 1.0` (from golf/) and **look at it** (Read the image). Check:
