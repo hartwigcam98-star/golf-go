@@ -25,6 +25,8 @@ const SITE = process.argv[2], OUT = process.argv[3];
     const trees=h.trees.map(t=>({x:t.x,y:t.y,r:t.r,cr:t.cr||0,mh:t.mh||0,gh:t.gh,con:t.con?1:0,cactus:t.cactus?1:0,vs:t.vs||1,cp:cpArr(t.cp),cs:t.cs||null}));
     return JSON.stringify({lieNames:names,lg:{x0:L.x0,y0:L.y0,nx:L.nx,ny:L.ny,data:lie},trees,paths:h.paths||[],bkF:!!h.bkF,
       MU,HOP_E,SURF,MU_REST,MU_REST_FW,CUP,CAPV,GACC,GIMME_YD,PATH_HW,PATH_ON,bury:bkSand().bury,
+      wide:(()=>{const g=h.hg,st=4,m=200,x0=g.x0-m,y0=g.y0-m,nx=Math.ceil(((g.nx-1)*g.st+2*m)/st)+1,ny=Math.ceil(((g.ny-1)*g.st+2*m)/st)+1,d=new Array(nx*ny);
+        for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)d[j*nx+i]=+hAt(x0+i*st,y0+j*st).toFixed(3);return{x0,y0,st,nx,ny,data:d};})(),
       chk:{hAt:[hAt(500,-100),hAt(300,-300)],grad:gradAt(300,-300)}});})()`);
   fs.mkdirSync(OUT, { recursive: true });
   fs.writeFileSync(path.join(OUT, 'troy1_sim.json'), sim);

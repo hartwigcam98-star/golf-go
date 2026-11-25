@@ -75,7 +75,7 @@ namespace GolfGo.Sim
     public class Course
     {
         public double[] pin, tee; public int par;
-        G hg, gg; double lx0, ly0; int lnx, lny; int[] lie; string[] lieNames;
+        G hg, gg, outer; double lx0, ly0; int lnx, lny; int[] lie; string[] lieNames;
         class G { public double x0, y0, st; public int nx, ny; public double[] d; }
         static G Grid(Dictionary<string, object> o)
         {
@@ -96,10 +96,15 @@ namespace GolfGo.Sim
         public double HAt(double x, double y)
         {
             var g = hg; double fx = (x - g.x0) / g.st, fy = (y - g.y0) / g.st;
+            if (outer != null && (fx < 0 || fy < 0 || fx >= g.nx - 1 || fy >= g.ny - 1)) { g = outer; fx = (x - g.x0) / g.st; fy = (y - g.y0) / g.st; }
             if (fx < 0) fx = 0; if (fy < 0) fy = 0; if (fx > g.nx - 1.000001) fx = g.nx - 1.000001; if (fy > g.ny - 1.000001) fy = g.ny - 1.000001;
             int i = (int)fx, j = (int)fy; double tx = fx - i, ty = fy - j; var d = g.d; int n = g.nx;
             return (d[j * n + i] * (1 - tx) + d[j * n + i + 1] * tx) * (1 - ty) + (d[(j + 1) * n + i] * (1 - tx) + d[(j + 1) * n + i + 1] * tx) * ty;
         }
+        // beyond the hole's grid the web game reads the course's elevation model (demRel); the sim uses the web game's own heights
+        // there, sampled every 4 yd (troy1_sim.json "wide"): close, not bit for bit, and only out of bounds
+        public bool Outside(double x, double y) { var g = hg; double fx = (x - g.x0) / g.st, fy = (y - g.y0) / g.st; return fx < 0 || fy < 0 || fx >= g.nx - 1 || fy >= g.ny - 1; }
+        public void SetOuter(double x0, double y0, double st, int nx, int ny, double[] d) { outer = new G { x0 = x0, y0 = y0, st = st, nx = nx, ny = ny, d = d }; }
         // hFineH: the 0.5-yd grid round the green, else hAt
         public double HFine(double x, double y)
         {

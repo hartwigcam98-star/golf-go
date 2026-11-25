@@ -22,6 +22,7 @@ namespace GolfGo.Sim
         public Dictionary<string, double> MU = new Dictionary<string, double>(), HOP_E = new Dictionary<string, double>(), SURF = new Dictionary<string, double>();
         public double MU_REST, MU_REST_FW, CUP, CAPV, GACC, GIMME_YD, PATH_HW, bury;
         public HashSet<string> PATH_ON = new HashSet<string>();
+        public double wx0, wy0, wst; public int wnx, wny; public double[] wide;   // heights beyond the hole's grid (see Course.SetOuter)
         static double D(object o) => Convert.ToDouble(o);
         static void Tab(Dictionary<string, object> o, Dictionary<string, double> into) { foreach (var kv in o) if (kv.Value is double d) into[kv.Key] = d; }
         public SimHole(string json)
@@ -49,6 +50,11 @@ namespace GolfGo.Sim
             MU_REST = D(o["MU_REST"]); MU_REST_FW = D(o["MU_REST_FW"]); CUP = D(o["CUP"]); CAPV = D(o["CAPV"]); GACC = D(o["GACC"]); GIMME_YD = D(o["GIMME_YD"]);
             PATH_HW = D(o["PATH_HW"]); bury = D(o["bury"]);
             foreach (var kv in (Dictionary<string, object>)o["PATH_ON"]) PATH_ON.Add(kv.Key);
+            if (o.TryGetValue("wide", out var wo) && wo is Dictionary<string, object> w)
+            {
+                wx0 = D(w["x0"]); wy0 = D(w["y0"]); wst = D(w["st"]); wnx = Convert.ToInt32(w["nx"]); wny = Convert.ToInt32(w["ny"]);
+                var wd = (List<object>)w["data"]; wide = new double[wd.Count]; for (int i = 0; i < wide.Length; i++) wide[i] = D(wd[i]);
+            }
         }
         // lieAt: the 1-yd surface grid, the ground under the trees already marked as dirt
         public string Lie(double x, double y)
@@ -116,7 +122,7 @@ namespace GolfGo.Sim
         public double rvx, rvy, rt; bool rlip; double? rcb; int rtk;
         bool rim; double rimA, rimW, rimLeft, rimSp; bool rimDrop;
 
-        public Ball(SimHole h, Course c, Strike s) { H = h; C = c; S = s; pin = c.pin; }
+        public Ball(SimHole h, Course c, Strike s) { H = h; C = c; S = s; pin = c.pin; if (h.wide != null) c.SetOuter(h.wx0, h.wy0, h.wst, h.wnx, h.wny, h.wide); }
 
         public void Launch(Flight fl, int seed)
         {

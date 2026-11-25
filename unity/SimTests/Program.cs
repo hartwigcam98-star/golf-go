@@ -84,12 +84,14 @@ static class Program
             {
                 if (q.kind != wk) diffs.Add($"kind {q.kind} vs web {wk}");
                 if (wk == "holed" && q.how != wantHow) diffs.Add($"how '{q.how}' vs web '{wantHow}'");
-                if (Math.Abs(q.x - D(o["x"])) > 1e-6 || Math.Abs(q.y - D(o["y"])) > 1e-6) diffs.Add($"at ({q.x:G10},{q.y:G10}) vs web ({D(o["x"]):G10},{D(o["y"]):G10})");
+                bool beyond = wk == "ob" && C.Outside(D(o["x"]), D(o["y"]));   // out there the heights are sampled (Course.SetOuter)
+                double tol = beyond ? .5 : 1e-6;
+                if (Math.Abs(q.x - D(o["x"])) > tol || Math.Abs(q.y - D(o["y"])) > tol) diffs.Add($"at ({q.x:G10},{q.y:G10}) vs web ({D(o["x"]):G10},{D(o["y"]):G10})");
                 if (q.dice != (int)D(o["d"])) diffs.Add($"dice {q.dice} vs web {D(o["d"])}");
                 if (wk == "rest" && q.lie != (string)o["lie"]) diffs.Add($"lie {q.lie} vs web {o["lie"]}");
                 if (wk == "rest" && q.plie != (string)o["plie"]) diffs.Add($"feels {q.plie} vs web {o["plie"]}");
                 bool wr = o.TryGetValue("relief", out var rv) && rv is List<object>; if (wk == "rest" && (q.relief != null) != wr) diffs.Add("cart-path relief differs");
-                if (frames != (int)D(c["frames"])) diffs.Add($"frames {frames} vs web {D(c["frames"])}");
+                if (Math.Abs(frames - (int)D(c["frames"])) > (beyond ? 2 : 0)) diffs.Add($"frames {frames} vs web {D(c["frames"])}");
             }
             string key = wk + (wk == "rest" ? ":" + o["lie"] : ""); kinds[key] = kinds.TryGetValue(key, out var kc) ? kc + 1 : 1;
             if (diffs.Count > 0) { bad++; Console.WriteLine($"land {n} ({f.club} from {D(c["bx"]):F0},{D(c["by"]):F0}): " + string.Join("; ", diffs) + (firstOff != null ? " | first off at " + firstOff : "")); }
