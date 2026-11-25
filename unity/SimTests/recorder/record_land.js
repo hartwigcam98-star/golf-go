@@ -100,7 +100,7 @@ const SITE = process.argv[2], OUT = process.argv[3];
         if(n%15===0)tr.push([n,G.state,+G.ball.x.toFixed(4),+G.ball.y.toFixed(4),+G.bY.toFixed(4)]);
         if(!['flight','bounce','roll'].includes(G.state))break;}}
       finally{penalty=P0;holed=H0;stopBall=S0;}
-      if(out&&out.kind==='rest'&&G.strokes>c.strokes+1)out.gimme=true;
+      if(out&&out.kind==='rest'&&G.strokes>c.strokes+(c.roll?0:1))out.gimme=true;   // a gimme adds the stroke at once
       return JSON.stringify({...c,lie0,flight:fl,evs,wind:G.wind,frames:n,draws,state:G.state,strokes:G.strokes,out,trace:tr,end:[G.ball.x,G.ball.y],shotInfo:G.shotInfo,prev});
     }catch(e){return JSON.stringify({err:String(e&&e.stack||e)});}})()`));
     if (r.err) console.log('ERR', r.err.slice(0, 400));
