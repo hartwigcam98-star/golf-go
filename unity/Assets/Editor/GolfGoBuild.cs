@@ -33,6 +33,30 @@ public static class GolfGoBuild
         // the course map texture at full size (it holds every fairway stripe and bunker edge)
         var ti = AssetImporter.GetAtPath("Assets/Resources/troy1_ground.png") as TextureImporter;
         if (ti) { ti.maxTextureSize = 4096; ti.mipmapEnabled = true; ti.wrapMode = TextureWrapMode.Clamp; ti.anisoLevel = 4; ti.SaveAndReimport(); }
+        // the hole's Blender-baked light (sun shadows of every tree, sky occlusion), the same map the web game uses, as a x2 detail
+        // map over the course texture: 0.5 = full sun and open sky, darker under the trees
+        var li = AssetImporter.GetAtPath("Assets/Resources/troy1_light.png") as TextureImporter;
+        if (li) { li.maxTextureSize = 4096; li.wrapMode = TextureWrapMode.Clamp; li.sRGBTexture = false; li.SaveAndReimport(); }
+        var g = Mat("Ground", Color.white, 0);
+        g.SetTexture("_DetailAlbedoMap", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/troy1_light.png"));
+        g.SetFloat("_UVSec", 0); g.EnableKeyword("_DETAIL_MULX2"); EditorUtility.SetDirty(g);
+        // leaf cards: the web game's own leaf atlas (4 x 4 clusters), alpha-tested
+        var lf = AssetImporter.GetAtPath("Assets/Resources/leaves.png") as TextureImporter;
+        if (lf) { lf.maxTextureSize = 2048; lf.alphaIsTransparency = true; lf.mipmapEnabled = true; lf.SaveAndReimport(); }
+        var leafTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/leaves.png");
+        foreach (var (n, c) in new[] { ("Leaf0", new Color(.55f, .78f, .4f)), ("Leaf1", new Color(.45f, .7f, .35f)), ("Leaf2", new Color(.62f, .8f, .42f)), ("Leaf3", new Color(.4f, .62f, .32f)), ("Pine", new Color(.38f, .58f, .4f)) })
+        {
+            var m = Mat(n, c, .05f); m.mainTexture = leafTex;
+            m.SetFloat("_Mode", 1); m.SetFloat("_Cutoff", .45f); m.SetOverrideTag("RenderType", "TransparentCutout");
+            m.SetInt("_SrcBlend", 1); m.SetInt("_DstBlend", 0); m.SetInt("_ZWrite", 1); m.EnableKeyword("_ALPHATEST_ON");
+            m.renderQueue = 2450; EditorUtility.SetDirty(m);
+        }
+        // sky
+        Directory.CreateDirectory("Assets/Resources/Mats");
+        var skyP = "Assets/Resources/Mats/Sky.mat"; var sky = AssetDatabase.LoadAssetAtPath<Material>(skyP);
+        if (!sky) { sky = new Material(Shader.Find("Skybox/Procedural")); AssetDatabase.CreateAsset(sky, skyP); }
+        sky.SetFloat("_SunSize", .03f); sky.SetFloat("_AtmosphereThickness", .9f); sky.SetColor("_SkyTint", new Color(.45f, .6f, .85f));
+        sky.SetColor("_GroundColor", new Color(.42f, .5f, .4f)); sky.SetFloat("_Exposure", 1.25f); EditorUtility.SetDirty(sky);
         AssetDatabase.SaveAssets();
         // the scene: one object that builds everything at start
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);

@@ -63,22 +63,60 @@ public class HoleTest : MonoBehaviour
         if (ground.normals.Length > 0 && ground.normals[nx * (ny / 2) + nx / 2].y < 0) { System.Array.Reverse(t); ground.triangles = t; ground.RecalculateNormals(); }
         var go = new GameObject("Ground"); go.AddComponent<MeshFilter>().sharedMesh = ground; var mr = go.AddComponent<MeshRenderer>();
         var gm = new Material(M("Ground")); gm.mainTexture = Resources.Load<Texture2D>("troy1_ground"); mr.sharedMaterial = gm;
-        mr.receiveShadows = true; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        mr.receiveShadows = false; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;   // tree shadows come from the baked light map
 
-        // trees: trunk + crown (sphere for broadleaf, cone for conifer)
-        var sph = Prim(PrimitiveType.Sphere); var cyl = Prim(PrimitiveType.Cylinder); var cone = ConeMesh(16);
-        Material leaf = M("Leaf"), needle = M("Needle"), bark = M("Bark");
-        var T = D.trees; var root = new GameObject("Trees").transform;
+        // trees: a trunk, and a crown of leaf cards from the web game's leaf atlas (clusters of cards round an ellipsoid, as the game
+        // draws them), merged per tint so the whole course is a handful of draw calls
+        var cyl = Prim(PrimitiveType.Cylinder); Material bark = M("Bark");
+        var T = D.trees; var root = new GameObject("Trees").transform; var rnd = new System.Random(77);
+        var lists = new List<Vector3>[5]; var uvs = new List<Vector2>[5]; var nrm = new List<Vector3>[5];
+        for (int z = 0; z < 5; z++) { lists[z] = new List<Vector3>(); uvs[z] = new List<Vector2>(); nrm[z] = new List<Vector3>(); }
+        int[] broad = { 2, 3, 6, 7, 13, 15 }, pine = { 10, 11 };
+        var trunks = new List<CombineInstance>();
         for (int k = 0; k + 6 < T.Length; k += 7)
         {
             float x = T[k], y = T[k + 1], r = Mathf.Max(.8f, T[k + 2]), gh = T[k + 3], top = Mathf.Max(3, T[k + 4]), cb = T[k + 5]; bool con = T[k + 6] > .5f;
             if (cb <= 0 || cb > top * .8f) cb = top * (con ? .15f : .35f);
-            var p = HoleData.U(x, y, gh);
-            Make(root, cyl, bark, p + Vector3.up * cb * .5f, new Vector3(Mathf.Clamp(r * .12f, .15f, .6f), cb * .5f + .3f, Mathf.Clamp(r * .12f, .15f, .6f)));
-            float ch = top - cb;
-            if (con) Make(root, cone, needle, p + Vector3.up * cb, new Vector3(r * 2, ch, r * 2));
-            else Make(root, sph, leaf, p + Vector3.up * (cb + ch * .5f), new Vector3(r * 2, ch, r * 2));
+            var p = HoleData.U(x, y, gh); float tw = Mathf.Clamp(r * .1f, .12f, .5f);
+            trunks.Add(new CombineInstance { mesh = cyl, transform = Matrix4x4.TRS(p + Vector3.up * (cb * .5f + .2f), Quaternion.identity, new Vector3(tw, cb * .5f + .5f, tw)) });
+            float ch = top - cb; var c0 = p + Vector3.up * (cb + ch * .5f);
+            int tint = con ? 4 : rnd.Next(4), cards = Mathf.Clamp((int)(r * r * ch * .25f), 10, 90);
+            for (int n = 0; n < cards; n++)
+            {
+                // a point on (and a little inside) the crown, facing out; cones for conifers
+                var d = new Vector3((float)rnd.NextDouble() * 2 - 1, (float)rnd.NextDouble() * 2 - 1, (float)rnd.NextDouble() * 2 - 1).normalized;
+                float k2 = .7f + .3f * (float)rnd.NextDouble();
+                Vector3 c;
+                if (con) { float h01 = (float)rnd.NextDouble(); float rr = r * (1 - h01) * k2; c = p + Vector3.up * (cb + h01 * ch) + new Vector3(d.x, 0, d.z).normalized * rr; d = new Vector3(d.x, .2f, d.z).normalized; }
+                else c = c0 + new Vector3(d.x * r, d.y * ch * .5f, d.z * r) * k2;
+                float sz = (con ? 1.2f : 1.6f) * Mathf.Clamp(r * .45f, .8f, 3.2f);
+                var right = Vector3.Cross(d, Vector3.up); if (right.sqrMagnitude < 1e-4f) right = Vector3.right; right.Normalize();
+                var up = Vector3.Cross(right, d).normalized;
+                int cell = con ? pine[rnd.Next(pine.Length)] : broad[rnd.Next(broad.Length)];
+                float u0 = (cell % 4) / 4f, v0 = 1 - (cell / 4 + 1) / 4f;
+                var LV = lists[tint]; var U2 = uvs[tint]; var N = nrm[tint];
+                Vector3 a1 = c - right * sz * .5f - up * sz * .5f, a2 = c + right * sz * .5f - up * sz * .5f, a3 = c + right * sz * .5f + up * sz * .5f, a4 = c - right * sz * .5f + up * sz * .5f;
+                // both faces (the Standard shader draws one side)
+                foreach (var s2 in new[] { 1f, -1f })
+                {
+                    LV.Add(a1); LV.Add(s2 > 0 ? a2 : a4); LV.Add(a3); LV.Add(s2 > 0 ? a4 : a2);
+                    U2.Add(new Vector2(u0, v0)); U2.Add(s2 > 0 ? new Vector2(u0 + .25f, v0) : new Vector2(u0, v0 + .25f)); U2.Add(new Vector2(u0 + .25f, v0 + .25f)); U2.Add(s2 > 0 ? new Vector2(u0, v0 + .25f) : new Vector2(u0 + .25f, v0));
+                    var nn = Vector3.Lerp(d * s2, Vector3.up, .4f).normalized; for (int z = 0; z < 4; z++) N.Add(nn);
+                }
+            }
         }
+        var tm = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 }; tm.CombineMeshes(trunks.ToArray(), true, true);
+        var tgo = new GameObject("Trunks"); tgo.transform.SetParent(root); tgo.AddComponent<MeshFilter>().sharedMesh = tm; tgo.AddComponent<MeshRenderer>().sharedMaterial = bark;
+        string[] leafMats = { "Leaf0", "Leaf1", "Leaf2", "Leaf3", "Pine" };
+        for (int z = 0; z < 5; z++)
+        {
+            if (lists[z].Count == 0) continue;
+            var idx = new int[lists[z].Count / 4 * 6]; for (int i = 0, o = 0; i < lists[z].Count; i += 4) { idx[o++] = i; idx[o++] = i + 2; idx[o++] = i + 1; idx[o++] = i; idx[o++] = i + 3; idx[o++] = i + 2; }
+            var lm = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 }; lm.SetVertices(lists[z]); lm.SetUVs(0, uvs[z]); lm.SetNormals(nrm[z]); lm.SetTriangles(idx, 0); lm.RecalculateBounds();
+            var lg = new GameObject(leafMats[z]); lg.transform.SetParent(root); lg.AddComponent<MeshFilter>().sharedMesh = lm; var lr = lg.AddComponent<MeshRenderer>(); lr.sharedMaterial = M(leafMats[z]);
+        }
+        var sph = Prim(PrimitiveType.Sphere);
+        RenderSettings.skybox = M("Sky"); DynamicGI.UpdateEnvironment();
         // flag
         float ph = D.H(D.pin[0], D.pin[1]); flag = new GameObject("Flag").transform; flag.position = HoleData.U(D.pin[0], D.pin[1], ph);
         Make(flag, cyl, M("White"), flag.position + Vector3.up * 1.2f, new Vector3(.03f, 1.2f, .03f));
