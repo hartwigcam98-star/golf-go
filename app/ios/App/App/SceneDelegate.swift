@@ -34,8 +34,7 @@ class GameViewController: CAPBridgeViewController {
         return config
     }
 
-    override var prefersStatusBarHidden: Bool { true }
-    override var prefersHomeIndicatorAutoHidden: Bool { true }
+    // (the status bar is hidden through Info.plist: Capacitor 8 doesn't let a subclass override prefersStatusBarHidden, and Xcode 26 enforces it)
 
     private static func setWebKitFeature(_ key: String, on: Bool, in prefs: WKPreferences) {
         // the selector names are put together at run time (App Store Connect's upload check scans the binary for internal names)
