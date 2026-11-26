@@ -163,8 +163,8 @@ static class Program
                     {
                         if (q.kind != wk) diffs.Add($"kind {q.kind} vs web {wk}");
                         // (a full shot that runs off the hole's height grid: out there the heights are sampled (Course.SetOuter), as in
-                        // the landing cases: half a yard and a frame or two)
-                        bool beyond = C.Outside(D(o["x"]), D(o["y"])); double rt = beyond ? .5 : 1e-6;
+                        // the landing cases: half a yard and a frame or two; within a yard of the grid's edge too)
+                        double ox = D(o["x"]), oy = D(o["y"]); bool beyond = C.Outside(ox, oy) || C.Outside(ox - 1, oy - 1) || C.Outside(ox + 1, oy + 1); double rt = beyond ? .5 : 1e-6;
                         if (Math.Abs(q.x - D(o["x"])) > rt || Math.Abs(q.y - D(o["y"])) > rt) diffs.Add($"rest ({q.x:G9},{q.y:G9}) vs web ({D(o["x"]):G9},{D(o["y"]):G9})");
                         if (q.dice != (int)D(o["d"])) diffs.Add($"dice {q.dice} vs web {D(o["d"])}");
                         if (Math.Abs(frames - (int)D(c["frames"])) > (beyond ? 2 : 0)) diffs.Add($"frames {frames} vs web {D(c["frames"])}");
