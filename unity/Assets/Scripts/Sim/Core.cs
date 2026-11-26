@@ -112,7 +112,7 @@ namespace GolfGo.Sim
             // the hole's centreline (h.segs: x, y, heading, length, distance from the tee) and the tee spot line0, for aimTarget / onTeeBox
             if (o.TryGetValue("segs", out var sg) && sg is List<object> sl) { segs = new double[sl.Count][]; for (int i = 0; i < sl.Count; i++) segs[i] = Arr(sl[i]); }
             if (o.TryGetValue("line0", out var l0) && l0 is List<object>) line0 = Arr(l0);
-            if (o.TryGetValue("len", out var ln) && ln is double lnd) len = lnd;
+            if (o.TryGetValue("len", out var lenO) && lenO is double lnd) len = lnd;
         }
         // terrain-height.js hAtH: bilinear on the 2-yd grid (outside it the game reads the elevation model; the test hole stays inside)
         public double HAt(double x, double y)
