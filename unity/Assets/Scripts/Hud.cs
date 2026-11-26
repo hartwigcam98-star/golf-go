@@ -20,6 +20,7 @@ public class Hud
 
     public float K;                    // screen pixels per CSS pixel
     public float W, Hh;                // the canvas in CSS pixels
+    public float TopH, BotH, STop;     // the web's topH (the top plate's bottom + 6) and botH (screen bottom to the panel's inner top + 8), in CSS px; the safe-area top
     public float BottomFrac;           // the share of the screen's height the bottom panel (club, shots, meter, buttons) covers
     RectTransform root, safe;
     Font fDisp, fBody, fBold;
@@ -195,6 +196,7 @@ public class Hud
         var u = Txt(wp.transform, "U", fBold, 11, A(Cream, .75f)); At(u.rectTransform, 60, 33, 40, 14); u.text = "MPH";
         // the hole plate
         float lw = Mathf.Min(rx - 8 - x, 260);
+        TopH = y + 67 + 6; STop = sTop;
         var pl = Box(root, "Plate", 14, Panel); plateL = At(pl.rectTransform, x, y, lw, 67); Drop(root, plateL, 14, 3, new Color(0, 0, 0, .28f));
         courseT = Txt(pl.transform, "Course", fBold, 11, A(Sun, .9f)); At(courseT.rectTransform, 12, 8, lw - 24, 13); courseT.horizontalOverflow = HorizontalWrapMode.Wrap; courseT.verticalOverflow = VerticalWrapMode.Truncate;   // (one line: the web ends long titles in an ellipsis)
         holeN = Txt(pl.transform, "N", fDisp, 34, Cream, TextAnchor.MiddleCenter); At(holeN.rectTransform, 12, 23, 26, 36);
@@ -252,7 +254,7 @@ public class Hud
         // the dark fade behind it: linear-gradient(to top, rgba(9,24,36,.94) 62%, transparent)
         var bgC = new Color(9 / 255f, 24 / 255f, 36 / 255f, .94f);
         var bg = Pic(root, "BottomFade", Tex(4, 64, (x, y) => { float t = 1 - y / 64f; return A(bgC, t >= .62f ? 1 : t / .62f); }));
-        At(bg.rectTransform, 0, top, W, Hh - top); BottomFrac = (Hh - top) / Hh;
+        At(bg.rectTransform, 0, top, W, Hh - top); BottomFrac = (Hh - top) / Hh; BotH = Hh - yClub + 8;
         var inner = At(RT("Inner", root), ix, 0, iw, Hh);
 
         // club row: [‹ name ›] [lie / pin chips] [strike point]
@@ -506,15 +508,75 @@ public class Hud
     // ---------- the look button (.lookbtn): a round button above the bottom panel's right side; gold while looking ----------
     public Action onLook; Image lookBtn, lookDrop; RawImage lookIco;
     void BuildLook()
-    {
-        lookBtn = Box(root, "Look", 23, Panel); At(lookBtn.rectTransform, W - 12 - 46, Hh * (1 - BottomFrac) - 12 - 46, 46, 46); lookDrop = Drop(root, lookBtn.rectTransform, 23, 3, new Color(0, 0, 0, .28f));
+    {   // .lookbtn: right 12, bottom botH + 4; .cambtn the same on the left, with the view's number in a sun badge
+        float y = Hh - BotH - 4 - 46;
+        lookBtn = Box(root, "Look", 23, Panel); At(lookBtn.rectTransform, W - 12 - 46, y, 46, 46); lookDrop = Drop(root, lookBtn.rectTransform, 23, 3, new Color(0, 0, 0, .28f));
         lookIco = Pic(lookBtn.transform, "Ico", Icon("eye")); At(lookIco.rectTransform, 11, 11, 24, 24);
         Press(lookBtn, () => onLook?.Invoke());
+        camBtn = Box(root, "Cam", 23, Panel); At(camBtn.rectTransform, 12, y, 46, 46); camDrop = Drop(root, camBtn.rectTransform, 23, 3, new Color(0, 0, 0, .28f));
+        At(Pic(camBtn.transform, "Ico", Icon("camera")).rectTransform, 11, 11, 24, 24);
+        var bd = Box(camBtn.transform, "Badge", 9, Sun); At(bd.rectTransform, 46 - 18 + 3, -3, 18, 18);
+        camNum = Txt(bd.transform, "N", fBold, 11, Ink, TextAnchor.MiddleCenter); At(camNum.rectTransform, 0, 0, 18, 18);
+        Press(camBtn, () => onCam?.Invoke());
+        // .lookbar: centred, 84 below the safe top: ⛳ Green · 🗺 Read (near the green) · ◎ Landing · Done (sun)
+        string[] ln = { "Green", "Read", "Landing", "Done" };
+        for (int i = 0; i < 4; i++)
+        {
+            int k = i; var b = Box(root, "LB" + i, 15.5f, i == 3 ? Sun : new Color(12 / 255f, 30 / 255f, 46 / 255f, .9f));
+            var t = Txt(b.transform, "T", fBold, 14, i == 3 ? Ink : Cream, TextAnchor.MiddleCenter); t.text = ln[i];
+            float w = Mathf.Ceil(t.preferredWidth) + 26; At(b.rectTransform, 0, STop + 84, w, 31); At(t.rectTransform, 0, 0, w, 31);
+            var dr = Drop(root, b.rectTransform, 15.5f, 3, new Color(0, 0, 0, .25f));
+            Press(b, () => onLookBar?.Invoke(k)); lookBar[i] = (b, t, dr, w);
+        }
+        // .lookret: a 34 ring with a dot on the look target, its pill 40 below (lie · distance · rise · to the pin)
+        lookRet = RT("LookRet", aimLayer); lookRet.pivot = new Vector2(.5f, .5f); lookRet.sizeDelta = new Vector2(34, 34);
+        retRing = Pic(lookRet, "Ring", Tex(34, 34, (x, y) =>
+        {
+            float r = Mathf.Sqrt((x - 17) * (x - 17) + (y - 17) * (y - 17)); var ink = new Color(15 / 255f, 34 / 255f, 51 / 255f, .7f);
+            var c = Over(Color.clear, ink, Cov(Mathf.Abs(r - 15.75f) - 2.75f)); c = Over(c, Cream, Cov(Mathf.Abs(r - 15.75f) - 1.25f));
+            c = Over(c, ink, Cov(r - 4)); return Over(c, Cream, Cov(r - 2.5f));
+        })); At(retRing.rectTransform, 0, 0, 34, 34);
+        retPill = Box(lookRet, "Pill", 11, new Color(12 / 255f, 30 / 255f, 46 / 255f, .88f)); retPill.rectTransform.pivot = new Vector2(.5f, 1);
+        retT = Txt(retPill.transform, "T", fBold, 13, Cream, TextAnchor.MiddleCenter); retT.rectTransform.anchorMin = Vector2.zero; retT.rectTransform.anchorMax = Vector2.one; retT.rectTransform.pivot = new Vector2(.5f, .5f); retT.rectTransform.offsetMin = retT.rectTransform.offsetMax = Vector2.zero;
+        lookRet.gameObject.SetActive(false);
     }
+    public Action onCam; public Action<int> onLookBar; Image camBtn, camDrop; Text camNum, retT; RectTransform lookRet; RawImage retRing; Image retPill;
+    readonly (Image b, Text t, Image d, float w)[] lookBar = new (Image, Text, Image, float)[4];
     public void SetLook(bool shown, bool on)
     {
         if (lookBtn.gameObject.activeSelf != shown) { lookBtn.gameObject.SetActive(shown); lookDrop.gameObject.SetActive(shown); }
         var c = on ? Sun : Panel; if (lookBtn.color != c) { lookBtn.color = c; lookIco.texture = Icon(on ? "eyeInk" : "eye"); }
+    }
+    public void SetCam(bool shown, int view)
+    {
+        if (camBtn.gameObject.activeSelf != shown) { camBtn.gameObject.SetActive(shown); camDrop.gameObject.SetActive(shown); }
+        Set(camNum, (view + 1).ToString());
+    }
+    // the look bar: shown while looking; Read only near the green; Read and Landing light up (.on: green, mint rim) when that view is on
+    public void SetLookBar(bool shown, bool readShown, bool readOn, bool landOn)
+    {
+        float tot = 0; int n = 0;
+        for (int i = 0; i < 4; i++) { bool v = shown && (i != 1 || readShown); if (v) { tot += lookBar[i].w; n++; } }
+        float x = (W - tot - 6 * Mathf.Max(0, n - 1)) / 2;
+        for (int i = 0; i < 4; i++)
+        {
+            var L = lookBar[i]; bool v = shown && (i != 1 || readShown);
+            if (L.b.gameObject.activeSelf != v) { L.b.gameObject.SetActive(v); L.d.gameObject.SetActive(v); }
+            if (!v) continue;
+            L.b.rectTransform.anchoredPosition = new Vector2(x, -(STop + 84)); L.d.rectTransform.anchoredPosition = new Vector2(x, -(STop + 84) - 3); x += L.w + 6;
+            if (i == 1 || i == 2) { bool on = i == 1 ? readOn : landOn; L.b.color = on ? Hex("#2f6b3a") : new Color(12 / 255f, 30 / 255f, 46 / 255f, .9f); }
+        }
+    }
+    // the reticle: at a screen point (px, Unity's y up); mk = following the landing ring (the ring hidden, the pill below the ring's ry)
+    public void SetLookRet(bool shown, Vector2 px, bool mk, float ry, string txt)
+    {
+        if (lookRet.gameObject.activeSelf != shown) lookRet.gameObject.SetActive(shown);
+        if (!shown) return;
+        lookRet.anchoredPosition = Css(px); retRing.enabled = !mk;
+        Set(retT, txt); float w = Mathf.Ceil(retT.preferredWidth) + 20;
+        // (lookRet's box is 34 centred on the point: its top is 17 above; the pill's top is 40 below that top, or 17 + ry + 12 when marking)
+        retPill.rectTransform.anchorMin = retPill.rectTransform.anchorMax = new Vector2(.5f, 1);
+        retPill.rectTransform.anchoredPosition = new Vector2(0, -(mk ? 17 + ry + 12 : 40)); retPill.rectTransform.sizeDelta = new Vector2(w, 22);
     }
 
     // ---------- the strike point popup (#impPop): drag the dot on the ball (top/back spin, draw/fade), pick the shot height ----------
@@ -630,6 +692,9 @@ public class Hud
                       float r = Mathf.Sqrt((x - 12) * (x - 12) + (y - 12) * (y - 12));
                       return A(ec, Cov(Mathf.Min(Mathf.Abs(Mathf.Max(d1, d2)), Mathf.Abs(r - 3.2f)) - 1));
                   }; break; }
+            case "camera":  // M3 8.5h3.2l1.6-2.5h8.4l1.6 2.5H21v10H3z, circle (12, 13.2) r 3.3, stroke 2
+                { var o = new[] { new Vector2(3, 8.5f), new Vector2(6.2f, 8.5f), new Vector2(7.8f, 6), new Vector2(16.2f, 6), new Vector2(17.8f, 8.5f), new Vector2(21, 8.5f), new Vector2(21, 18.5f), new Vector2(3, 18.5f), new Vector2(3, 8.5f) };
+                  f = (x, y) => { float r = Mathf.Sqrt((x - 12) * (x - 12) + (y - 13.2f) * (y - 13.2f)); return A(Cream, Cov(Mathf.Min(SdPolyline(x, y, o), Mathf.Abs(r - 3.3f)) - 1)); }; break; }
             case "chevL": f = (x, y) => A(Cream, Cov(SdPolyline(x, y, new[] { new Vector2(15, 5), new Vector2(8, 12), new Vector2(15, 19) }) - 1.5f)); break;
             case "chevR": f = (x, y) => A(Cream, Cov(SdPolyline(x, y, new[] { new Vector2(9, 5), new Vector2(16, 12), new Vector2(9, 19) }) - 1.5f)); break;
             case "ball":    // the strike-point ball: white disc, ink rim, cross hairs, the coral dot (ballN: no dot, it's drawn on top where the strike is)

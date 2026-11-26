@@ -234,7 +234,8 @@ public class HoleTest : MonoBehaviour
         RenderSettings.ambientSkyColor = new Color(.62f, .72f, .86f); RenderSettings.ambientEquatorColor = new Color(.55f, .6f, .58f); RenderSettings.ambientGroundColor = new Color(.32f, .36f, .28f);
         RenderSettings.fog = true; RenderSettings.fogMode = FogMode.Linear; RenderSettings.fogStartDistance = 250; RenderSettings.fogEndDistance = 900; RenderSettings.fogColor = new Color(.74f, .82f, .9f);
         cam = Camera.main; if (!cam) { cam = new GameObject("Camera").AddComponent<Camera>(); cam.tag = "MainCamera"; }
-        cam.fieldOfView = 50; cam.nearClipPlane = .1f; cam.farClipPlane = 1500; cam.allowMSAA = true;
+        if (CAMV < 0) CAMV = PlayerPrefs.GetInt("camv", 1);   // (Cam, Nov 25: the lower aiming view; the camera button cycles all three)
+        cam.fieldOfView = 50; cam.nearClipPlane = .3f; cam.farClipPlane = 5000; cam.allowMSAA = true;
     }
     static Mesh Prim(PrimitiveType t) { var o = GameObject.CreatePrimitive(t); var m = o.GetComponent<MeshFilter>().sharedMesh; Destroy(o); return m; }
     static Transform Make(Transform parent, Mesh mesh, Material mat, Vector3 pos, Vector3 scale)
@@ -266,6 +267,8 @@ public class HoleTest : MonoBehaviour
         hud.onImp = v => { if (st != S.Aim || C.putter) return; imp = v; RefreshHud(); };
         hud.onTraj = t => { if (st != S.Aim || C.putter) return; traj = t; RefreshHud(); };
         hud.onFlag = () => { if (st != S.Aim || !C.putter) return; flagOut = !flagOut; ShowFlag(); };
+        hud.onCam = () => { if (st != S.Aim) return; CAMV = (CAMV + 1) % 3; PlayerPrefs.SetInt("camv", CAMV); };
+        hud.onLookBar = k => { if (k == 0) LookGreen(); else if (k == 1) LookRead(); else if (k == 2) LookLanding(); else LookEnd(); };
         hud.onImpReset = () => { imp = Vector2.zero; traj = 0; RefreshHud(); };
         hud.onMap = () => { if (st == S.Aim) { mapView = !mapView; if (mapView) fc = null; } };
         hud.onLook = () => { if (fc != null && !(fc.fly != null && fc.fly.dir < 0)) LookEnd(); else LookStart(); };
@@ -354,7 +357,7 @@ public class HoleTest : MonoBehaviour
         if (C.putter) puttMax = PT.Max(b.x, b.y, Lie0);
         flagOut = GolfGo.Sim.Putt.FlagOut(Lie0, PinDist);   // inside 15 ft on the green the flag comes out (a ball needs less pace to drop)
         ShowFlag();
-        st = S.Aim; mpos = IMPACT; mapView = false; swingBack0 = false; if (pick) landPt = null; hud.SetSwing("SWING", 0, true); RefreshHud();
+        st = S.Aim; mpos = IMPACT; mapView = false; swingBack0 = false; inCup = false; if (pick) landPt = null; hud.SetSwing("SWING", 0, true); RefreshHud();
         hud.SetHint("Drag to aim · Tap Swing to start");
         PlaceGolfer(); swingT = -1;
     }
@@ -391,7 +394,7 @@ public class HoleTest : MonoBehaviour
     void StrikeNow(float? e)
     {
         float win = Win; tapMark = e.HasValue ? IMPACT + e.Value : -1; tapGood = e.HasValue && Mathf.Abs(e.Value) <= win;
-        fromLie = Lie0; strokes++; prev = b; swingT = 0;
+        fromLie = Lie0; strokes++; prev = b; swingT = 0; shotRot = Dir(aim);
         if (GF != null) { swingClock = 0; swingBack = Mathf.Max(.15f, (float)Power); launchAt = C.putter ? GF.PuttImpactT : GF.ImpactT; } hud.SetSwing("SWING", 0, false); hud.SetHint(""); hud.AimHide();
         if (C.putter)
         {
@@ -430,7 +433,11 @@ public class HoleTest : MonoBehaviour
         if (hud.ImpOpen && (st != S.Aim || C.putter || fc != null)) hud.ShowImp(false);
         if (st == S.Aim && !hud.ChoiceOpen) { HandleTouches(); ShortFlag(); DrawAim(); } else hud.AimHide();
         LookStep(dt);
-        hud.SetLook(st == S.Aim && !mapView && !hud.ChoiceOpen, fc != null);
+        bool aimingHud = st == S.Aim && !hud.ChoiceOpen, lkH = fc != null && aimingHud;
+        hud.SetLook(aimingHud && !mapView, lkH);
+        hud.SetCam(aimingHud && !mapView && !lkH && !C.putter && Lie0 != "green", CAMV);
+        hud.SetLookBar(lkH, lkH && NearGreen, lkH && fc.read, lkH && fc.follow);
+        LookRet(lkH);
         hud.SetFlagChip(st == S.Aim && C.putter && Lie0 == "green" && !hud.ChoiceOpen, flagOut);
         if (st == S.Aim && (fc != null) != swingBack0) { swingBack0 = fc != null; hud.SetSwing(swingBack0 ? "\u21a9 BACK" : "SWING", 0, true); }
         if (st == S.Power)
@@ -519,7 +526,28 @@ public class HoleTest : MonoBehaviour
     // ---------- the look camera (camera.js "scout cam"): flies out along the shot to a low view of the landing spot; three zoom steps,
     // pinch zooms smoothly; with the putter it looks at the cup. Swing (or the eye) flies it back to the golfer ----------
     class Fly { public float t, dir, dur, bx, bz; public Vector3 fE, fL; }
-    class Look { public float tx, tz, yaw, yawOff, dist, distT, pan; public int lvl; public bool follow; public Fly fly; }
+    class Look { public float tx, tz, yaw, yawOff, dist, distT, pan, readD; public int lvl; public bool follow, read; public Fly fly; }
+    const float READ_PITCH = 1.15f, READ_NEAR = 45;
+    bool NearGreen => Lie0 == "green" || PinDist <= READ_NEAR;
+    float AngTo(Vector2 a, Vector2 p) => Mathf.Atan2(p.x - a.x, -(p.y - a.y));
+    void ScoutSetLvl(int l) { if (fc == null) return; fc.lvl = Mathf.Clamp(l, 0, 2); fc.distT = fc.read ? fc.readD * new[] { 1, 1.6f, 2.4f }[fc.lvl] : ScoutLevels()[fc.lvl]; }
+    // v96 green read: a steep, nearly top-down view of the stretch from the ball to the hole, the ball at the bottom
+    void ReadFrame()
+    {
+        var p = new Vector2(D.pin[0], D.pin[1]); float d = Vector2.Distance(p, b);
+        fc.tx = b.x + (p.x - b.x) * .55f; fc.tz = b.y + (p.y - b.y) * .55f; if (d > 1) fc.yaw = AngTo(b, p); fc.yawOff = 0;
+        fc.readD = Mathf.Clamp(d * 1.25f + 9, 13, 62); fc.distT = fc.readD; fc.lvl = 0; fc.read = true; fc.follow = false; fc.pan = 0;
+    }
+    void LookGreen()
+    {
+        if (!LookStart()) return; var p = new Vector2(D.pin[0], D.pin[1]); float d = Vector2.Distance(p, b);
+        fc.read = false; fc.tx = p.x; fc.tz = p.y; if (d > 2) fc.yaw = AngTo(b, p); fc.distT = Lie0 == "green" || d < 30 ? 22 : 42; fc.lvl = 0; fc.follow = false; LookClamp();
+    }
+    void LookRead() { if (!LookStart()) return; if (fc.read) { LookGreen(); return; } ReadFrame(); LookClamp(); }
+    void LookLanding()
+    {
+        if (!LookStart()) return; fc.read = false; var q = landPt ?? b; fc.tx = q.x; fc.tz = q.y; fc.yaw = aim; fc.yawOff = 0; ScoutSetLvl(0); fc.follow = true; fc.pan = 0; LookClamp();
+    }
     Look fc; Vector2? landPt; bool swingBack0;
     static float LookPitch(float d) => Mathf.Clamp(.3f + d / 350, .3f, 1.2f);
     float ScoutCarry => landPt.HasValue ? Vector2.Distance(landPt.Value, b) : 40;
@@ -564,7 +592,7 @@ public class HoleTest : MonoBehaviour
     {   // screen pixels; py > 0 = the finger moving down the screen (looks further on)
         if (fc == null) return;
         if (fc.follow) { fc.pan += Mathf.Sqrt(px * px + py * py); if (fc.pan < 26 * hud.K) return; fc.follow = false; }
-        float s = fc.dist / VfPx, sp = Mathf.Max(Mathf.Sin(LookPitch(fc.dist)), .3f); var f = Dir(fc.yaw);
+        float s = fc.dist / VfPx, sp = Mathf.Max(Mathf.Sin(fc.read ? READ_PITCH : LookPitch(fc.dist)), .3f); var f = Dir(fc.yaw);
         fc.tx += f.y * px * s + f.x * py * s / sp; fc.tz += -f.x * px * s + f.y * py * s / sp; LookClamp();
     }
     void LookZoom(float k) { if (fc == null || !(k > 0) || float.IsInfinity(k)) return; fc.lvl = -1; fc.distT = Mathf.Clamp((fc.distT > 0 ? fc.distT : fc.dist) * k, 2, 460); }
@@ -583,11 +611,24 @@ public class HoleTest : MonoBehaviour
             fc.tx += (landPt.Value.x - fc.tx) * k; fc.tz += (landPt.Value.y - fc.tz) * k; fc.yaw += dy * k;
         }
     }
+    // the reticle and its pill (hud.js): the lie there, how far, uphill or down, and how far from the pin when it's close
+    Vector2 landPx; float landRy; bool landOk;
+    void LookRet(bool on)
+    {
+        if (!on) { hud.SetLookRet(false, default, false, 0, ""); return; }
+        float ty = D.H(fc.tx, fc.tz); var q = cam.WorldToScreenPoint(HoleData.U(fc.tx, fc.tz, ty));
+        float d = Vector2.Distance(new Vector2(fc.tx, fc.tz), b), rise = (ty - D.H(b.x, b.y)) * 3, pd = Vector2.Distance(new Vector2(fc.tx, fc.tz), new Vector2(D.pin[0], D.pin[1]));
+        bool fol = fc.follow && !C.putter; string lk = SH.Lie(fc.tx, fc.tz), lie = LieName.TryGetValue(lk, out var ln) ? ln : Cap(lk);
+        string txt = (lie != "" && !C.putter ? lie + " \u00b7 " : "") + (d < 20 ? Mathf.RoundToInt(d * 3) + " ft" : Mathf.RoundToInt(d) + " yds") + (fol ? " carry" : "")
+            + (Mathf.Abs(rise) >= 2 ? (rise > 0 ? " \u25b2" : " \u25bc") + Mathf.RoundToInt(Mathf.Abs(rise)) + " ft" : "") + (pd < 25 && pd >= 1 && d > 25 ? " \u00b7 " + Mathf.RoundToInt(pd * 3) + " ft to pin" : "");
+        if (fol && landOk) { hud.SetLookRet(true, landPx, true, landRy, txt); return; }
+        hud.SetLookRet(q.z >= .3f, q, false, 0, txt);
+    }
     void LookTarget(out Vector3 pos, out Vector3 look)
     {
-        float pt = LookPitch(fc.dist); var f = Dir(fc.yaw); float ty = D.H(fc.tx, fc.tz), hz = fc.dist * Mathf.Cos(pt);
+        float pt = fc.read ? READ_PITCH : LookPitch(fc.dist); var f = Dir(fc.yaw); float ty = D.H(fc.tx, fc.tz), hz = fc.dist * Mathf.Cos(pt);
         // look a little past the marker so it sits low in the frame with the ground beyond it in view
-        float ah = C.putter ? 0 : fc.dist * .2f, ax2 = fc.tx + f.x * ah, az2 = fc.tz + f.y * ah;
+        float ah = C.putter || fc.read ? 0 : fc.dist * .2f, ax2 = fc.tx + f.x * ah, az2 = fc.tz + f.y * ah;
         var E1 = HoleData.U(fc.tx - f.x * hz, fc.tz - f.y * hz, ty + fc.dist * Mathf.Sin(pt)); var L1 = HoleData.U(ax2, az2, ty * .6f + D.H(ax2, az2) * .4f);
         var F = fc.fly; if (F == null) { pos = E1; look = L1; return; }
         // along the shot: the camera rides up over the ball's path and comes down behind the landing spot
@@ -639,8 +680,9 @@ public class HoleTest : MonoBehaviour
             if (rx < 13) { ry *= 13 / rx; rx = 13; }
             float pulse = 1 + Mathf.Sin(Time.time * 4) * .08f;
             string txt = fc != null && fc.follow && !C.putter ? "" : C.putter ? Mathf.RoundToInt(landD * 3) + " ft" : Mathf.RoundToInt(landD) + " y";
-            hud.AimRing(c, rx * pulse, Mathf.Max(ry, 1) * pulse, txt);
+            hud.AimRing(c, rx * pulse, Mathf.Max(ry, 1) * pulse, txt); landPx = c; landRy = Mathf.Max(ry, 1);
         }
+        landOk = ring;
         hud.AimEnd(ring);
     }
     /* the ball after the strike: the web game's own flight, trees, landing, hops, roll and cup (GolfGo.Sim.Ball), stepped at its
@@ -732,7 +774,7 @@ public class HoleTest : MonoBehaviour
     void Next() { PrepareShot(true); }
     void Holed()
     {
-        st = S.Holed; b = new Vector2(D.pin[0], D.pin[1]); bY = D.H(b.x, b.y) - .08f; int tp = strokes - D.par;
+        st = S.Holed; inCup = true; b = new Vector2(D.pin[0], D.pin[1]); bY = D.H(b.x, b.y) - .08f; int tp = strokes - D.par;
         string nm = strokes == 1 ? "HOLE IN ONE" : tp <= -3 ? "ALBATROSS" : tp == -2 ? "EAGLE" : tp == -1 ? "BIRDIE" : tp == 0 ? "PAR" : tp == 1 ? "BOGEY" : "+" + tp;
         string how = holedHow; holedHow = "";
         hud.Toast(nm, strokes + (strokes == 1 ? " stroke" : " strokes") + (how != "" ? " · " + how : ""), tp < 0 ? Hud.Sun : tp == 0 ? Hud.Mint : Hud.Cream); hud.SetHint(""); hud.SetSwing("SWING", 0, false);
@@ -811,44 +853,66 @@ public class HoleTest : MonoBehaviour
         });
     }
 
-    /* the picture sits above the controls (Cam, Nov 25: the HUD covered the golfer): the projection's centre is moved up by most of
-       the bottom panel's height, so the frame the camera aims sits in the open part of the screen. The camera keeps its place and
-       angle (the aiming height Cam picked); only where the picture lands on the screen changes. */
-    float shiftFor = -1;
-    void FrameAboveHud()
+    /* the camera (camera.js camTarget + stepCam + camera-straight-from-v.js), copied from the web game: its own projection
+       (V.f = min((H/2)/tan 31°, (W/2)/tan 24°), the centre at V.cy, the middle of the open part of the screen between the top plate
+       and the bottom panel), its targets for each moment of a shot, and its easing (the eye and the look point ease separately). */
+    static int CAMV = -1;   // the camera views (camAddress): 0 the web default (13 back, 5.4 up), 1 lower (8.6, 3.4), 2 lowest (6.2, 2.5)
+    static readonly float[][] CAMV_SET = { null, new[] { 8.6f, 3.4f, .6f }, new[] { 6.2f, 2.5f, .4f } };
+    float camZm = 1; Vector2 shotRot; bool inCup;
+    bool AimingSt => st == S.Aim || st == S.Power || st == S.Acc;
+    void Projection(float zoom)
     {
-        float f = hud != null ? hud.BottomFrac : 0; if (Mathf.Approximately(f, shiftFor) && cam.aspect == shiftAspect) return;
-        shiftFor = f; shiftAspect = cam.aspect; cam.ResetProjectionMatrix(); var m = cam.projectionMatrix; m[1, 2] = -2 * f * .9f; cam.projectionMatrix = m;
+        float W = hud.W, H = hud.Hh, f = Mathf.Min(H / 2 / Mathf.Tan(31 * Mathf.Deg2Rad), W / 2 / Mathf.Tan(24 * Mathf.Deg2Rad)) * zoom, cy = (hud.TopH + (H - hud.BotH)) / 2;
+        const float n = .3f, fa = 5000; float Kx = 2 * f / W, Ky = 2 * f / H, Kz = 1 - 2 * cy / H;
+        var m = new Matrix4x4(); m[0, 0] = Kx; m[1, 1] = Ky; m[1, 2] = -Kz; m[2, 2] = -(fa + n) / (fa - n); m[2, 3] = -2 * fa * n / (fa - n); m[3, 2] = -1;
+        cam.nearClipPlane = n; cam.farClipPlane = fa; cam.projectionMatrix = m;
     }
-    float shiftAspect;
-    // the camera when not looking: the overview (map), the flight, or the address view
-    void NormalTarget(out Vector3 pos, out Vector3 look)
+    bool CamAddress(Vector2 at, float a, out Vector3 E, out Vector3 L)
     {
-        var bp = HoleData.U(b.x, b.y, bY);
+        E = L = default; if (CAMV <= 0) return false; var V2 = CAMV_SET[CAMV]; var d = Dir(a); float g0 = D.H(at.x, at.y), Dd = Mathf.Max(MaxDist, 2);
+        float look = Mathf.Max(8, Mathf.Min(70, Dd * .6f) * V2[2]); var l = at + d * look; var e = at - d * V2[0];
+        E = HoleData.U(e.x, e.y, Mathf.Max(D.H(e.x, e.y) + .7f, g0 + V2[1])); L = HoleData.U(l.x, l.y, D.H(l.x, l.y) * .6f + g0 * .4f); return true;
+    }
+    // camTarget (not looking): E the eye, L the point it looks at, zoom
+    void NormalTarget(out Vector3 E, out Vector3 L) => NormalTarget(out E, out L, out _);
+    void NormalTarget(out Vector3 E, out Vector3 L, out float zoom)
+    {
+        zoom = 1; float gb = D.H(b.x, b.y);
         if (mapView && st == S.Aim)
-        {   // the map button: the whole hole from above (the web's overview, simplified)
-            var pin = new Vector2(D.pin[0], D.pin[1]); var mid = (b + pin) / 2; var dd = Dir(aim); var d3m = new Vector3(dd.x, 0, -dd.y);
-            look = HoleData.U(mid.x, mid.y, D.H(mid.x, mid.y)); pos = look - d3m * (PinDist * .25f) + Vector3.up * (PinDist * 1.1f + 30);
+        {   // the overview: the whole hole from up the tee end, swaying slowly
+            var pin = new Vector2(D.pin[0], D.pin[1]); float ax0 = Mathf.Atan2(pin.x, -pin.y); var A = Dir(ax0); float Ln = Mathf.Max(160, D.len);
+            float sway = Mathf.Sin(Time.time * .25f) * Ln * .04f; var pp = new Vector2(-A.y, A.x);
+            E = HoleData.U(-A.x * Ln * .35f + pp.x * sway, -A.y * Ln * .35f + pp.y * sway, Ln * .8f); L = HoleData.U(A.x * Ln * .5f, A.y * Ln * .5f, 0); return;
         }
-        else if (st == S.Flight) { var d3 = new Vector3(fd.x, 0, -fd.y); pos = HoleData.U(fs.x, fs.y, D.H(fs.x, fs.y)) - d3 * 10 + Vector3.up * 4; look = bp; }
-        else
+        if (AimingSt)
         {
-            var d = Dir(aim); var d3 = new Vector3(d.x, 0, -d.y); bool putt = C.putter && st != S.Flight;
-            // Cam (Nov 25): keep this aiming height for full shots (9 back, 3.6 up, looking 45 ahead at 4 up, FOV 50): lower than the
-            // web game's, and it shows the slopes. Stage 6 (the look) keeps it.
-            pos = bp - d3 * (putt ? 4.5f : 9) + Vector3.up * (putt ? 1.7f : 3.6f);
-            look = bp + d3 * (putt ? 6 : 45) + Vector3.up * (putt ? 0 : 4);
-            float gy = D.H(pos.x, -pos.z) + .8f; if (pos.y < gy) pos.y = gy;
+            var d = Dir(aim); float Dd = Mathf.Max(MaxDist, 2);
+            if (C.putter) { float back = 2.4f + Dd * .2f, ht = 1.25f + Dd * .11f, look = 1 + Dd * .55f; var l = b + d * look; var e = b - d * back; E = HoleData.U(e.x, e.y, gb + ht); L = HoleData.U(l.x, l.y, D.H(l.x, l.y)); return; }
+            if (CamAddress(b, aim, out E, out L)) return;
+            { float look = Mathf.Min(70, Dd * .6f); var l = b + d * look; var e = b - d * 13; E = HoleData.U(e.x, e.y, gb + 5.4f); L = HoleData.U(l.x, l.y, D.H(l.x, l.y) * .6f + gb * .4f); return; }
         }
+        if ((st == S.Flight || st == S.Roll) && swingClock > 0 && swingClock < launchAt + .4f)
+        {   // the first moments of the shot: still behind the golfer
+            var ga = prev; float g0 = D.H(ga.x, ga.y); var a3 = Dir(Mathf.Atan2(shotRot.x, -shotRot.y));
+            if (fromLie != "green" && CamAddress(ga, Mathf.Atan2(shotRot.x, -shotRot.y), out E, out L)) return;
+            var e = ga - a3 * 13; var l = ga + a3 * 40; E = HoleData.U(e.x, e.y, g0 + 5.4f); L = HoleData.U(l.x, l.y, g0); return;
+        }
+        var dd = shotRot;
+        if (inCup) { var p = new Vector2(D.pin[0], D.pin[1]); float gp = D.H(p.x, p.y); var e = p - dd * 4.5f; E = HoleData.U(e.x, e.y, gp + 2.2f); L = HoleData.U(p.x, p.y, gp); return; }
+        if (st == S.Flight) { var e = b - dd * 31; var l = b + dd * 8; E = HoleData.U(e.x, e.y, bY * .55f + gb * .45f + 9); L = HoleData.U(l.x, l.y, bY * .85f + gb * .15f); return; }   // trailing the ball
+        { bool putt = fromLie == "green"; float back = putt ? 6 : 20, ht = putt ? 2.8f : 7; var e = b - dd * back; E = HoleData.U(e.x, e.y, gb + ht); L = HoleData.U(b.x, b.y, gb); }
     }
     void CameraUpdate(float dt)
     {
-        FrameAboveHud();
-        bool lk = fc != null && st == S.Aim, flyK = lk && fc.fly != null;
-        Vector3 pos, look; if (lk) LookTarget(out pos, out look); else NormalTarget(out pos, out look);
-        float k = 1 - Mathf.Exp(-dt * (flyK ? 40 : lk ? 9 : st == S.Flight ? 3 : 5));
-        camPos = camPos == Vector3.zero ? pos : Vector3.Lerp(camPos, pos, k); camLook = camLook == Vector3.zero ? look : Vector3.Lerp(camLook, look, k);
-        cam.transform.position = camPos; cam.transform.LookAt(camLook);
+        bool lk = fc != null && st == S.Aim, flyK = lk && fc.fly != null; float zoom = 1;
+        Vector3 E, L; if (lk) LookTarget(out E, out L); else NormalTarget(out E, out L, out zoom);
+        float kE = 1 - Mathf.Exp(-dt * (flyK ? 40 : lk ? 9 : st == S.Flight ? 2.6f : AimingSt ? 5 : 3)), kL = 1 - Mathf.Exp(-dt * (flyK ? 40 : lk ? 9 : st == S.Flight ? 9 : 5));
+        if (camPos == Vector3.zero) { camPos = E; camLook = L; }
+        camPos = Vector3.Lerp(camPos, E, kE); camLook = Vector3.Lerp(camLook, L, kL);
+        camPos.y = Mathf.Max(D.H(camPos.x, -camPos.z) + .7f, camPos.y);
+        camZm += (zoom - camZm) * (1 - Mathf.Exp(-dt * 3));
+        Projection(camZm);
+        var fw = camLook - camPos; cam.transform.position = camPos; cam.transform.rotation = Quaternion.LookRotation(fw.sqrMagnitude > 1e-8f ? fw : Vector3.forward, Vector3.up);
     }
 
     void Fps(float raw)
