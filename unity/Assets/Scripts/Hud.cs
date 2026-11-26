@@ -171,6 +171,7 @@ public class Hud
         BuildToast();
         BuildBottom(sBot, impact);
         BuildLook();
+        BuildImp();
         fpsT = Txt(root, "Fps", fBold, 11, A(Mint, .9f)); At(fpsT.rectTransform, 14, sTop + 10 + 67 + 6, 200, 14);
     }
 
@@ -264,7 +265,9 @@ public class Hud
         clubNextT = Txt(clubNextBg.transform, "T", fBody, 24, A(Cream, .9f), TextAnchor.MiddleCenter); clubNextT.text = "›";
         Press(clubNextBg, () => onClub?.Invoke(1));
         var spin = Box(inner, "Spin", 14, Panel2); At(spin.rectTransform, iw - 70, yClub, 70, 48);
-        At(Pic(spin.transform, "Ico", Icon("ball")).rectTransform, 24, 6, 22, 22);
+        At(Pic(spin.transform, "Ico", Icon("ballN")).rectTransform, 24, 6, 22, 22);
+        spinDot = Pic(spin.transform, "Dot", Tex(8, 8, (x, y) => A(Color.white, Cov(Mathf.Sqrt((x - 4) * (x - 4) + (y - 4) * (y - 4)) - 3.5f)))); spinDot.color = Coral; spinDot.rectTransform.pivot = new Vector2(.5f, .5f); spinDot.rectTransform.sizeDelta = new Vector2(5.5f, 5.5f);
+        spinDot.rectTransform.anchoredPosition = new Vector2(35, -17);
         spinT = Txt(spin.transform, "T", fBold, 10.5f, Cream, TextAnchor.MiddleCenter); At(spinT.rectTransform, 0, 30, 70, 13); spinT.text = "CENTRE";
         Press(spin, () => onSpin?.Invoke());
         chipsRT = At(RT("Chips", inner), 158, yClub, iw - 158 - 78, 48);
@@ -513,6 +516,70 @@ public class Hud
         var c = on ? Sun : Panel; if (lookBtn.color != c) { lookBtn.color = c; lookIco.texture = Icon(on ? "eyeInk" : "eye"); }
     }
 
+    // ---------- the strike point popup (#impPop): drag the dot on the ball (top/back spin, draw/fade), pick the shot height ----------
+    public Action<Vector2> onImp; public Action<int> onTraj; public Action onImpReset;
+    RectTransform impPop, impDotRT; Text impDesc; readonly (Image b, Text t)[] trajB = new (Image, Text)[3]; RawImage spinDot;
+    static readonly Color PaperInk = Hex("#12283b");
+    public bool ImpOpen => impPop.gameObject.activeSelf;
+    public void ShowImp(bool on) { if (impPop.gameObject.activeSelf != on) impPop.gameObject.SetActive(on); }
+    void BuildImp()
+    {
+        // .imppop: paper, radius 18, padding 12 14, 210 wide, centred 10 above the bottom panel; head, a 150 ball, the height row, Reset / Done
+        float w = 210, h = 12 + 44 + 8 + 150 + 8 + 32 + 8 + 32 + 12, top = Hh * (1 - BottomFrac) - 10 - h;
+        var bg = Box(root, "ImpPop", 18, Cream); impPop = At(bg.rectTransform, (W - w) / 2, top, w, h); bg.raycastTarget = true;
+        var hd = Txt(impPop, "H", fDisp, 20, PaperInk, TextAnchor.MiddleCenter); At(hd.rectTransform, 0, 12, w, 24); hd.text = "Strike point";
+        impDesc = Txt(impPop, "D", fBody, 13, A(PaperInk, .75f), TextAnchor.MiddleCenter); At(impDesc.rectTransform, 0, 38, w, 18);
+        // the ball: viewBox −60..60 drawn at 150 (1.25 px a unit): a shaded disc r 54, ink rim 2.5, dashed cross, the four labels
+        float S = 150, k = S / 120;
+        var ball = Pic(impPop, "Ball", Tex(S, S, (x, y) =>
+        {
+            float ux = x / k - 60, uy = y / k - 60, r = Mathf.Sqrt(ux * ux + uy * uy);
+            float g = Mathf.Sqrt((ux + 86.4f) * (ux + 86.4f) + (uy + 91.8f) * (uy + 91.8f)) / 118.8f;   // ibg: cx −.3, cy −.35, r 1.1 of the ball's box
+            var fill = g < .7f ? Color.Lerp(Color.white, Hex("#e7ecef"), g / .7f) : Color.Lerp(Hex("#e7ecef"), Hex("#b9c4cb"), Mathf.Clamp01((g - .7f) / .3f));
+            var c = Over(Color.clear, fill, Cov((r - 54) * k));
+            bool dash = Mathf.Repeat((Mathf.Abs(ux) < 1 ? uy : ux) + 54, 7) < 3;
+            float cross = Mathf.Min(Mathf.Abs(ux), Mathf.Abs(uy)) * k - .6f; if (r < 54 && dash) c = Over(c, Hex("#9fb0bb"), Cov(cross));
+            return Over(c, Ink, Cov((Mathf.Abs(r - 54) - 1.25f) * k));
+        }));
+        float bx = (w - S) / 2, by = 12 + 44 + 8; At(ball.rectTransform, bx, by, S, S); ball.raycastTarget = true;
+        void Lab(string t, float ux, float uy) { var l = Txt(ball.transform, t, fBold, 11, Hex("#5b6b76"), TextAnchor.MiddleCenter); At(l.rectTransform, (ux + 60) * k - 40, (uy + 60) * k - 8, 80, 14); l.text = t; }
+        Lab("TOPSPIN", 0, -43); Lab("BACKSPIN", 0, 44); Lab("DRAW", -44, 0); Lab("FADE", 44, 0);
+        var dot = Pic(ball.transform, "Dot", Tex(22, 22, (x, y) => { float r = Mathf.Sqrt((x - 11) * (x - 11) + (y - 11) * (y - 11)); return Over(Over(Color.clear, Color.white, Cov(r - 11)), Coral, Cov(r - 8.75f)); }));
+        impDotRT = dot.rectTransform; impDotRT.pivot = new Vector2(.5f, .5f); impDotRT.sizeDelta = new Vector2(22, 22);
+        var dh = ball.gameObject.AddComponent<DragHandler>(); var brt = ball.rectTransform;
+        dh.onMove = p =>
+        {   // setFrom: the touch on the ball, in ball radii (44 units), kept inside the ball, to the nearest .05
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(brt, p, null, out var lp);
+            float x = (lp.x / S - .5f) * 120 / 44, y = (lp.y / S + .5f) * 120 / 44, l = Mathf.Sqrt(x * x + y * y), kk = l > 1 ? 1 / l : 1;
+            onImp?.Invoke(new Vector2(Mathf.Round(x * kk * 20) / 20, Mathf.Round(y * kk * 20) / 20));
+        };
+        // .trajseg: Low / Normal / High on #e3dccb, the chosen one ink with sun text
+        float ty = by + S + 8, tw = w - 28;
+        var seg = Box(impPop, "Traj", 10, Hex("#e3dccb")); At(seg.rectTransform, 14, ty, tw, 32);
+        string[] tn = { "Low", "Normal", "High" }; float cw = (tw - 6 - 8) / 3;
+        for (int i = 0; i < 3; i++)
+        {
+            int tj = i - 1; var b = Box(seg.transform, tn[i], 8, Color.clear); At(b.rectTransform, 3 + i * (cw + 4), 3, cw, 26);
+            var t = Txt(b.transform, "T", fBold, 13, PaperInk, TextAnchor.MiddleCenter); At(t.rectTransform, 0, 0, cw, 26); t.text = tn[i];
+            Press(b, () => onTraj?.Invoke(tj)); trajB[i] = (b, t);
+        }
+        // .impbtns: Reset (ink outline) and Done (ink, sun text)
+        float yb = ty + 32 + 8;
+        var rs = Box(impPop, "Reset", 10, Color.clear, 2, PaperInk); At(rs.rectTransform, w / 2 - 4 - 80, yb, 80, 32);
+        var rt = Txt(rs.transform, "T", fBold, 14, PaperInk, TextAnchor.MiddleCenter); At(rt.rectTransform, 0, 0, 80, 32); rt.text = "Reset"; Press(rs, () => onImpReset?.Invoke());
+        var dn = Box(impPop, "Done", 10, PaperInk); At(dn.rectTransform, w / 2 + 4, yb, 80, 32);
+        var dt = Txt(dn.transform, "T", fBold, 14, Sun, TextAnchor.MiddleCenter); At(dt.rectTransform, 0, 0, 80, 32); dt.text = "Done"; Press(dn, () => ShowImp(false));
+        impPop.gameObject.SetActive(false);
+    }
+    // drawImp + the spin button: the dot on the ball, the description, the chosen height
+    public void SetImp(Vector2 imp, int traj, string desc, string shortTxt, bool putter)
+    {
+        impDotRT.anchoredPosition = new Vector2(75 + imp.x * 44 * 1.25f, -75 + imp.y * 44 * 1.25f); Set(impDesc, desc);
+        for (int i = 0; i < 3; i++) { bool on = i - 1 == traj; trajB[i].b.color = on ? PaperInk : Color.clear; trajB[i].t.color = on ? Sun : PaperInk; }
+        Set(spinT, putter ? "\u2014" : shortTxt.ToUpperInvariant());
+        spinDot.enabled = !putter; spinDot.rectTransform.anchoredPosition = new Vector2(24 + (12 + imp.x * 6) * 22 / 24f, -(6 + (12 - imp.y * 6) * 22 / 24f));
+    }
+
     Texture2D Icon(string n)
     {
         if (icons.TryGetValue(n, out var t)) return t;
@@ -550,13 +617,14 @@ public class Hud
                   }; break; }
             case "chevL": f = (x, y) => A(Cream, Cov(SdPolyline(x, y, new[] { new Vector2(15, 5), new Vector2(8, 12), new Vector2(15, 19) }) - 1.5f)); break;
             case "chevR": f = (x, y) => A(Cream, Cov(SdPolyline(x, y, new[] { new Vector2(9, 5), new Vector2(16, 12), new Vector2(9, 19) }) - 1.5f)); break;
-            case "ball":    // the strike-point ball: white disc, ink rim, cross hairs, the coral dot
+            case "ball":    // the strike-point ball: white disc, ink rim, cross hairs, the coral dot (ballN: no dot, it's drawn on top where the strike is)
+            case "ballN":
                 f = (x, y) =>
                 {
                     float r = Mathf.Sqrt((x - 12) * (x - 12) + (y - 12) * (y - 12));
                     var c = Over(Color.clear, Ink, Cov(r - 9.75f)); c = Over(c, Color.white, Cov(r - 9));
                     c = Over(c, Hex("#c9d3da"), Cov(Mathf.Min(Mathf.Abs(x - 12), Mathf.Abs(y - 12)) - .4f) * (r < 8 ? 1 : 0));
-                    return Over(c, Coral, Cov(r - 3));
+                    return n == "ball" ? Over(c, Coral, Cov(r - 3)) : c;
                 }; break;
             default:        // bolt (the power-shot toggle)
                 { var p = new[] { new Vector2(13, 2), new Vector2(5, 13.5f), new Vector2(11, 13.5f), new Vector2(10, 22), new Vector2(19, 9.5f), new Vector2(13, 9.5f) };

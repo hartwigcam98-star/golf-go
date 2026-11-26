@@ -21,6 +21,7 @@ public class HoleTest : MonoBehaviour
     List<GolfGo.Sim.Club> Clubs;
     string stype = "full"; double swMax; bool buried;   // stage 3: the shot type, the short-game meter's size, a plugged lie
     const float IMPACT = .12f; float mpos, mdir = 1, mPower; double windA, windMph;
+    Vector2 imp; int traj;   // the strike point (x: draw − / fade +, y: topspin + / backspin −) and the shot height (−1 low, 0, 1 high)
     Hud hud; bool pshot, mapView; float tapMark = -1, aimHeld; bool tapGood;
     static readonly Dictionary<string, float> Mu = new Dictionary<string, float> { { "green", .545f }, { "fairway", 1.2f }, { "tee", 1.2f }, { "cut", 2.4f }, { "rough", 11 }, { "sand", 28 }, { "fescue", 17 } };
     static readonly Dictionary<string, float> Surf = new Dictionary<string, float> { { "green", .9f }, { "fairway", 1.08f }, { "tee", 1.08f }, { "cut", .8f }, { "rough", .35f }, { "sand", .05f }, { "fescue", .15f } };
@@ -261,7 +262,10 @@ public class HoleTest : MonoBehaviour
         hud.onAimTap = d => { if (st != S.Aim) return; float Dd = Mathf.Max(MaxDist, 3); aim += d * Mathf.Max(.4f, Dd * .006f) / Dd; aimHeld = 0; PlaceGolfer(); };
         hud.onPower = () => { if (st != S.Aim || C.putter) return; pshot = !pshot; RefreshHud(); };
         hud.onShotType = SetShot;
-        hud.onSpin = () => { if (st == S.Aim) hud.SetHint("Strike point and shot height come over with stage 3"); };
+        hud.onSpin = () => { if (st != S.Aim || C.putter) return; hud.ShowImp(!hud.ImpOpen); RefreshHud(); };
+        hud.onImp = v => { if (st != S.Aim || C.putter) return; imp = v; RefreshHud(); };
+        hud.onTraj = t => { if (st != S.Aim || C.putter) return; traj = t; RefreshHud(); };
+        hud.onImpReset = () => { imp = Vector2.zero; traj = 0; RefreshHud(); };
         hud.onMap = () => { if (st == S.Aim) { mapView = !mapView; if (mapView) fc = null; } };
         hud.onLook = () => { if (fc != null && !(fc.fly != null && fc.fly.dir < 0)) LookEnd(); else LookStart(); };
         hud.onMenu = Menu;
@@ -271,7 +275,7 @@ public class HoleTest : MonoBehaviour
     bool Short => !C.putter && GolfGo.Sim.Strike.IsShort(stype);
     // the meter's power: the short game's meter is curved (power = meter^SG_K), so small swings are easier to judge
     double Power => Short ? SG.MeterToPower(mPower) : mPower;
-    GolfGo.Sim.ShotIn Si(float? e = null) => new GolfGo.Sim.ShotIn { bx = b.x, by = b.y, aim = aim, power = Power, e = e, club = C.id, lie = Lie0, stype = C.putter ? "full" : stype, pshot = pshot && !C.putter, onTeeBox = strokes == 0, windA = windA, windMph = windMph, swMax = Short ? swMax : 0, buried = buried, sandRel = SH.sandRel };
+    GolfGo.Sim.ShotIn Si(float? e = null) => new GolfGo.Sim.ShotIn { bx = b.x, by = b.y, aim = aim, power = Power, e = e, club = C.id, lie = Lie0, stype = C.putter ? "full" : stype, pshot = pshot && !C.putter, onTeeBox = strokes == 0, windA = windA, windMph = windMph, swMax = Short ? swMax : 0, buried = buried, sandRel = SH.sandRel, impX = imp.x, impY = imp.y, traj = traj };
     // setShot (input.js): bunker shots only in the sand by the green, only a blast from a plugged lie, the spinner from a clean lie;
     // a shot the club can't play moves to the nearest club that can
     void SetShot(string t)
@@ -295,7 +299,7 @@ public class HoleTest : MonoBehaviour
             bool po = tp.Value > 1; hud.SetFlag(IMPACT + Mathf.Min(1, (float)tp.Value) * (1 - IMPACT), po ? "Beyond max" : Mathf.RoundToInt(PinDist * 3) + " ft", po); return;
         }
         if (!Short || swMax <= 0) { hud.SetFlag(-1, "", false); return; }
-        string key = ci + "|" + stype + "|" + aim.ToString("F4") + "|" + b.x.ToString("F2") + "|" + b.y.ToString("F2") + "|" + pshot;
+        string key = ci + "|" + stype + "|" + aim.ToString("F4") + "|" + b.x.ToString("F2") + "|" + b.y.ToString("F2") + "|" + pshot + "|" + imp + "|" + traj;
         if (key != flagKey) { var s = Si(); planC = SG.PlanFor(s); flagTp = SG.FlagPower(s, planC); flagKey = key; }
         bool over = flagTp > 1; float pos = IMPACT + (float)SG.PowerToMeter(Mathf.Min(1, (float)flagTp)) * (1 - IMPACT);
         hud.SetFlag(pos, over ? "Beyond max" : Mathf.RoundToInt(PinDist) + " y", over);
@@ -312,7 +316,18 @@ public class HoleTest : MonoBehaviour
         // the meter's scale: carry yards along it (feet of roll for a putt on the green)
         bool pg = C.putter && lie == "green", pct = C.putter && !pg; float mx = C.putter ? MaxDist * 3 : MaxDist * (float)SK.ShotMods(C, Si()).carry;
         string L(float f) => pct ? Mathf.RoundToInt(f * 100).ToString() : Mathf.Max(1, Mathf.RoundToInt(mx * (Short ? (float)SG.MeterToPower(f) : f))) + (pg ? " ft" : "y");
-        hud.SetLabels(L(.25f), L(.5f), L(.75f), pct ? "Max" : L(1));   // off the green the putter's meter reads in percent
+        hud.SetLabels(L(.25f), L(.5f), L(.75f), pct ? "Max" : L(1));
+        hud.SetImp(imp, traj, ImpName(false), ImpName(true), C.putter);   // off the green the putter's meter reads in percent
+    }
+    // impName / impShort (hud.js)
+    string ImpName(bool shortN)
+    {
+        string h = traj > 0 ? "High" : traj < 0 ? "Low" : "";
+        if (imp.magnitude < .15f) return h != "" ? (shortN ? h : h + " \u00b7 centre") : "Centre";
+        var a = new List<string>(); if (h != "") a.Add(h);
+        if (imp.y > .2f) a.Add(shortN ? "Top" : "Topspin"); else if (imp.y < -.2f) a.Add(shortN ? "Back" : "Backspin");
+        if (imp.x < -.2f) a.Add("Draw"); else if (imp.x > .2f) a.Add("Fade");
+        return a.Count > 0 ? string.Join(shortN ? " " : " \u00b7 ", a) : "Centre";
     }
     static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s.Substring(1);
 
@@ -331,6 +346,7 @@ public class HoleTest : MonoBehaviour
         {
             if (strokes > 0) { var w = GolfGo.Sim.Round.Shift(windA, windMph, () => Random.value); windA = w.a; windMph = w.mph; }   // the wind shifts once per stroke
             var o = RD.Prepare(b.x, b.y, buried, windA, windMph); aim = (float)o.aim; ci = o.club; stype = o.stype;   // prepareShot (round parity-tested)
+            imp = Vector2.zero; traj = 0; pshot = false;   // each shot starts from the centre, normal height, no power shot
         }
         if (C.putter) stype = "full"; else if (!SG.ShotOK(stype, ci) && !GolfGo.Sim.Strike.BunkerT(stype)) stype = "full";
         SizeShort();
@@ -409,6 +425,7 @@ public class HoleTest : MonoBehaviour
     {
         float dt = Mathf.Min(Time.unscaledDeltaTime, .05f);
         Fps(Time.unscaledDeltaTime);
+        if (hud.ImpOpen && (st != S.Aim || C.putter || fc != null)) hud.ShowImp(false);
         if (st == S.Aim && !hud.ChoiceOpen) { HandleTouches(); ShortFlag(); DrawAim(); } else hud.AimHide();
         LookStep(dt);
         hud.SetLook(st == S.Aim && !mapView && !hud.ChoiceOpen, fc != null);
