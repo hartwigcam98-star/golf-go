@@ -90,11 +90,14 @@ jobs:
             -executeMethod GolfGoBuild.BuildMacShots -logFile - 2>&1 | tee shots/mac-build.log | grep -E "GolfGoBuild|error CS|Shader error|Exception" | head -60
           APP=unity/build/mac/GolfGo.app; BIN=$(ls "$APP"/Contents/MacOS/* 2>/dev/null | head -1); echo "player: $BIN"; test -n "$BIN"
           system_profiler SPDisplaysDataType 2>/dev/null | head -20 || true
-          "$BIN" -ggshots "$GITHUB_WORKSPACE/shots" -screen-width 590 -screen-height 1278 -screen-fullscreen 0 -logFile "$GITHUB_WORKSPACE/shots/player.log" & P=$!
-          for i in $(seq 1 120); do kill -0 $P 2>/dev/null || break; sleep 2; done; kill $P 2>/dev/null || true
-          grep -E "GGSHOT|Error|Exception|Metal|GfxDevice" shots/player.log | head -60 || true; ls -la shots
+          # (the runner's screen is 768 tall: the window is a third of a phone at the same shape; the 3D view is also rendered off screen at 590 x 1278)
+          "$BIN" -ggshots "$GITHUB_WORKSPACE/shots" -screen-width 300 -screen-height 650 -screen-fullscreen 0 -logFile "$GITHUB_WORKSPACE/shots/player.log" &
+          P=$!; echo "player pid $P"; SECONDS=0
+          while kill -0 "$P" 2>/dev/null; do [ $SECONDS -gt 300 ] && { echo "player still running after 300 s: stopping it"; kill "$P"; break; }; sleep 3; done
+          echo "player ran $SECONDS s"; ls -la shots
+          grep -E "GGSHOT|Error|Exception|error" shots/player.log | head -60 || true; echo "--- player.log tail"; tail -40 shots/player.log || true
           # (also onto the unity-shots branch: artifact downloads come from a storage host Claude's sessions can't reach)
-          mkdir -p "$RUNNER_TEMP/sh" && cp shots/*.png shots/*.log "$RUNNER_TEMP/sh/" 2>/dev/null; cd "$RUNNER_TEMP/sh" && git init -q && git add -A \
+          mkdir -p "$RUNNER_TEMP/sh" && cp shots/*.png shots/player.log "$RUNNER_TEMP/sh/" 2>/dev/null || true; cd "$RUNNER_TEMP/sh" && git init -q && git add -A \
             && git -c user.name=unity-bot -c user.email=unity-bot@users.noreply.github.com commit -qm "Look check pictures (run $GITHUB_RUN_ID)" \
             && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" HEAD:refs/heads/unity-shots && echo "pictures on unity-shots"
       - name: Upload the look pictures

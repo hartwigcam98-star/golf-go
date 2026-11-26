@@ -182,6 +182,15 @@ public class HoleTest : MonoBehaviour
                 var t = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false); t.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0); t.Apply();   // (the ScreenCapture module isn't in the build)
                 var name = "h" + (h + 1).ToString("00") + "_" + new[] { "tee", "tee_high", "green" }[view] + ".png";
                 System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, name), t.EncodeToPNG()); Destroy(t);
+                // the 3D view alone at a phone's size (590 x 1278, the same shape as the window: the same framing), off screen
+                Try("hi-res", () =>
+                {
+                    var rt = new RenderTexture(590, 1278, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { antiAliasing = 4 };
+                    var keep = cam.targetTexture; cam.targetTexture = rt; cam.Render(); cam.targetTexture = keep;
+                    var was = RenderTexture.active; RenderTexture.active = rt;
+                    var t2 = new Texture2D(590, 1278, TextureFormat.RGB24, false); t2.ReadPixels(new Rect(0, 0, 590, 1278), 0, 0); t2.Apply(); RenderTexture.active = was;
+                    System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, name.Replace(".png", "_3d.png")), t2.EncodeToPNG()); Destroy(t2); rt.Release(); Destroy(rt);
+                });
                 Debug.Log("GGSHOT " + name + " " + Screen.width + "x" + Screen.height + " · " + Diag() + (errs.Count > 0 ? " · errors: " + string.Join(" | ", errs) : ""));
             }
             if (fc != null) { Try("look end", LookEnd); yield return new WaitForSecondsRealtime(1.5f); }
