@@ -82,11 +82,11 @@ public static class GolfGoBuild
             if (li) { li.sRGBTexture = true; li.alphaIsTransparency = true; li.wrapMode = TextureWrapMode.Clamp; li.mipmapEnabled = true; li.anisoLevel = 4; li.maxTextureSize = 2048; li.SaveAndReimport(); }
             AssetDatabase.ImportAsset("Assets/Shaders/GolfGoTree.shader", ImportAssetOptions.ForceUpdate);
             var tsh = Shader.Find("GolfGo/Tree"); if (!tsh) Debug.LogError("GolfGo/Tree shader didn't compile");
-            foreach (var (n, kind, tex, nm) in new[] { ("TreeBark", 0, "bark", "bark_n"), ("TreeMass", 1, "", ""), ("TreeLeaf", 2, "leaves", "") })
+            foreach (var (n, kind, tex, nm) in new[] { ("TreeBark", 0, "bark", "bark_n"), ("TreeMass", 1, "", ""), ("TreeLeaf", 2, "leaves", ""), ("Built", 1, "", "") })
             {
                 var tp = "Assets/Resources/Mats/" + n + ".mat"; var tm = AssetDatabase.LoadAssetAtPath<Material>(tp);
                 if (!tsh) break; if (!tm) { tm = new Material(tsh); AssetDatabase.CreateAsset(tm, tp); } else tm.shader = tsh;
-                tm.SetFloat("_Kind", kind); tm.SetFloat("_Cull", kind == 2 ? 0 : 2); tm.enableInstancing = true;
+                tm.SetFloat("_Kind", kind); tm.SetFloat("_Cull", kind == 2 ? 0 : 2); tm.enableInstancing = true; tm.SetFloat("_Raw", n == "Built" ? 1 : 0);
                 if (tex != "") tm.SetTexture("_MainTex", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/trees/" + tex + ".png"));
                 if (nm != "") tm.SetTexture("_BumpMap", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/trees/" + nm + ".png"));
                 EditorUtility.SetDirty(tm);

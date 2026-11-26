@@ -13,6 +13,7 @@ Shader "GolfGo/Tree"
         _Kind ("0 bark, 1 mass, 2 leaf", Float) = 0
         _Cull ("Cull", Float) = 2
         _Tint ("Tint", Color) = (1, 1, 1, 1)
+        _Raw ("Vertex colours already linear (built things)", Float) = 0
     }
     SubShader
     {
@@ -22,7 +23,7 @@ Shader "GolfGo/Tree"
         #pragma surface surf Standard vertex:vert addshadow fullforwardshadows
         #pragma multi_compile_instancing
         #pragma target 3.5
-        sampler2D _MainTex, _BumpMap; float4 _MainTex_TexelSize; float _Kind;
+        sampler2D _MainTex, _BumpMap; float4 _MainTex_TexelSize; float _Kind, _Raw;
         UNITY_INSTANCING_BUFFER_START(Props)
             UNITY_DEFINE_INSTANCED_PROP(float4, _Tint)
         UNITY_INSTANCING_BUFFER_END(Props)
@@ -41,7 +42,8 @@ Shader "GolfGo/Tree"
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
             float4 tint = UNITY_ACCESS_INSTANCED_PROP(Props, _Tint);
-            float3 vc = IN.color.rgb * 2 * tint.rgb;   // (exported as colour / 2)
+            // the trees' colours are the web's display-space colours / 2, squared into linear light as r3Geo does; built things' are linear
+            float3 c0 = IN.color.rgb * 2; float3 vc = (_Raw > .5 ? IN.color.rgb : c0 * c0) * tint.rgb;
             float3 alb = vc; float a = 1;
             if (_Kind < .5)
             {

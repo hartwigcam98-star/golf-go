@@ -201,6 +201,7 @@ public class HoleTest : MonoBehaviour
         }
         // flag
         BuildWater(); BuildSkirt();
+        Built.Build(HolePath(""), holeRoot, holeAssets);   // the clubhouse, houses, structures, bridges and props (Built.cs)
         // the grass blades (Grass.cs), on this hole's ground textures
         grass?.Dispose(); grass = null;
         if (slopeMat != null && slopeMat.shader.name == "GolfGo/Ground")
