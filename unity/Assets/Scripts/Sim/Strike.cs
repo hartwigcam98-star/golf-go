@@ -42,7 +42,7 @@ namespace GolfGo.Sim
 
     public class Strike
     {
-        public Mods Cm = Mods.Neutral;   // the golfer (charMods)
+        public CharMods Cm = CharMods.Neutral;   // the golfer (charMods)
         public readonly Tuning T; readonly Course C; readonly System.Collections.Generic.Dictionary<string, Club> clubs = new System.Collections.Generic.Dictionary<string, Club>();
         public Strike(Tuning t, Course c) { T = t; C = c; foreach (var k in t.Clubs()) clubs[k.id] = k; }
         public Club Club(string id) => clubs[id];

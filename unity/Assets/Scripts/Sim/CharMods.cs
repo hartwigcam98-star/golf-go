@@ -4,16 +4,16 @@ namespace GolfGo.Sim
 {
     /* the golfer's own game (golfers.js charMods): six stats 1-10, each turned into -2..+2 (d10), and a trait (fx). The bag is the
        standard bag (Cam, Nov 25: no bag customisation in the Unity game), whose effects are all neutral, so cmod() = charMods here.
-       Mods.Neutral (all stats at the middle, no trait) is the neutral golfer the parity cases were first recorded with. */
-    public class Mods
+       CharMods.Neutral (all stats at the middle, no trait) is the neutral golfer the parity cases were first recorded with. */
+    public class CharMods
     {
         public double pow, ctl, imp, sg, putt, spin;   // d10 values
         public double fxIron, fxWood, fxPutw = 1, fxFlop, fxSgw = 1, fxCarry, fxWind = 1, fxPerf; public bool fxBomb, fxGrind;
-        public static readonly Mods Neutral = new Mods();
+        public static readonly CharMods Neutral = new CharMods();
         static double D10(double v) => (v - 1) / 9 * 4 - 2;
-        public static Mods Of(int pow, int ctl, int imp, int sg, int putt, int spin) => new Mods { pow = D10(pow), ctl = D10(ctl), imp = D10(imp), sg = D10(sg), putt = D10(putt), spin = D10(spin) };
+        public static CharMods Of(int pow, int ctl, int imp, int sg, int putt, int spin) => new CharMods { pow = D10(pow), ctl = D10(ctl), imp = D10(imp), sg = D10(sg), putt = D10(putt), spin = D10(spin) };
         // the three golfers in the Unity game (golfers.js CHARS)
-        public static Mods For(string id)
+        public static CharMods For(string id)
         {
             switch (id)
             {

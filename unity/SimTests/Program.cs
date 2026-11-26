@@ -43,7 +43,7 @@ static class Program
         int pbad = Putting(root, S, C, "putt_cases.json");
         // each of the Unity game's golfers (Dex, Andre, Danny: their own charMods, the standard bag), short game, full shots and putts
         foreach (var g in new[] { "ch06", "ch28", "ch42" }) { sbad += ShortGame(root, S, C, "short_cases_" + g + ".json"); pbad += Putting(root, S, C, "putt_cases_" + g + ".json"); }
-        S.Cm = Mods.Neutral;
+        S.Cm = CharMods.Neutral;
         int rbad = RoundFlow(root, T);
         return bad == 0 && lbad == 0 && sbad == 0 && pbad == 0 && rbad == 0 ? 0 : 1;
     }
@@ -120,7 +120,7 @@ static class Program
         foreach (Dictionary<string, object> c in cases)
         {
             n++; var pre = (Dictionary<string, object>)c["pre"]; var w = (Dictionary<string, object>)c["wind"]; var diffs = new List<string>();
-            S.Cm = c.TryGetValue("golfer", out var gid) && gid is string gs ? Mods.For(gs) : Mods.Neutral;
+            S.Cm = c.TryGetValue("golfer", out var gid) && gid is string gs ? CharMods.For(gs) : CharMods.Neutral;
             void Chk(string k, double a, double b, double tol = 1e-6) { if (Math.Abs(a - b) > tol * Math.Max(1, Math.Abs(b))) diffs.Add($"{k} {a:G9} vs web {b:G9}"); }
             var s = new ShotIn { bx = D(c["bx"]), by = D(c["by"]), aim = D(pre["aim"]), lie = (string)pre["lie"], onTeeBox = (bool)pre["onTee"], buried = (bool)c["buried"], windA = D(w["a"]), windMph = D(w["mph"]) };
             if (c["chose"] is Dictionary<string, object> ch)
@@ -183,7 +183,7 @@ static class Program
         foreach (Dictionary<string, object> c in cases)
         {
             n++; var pre = (Dictionary<string, object>)c["pre"]; var diffs = new List<string>();
-            S.Cm = c.TryGetValue("golfer", out var gid) && gid is string gs ? Mods.For(gs) : Mods.Neutral;
+            S.Cm = c.TryGetValue("golfer", out var gid) && gid is string gs ? CharMods.For(gs) : CharMods.Neutral;
             void Chk(string k, double a, double b, double tol = 1e-6) { if (Math.Abs(a - b) > tol * Math.Max(1, Math.Abs(b))) diffs.Add($"{k} {a:G9} vs web {b:G9}"); }
             double bx = D(c["bx"]), by = D(c["by"]); string lie = (string)pre["lie"];
             var q = P.Need(bx, by, lie); Chk("need", q.need, D(pre["need"])); Chk("d", q.d, D(pre["d"]));

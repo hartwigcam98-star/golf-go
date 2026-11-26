@@ -394,7 +394,7 @@ public class HoleTest : MonoBehaviour
     void ShowFlag() { for (int k = 0; k < 2 && k < flag.childCount; k++) flag.GetChild(k).gameObject.SetActive(!flagOut); }
     void LoadGolfer(string id)
     {
-        try { var g = new Golfer(id, M("Leaf0")); GF?.Destroy(); GF = g; golferId = id; PlayerPrefs.SetString("golfer", id); if (SK != null) { SK.Cm = GolfGo.Sim.Mods.For(id); if (st == S.Aim) PrepareShot(false); } golfer.gameObject.SetActive(false); }
+        try { var g = new Golfer(id, M("Leaf0")); GF?.Destroy(); GF = g; golferId = id; PlayerPrefs.SetString("golfer", id); if (SK != null) { SK.Cm = GolfGo.Sim.CharMods.For(id); if (st == S.Aim) PrepareShot(false); } golfer.gameObject.SetActive(false); }
         catch (System.Exception e) { Debug.LogError("[golfer] " + e); }   // (the simple figure stays if a golfer can't load)
     }
     void PlaceGolfer()
@@ -910,7 +910,7 @@ public class HoleTest : MonoBehaviour
         // pinIndex (a Quick play round): one of the hole's three pin spots, from the round's seed
         if (CO.pins != null && CO.pins.Length == 3) { int k = (int)System.Math.Floor(new GolfGo.Sim.Rng(roundSeed + i * 7919).Next() * 3) % 3; CO.pin = new[] { CO.pins[k][0], CO.pins[k][1] }; }
         D.pin = new[] { (float)CO.pin[0], (float)CO.pin[1] };
-        SK = new GolfGo.Sim.Strike(TU, CO) { Cm = GolfGo.Sim.Mods.For(golferId) };   // the golfer's own game (charMods)
+        SK = new GolfGo.Sim.Strike(TU, CO) { Cm = GolfGo.Sim.CharMods.For(golferId) };   // the golfer's own game (charMods)
         SH = new GolfGo.Sim.SimHole(Resources.Load<TextAsset>(HolePath("_sim")).text); SB = new GolfGo.Sim.Ball(SH, CO, SK); SG = new GolfGo.Sim.Short(SK, SH, CO); PT = new GolfGo.Sim.Putt(SK, SH, CO);
         RD = new GolfGo.Sim.Round(SK, SH, CO, SG, PT);
         var w = GolfGo.Sim.Round.HoleWind(roundSeed, i); windA = w.a; windMph = w.mph;
