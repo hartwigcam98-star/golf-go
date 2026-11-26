@@ -93,6 +93,10 @@ jobs:
           "$BIN" -ggshots "$GITHUB_WORKSPACE/shots" -screen-width 590 -screen-height 1278 -screen-fullscreen 0 -logFile "$GITHUB_WORKSPACE/shots/player.log" & P=$!
           for i in $(seq 1 120); do kill -0 $P 2>/dev/null || break; sleep 2; done; kill $P 2>/dev/null || true
           grep -E "GGSHOT|Error|Exception|Metal|GfxDevice" shots/player.log | head -60 || true; ls -la shots
+          # (also onto the unity-shots branch: artifact downloads come from a storage host Claude's sessions can't reach)
+          mkdir -p "$RUNNER_TEMP/sh" && cp shots/*.png shots/*.log "$RUNNER_TEMP/sh/" 2>/dev/null; cd "$RUNNER_TEMP/sh" && git init -q && git add -A \
+            && git -c user.name=unity-bot -c user.email=unity-bot@users.noreply.github.com commit -qm "Look check pictures (run $GITHUB_RUN_ID)" \
+            && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" HEAD:refs/heads/unity-shots && echo "pictures on unity-shots"
       - name: Upload the look pictures
         if: always()
         uses: actions/upload-artifact@v4
