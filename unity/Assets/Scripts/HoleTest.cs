@@ -216,7 +216,7 @@ public class HoleTest : MonoBehaviour
         look = LoadLook();
         var gm = GroundMat(); mr.sharedMaterial = gm; holeAssets.Add(gm);
         // the hole's Blender-baked light as the x2 detail map; its rect can differ from the ground texture's, so map one onto the other
-        var lt = Resources.Load<Texture2D>(HolePath("_light"));
+        var lt = Resources.Load<Texture2D>(HolePath("_light")); Shader.SetGlobalFloat("_LightOn", 0); baked = false;
         if (lt != null && gm.shader.name == "GolfGo/Ground")
         {   // the web game's ground shader: the light map in its own rect
             float lx0 = D.tex.x0, ly0 = D.tex.y0, lw = D.tex.w, lh = D.tex.h;
@@ -225,7 +225,6 @@ public class HoleTest : MonoBehaviour
             // (the grass blades read the same bake: globals, their shader has no such properties)
             Shader.SetGlobalTexture("_Light", lt); Shader.SetGlobalVector("_LB", new Vector4(lx0, ly0, lw, lh)); Shader.SetGlobalFloat("_LightOn", 1); baked = true;
         }
-        else { Shader.SetGlobalFloat("_LightOn", 0); baked = false; }
         else if (lt != null)
         {
             gm.SetTexture("_DetailAlbedoMap", lt); gm.EnableKeyword("_DETAIL_MULX2");
