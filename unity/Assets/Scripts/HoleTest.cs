@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -76,10 +77,17 @@ public class HoleTest : MonoBehaviour
         ground.RecalculateNormals(); ground.RecalculateBounds(); holeAssets.Add(ground);
         if (ground.normals.Length > 0 && ground.normals[nx * (ny / 2) + nx / 2].y < 0) { System.Array.Reverse(t); ground.triangles = t; ground.RecalculateNormals(); }
         var go = new GameObject("Ground"); go.transform.SetParent(holeRoot); go.AddComponent<MeshFilter>().sharedMesh = ground; var mr = go.AddComponent<MeshRenderer>();
-        var gm = new Material(M("Ground")); gm.mainTexture = Resources.Load<Texture2D>(HolePath("_ground")); mr.sharedMaterial = gm; holeAssets.Add(gm);
+        look = LoadLook();
+        var gm = GroundMat(); mr.sharedMaterial = gm; holeAssets.Add(gm);
         // the hole's Blender-baked light as the x2 detail map; its rect can differ from the ground texture's, so map one onto the other
         var lt = Resources.Load<Texture2D>(HolePath("_light"));
-        if (lt != null)
+        if (lt != null && gm.shader.name == "GolfGo/Ground")
+        {   // the web game's ground shader: the light map in its own rect
+            float lx0 = D.tex.x0, ly0 = D.tex.y0, lw = D.tex.w, lh = D.tex.h;
+            if (lightB != null && lightB.TryGetValue(hi.ToString(), out var lbo) && lbo is List<object> lb) { lx0 = System.Convert.ToSingle(lb[0]); ly0 = System.Convert.ToSingle(lb[1]); lw = System.Convert.ToSingle(lb[2]); lh = System.Convert.ToSingle(lb[3]); }
+            gm.SetTexture("_Light", lt); gm.SetVector("_LB", new Vector4(lx0, ly0, lw, lh)); gm.SetFloat("_LightOn", 1);
+        }
+        else if (lt != null)
         {
             gm.SetTexture("_DetailAlbedoMap", lt); gm.EnableKeyword("_DETAIL_MULX2");
             float lx0 = D.tex.x0, ly0 = D.tex.y0, lw = D.tex.w, lh = D.tex.h;
@@ -140,17 +148,60 @@ public class HoleTest : MonoBehaviour
             var lg = new GameObject(leafMats[z]); lg.transform.SetParent(root); lg.AddComponent<MeshFilter>().sharedMesh = lm; var lr = lg.AddComponent<MeshRenderer>(); lr.sharedMaterial = M(leafMats[z]);
         }
         // flag
-        BuildWater();
+        BuildWater(); BuildSkirt();
         float ph = D.H(D.pin[0], D.pin[1]); flag = new GameObject("Flag").transform; flag.SetParent(holeRoot); flag.position = HoleData.U(D.pin[0], D.pin[1], ph);
         Make(flag, cyl, M("White"), flag.position + Vector3.up * 1.2f, new Vector3(.03f, 1.2f, .03f));
         var cloth = Make(flag, Prim(PrimitiveType.Cube), M("Red"), flag.position + new Vector3(.28f, 2.15f, 0), new Vector3(.55f, .35f, .01f));
         Make(flag, cyl, M("Dark"), flag.position + Vector3.up * .005f, new Vector3(CUP * 2, .01f, CUP * 2));
     }
+    // ---------- the ground's look (Stage 6) ----------
+    Dictionary<string, object> look; static Texture2D[] groundShared;
+    Dictionary<string, object> LoadLook() { var ta = Resources.Load<TextAsset>(HolePath("_look")); return ta == null ? null : (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(ta.text); }
+    static Vector4 V4(Dictionary<string, object> L, string k, Vector4 d)
+    {
+        if (L == null || !L.TryGetValue(k, out var o) || !(o is List<object> a) || a.Count < 2) return d;
+        float F(int i) => i < a.Count ? System.Convert.ToSingle(a[i]) : 0; return new Vector4(F(0), F(1), F(2), F(3));
+    }
+    // the hole's ground material: the web game's ground shader (GolfGo/Ground) when it's in the build, else the Standard ground
+    Material GroundMat()
+    {
+        var gg = M("GroundG");
+        if (gg == null || gg.shader == null || !gg.shader.isSupported)
+        { var std = new Material(M("Ground")); std.mainTexture = Resources.Load<Texture2D>(HolePath("_ground")); return std; }
+        var gm = new Material(gg);
+        if (groundShared == null) groundShared = new[] { "det_short", "det_rough", "det_fescue", "det_sand", "turf_g", "turf_s", "surround" }.Select(n => Resources.Load<Texture2D>("troy/" + n)).ToArray();
+        gm.SetTexture("_MainTex", Resources.Load<Texture2D>(HolePath("_ground"))); gm.SetTexture("_Surf", Resources.Load<Texture2D>(HolePath("_surf")));
+        string[] slots = { "_DS", "_DR", "_DF", "_DD", "_PG", "_PS", "_Surround" }; for (int k = 0; k < slots.Length; k++) if (groundShared[k]) gm.SetTexture(slots[k], groundShared[k]);
+        gm.SetVector("_GB", V4(look, "gB", new Vector4(D.tex.x0, D.tex.y0, D.tex.w, D.tex.h))); gm.SetVector("_GSB", V4(look, "gSB", new Vector4(D.lg.x0, D.lg.y0, D.lg.nx, D.lg.ny)));
+        gm.SetVector("_GSS", V4(look, "gSS", Vector4.zero)); gm.SetVector("_TK", V4(look, "tK", Vector4.one)); gm.SetVector("_RLS", V4(look, "rlS", Vector4.zero)); gm.SetVector("_RLG", V4(look, "rlG", Vector4.zero));
+        gm.SetFloat("_POn", look != null && look.TryGetValue("pOn", out var po) && po is double pd ? (float)pd : 1); gm.SetFloat("_GMode", 1); gm.SetFloat("_LightOn", 0);
+        return gm;
+    }
+    // the land round the hole (the web game's skirt, r3Surround): a 20-yd grid of the course's elevation, the hole's own rect cut out
+    void BuildSkirt()
+    {
+        if (look == null || !(look.TryGetValue("skirt", out var so) && so is Dictionary<string, object> S)) return;
+        float x0 = System.Convert.ToSingle(S["x0"]), y0 = System.Convert.ToSingle(S["y0"]), st = System.Convert.ToSingle(S["st"]); int nx = System.Convert.ToInt32(S["nx"]), ny = System.Convert.ToInt32(S["ny"]);
+        var H = (List<object>)S["h"]; var v = new Vector3[nx * ny];
+        for (int j = 0; j < ny; j++) for (int i = 0; i < nx; i++) v[j * nx + i] = HoleData.U(x0 + i * st, y0 + j * st, System.Convert.ToSingle(H[j * nx + i]));
+        float b0 = D.tex.x0, b1 = D.tex.y0, b2 = D.tex.x0 + D.tex.w, b3 = D.tex.y0 + D.tex.h;
+        bool InB(float x, float y) => x > b0 + 4 && x < b2 - 4 && y > b1 + 4 && y < b3 - 4;
+        var t = new List<int>();
+        for (int j = 0; j < ny - 1; j++) for (int i = 0; i < nx - 1; i++)
+        {
+            float x = x0 + i * st, y = y0 + j * st; if (InB(x, y) && InB(x + st, y) && InB(x, y + st) && InB(x + st, y + st)) continue;
+            int a = j * nx + i, bq = a + 1, c = a + nx, d = c + 1; t.Add(a); t.Add(bq); t.Add(c); t.Add(bq); t.Add(d); t.Add(c);   // (rewound for the mirror)
+        }
+        var m = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32, vertices = v }; m.SetTriangles(t, 0); m.RecalculateNormals(); m.RecalculateBounds(); holeAssets.Add(m);
+        if (m.normals.Length > 0 && m.normals[0].y < 0) { t.Reverse(); m.SetTriangles(t, 0); m.RecalculateNormals(); }
+        var go = new GameObject("Skirt"); go.transform.SetParent(holeRoot); go.AddComponent<MeshFilter>().sharedMesh = m; var mr = go.AddComponent<MeshRenderer>();
+        var gm = GroundMat(); if (gm.shader.name == "GolfGo/Ground") { gm.SetFloat("_GMode", 0); gm.SetFloat("_LightOn", 0); } holeAssets.Add(gm);
+        mr.sharedMaterial = gm; mr.receiveShadows = false; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+    }
     // the hole's water: the web game's own surface (hNN_look.json), mirrored into Unity's axes, on the Water layer, with its reflection
     void BuildWater()
     {
-        var ta = Resources.Load<TextAsset>(HolePath("_look")); if (WR != null) WR.on = false; if (ta == null) return;
-        var L = (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(ta.text);
+        if (WR != null) WR.on = false; var L = look; if (L == null) return;
         if (!(L.TryGetValue("water", out var wo) && wo is List<object> W) || W.Count < 9) return;
         int n = W.Count / 3; var v = new Vector3[n]; var t = new int[n];
         for (int i = 0; i < n; i++) v[i] = new Vector3(System.Convert.ToSingle(W[i * 3]), System.Convert.ToSingle(W[i * 3 + 1]), -System.Convert.ToSingle(W[i * 3 + 2]));

@@ -35,8 +35,15 @@ public static class GolfGoBuild
         foreach (var f in System.IO.Directory.GetFiles("Assets/Resources/troy"))
         {
             string a = f.Replace('\\', '/');
-            if (a.EndsWith("_ground.jpg")) { var ti = AssetImporter.GetAtPath(a) as TextureImporter; if (ti) { ti.maxTextureSize = 4096; ti.mipmapEnabled = true; ti.wrapMode = TextureWrapMode.Clamp; ti.anisoLevel = 4; ti.SaveAndReimport(); } }
+            // (the ground shader samples every ground texture raw, as the web game does: sRGB off)
+            if (a.EndsWith("_ground.jpg")) { var ti = AssetImporter.GetAtPath(a) as TextureImporter; if (ti) { ti.maxTextureSize = 4096; ti.mipmapEnabled = true; ti.wrapMode = TextureWrapMode.Clamp; ti.anisoLevel = 4; ti.sRGBTexture = false; ti.SaveAndReimport(); } }
             else if (a.EndsWith("_light.png")) { var li = AssetImporter.GetAtPath(a) as TextureImporter; if (li) { li.maxTextureSize = 4096; li.wrapMode = TextureWrapMode.Clamp; li.sRGBTexture = false; li.SaveAndReimport(); } }
+            else if (a.EndsWith("_surf.png")) { var si = AssetImporter.GetAtPath(a) as TextureImporter; if (si) { si.maxTextureSize = 1024; si.mipmapEnabled = false; si.wrapMode = TextureWrapMode.Clamp; si.sRGBTexture = false; si.filterMode = FilterMode.Bilinear; si.textureCompression = TextureImporterCompression.Uncompressed; si.npotScale = TextureImporterNPOTScale.None; si.SaveAndReimport(); } }
+            else if (a.EndsWith(".png") || a.EndsWith(".jpg"))
+            {   // the shared ground textures: tiling detail and photographed turf repeat with mips; the surroundings map clamps
+                var di = AssetImporter.GetAtPath(a) as TextureImporter; if (!di) continue; bool sur = a.EndsWith("surround.png");
+                di.maxTextureSize = 2048; di.mipmapEnabled = true; di.wrapMode = sur ? TextureWrapMode.Clamp : TextureWrapMode.Repeat; di.sRGBTexture = false; di.anisoLevel = sur ? 1 : 8; di.SaveAndReimport();
+            }
         }
         var g = Mat("Ground", Color.white, 0);   // (each hole sets its own textures on a copy at run time)
         g.SetFloat("_UVSec", 0); g.EnableKeyword("_DETAIL_MULX2"); EditorUtility.SetDirty(g);
@@ -59,6 +66,12 @@ public static class GolfGoBuild
         var wP = "Assets/Resources/Mats/Water.mat"; var wm = AssetDatabase.LoadAssetAtPath<Material>(wP);
         if (!wm && wsh) { wm = new Material(wsh); AssetDatabase.CreateAsset(wm, wP); } else if (wm && wsh) wm.shader = wsh;
         if (wm) EditorUtility.SetDirty(wm);
+        // the ground (the web game's ground shader, Assets/Shaders/GolfGoGround.shader)
+        AssetDatabase.ImportAsset("Assets/Shaders/GolfGoGround.shader", ImportAssetOptions.ForceUpdate);
+        var gsh = Shader.Find("GolfGo/Ground"); if (!gsh) Debug.LogError("GolfGo/Ground shader didn't compile");
+        var gP = "Assets/Resources/Mats/GroundG.mat"; var gmat = AssetDatabase.LoadAssetAtPath<Material>(gP);
+        if (!gmat && gsh) { gmat = new Material(gsh); AssetDatabase.CreateAsset(gmat, gP); } else if (gmat && gsh) gmat.shader = gsh;
+        if (gmat) EditorUtility.SetDirty(gmat);
         var skyP = "Assets/Resources/Mats/Sky.mat"; var sky = AssetDatabase.LoadAssetAtPath<Material>(skyP);
         if (!sky) { sky = new Material(Shader.Find("Skybox/Procedural")); AssetDatabase.CreateAsset(sky, skyP); }
         sky.SetFloat("_SunSize", .03f); sky.SetFloat("_AtmosphereThickness", .9f); sky.SetColor("_SkyTint", new Color(.45f, .6f, .85f));
