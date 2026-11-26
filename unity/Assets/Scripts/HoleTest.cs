@@ -31,7 +31,7 @@ public class HoleTest : MonoBehaviour
     HoleData D;
     Camera cam; Transform ball, golfer, club, flag; Mesh ground;
     Vector2 b, prev; float bY; float aim; int ci, strokes;
-    enum S { Aim, Power, Acc, Flight, Roll, Holed } S st = S.Aim;
+    enum S { Aim, Power, Acc, Flight, Roll, Holed, Replay } S st = S.Aim;
     float meter, meterDir = 1; // swing meter
     // flight
     Vector2 fs, fd; float fCarry, fApex, fLat, fT, fu, fRollMul; bool fPutt;
@@ -269,6 +269,8 @@ public class HoleTest : MonoBehaviour
         hud.onFlag = () => { if (st != S.Aim || !C.putter) return; flagOut = !flagOut; ShowFlag(); };
         hud.onCam = () => { if (st != S.Aim) return; CAMV = (CAMV + 1) % 3; PlayerPrefs.SetInt("camv", CAMV); };
         hud.onLookBar = k => { if (k == 0) LookGreen(); else if (k == 1) LookRead(); else if (k == 2) LookLanding(); else LookEnd(); };
+        hud.onFF = () => { if (FfActive) ff = ff == 1 ? 2 : ff == 2 ? 4 : 1; };
+        hud.onReplay = () => { if (st == S.Aim && canReplay) StartReplay(); };
         hud.onImpReset = () => { imp = Vector2.zero; traj = 0; RefreshHud(); };
         hud.onMap = () => { if (st == S.Aim) { mapView = !mapView; if (mapView) fc = null; } };
         hud.onLook = () => { if (fc != null && !(fc.fly != null && fc.fly.dir < 0)) LookEnd(); else LookStart(); };
@@ -394,7 +396,8 @@ public class HoleTest : MonoBehaviour
     void StrikeNow(float? e)
     {
         float win = Win; tapMark = e.HasValue ? IMPACT + e.Value : -1; tapGood = e.HasValue && Mathf.Abs(e.Value) <= win;
-        fromLie = Lie0; strokes++; prev = b; swingT = 0; shotRot = Dir(aim);
+        fromLie = Lie0; strokes++; prev = b; swingT = 0; shotRot = Dir(aim); shotAim = aim; ff = 1;
+        rec = new List<Vector4>(); recT = 0; recOn = true; canReplay = false;
         if (GF != null) { swingClock = 0; swingBack = Mathf.Max(.15f, (float)Power); launchAt = C.putter ? GF.PuttImpactT : GF.ImpactT; } hud.SetSwing("SWING", 0, false); hud.SetHint(""); hud.AimHide();
         if (C.putter)
         {
@@ -442,6 +445,7 @@ public class HoleTest : MonoBehaviour
         if (st == S.Aim && !mapView) { string h = fc != null ? (fc.follow ? "Scouting your shot \u00b7 change club or aim \u00b7 drag to turn \u00b7 pinch to zoom" : "Free look \u00b7 tap Landing to follow your shot again") : "Drag to aim \u00b7 Tap Swing to start"; if (h != lastHint) { lastHint = h; hud.SetHint(h); } }
         else if (st == S.Aim && mapView && lastHint != "map") { lastHint = "map"; hud.SetHint("Tap the map button to return to your ball"); }
         else if (st != S.Aim) lastHint = null;
+        float fdt = FfActive && ff > 1 ? dt * ff : dt;   // fast-forward: the web runs several updates a frame; here, the time steps n times as far
         hud.SetFlagChip(st == S.Aim && C.putter && Lie0 == "green" && !hud.ChoiceOpen, flagOut);
         if (st == S.Aim && (fc != null) != swingBack0) { swingBack0 = fc != null; hud.SetSwing(swingBack0 ? "\u21a9 BACK" : "SWING", 0, true); }
         if (st == S.Power)
@@ -469,11 +473,15 @@ public class HoleTest : MonoBehaviour
                 float tgt = st == S.Power ? (mpos - IMPACT) / (1 - IMPACT) : st == S.Acc ? mPower : 0;
                 GF.Place(b.x, b.y, D.H(b.x, b.y), aim); GF.Backswing(Mathf.Max(0, tgt), dt, st == S.Aim);
             }
-            else if (swingClock >= 0) { swingClock += dt; GF.SwingAt(swingClock, swingBack); }
+            else if (st == S.Replay) { GF.Place(rp0.x, rp0.y, D.H(rp0.x, rp0.y), rpAim); GF.SwingAt(Mathf.Max(.001f, rpLaunch + rpT), rpBack); }
+            else if (swingClock >= 0) { swingClock += fdt; GF.SwingAt(swingClock, swingBack); }
         }
-        if (st == S.Flight || st == S.Roll) StepSim(dt);
-        ball.position = HoleData.U(b.x, b.y, bY + .035f);
-        CameraUpdate(dt);
+        if (st == S.Flight || st == S.Roll) StepSim(fdt);
+        if (st == S.Replay) StepReplay(fdt);
+        ball.position = st == S.Replay ? ReplayBall() : HoleData.U(b.x, b.y, bY + .035f);
+        hud.SetReplayBtn(st == S.Aim && canReplay && !mapView && fc == null && !hud.ChoiceOpen);
+        hud.SetFF(FfActive, ff);
+        CameraUpdate(fdt);
         if (WR != null) WR.Render(cam);   // the water's mirror, from where the camera now is
     }
     // ---------- touches (input.js): one finger drags the aim; a second finger (a pinch) opens the look camera; in the look camera one finger
@@ -712,6 +720,7 @@ public class HoleTest : MonoBehaviour
         simAcc += dt;
         while (simAcc >= SIM_DT && SB.Moving) { SB.Step(SIM_DT); simAcc -= SIM_DT; }
         b = new Vector2((float)SB.x, (float)SB.y); bY = (float)SB.bY;
+        if (recOn) { recT += dt; bool air = SB.state == GolfGo.Sim.BallState.Flight; rec.Add(new Vector4(recT, b.x, b.y, air ? bY : D.H(b.x, b.y))); }
         if (st == S.Flight && SB.state != GolfGo.Sim.BallState.Flight) st = S.Roll;
         var o = SB.outcome;
         if (o != null) for (; evSeen < o.events.Count; evSeen++) ShotEvent(o.events[evSeen], o);
@@ -729,8 +738,60 @@ public class HoleTest : MonoBehaviour
         else if (e == "plug") hud.Toast("FRIED EGG!", "Plugged in the sand · only a blast will do", Hud.Hex("#ffb46a"));
         if (o.spinBack && e == "spinback") hud.Toast("SPIN BACK!", "", Hud.Mint);
     }
+    // ---------- fast-forward and replay (loop.js, saved-shots.js) ----------
+    int ff = 1; float shotAim;
+    bool FfActive => st == S.Replay || ((st == S.Flight || st == S.Roll) && (GF == null || swingClock >= launchAt));
+    List<Vector4> rec = new List<Vector4>(); float recT; bool recOn, canReplay;
+    // the last shot: its flight (t, x, y, height), where he stood, the club and swing
+    class LastShot { public List<Vector4> rec; public Vector2 at; public float aim, launchAt, back; public bool holed, putt; public string club, stype; }
+    LastShot last; S rpPrev; System.Action rpDone; float rpT, rpDur, rpLaunch, rpBack, rpAim; Vector2 rp0;
+    void EndRec(bool holedIt)
+    {
+        if (!recOn) return; recOn = false; rec.Add(new Vector4(recT + .02f, b.x, b.y, D.H(b.x, b.y)));
+        last = new LastShot { rec = rec, at = prev, aim = shotAim, launchAt = launchAt, back = swingBack, holed = holedIt, putt = fPutt, club = C.id, stype = stype };
+        canReplay = rec.Count > 6;
+    }
+    Vector4 ReplayPoint(float t)
+    {
+        var r = last.rec; if (t <= 0) return r[0];
+        for (int i = 1; i < r.Count; i++) if (r[i].x >= t) { var a = r[i - 1]; var q = r[i]; float k = (t - a.x) / ((q.x - a.x) == 0 ? 1 : q.x - a.x); return a + (q - a) * k; }
+        return r[r.Count - 1];
+    }
+    Vector3 ReplayBall() { var p = ReplayPoint(Mathf.Max(0, rpT)); return HoleData.U(p.y, p.z, p.w + .035f); }
+    void StartReplay(System.Action done = null)
+    {
+        if (last == null || last.rec.Count < 6) { done?.Invoke(); return; }
+        rpPrev = st; rpDone = done; ff = 1; fc = null; mapView = false;
+        rpT = -.55f; rpDur = last.rec[last.rec.Count - 1].x; rp0 = last.at; rpAim = last.aim; rpLaunch = last.launchAt; rpBack = last.back;
+        if (GF != null) GF.Setup(last.club, last.putt, last.stype);
+        st = S.Replay; hud.SetSwing("SWING", 0, false); hud.SetHint(""); hud.AimHide();
+        NormalTarget(out camPos, out camLook);   // (the camera cuts to the replay's first view)
+    }
+    void StepReplay(float dt)
+    {
+        float slow = last.holed && rpT > rpDur - 1.1f ? .5f : 1; rpT += dt * slow;
+        if (rpT > rpDur + .9f)
+        {
+            st = rpPrev; if (st == S.Aim) { hud.SetSwing("SWING", 0, true); swingBack0 = false; PlaceGolfer(); }
+            var d = rpDone; rpDone = null; d?.Invoke();
+        }
+    }
+    // replayCamTrail: behind him at the start, then trailing the ball like a live shot (a putt: low behind the ball)
+    void ReplayCam(out Vector3 E, out Vector3 L)
+    {
+        var rp = ReplayPoint(Mathf.Max(0, rpT)); var d = Dir(rpAim); var ga = rp0; float g0 = D.H(ga.x, ga.y), gb = D.H(rp.y, rp.z); var p = new Vector2(rp.y, rp.z);
+        if (last.putt)
+        {
+            if (rpT < .3f) { var e0 = ga - d * 2.6f; var l0 = ga + d * 4; E = HoleData.U(e0.x, e0.y, g0 + 1.4f); L = HoleData.U(l0.x, l0.y, g0); return; }
+            var e1 = p - d * 6; E = HoleData.U(e1.x, e1.y, gb + 2.8f); L = HoleData.U(p.x, p.y, gb); return;
+        }
+        if (rpT < .4f) { if (CamAddress(ga, rpAim, out E, out L)) return; var e0 = ga - d * 13; var l0 = ga + d * 40; E = HoleData.U(e0.x, e0.y, g0 + 5.4f); L = HoleData.U(l0.x, l0.y, g0); return; }
+        if (rp.w > gb + .25f) { var e2 = p - d * 31; var l2 = p + d * 8; E = HoleData.U(e2.x, e2.y, rp.w * .55f + gb * .45f + 9); L = HoleData.U(l2.x, l2.y, rp.w * .85f + gb * .15f); return; }
+        var e3 = p - d * 20; E = HoleData.U(e3.x, e3.y, gb + 7); L = HoleData.U(p.x, p.y, gb);
+    }
     void Finish(GolfGo.Sim.Outcome o)
     {
+        EndRec(o != null && o.kind == "holed");
         if (o == null) { Stop(); return; }
         if (o.kind == "water" || o.kind == "ob") { Penalty(o.kind); return; }
         if (o.kind == "holed")
@@ -808,7 +869,7 @@ public class HoleTest : MonoBehaviour
     }
     void LoadHole(int i)
     {
-        CancelInvoke(); hud.HideChoice(); hi = i;
+        CancelInvoke(); hud.HideChoice(); hi = i; canReplay = false; recOn = false; if (st == S.Replay) st = S.Aim;
         D = HoleData.Load(HolePath(""));
         CO = new GolfGo.Sim.Course(Resources.Load<TextAsset>(HolePath("")).text);
         // pinIndex (a Quick play round): one of the hole's three pin spots, from the round's seed
@@ -828,10 +889,11 @@ public class HoleTest : MonoBehaviour
         string res = ScoreName(scores[hi], pars[hi]);
         var opts = new List<(string, string, bool)>();
         if (hi < 17) opts.Add(("Next hole", "Hole " + (hi + 2) + " · Par " + NextPar(), true));
+        if (canReplay) opts.Add(("Replay", "Watch the last shot again", false));   // (the web hole card's Replay)
         opts.Add(("Scorecard", "The round so far", hi >= 17));
         if (hi >= 17) opts.Add(("New round", "Back to the 1st tee", false));
         hud.ShowChoice("Hole " + (hi + 1) + " · Par " + pars[hi], res, "Round " + DiffStr(roundDiff) + " · " + Total() + " strokes through " + holesDone, opts,
-            k => { var a = opts[k].Item1; if (a == "Next hole") LoadHole(hi + 1); else if (a == "New round") NewRound(); else ShowCard(true); });
+            k => { var a = opts[k].Item1; if (a == "Replay") { hud.HideChoice(); StartReplay(HoleDone); } else if (a == "Next hole") LoadHole(hi + 1); else if (a == "New round") NewRound(); else ShowCard(true); });
     }
     string NextPar() { try { return HoleData.Load("troy/h" + (hi + 2).ToString("00")).par.ToString(); } catch { return "?"; } }
     int Total() { int t = 0; for (int k = 0; k < 18; k++) t += scores[k]; return t; }
@@ -896,6 +958,7 @@ public class HoleTest : MonoBehaviour
     void NormalTarget(out Vector3 E, out Vector3 L, out float zoom)
     {
         zoom = 1; float gb = D.H(b.x, b.y);
+        if (st == S.Replay) { ReplayCam(out E, out L); return; }
         if (mapView && st == S.Aim)
         {   // the overview: the whole hole from up the tee end, swaying slowly
             var pin = new Vector2(D.pin[0], D.pin[1]); float ax0 = Mathf.Atan2(pin.x, -pin.y); var A = Dir(ax0); float Ln = Mathf.Max(160, D.len);

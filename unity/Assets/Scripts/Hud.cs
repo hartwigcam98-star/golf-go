@@ -174,6 +174,7 @@ public class Hud
         BuildBottom(sBot, impact);
         BuildLook();
         BuildImp();
+        BuildTopPills();
         fpsT = Txt(root, "Fps", fBold, 11, A(Mint, .9f)); At(fpsT.rectTransform, 14, sTop + 10 + 67 + 6, 200, 14);
     }
 
@@ -541,6 +542,33 @@ public class Hud
         retT = Txt(retPill.transform, "T", fBold, 13, Cream, TextAnchor.MiddleCenter); retT.rectTransform.anchorMin = Vector2.zero; retT.rectTransform.anchorMax = Vector2.one; retT.rectTransform.pivot = new Vector2(.5f, .5f); retT.rectTransform.offsetMin = retT.rectTransform.offsetMax = Vector2.zero;
         lookRet.gameObject.SetActive(false);
     }
+    // ---------- .replaybtn (▶ Replay, red) and .ffbtn (⏩ Speed up: sun outline; on: sun) at the top centre, 84 below the safe top ----------
+    public Action onReplay, onFF; Image replayB, replayD, ffB, ffD; Text ffT; RawImage ffIco; float ffW;
+    void BuildTopPills()
+    {
+        replayB = Box(root, "Replay", 17, new Color(180 / 255f, 34 / 255f, 58 / 255f, .92f));
+        var rt = Txt(replayB.transform, "T", fDisp, 16, Color.white, TextAnchor.MiddleLeft); rt.text = "Replay"; float rw = Mathf.Ceil(rt.preferredWidth) + 32 + 18;
+        At(replayB.rectTransform, (W - rw) / 2, STop + 84, rw, 34); At(rt.rectTransform, 16 + 18, 0, rw, 34); At(Pic(replayB.transform, "Ico", Icon("play")).rectTransform, 15, 10, 14, 14);
+        replayD = Drop(root, replayB.rectTransform, 17, 3, new Color(0, 0, 0, .25f)); Press(replayB, () => onReplay?.Invoke());
+        ffB = Box(root, "FF", 17, new Color(15 / 255f, 34 / 255f, 51 / 255f, .9f), 2, Sun);
+        ffT = Txt(ffB.transform, "T", fDisp, 16, Sun, TextAnchor.MiddleLeft); ffIco = Pic(ffB.transform, "Ico", Icon("ff")); ffIco.color = Sun;
+        ffD = Drop(root, ffB.rectTransform, 17, 3, new Color(0, 0, 0, .25f)); Press(ffB, () => onFF?.Invoke());
+        SetReplayBtn(false); SetFF(false, 1);
+    }
+    public void SetReplayBtn(bool shown) { if (replayB.gameObject.activeSelf != shown) { replayB.gameObject.SetActive(shown); replayD.gameObject.SetActive(shown); } }
+    int ffShown = -1;
+    public void SetFF(bool shown, int ff)
+    {
+        if (ffB.gameObject.activeSelf != shown) { ffB.gameObject.SetActive(shown); ffD.gameObject.SetActive(shown); }
+        if (!shown || ffShown == ff) return; ffShown = ff;
+        bool on = ff > 1; ffT.text = on ? ff + "\u00d7 speed" : "Speed up"; ffT.color = on ? Ink : Sun; ffIco.color = on ? Ink : Sun;
+        float w = Mathf.Ceil(ffT.preferredWidth) + 32 + 22;
+        // (a bordered box draws in its own colours: the 'on' look swaps to a plain sun pill)
+        ffB.sprite = on ? Round(17, 0, default, Color.white) : Round(17, 2, Sun, new Color(15 / 255f, 34 / 255f, 51 / 255f, .9f)); ffB.color = on ? Sun : Color.white;
+        At(ffB.rectTransform, (W - w) / 2, STop + 84, w, 34); ffD.rectTransform.anchoredPosition = ffB.rectTransform.anchoredPosition + new Vector2(0, -3); ffD.rectTransform.sizeDelta = ffB.rectTransform.sizeDelta;
+        At(ffIco.rectTransform, 15, 9, 18, 16); At(ffT.rectTransform, 16 + 22, 0, w, 34);
+    }
+
     // drawPinLabel: the pin's yardage in a pill above the flag
     Image pinPill; Text pinPillT;
     public void SetPinLabel(bool shown, Vector2 px, string txt)
@@ -715,6 +743,10 @@ public class Hud
                 }; break;
             case "target":     // the ◎ of "Landing"
                 f = (x, y) => { float r = Mathf.Sqrt((x - 12) * (x - 12) + (y - 12) * (y - 12)); return A(Cream, Cov(Mathf.Min(Mathf.Abs(r - 8.5f) - 1.2f, r - 3.2f))); }; break;
+            case "play":    // ▶
+                f = (x, y) => A(Color.white, Cov(SdPoly(x, y, new[] { new Vector2(5, 3), new Vector2(21, 12), new Vector2(5, 21) }))); break;
+            case "ff":      // ⏩ (tinted by the RawImage)
+                f = (x, y) => A(Color.white, Cov(Mathf.Min(SdPoly(x, y, new[] { new Vector2(2, 5), new Vector2(12, 12), new Vector2(2, 19) }), SdPoly(x, y, new[] { new Vector2(12, 5), new Vector2(22, 12), new Vector2(12, 19) })))); break;
             case "camera":  // M3 8.5h3.2l1.6-2.5h8.4l1.6 2.5H21v10H3z, circle (12, 13.2) r 3.3, stroke 2
                 { var o = new[] { new Vector2(3, 8.5f), new Vector2(6.2f, 8.5f), new Vector2(7.8f, 6), new Vector2(16.2f, 6), new Vector2(17.8f, 8.5f), new Vector2(21, 8.5f), new Vector2(21, 18.5f), new Vector2(3, 18.5f), new Vector2(3, 8.5f) };
                   f = (x, y) => { float r = Mathf.Sqrt((x - 12) * (x - 12) + (y - 13.2f) * (y - 13.2f)); return A(Cream, Cov(Mathf.Min(SdPolyline(x, y, o), Mathf.Abs(r - 3.3f)) - 1)); }; break; }
