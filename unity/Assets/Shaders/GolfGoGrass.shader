@@ -88,7 +88,8 @@ Shader "GolfGo/Grass"
                 vGc = cc * cc;
             }
             // the game's (x, up, y south) to Unity's (x, up, z north)
-            v.vertex = float4(float3(gW.x, gW.y, -gW.z) - T0, 1);   // (the instance matrix adds the tile's corner back) v.normal = float3(objectNormal.x, objectNormal.y, -objectNormal.z); v.color = float4(vGc, 1);
+            v.vertex = float4(float3(gW.x, gW.y, -gW.z) - T0, 1);   // (the instance matrix adds the tile's corner back)
+            v.normal = float3(objectNormal.x, objectNormal.y, -objectNormal.z); v.color = float4(vGc, 1);
         }
         void surf (Input IN, inout SurfaceOutputGG o)
         {

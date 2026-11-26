@@ -186,7 +186,8 @@ public class Hud
         float rx = W - 12;
         var snd = Box(root, "Sound", 12, Panel); rx -= 40; At(snd.rectTransform, rx, y, 40, 40); Drop(root, snd.rectTransform, 12, 3, new Color(0, 0, 0, .28f));
         var sndIco = Pic(snd.transform, "Ico", Icon("sound")); At(sndIco.rectTransform, 10, 10, 20, 20);
-        Press(snd, () => { AudioListener.volume = AudioListener.volume > 0 ? 0 : 1; sndIco.texture = Icon(AudioListener.volume > 0 ? "sound" : "mute"); });
+        AudioListener.volume = PlayerPrefs.GetInt("sound", 1); sndIco.texture = Icon(AudioListener.volume > 0 ? "sound" : "mute");   // (the sound setting is remembered)
+        Press(snd, () => { AudioListener.volume = AudioListener.volume > 0 ? 0 : 1; PlayerPrefs.SetInt("sound", AudioListener.volume > 0 ? 1 : 0); sndIco.texture = Icon(AudioListener.volume > 0 ? "sound" : "mute"); });
         var men = Box(root, "Menu", 12, Panel); rx -= 48; At(men.rectTransform, rx, y, 40, 40); Drop(root, men.rectTransform, 12, 3, new Color(0, 0, 0, .28f));
         At(Pic(men.transform, "Ico", Icon("menu")).rectTransform, 10, 10, 20, 20); Press(men, () => onMenu?.Invoke());
         // wind plate: padding 8 12, dial 40, gap 8, value

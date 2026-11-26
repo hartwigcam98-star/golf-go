@@ -496,6 +496,7 @@ public class HoleTest : MonoBehaviour
         cam.fieldOfView = 50; cam.nearClipPlane = .3f; cam.farClipPlane = 5000; cam.allowMSAA = true;
         // the web game's sun, sky, clouds, weather and finish (GolfGoLook.cs); the old light and fog stay only if its shaders can't run
         Try("look", () => { gLook = cam.gameObject.AddComponent<GolfGoLook>(); gLook.sun = L; });
+        SFX = new GameObject("Sound").AddComponent<SoundFX>();
         GolfGoLook.AfterPost = () => { if (FX != null && !mapView) Try("flames", () => FX.DrawFlames(cam, VfPx, hud.K)); };
         Try("weather", () => { if (gLook != null && gLook.Ok) { RenderSettings.fog = false; gLook.Weather(PlayerPrefs.GetInt("wx", 0)); } });
     }
@@ -529,7 +530,7 @@ public class HoleTest : MonoBehaviour
     {
         hud = new Hud(IMPACT);
         hud.onSwing = Swing; hud.onMeter = () => { if (st == S.Power || st == S.Acc) Swing(); };
-        hud.onClub = d => { if (st != S.Aim || Lie0 == "green") return; ci = Mathf.Clamp(ci + d, 0, Clubs.Count - 1); if (C.putter) pshot = false; else if (!SG.ShotOK(stype, ci)) stype = "full"; PrepareShot(false); };
+        hud.onClub = d => { if (st != S.Aim || Lie0 == "green") return; SFX?.Tick(); ci = Mathf.Clamp(ci + d, 0, Clubs.Count - 1); if (C.putter) pshot = false; else if (!SG.ShotOK(stype, ci)) stype = "full"; PrepareShot(false); };
         hud.onAimTap = d => { if (st != S.Aim) return; float Dd = Mathf.Max(MaxDist, 3); aim += d * Mathf.Max(.4f, Dd * .006f) / Dd; aimHeld = 0; PlaceGolfer(); };
         hud.onPower = () => { if (st != S.Aim || C.putter) return; pshot = !pshot; RefreshHud(); };
         hud.onShotType = SetShot;
@@ -537,7 +538,7 @@ public class HoleTest : MonoBehaviour
         hud.onImp = v => { if (st != S.Aim || C.putter) return; imp = v; RefreshHud(); };
         hud.onTraj = t => { if (st != S.Aim || C.putter) return; traj = t; RefreshHud(); };
         hud.onFlag = () => { if (st != S.Aim || !C.putter) return; flagOut = !flagOut; ShowFlag(); };
-        hud.onCam = () => { if (st != S.Aim) return; CAMV = (CAMV + 1) % 3; PlayerPrefs.SetInt("camv", CAMV); };
+        hud.onCam = () => { if (st != S.Aim) return; SFX?.Tick(); CAMV = (CAMV + 1) % 3; PlayerPrefs.SetInt("camv", CAMV); };
         hud.onLookBar = k => { if (k == 0) LookGreen(); else if (k == 1) LookRead(); else if (k == 2) LookLanding(); else LookEnd(); };
         hud.onFF = () => { if (FfActive) ff = ff == 1 ? 2 : ff == 2 ? 4 : 1; };
         hud.onReplay = () => { if (st == S.Aim && canReplay) StartReplay(); };
@@ -656,13 +657,20 @@ public class HoleTest : MonoBehaviour
     void Swing()
     {
         if (st == S.Aim && fc != null) { LookEnd(); return; }   // tap(): while looking, Swing flies the camera back first
-        if (st == S.Aim) { st = S.Power; mpos = IMPACT; mdir = 1; mapView = false; tapMark = -1; hud.SetSwing("POWER", 1, true); hud.SetHint("Tap to set power"); RefreshHud(); return; }
-        if (st == S.Power) { mPower = (mpos - IMPACT) / (1 - IMPACT); st = S.Acc; hud.SetSwing("IMPACT!", 2, true); hud.SetHint("Tap on the white line"); return; }
+        if (st == S.Aim) { SFX?.Tick(); st = S.Power; mpos = IMPACT; mdir = 1; mapView = false; tapMark = -1; hud.SetSwing("POWER", 1, true); hud.SetHint("Tap to set power"); RefreshHud(); return; }
+        if (st == S.Power) { SFX?.Tick(); mPower = (mpos - IMPACT) / (1 - IMPACT); st = S.Acc; hud.SetSwing("IMPACT!", 2, true); hud.SetHint("Tap on the white line"); return; }
         if (st == S.Acc) StrikeNow(Mathf.Clamp(mpos - IMPACT, -.12f, .4f));
     }
     // meterSpeed (loop.js): the putter and the short game run slower
     float SpeedP => C.putter ? .7f : Short ? .85f : 1f;
     float SpeedA => C.putter ? .6f : Short ? .8f : .95f * (pshot ? 1.2f : 1);
+    // the strike's contact for its sound (strikeShot's q): 1 inside half the window, .76-.86 inside it, falling to .06 beyond
+    float StrikeQ(float? e)
+    {
+        if (!e.HasValue) return .05f; float w = Win, ae = Mathf.Abs(e.Value);
+        return ae <= w * .5f ? 1 : ae <= w ? .86f - .1f * (ae - w * .5f) / (w * .5f) : Mathf.Clamp(.62f - (ae - w) / .06f * .55f, .06f, .62f);
+    }
+    SoundFX SFX;
     void StrikeNow(float? e)
     {
         float win = Win; tapMark = e.HasValue ? IMPACT + e.Value : -1; tapGood = e.HasValue && Mathf.Abs(e.Value) <= win;
@@ -673,6 +681,7 @@ public class HoleTest : MonoBehaviour
         {
             // the web game's putter stroke (GolfGo.Sim.Putt): the window, a pull or push and a short miss, then the roll on the same ball
             var pst = PT.Hit(b.x, b.y, aim, Lie0, puttMax, mPower, e, false, Random.Range(1, int.MaxValue)); fPutt = true;
+            { float qp = StrikeQ(e); SFX?.After(launchAt, () => SFX.PuttQ(qp)); }
             if (pst.miss) hud.Toast("MISHIT!", "Timing missed the impact line", Hud.Coral); else if (pst.perfect == 2) hud.Toast("PURE STROKE", "", Hud.Hex("#ffe27a"));
             SB.flagOut = flagOut; SB.LaunchRoll(b.x, b.y, pst.vx, pst.vy, Random.Range(1, int.MaxValue)); simAcc = 0; evSeen = 0; st = S.Roll; return;
         }
@@ -701,6 +710,12 @@ public class HoleTest : MonoBehaviour
                 if (pk > 0) FX.Tee(bx0, by0, aim0, pk, pw, drv);
                 if (birds && Random.value < .4f) FX.BirdsNear(SH, (float)land.x, (float)land.y, ft * .75f);
             };
+        }
+        if (SFX != null)
+        {
+            float q = FL.miss ? .05f : StrikeQ(e), pw = (float)Power; string kind = C.kind, lie = fromLie; bool red = FX != null && FX.flame == "red", perf = FL.perfect > 0;
+            SFX.After(Mathf.Max(0, launchAt - .15f), () => SFX.Swoosh(.5f + .5f * pw));
+            SFX.After(launchAt, () => { SFX.Strike(pw, q, kind, lie); if (red) SFX.After(.06f, () => SFX.Flame(true)); if (perf) SFX.After(.12f, SFX.Nice); });
         }
         fs = b; var td = new Vector2((float)FL.dx, (float)FL.dy); fd = td; fCarry = (float)FL.carry; fT = (float)FL.T; fu = 0; fRollMul = (float)FL.rollMul; fPutt = false;
         SB.windA = windA; SB.windMph = windMph; SB.flagOut = flagOut; SB.Launch(FL, Random.Range(1, int.MaxValue)); simAcc = 0; evSeen = 0; st = S.Flight;
@@ -736,7 +751,7 @@ public class HoleTest : MonoBehaviour
         if (st == S.Power)
         {
             mpos += mdir * dt * SpeedP; if (mpos >= 1) { mpos = 1; mdir = -1; }
-            else if (mdir < 0 && mpos <= IMPACT) { PrepareShot(false); hud.SetHint("No power set · tap once more on the way up"); }
+            else if (mdir < 0 && mpos <= IMPACT) { PrepareShot(false); SFX?.Miss(); hud.SetHint("No power set · tap once more on the way up"); }
         }
         else if (st == S.Acc) { mpos -= dt * SpeedA; if (mpos <= 0) { mpos = 0; StrikeNow(null); } }   // (StrikeNow keeps mpos: the cursor shows the tap)
         bool live = st == S.Power || st == S.Acc;
@@ -767,6 +782,7 @@ public class HoleTest : MonoBehaviour
         hud.SetReplayBtn(st == S.Aim && canReplay && !mapView && fc == null && !hud.ChoiceOpen);
         hud.SetFF(FfActive, ff);
         CameraUpdate(fdt);
+        if (SFX != null) { SFX.ambWanted = !hud.ChoiceOpen && !mapView; SFX.windMph = (float)windMph; SFX.water = WR != null && WR.on; SFX.wx = gLook != null ? gLook.wx : 0; }   // (ambTick: off on menus)
         if (FX != null)
         {   // the bits that wait for the club to reach the ball (the divot, the tee peg, birds off a big drive), then everything moving
             bool launched = !(GF != null && swingClock >= 0 && swingClock < launchAt);
@@ -1051,8 +1067,17 @@ public class HoleTest : MonoBehaviour
     Effects FX; System.Action fxQ;
     void FxEvent(string e, double[] at)
     {
+        if (SFX != null)
+        {   // the ball's sounds on the way (save-file.js)
+            if (e == "trunk" || e == "branch" || e == "cactus") SFX.Tree();
+            else if (e == "rustle") SFX.Rustle(Mathf.Clamp(fCarry / 200, .45f, 1));
+            else if (e == "pin") SFX.Pin(SB.state == GolfGo.Sim.BallState.Flight ? 1 : SB.state == GolfGo.Sim.BallState.Bounce ? .8f : .35f);
+            else if (e == "lip") SFX.Lip();
+            else if (e == "rim") SFX.Rim();
+            else if (e == "land") SFX.Land();
+        }
         if (FX == null || at == null) return;
-        if (e == "rustle") { FX.Leaves((float)at[0], (float)at[1], (float)at[2], (float)at[3], (float)at[4], 8 + Random.Range(0, 6)); if (at.Length >= 8 && Random.value < .4f) FX.Birds((float)at[5], (float)at[6], (float)at[7], (float)at[0], (float)at[1], 2 + Random.Range(0, 3), 0); }
+        if (e == "rustle") { FX.Leaves((float)at[0], (float)at[1], (float)at[2], (float)at[3], (float)at[4], 8 + Random.Range(0, 6)); if (at.Length >= 8 && Random.value < .4f) { FX.Birds((float)at[5], (float)at[6], (float)at[7], (float)at[0], (float)at[1], 2 + Random.Range(0, 3), 0); SFX?.Flutter(.6f); } }
         else if (e == "pmark") FX.PitchMark((float)at[0], (float)at[1], (float)at[3], (float)at[4]);
     }
     // the web game's toasts for what happened on the way (save-file.js)
@@ -1125,8 +1150,8 @@ public class HoleTest : MonoBehaviour
         if (o.kind == "water" || o.kind == "ob") { Penalty(o.kind); return; }
         if (o.kind == "holed")
         {
-            if (o.gimme) { strokes++; hud.Toast("GIMME", "Inside 4 ft · conceded", Hud.Mint); Invoke(nameof(Holed), .7f); st = S.Holed; return; }
-            holedHow = o.how; Holed(); return;
+            if (o.gimme) { SFX?.Cup(false); strokes++; hud.Toast("GIMME", "Inside 4 ft · conceded", Hud.Mint); Invoke(nameof(Holed), .7f); st = S.Holed; return; }
+            holedHow = o.how; SFX?.Cup(o.how == "Slam dunk" || o.how == "Off the pin" || o.how == "Dunked it"); Holed(); return;
         }
         if (o.spinBack) hud.Toast("SPIN BACK!", "", Hud.Mint);
         buried = o.buried && o.lie == "sand";   // a plugged ball stays plugged: only a blast
@@ -1160,8 +1185,9 @@ public class HoleTest : MonoBehaviour
     void Penalty(string L)
     {
         strokes++; buried = false; st = S.Holed; hud.SetHint("");
-        if (L != "water") { hud.Toast("OUT OF BOUNDS", "+1 stroke · replay from last spot", Hud.Coral); b = prev; bY = D.H(b.x, b.y); Invoke(nameof(Next), 1.6f); return; }   // stroke and distance (Rule 18.2)
+        if (L != "water") { SFX?.Miss(); hud.Toast("OUT OF BOUNDS", "+1 stroke · replay from last spot", Hud.Coral); b = prev; bY = D.H(b.x, b.y); Invoke(nameof(Next), 1.6f); return; }   // stroke and distance (Rule 18.2)
         hud.Toast("SPLASH!", "Penalty area · +1 stroke", Hud.SkyC); FX?.Splash(b.x, b.y, fPutt);
+        if (SFX != null) { if (fPutt) SFX.Plop(true); else { SFX.Splash(); SFX.Plop(false); } }
         // Rule 17: where it last crossed into the water, then lateral, back on the line, or stroke and distance; the best is marked
         var at = new[] { (double)b.x, (double)b.y }; var rec = new List<double[]>(SB.rec) { at };
         var opts = RD.ReliefOpts(RD.WaterCross(new double[] { prev.x, prev.y }, rec, at), new double[] { prev.x, prev.y }); var best = GolfGo.Sim.Round.Best(opts);

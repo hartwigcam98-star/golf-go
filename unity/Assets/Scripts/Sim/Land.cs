@@ -251,6 +251,7 @@ namespace GolfGo.Sim
             string L = H.PhysLie(x, y);
             if (L == "water" || L == "ob") { Penalty(L); return; }
             if (M.Hypot(x - pin[0], y - pin[1]) < .35) { Holed("Slam dunk"); return; }
+            Ev("land");   // (the landing thud: sfx.land)
             bool buried = false;
             if (L == "sand")
             {   // a steep drop into soft sand can plug
