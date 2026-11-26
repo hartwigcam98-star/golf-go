@@ -11,6 +11,9 @@ public class HoleTest : MonoBehaviour
     GolfGo.Sim.Tuning TU; GolfGo.Sim.Course CO; GolfGo.Sim.Strike SK; GolfGo.Sim.Flight FL; GolfGo.Sim.SimHole SH; GolfGo.Sim.Ball SB; GolfGo.Sim.Short SG; GolfGo.Sim.Putt PT; GolfGo.Sim.Round RD; float simAcc; int evSeen;
     // stage 5: the round (Troy Burne's 18), the hole being played, scores, the round's seed (pins and wind), the hole's objects
     readonly List<UnityEngine.Object> holeAssets = new List<UnityEngine.Object>();
+    // stage 6: the web game's golfer (recorded body and swing), the swing's clock from the strike, how far back he went
+    Golfer GF; string golferId; float swingClock = -1, swingBack = 1, launchAt;
+    static readonly string[][] Golfers = { new[] { "ch06", "Dex" }, new[] { "ch28", "Andre" }, new[] { "ch42", "Danny" } };
     int hi, roundSeed, roundDiff, holesDone; readonly int[] scores = new int[18], pars = new int[18]; Transform holeRoot; Dictionary<string, object> lightB;
     double puttMax = 10; bool flagOut;   // stage 4: the putter meter's length (yards of roll), the flag out inside 15 ft
     List<GolfGo.Sim.Club> Clubs;
@@ -44,6 +47,7 @@ public class HoleTest : MonoBehaviour
         TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); Clubs = TU.Clubs();
         lightB = (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(Resources.Load<TextAsset>("troy/light_bounds").text);
         BuildWorld(); BuildHud();
+        golferId = PlayerPrefs.GetString("golfer", "ch06"); LoadGolfer(golferId);
         NewRound();
     }
 
@@ -207,7 +211,7 @@ public class HoleTest : MonoBehaviour
     {
         if (st != S.Aim || C.putter) return;
         string why = SG.Why(t, Lie0, PinDist, buried); if (why != null) { var w = why.Split('·'); hud.Toast(w.Length > 1 ? w[0].Trim() : "", w[w.Length - 1].Trim(), Hud.Cream); return; }
-        ci = SG.ClubFor(t, ci); stype = t; SizeShort(); RefreshHud();
+        ci = SG.ClubFor(t, ci); stype = t; SizeShort(); RefreshHud(); PlaceGolfer();
     }
     bool ShotEnabled(string t) => !(GolfGo.Sim.Strike.BunkerT(t) && !GolfGo.Sim.Short.BunkerSide(Lie0, PinDist)) && !(buried && (t == "splash" || t == "pick"))
         && !(t == "spin" && !(Lie0 == "fairway" || Lie0 == "tee" || Lie0 == "cut"));
@@ -270,8 +274,17 @@ public class HoleTest : MonoBehaviour
         hud.SetHint("Drag to aim · Tap Swing to start");
         PlaceGolfer(); swingT = -1;
     }
+    void LoadGolfer(string id)
+    {
+        try { var g = new Golfer(id, M("Leaf0")); GF?.Destroy(); GF = g; golferId = id; PlayerPrefs.SetString("golfer", id); golfer.gameObject.SetActive(false); }
+        catch (System.Exception e) { Debug.LogError("[golfer] " + e); }   // (the simple figure stays if a golfer can't load)
+    }
     void PlaceGolfer()
     {
+        if (GF != null)
+        {   // the recorded golfer at the ball: the club and shot's own swing, at address
+            GF.Setup(C.id, C.putter, stype); GF.Place(b.x, b.y, D.H(b.x, b.y), aim); if (st == S.Aim) GF.Backswing(0, 0, true); swingClock = -1; return;
+        }
         var d = Dir(aim); var right = new Vector2(-d.y, d.x) * -1;
         var gp = b - right * (C.putter ? .55f : .75f);
         golfer.position = HoleData.U(gp.x, gp.y, D.H(gp.x, gp.y)); golfer.rotation = Quaternion.LookRotation(new Vector3(right.x, 0, -right.y));
@@ -292,7 +305,8 @@ public class HoleTest : MonoBehaviour
     void StrikeNow(float? e)
     {
         float win = Win; tapMark = e.HasValue ? IMPACT + e.Value : -1; tapGood = e.HasValue && Mathf.Abs(e.Value) <= win;
-        fromLie = Lie0; strokes++; prev = b; swingT = 0; hud.SetSwing("SWING", 0, false); hud.SetHint(""); aimLine.positionCount = 0; ring.gameObject.SetActive(false);
+        fromLie = Lie0; strokes++; prev = b; swingT = 0;
+        if (GF != null) { swingClock = 0; swingBack = Mathf.Max(.15f, (float)Power); launchAt = C.putter ? GF.PuttImpactT : GF.ImpactT; } hud.SetSwing("SWING", 0, false); hud.SetHint(""); aimLine.positionCount = 0; ring.gameObject.SetActive(false);
         if (C.putter)
         {
             // the web game's putter stroke (GolfGo.Sim.Putt): the window, a pull or push and a short miss, then the roll on the same ball
@@ -346,6 +360,15 @@ public class HoleTest : MonoBehaviour
         hud.SetWind((int)windMph, (float)(windA - aim) * Mathf.Rad2Deg);
         hud.Tick(dt);
         if (swingT >= 0) { swingT += dt; float a = swingT < .35f ? -110 * (swingT / .35f) : Mathf.Lerp(-110, 120, Mathf.Clamp01((swingT - .35f) / .25f)); club.localRotation = Quaternion.Euler(0, 0, a); if (swingT > 1.4f) swingT = -1; }
+        if (GF != null)
+        {
+            if (st == S.Aim || st == S.Power || st == S.Acc)
+            {   // the backswing chases the meter (the web game's spring); the aim can change while he stands there
+                float tgt = st == S.Power ? (mpos - IMPACT) / (1 - IMPACT) : st == S.Acc ? mPower : 0;
+                GF.Place(b.x, b.y, D.H(b.x, b.y), aim); GF.Backswing(Mathf.Max(0, tgt), dt, st == S.Aim);
+            }
+            else if (swingClock >= 0) { swingClock += dt; GF.SwingAt(swingClock, swingBack); }
+        }
         if (st == S.Flight || st == S.Roll) StepSim(dt);
         ball.position = HoleData.U(b.x, b.y, bY + .035f);
         CameraUpdate(dt);
@@ -375,6 +398,7 @@ public class HoleTest : MonoBehaviour
     const float SIM_DT = 1f / 60;
     void StepSim(float dt)
     {
+        if (GF != null && swingClock >= 0 && swingClock < launchAt) return;   // the ball waits for the club (impact: IMPACT_T into the swing)
         simAcc += dt;
         while (simAcc >= SIM_DT && SB.Moving) { SB.Step(SIM_DT); simAcc -= SIM_DT; }
         b = new Vector2((float)SB.x, (float)SB.y); bY = (float)SB.bY;
@@ -521,13 +545,19 @@ public class HoleTest : MonoBehaviour
         hud.ShowChoice("Troy Burne · " + (done ? "Final" : "Thru " + holesDone), "Round " + DiffStr(roundDiff) + " · " + Total(), sb.ToString(), opts,
             k => { var a = opts[k].Item1; if (a == "Next hole") LoadHole(hi + 1); else if (a == "New round") NewRound(); });
     }
+    void PickGolfer()
+    {
+        var opts = new List<(string, string, bool)>(); foreach (var g in Golfers) opts.Add((g[1], g[0] == golferId ? "Playing now" : "", g[0] == golferId));
+        hud.ShowChoice("Golfer", "Who's playing?", "The look only for now: shots play the same for every golfer", opts, k => { if (Golfers[k][0] != golferId) LoadGolfer(Golfers[k][0]); PlaceGolfer(); });
+    }
     void Menu()
     {
         if (hud.ChoiceOpen || !(st == S.Aim || st == S.Holed)) return;
-        var opts = new List<(string, string, bool)> { ("Resume", "", true), ("Scorecard", "Thru " + holesDone + " · Round " + DiffStr(roundDiff), false), ("Restart hole", "Hole " + (hi + 1) + " from the tee", false), ("New round", "Troy Burne from the 1st", false) };
+        string gName = System.Array.Find(Golfers, g => g[0] == golferId)?[1] ?? golferId;
+        var opts = new List<(string, string, bool)> { ("Resume", "", true), ("Scorecard", "Thru " + holesDone + " · Round " + DiffStr(roundDiff), false), ("Golfer", "Playing as " + gName, false), ("Restart hole", "Hole " + (hi + 1) + " from the tee", false), ("New round", "Troy Burne from the 1st", false) };
         hud.ShowChoice("Paused", "Troy Burne · Hole " + (hi + 1), null, opts, k =>
         {
-            if (k == 1) ShowCard(false); else if (k == 2) { if (scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); } else if (k == 3) NewRound();
+            if (k == 1) ShowCard(false); else if (k == 2) PickGolfer(); else if (k == 3) { if (scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); } else if (k == 4) NewRound();
         });
     }
 
