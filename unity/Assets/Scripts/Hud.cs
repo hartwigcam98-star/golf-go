@@ -199,7 +199,7 @@ public class Hud
         float lw = Mathf.Min(rx - 8 - x, 260);
         TopH = y + 67 + 6; STop = sTop;
         var pl = Box(root, "Plate", 14, Panel); plateL = At(pl.rectTransform, x, y, lw, 67); Drop(root, plateL, 14, 3, new Color(0, 0, 0, .28f));
-        courseT = Txt(pl.transform, "Course", fBold, 11, A(Sun, .9f)); At(courseT.rectTransform, 12, 8, lw - 24, 13); courseT.horizontalOverflow = HorizontalWrapMode.Wrap; courseT.verticalOverflow = VerticalWrapMode.Truncate;   // (one line: the web ends long titles in an ellipsis)
+        courseT = Txt(pl.transform, "Course", fBold, 11, A(Sun, .9f)); At(courseT.rectTransform, 12, 7, lw - 24, 15); courseW = lw - 24;   // (one line, ended in an ellipsis like the web's text-overflow)
         holeN = Txt(pl.transform, "N", fDisp, 34, Cream, TextAnchor.MiddleCenter); At(holeN.rectTransform, 12, 23, 26, 36);
         parT = Txt(pl.transform, "L1", fBold, 15, Cream); At(parT.rectTransform, 48, 23, lw - 60, 18);
         strokeT = Txt(pl.transform, "L2", fBody, 13, A(Cream, .8f)); At(strokeT.rectTransform, 48, 41, lw - 60, 16);
@@ -254,7 +254,7 @@ public class Hud
         float yHint = bottom - 15, yCtl = yHint - 9 - 56, yLab = yCtl - 9 - 14, yMet = yLab + 4 - 9 - 34, yShots = yMet - 9 - 36, yClub = yShots - 9 - 48, top = yClub - 28;
         // the dark fade behind it: linear-gradient(to top, rgba(9,24,36,.94) 62%, transparent)
         var bgC = new Color(9 / 255f, 24 / 255f, 36 / 255f, .94f);
-        var bg = Pic(root, "BottomFade", Tex(4, 64, (x, y) => { float t = 1 - y / 64f; return A(bgC, t >= .62f ? 1 : t / .62f); }));
+        var bg = Pic(root, "BottomFade", Tex(4, 64, (x, y) => { float t = y / 64f; return A(bgC, t >= .62f ? 1 : t / .62f); }));   // (the texture's rows run bottom up: solid at the foot, clear at the top, as the web's)
         At(bg.rectTransform, 0, top, W, Hh - top); BottomFrac = (Hh - top) / Hh; BotH = Hh - yClub + 8;
         var inner = At(RT("Inner", root), ix, 0, iw, Hh);
 
@@ -392,7 +392,16 @@ public class Hud
 
     // ---------- updates ----------
     static void Set(Text t, string s) { if (t.text != s) t.text = s; }
-    public void SetTop(string course, int hole, string l1, string l2) { Set(courseT, course.ToUpperInvariant()); Set(holeN, hole.ToString()); Set(parT, l1); Set(strokeT, l2); }
+    float courseW;
+    // text-overflow: ellipsis: the longest start of the text that fits, then …
+    readonly Dictionary<Text, string> fitFor = new Dictionary<Text, string>();
+    void Fit(Text t, string v, float w)
+    {
+        if (fitFor.TryGetValue(t, out var was) && was == v) return; fitFor[t] = v;
+        t.text = v; if (t.preferredWidth <= w) return;
+        for (int n = v.Length - 1; n > 0; n--) { t.text = v.Substring(0, n).TrimEnd() + "\u2026"; if (t.preferredWidth <= w) return; }
+    }
+    public void SetTop(string course, int hole, string l1, string l2) { Fit(courseT, course.ToUpperInvariant(), courseW); Set(holeN, hole.ToString()); Set(parT, l1); Set(strokeT, l2); }
     public void SetWind(int mph, float deg) { Set(windV, mph.ToString()); windArrow.localEulerAngles = new Vector3(0, 0, -deg); }
     public void SetClub(string id, string info, bool prevOK, bool nextOK)
     {

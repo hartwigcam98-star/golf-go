@@ -187,7 +187,7 @@ public class HoleTest : MonoBehaviour
             float sx = D.tex.w / lw, sy = D.tex.h / lh;
             gm.SetTextureScale("_DetailAlbedoMap", new Vector2(sx, sy)); gm.SetTextureOffset("_DetailAlbedoMap", new Vector2((D.tex.x0 - lx0) / lw, 1 - sy - (D.tex.y0 - ly0) / lh));
         }
-        mr.receiveShadows = false; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;   // tree shadows come from the baked light map
+        mr.receiveShadows = true; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;   // (the trees', the golfer's and the buildings' live shadows; the baked light map is off)
 
         // trees: a trunk, and a crown of leaf cards from the web game's leaf atlas (clusters of cards round an ellipsoid, as the game
         // draws them), merged per tint so the whole course is a handful of draw calls
@@ -402,7 +402,18 @@ public class HoleTest : MonoBehaviour
         cam = Camera.main; if (!cam) { cam = new GameObject("Camera").AddComponent<Camera>(); cam.tag = "MainCamera"; }
         if (CAMV < 0) CAMV = PlayerPrefs.GetInt("camv", 1);   // (Cam, Nov 25: the lower aiming view; the camera button cycles all three)
         cam.fieldOfView = 50; cam.nearClipPlane = .3f; cam.farClipPlane = 5000; cam.allowMSAA = true;
+        // the web game's sun, sky, clouds, weather and finish (GolfGoLook.cs); the old light and fog stay only if its shaders can't run
+        look = cam.gameObject.AddComponent<GolfGoLook>(); look.sun = L;
+        if (look.Ok) { RenderSettings.fog = false; look.Weather(PlayerPrefs.GetInt("wx", 0)); }
     }
+    GolfGoLook look;
+    // r3NewWx: each new round rolls its weather (Sunny, Partly cloudy, Cloudy, Overcast) and says so
+    void NewWeather()
+    {
+        if (look == null || !look.Ok) return; int i = Random.Range(0, GolfGoLook.WX.Length); PlayerPrefs.SetInt("wx", i); look.Weather(i);
+        wxToast = GolfGoLook.WX[i].n.ToUpperInvariant(); wxToastAt = Time.time + 1.4f;   // (a timer of its own: loading the hole cancels Invokes)
+    }
+    string wxToast; float wxToastAt = -1;
     static Mesh Prim(PrimitiveType t) { var o = GameObject.CreatePrimitive(t); var m = o.GetComponent<MeshFilter>().sharedMesh; Destroy(o); return m; }
     static Transform Make(Transform parent, Mesh mesh, Material mat, Vector3 pos, Vector3 scale)
     {
@@ -611,6 +622,7 @@ public class HoleTest : MonoBehaviour
         if (st == S.Aim && !mapView) { string h = fc != null ? (fc.follow ? "Scouting your shot \u00b7 change club or aim \u00b7 drag to turn \u00b7 pinch to zoom" : "Free look \u00b7 tap Landing to follow your shot again") : C.putter ? "Grid lines: red is steep, green is gentle \u00b7 the glow runs downhill" : stype == "full" || stype == "spin" ? "Drag to aim \u00b7 Tap Swing to start" : ShotHint.TryGetValue(stype, out var sh) ? sh : "Drag to aim \u00b7 Tap Swing to start"; if (h != lastHint) { lastHint = h; hud.SetHint(h); } }
         else if (st == S.Aim && mapView && lastHint != "map") { lastHint = "map"; hud.SetHint("Tap the map button to return to your ball"); }
         else if (st != S.Aim) lastHint = null;
+        if (wxToastAt > 0 && Time.time >= wxToastAt) { wxToastAt = -1; hud.Toast(wxToast, "Today's conditions", Hud.Hex("#bfe3ff")); }
         float fdt = FfActive && ff > 1 ? dt * ff : dt;   // fast-forward: the web runs several updates a frame; here, the time steps n times as far
         hud.SetFlagChip(st == S.Aim && C.putter && Lie0 == "green" && !hud.ChoiceOpen, flagOut);
         if (st == S.Aim && (fc != null) != swingBack0) { swingBack0 = fc != null; hud.SetSwing(swingBack0 ? "\u21a9 BACK" : "SWING", 0, true); }
@@ -1039,7 +1051,7 @@ public class HoleTest : MonoBehaviour
     // ---------- the round (stage 5): Troy Burne's 18 in order, the web game's Quick play pins and wind ----------
     void NewRound()
     {
-        CancelInvoke(); hud.HideChoice(); roundSeed = Random.Range(1, 1000000000); roundDiff = 0; holesDone = 0;
+        CancelInvoke(); hud.HideChoice(); roundSeed = Random.Range(1, 1000000000); roundDiff = 0; holesDone = 0; NewWeather();
         for (int k = 0; k < 18; k++) { scores[k] = 0; pars[k] = 0; }
         LoadHole(0);
     }
