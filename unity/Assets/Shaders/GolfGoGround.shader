@@ -29,6 +29,12 @@ Shader "GolfGo/Ground"
         _RLS ("Mown stripes", Vector) = (1, 0, 11, 0)
         _RLG ("Green stripes", Vector) = (0, 0, 0, 0)
         _GMode ("Hole (1) or beyond (0)", Float) = 1
+        _SlT ("Green slope map (slT, raw bytes)", 2D) = "black" {}
+        _SLB ("Slope map rect", Vector) = (0, 0, 1, 1)
+        _SlRot ("Grid direction (ball to pin)", Vector) = (1, 0, 0, 0)
+        _SlOn ("Slope grid fade", Float) = 0
+        _SLG ("Grid spacing", Float) = 1
+        _SlDk ("Darker grid", Float) = 0
         _POn ("Photo detail on", Float) = 1
         _LightOn ("Baked light on", Float) = 1
     }
@@ -39,6 +45,7 @@ Shader "GolfGo/Ground"
         CGPROGRAM
         #pragma surface surf Standard noforwardadd
         #pragma target 3.5
+        sampler2D _SlT; float4 _SLB, _SlRot; float _SlOn, _SLG, _SlDk;
         sampler2D _MainTex, _Light, _Surf, _DS, _DR, _DF, _DD, _PG, _PS, _Surround;
         float4 _GB, _GSB, _GSS, _LB, _TK, _RLS, _RLG; float _GMode, _POn, _LightOn;
         struct Input { float3 worldPos; };
@@ -110,6 +117,43 @@ Shader "GolfGo/Ground"
                 }
             }
             c *= lerp(float3(1, 1, 1), float3(1.05, 1.03, .9), smoothstep(.55, .8, vnoise(q * .013)) * .5 * (w.r + w.g));
+            // the green's slope grid (ground.js): lines coloured by steepness (green gentle to red severe), bright dashes marching along
+            // each line toward lower ground, faster the more it breaks. slT is uploaded raw (row 0 = the rect's top edge y0): read as is.
+            float2 slR = _SlRot.xy, gq = float2(dot(q, slR), dot(q, float2(-slR.y, slR.x))) / _SLG, fw = max(fwidth(gq), float2(.03, .03));
+            if (_GMode > .5 && _SlOn > .002)
+            {
+                float2 sv = (q - _SLB.xy) / _SLB.zw;
+                if (sv.x > 0. && sv.y > 0. && sv.x < 1. && sv.y < 1.)
+                {
+                    float4 s = tex2Dlod(_SlT, float4(sv, 0, 0)); float a = s.a * _SlOn;
+                    if (a > .003)
+                    {
+                        float k = s.b; float3 g0 = float3(.08, .95, .42), g1 = float3(1., .9, .08), g2 = float3(1., .48, .04), g3 = float3(1., .08, .08);
+                        float3 rc = k < .34 ? lerp(g0, g1, k / .34) : k < .67 ? lerp(g1, g2, (k - .34) / .33) : lerp(g2, g3, (k - .67) / .33);
+                        float2 gf = abs(frac(gq - .5) - .5);
+                        float2 ln = 1. - smoothstep(fw * .35, fw * 1.9, gf), ln2 = 1. - smoothstep(fw * .9, fw * 3., gf);
+                        float Lf = (1. - smoothstep(.22, .45, max(fw.x, fw.y))) * (1. - smoothstep(50., 90., dist));
+                        float2 hl = 1. - smoothstep(fw * 1.2, fw * 4.2, gf); float far = smoothstep(10., 35., dist) * _SlDk; c *= 1. - _SlDk * (.26 + .12 * far) * max(hl.x, hl.y) * Lf * a;
+                        float2 pr = float2(-slR.y, slR.x); float dfd = 1. - smoothstep(30., 60., dist);
+                        float lxy[2] = { 0., 0. };
+                        [unroll] for (int ax = 0; ax < 2; ax++)
+                        {
+                            float lw = ax == 0 ? ln.x : ln.y, lw2 = ax == 0 ? ln2.x : ln2.y;
+                            float along = ax == 0 ? gq.y : gq.x, across = ax == 0 ? gq.x : gq.y;
+                            float2 sc2 = ax == 0 ? float2(floor(across + .5), floor(along) + .5) : float2(floor(along) + .5, floor(across + .5));
+                            float2 cw = (sc2.x * slR + sc2.y * pr) * _SLG; float4 sq = tex2Dlod(_SlT, float4(clamp((cw - _SLB.xy) / _SLB.zw, 0., 1.), 0, 0));
+                            float2 d2 = sq.rg * 2. - 1.; float l2 = length(d2);
+                            float comp = l2 > .3 ? (ax == 0 ? dot(d2, pr) : dot(d2, slR)) / l2 : 0.; float m = smoothstep(.12, .45, abs(comp)) * dfd * (1. - smoothstep(.07, .16, max(fw.x, fw.y)));
+                            float ph = frac(along - _Time.y * (.25 + 2.6 * sq.b) * comp); if (comp < 0.) ph = 1. - ph;
+                            float dash = smoothstep(.4, .88, ph) * (1. - smoothstep(.88, .98, ph));
+                            lxy[ax] = lw2 < .01 ? 0. : max(lw * lerp(.62, .45, m), lw2 * 1.45 * dash * m);
+                        }
+                        float lmax = max(lxy[0], lxy[1]), L = lmax * Lf;
+                        float3 rcd = lerp(rc, rc * rc, .55) * .82, lc = lerp(lerp(c * 1.1, rc * .85, .75), lerp(c * .9, rcd, .8), _SlDk), lb = rc * 1.55 + .16;
+                        c = lerp(c, lerp(lc, lb, clamp((lmax - .62) / .75, 0., 1.)), clamp(L * a * (1. + .4 * far), 0., 1.));
+                    }
+                }
+            }
             if (_GMode > .5)
             {   // mown stripes are light on the blades: they swap shade as you walk round them and fade looking straight down
                 float3 vw3 = wp - _WorldSpaceCameraPos; float2 vq = float2(vw3.x, -vw3.z); float hz = length(vq); float2 vd = vq / max(hz, 1e-3);

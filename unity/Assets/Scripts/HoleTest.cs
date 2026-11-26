@@ -60,7 +60,7 @@ public class HoleTest : MonoBehaviour
     void BuildHole()
     {
         if (holeRoot) Destroy(holeRoot.gameObject);
-        foreach (var o in holeAssets) if (o) Destroy(o); holeAssets.Clear();
+        foreach (var o in holeAssets) if (o) Destroy(o); holeAssets.Clear(); slopeMat = null;
         holeRoot = new GameObject("Hole " + (hi + 1)).transform;
         var g = D.hg; int nx = g.nx, ny = g.ny;
         var v = new Vector3[nx * ny]; var uv = new Vector2[nx * ny];
@@ -163,6 +163,22 @@ public class HoleTest : MonoBehaviour
         float F(int i) => i < a.Count ? System.Convert.ToSingle(a[i]) : 0; return new Vector4(F(0), F(1), F(2), F(3));
     }
     // the hole's ground material: the web game's ground shader (GolfGo/Ground) when it's in the build, else the Standard ground
+    Material slopeMat; float slFade; Vector2 slRotV = new Vector2(1, 0);
+    // slopeWanted (webgl-ground.js): on the green, putting, a short shot within 40 yd, a putt rolling, or looking near the green
+    bool SlopeWanted()
+    {
+        if (st == S.Holed && !inCup) return false; bool aiming = AimingSt && !mapView; var pin = new Vector2(D.pin[0], D.pin[1]);
+        return Lie0 == "green" || (aiming && C.putter) || (aiming && !C.putter && Short && PinDist <= 40) || (st == S.Roll && fromLie == "green")
+            || (fc != null && st == S.Aim && fc.dist < 120 && Vector2.Distance(new Vector2(fc.tx, fc.tz), pin) < 50) || (fc != null && st == S.Aim && fc.fly == null && !C.putter && fc.dist < 160);
+    }
+    void SlopeGrid(float dt)
+    {
+        if (slopeMat == null) return;
+        slFade += ((SlopeWanted() ? 1 : 0) - slFade) * (1 - Mathf.Exp(-Mathf.Min(.5f, dt) * 7)); if (slFade < .003f) slFade = 0;
+        bool moving = st == S.Flight || st == S.Roll || st == S.Holed; var o = st == S.Replay ? rp0 : moving ? prev : b;   // the grid runs ball-to-pin from where the shot was played
+        var d = new Vector2(D.pin[0], D.pin[1]) - o; float l = d.magnitude; if (l > .3f) slRotV = d / l;
+        slopeMat.SetFloat("_SlOn", slFade); slopeMat.SetVector("_SlRot", new Vector4(slRotV.x, slRotV.y, 0, 0)); slopeMat.SetFloat("_SlDk", PlayerPrefs.GetInt("grid", 0));
+    }
     Material GroundMat()
     {
         var gg = M("GroundG");
@@ -175,6 +191,16 @@ public class HoleTest : MonoBehaviour
         gm.SetVector("_GB", V4(look, "gB", new Vector4(D.tex.x0, D.tex.y0, D.tex.w, D.tex.h))); gm.SetVector("_GSB", V4(look, "gSB", new Vector4(D.lg.x0, D.lg.y0, D.lg.nx, D.lg.ny)));
         gm.SetVector("_GSS", V4(look, "gSS", Vector4.zero)); gm.SetVector("_TK", V4(look, "tK", Vector4.one)); gm.SetVector("_RLS", V4(look, "rlS", Vector4.zero)); gm.SetVector("_RLG", V4(look, "rlG", Vector4.zero));
         gm.SetFloat("_POn", look != null && look.TryGetValue("pOn", out var po) && po is double pd ? (float)pd : 1); gm.SetFloat("_GMode", 1); gm.SetFloat("_LightOn", 0);
+        // the green's slope map (export_slope.js: buildSlopeTex's own bytes)
+        var sb = Resources.Load<TextAsset>(HolePath("_slope"));
+        if (sb != null)
+        {
+            var by = sb.bytes; float x0 = System.BitConverter.ToSingle(by, 0), y0 = System.BitConverter.ToSingle(by, 4), sw = System.BitConverter.ToSingle(by, 8), sh = System.BitConverter.ToSingle(by, 12);
+            int nx = System.BitConverter.ToInt32(by, 16), ny = System.BitConverter.ToInt32(by, 20);
+            var st = new Texture2D(nx, ny, TextureFormat.RGBA32, false, true) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            var raw = new byte[nx * ny * 4]; System.Buffer.BlockCopy(by, 24, raw, 0, raw.Length); st.LoadRawTextureData(raw); st.Apply(false, true); holeAssets.Add(st);
+            gm.SetTexture("_SlT", st); gm.SetVector("_SLB", new Vector4(x0, y0, sw, sh)); gm.SetFloat("_SLG", 1); gm.SetFloat("_SlOn", 0); if (slopeMat == null) slopeMat = gm;   // (the hole's ground, built first; the skirt shares the code)
+        }
         return gm;
     }
     // the land round the hole (the web game's skirt, r3Surround): a 20-yd grid of the course's elevation, the hole's own rect cut out
@@ -442,7 +468,7 @@ public class HoleTest : MonoBehaviour
         hud.SetLookBar(lkH, lkH && NearGreen, lkH && fc.read, lkH && fc.follow);
         LookRet(lkH);
         PinAndFlag();
-        if (st == S.Aim && !mapView) { string h = fc != null ? (fc.follow ? "Scouting your shot \u00b7 change club or aim \u00b7 drag to turn \u00b7 pinch to zoom" : "Free look \u00b7 tap Landing to follow your shot again") : "Drag to aim \u00b7 Tap Swing to start"; if (h != lastHint) { lastHint = h; hud.SetHint(h); } }
+        if (st == S.Aim && !mapView) { string h = fc != null ? (fc.follow ? "Scouting your shot \u00b7 change club or aim \u00b7 drag to turn \u00b7 pinch to zoom" : "Free look \u00b7 tap Landing to follow your shot again") : C.putter ? "Grid lines: red is steep, green is gentle \u00b7 the glow runs downhill" : stype == "full" || stype == "spin" ? "Drag to aim \u00b7 Tap Swing to start" : ShotHint.TryGetValue(stype, out var sh) ? sh : "Drag to aim \u00b7 Tap Swing to start"; if (h != lastHint) { lastHint = h; hud.SetHint(h); } }
         else if (st == S.Aim && mapView && lastHint != "map") { lastHint = "map"; hud.SetHint("Tap the map button to return to your ball"); }
         else if (st != S.Aim) lastHint = null;
         float fdt = FfActive && ff > 1 ? dt * ff : dt;   // fast-forward: the web runs several updates a frame; here, the time steps n times as far
@@ -482,6 +508,7 @@ public class HoleTest : MonoBehaviour
         hud.SetReplayBtn(st == S.Aim && canReplay && !mapView && fc == null && !hud.ChoiceOpen);
         hud.SetFF(FfActive, ff);
         CameraUpdate(fdt);
+        SlopeGrid(dt);
         if (WR != null) WR.Render(cam);   // the water's mirror, from where the camera now is
     }
     // ---------- touches (input.js): one finger drags the aim; a second finger (a pinch) opens the look camera; in the look camera one finger
@@ -626,6 +653,12 @@ public class HoleTest : MonoBehaviour
     // the reticle and its pill (hud.js): the lie there, how far, uphill or down, and how far from the pin when it's close
     Vector2 landPx; float landRy; bool landOk;
     string lastHint;
+    // SHOTS[t].hint (clubs-and-surfaces.js)
+    static readonly Dictionary<string, string> ShotHint = new Dictionary<string, string> {
+        { "punch", "Punch \u2014 low, bores through wind, runs out, stays under branches" }, { "pitch", "Pitch \u2014 soft, medium height, checks up" },
+        { "chip", "Chip \u2014 low hop, then rolls like a putt" }, { "flop", "Flop \u2014 sky-high and stops dead; tight timing" },
+        { "splash", "Splash \u2014 the standard bunker shot: up, out and a little release" }, { "pick", "Pick \u2014 clean off the top of the sand: lands soft and stops; tight timing" },
+        { "blast", "Blast \u2014 forgiving: comes out low and runs out" } };
     // the flagstick grows when far off so it's always at least 30 px tall (ps), and the pin's yardage sits above it (drawPinLabel)
     void PinAndFlag()
     {
