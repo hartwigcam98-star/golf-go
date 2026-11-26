@@ -179,7 +179,7 @@ public class HoleTest : MonoBehaviour
                 if (view == 2) { CAMV = 1; Try("look", LookGreen); }
                 yield return new WaitForSecondsRealtime(view == 0 ? 3.5f : 2.5f);
                 yield return new WaitForEndOfFrame();
-                var t = ScreenCapture.CaptureScreenshotAsTexture();
+                var t = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false); t.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0); t.Apply();   // (the ScreenCapture module isn't in the build)
                 var name = "h" + (h + 1).ToString("00") + "_" + new[] { "tee", "tee_high", "green" }[view] + ".png";
                 System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, name), t.EncodeToPNG()); Destroy(t);
                 Debug.Log("GGSHOT " + name + " " + Screen.width + "x" + Screen.height + " · " + Diag() + (errs.Count > 0 ? " · errors: " + string.Join(" | ", errs) : ""));
