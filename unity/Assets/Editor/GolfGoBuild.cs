@@ -96,6 +96,12 @@ public static class GolfGoBuild
         AssetDatabase.ImportAsset("Assets/Shaders/GolfGoGrass.shader", ImportAssetOptions.ForceUpdate);
         { var gs = Shader.Find("GolfGo/Grass"); var gp = "Assets/Resources/Mats/Grass.mat"; var gm2 = AssetDatabase.LoadAssetAtPath<Material>(gp);
           if (gs) { if (!gm2) { gm2 = new Material(gs); AssetDatabase.CreateAsset(gm2, gp); } else gm2.shader = gs; gm2.enableInstancing = true; EditorUtility.SetDirty(gm2); } else Debug.LogError("GolfGo/Grass shader didn't compile"); }
+        // the far trees: the picture atlas (sRGB, no repeat) and its material
+        { var ii = AssetImporter.GetAtPath("Assets/Resources/trees/imp.png") as TextureImporter;
+          if (ii) { ii.sRGBTexture = true; ii.alphaIsTransparency = true; ii.wrapMode = TextureWrapMode.Clamp; ii.mipmapEnabled = true; ii.maxTextureSize = 2048; ii.npotScale = TextureImporterNPOTScale.None; ii.SaveAndReimport(); }
+          AssetDatabase.ImportAsset("Assets/Shaders/GolfGoFar.shader", ImportAssetOptions.ForceUpdate);
+          var fs2 = Shader.Find("GolfGo/Far"); var fp = "Assets/Resources/Mats/Far.mat"; var fm = AssetDatabase.LoadAssetAtPath<Material>(fp);
+          if (fs2) { if (!fm) { fm = new Material(fs2); AssetDatabase.CreateAsset(fm, fp); } else fm.shader = fs2; fm.enableInstancing = true; fm.SetTexture("_MainTex", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/trees/imp.png")); EditorUtility.SetDirty(fm); } else Debug.LogError("GolfGo/Far shader didn't compile"); }
         // the shot tracer
         AssetDatabase.ImportAsset("Assets/Shaders/GolfGoTracer.shader", ImportAssetOptions.ForceUpdate);
         { var trs = Shader.Find("GolfGo/Tracer"); var trp = "Assets/Resources/Mats/Tracer.mat"; var trm = AssetDatabase.LoadAssetAtPath<Material>(trp);

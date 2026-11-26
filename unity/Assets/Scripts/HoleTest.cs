@@ -245,7 +245,7 @@ public class HoleTest : MonoBehaviour
         BuildWater(); BuildSkirt();
         Built.Build(HolePath(""), holeRoot, holeAssets);   // the clubhouse, houses, structures, bridges and props (Built.cs)
         // the grass blades (Grass.cs), on this hole's ground textures
-        grass?.Dispose(); grass = null;
+        grass?.Dispose(); grass = null; far?.Dispose(); far = new FarTrees(HolePath(""));   // (the far trees: FarTrees.cs)
         if (slopeMat != null && slopeMat.shader.name == "GolfGo/Ground")
             grass = new Grass(D, slopeMat.GetTexture("_Surf"), slopeMat.GetTexture("_MainTex"), slopeMat.GetVector("_GSB"), slopeMat.GetVector("_GB"), slopeMat.GetVector("_TK"));
         float ph = D.H(D.pin[0], D.pin[1]); flag = new GameObject("Flag").transform; flag.SetParent(holeRoot); flag.position = HoleData.U(D.pin[0], D.pin[1], ph);
@@ -262,7 +262,7 @@ public class HoleTest : MonoBehaviour
         float F(int i) => i < a.Count ? System.Convert.ToSingle(a[i]) : 0; return new Vector4(F(0), F(1), F(2), F(3));
     }
     // the hole's ground material: the web game's ground shader (GolfGo/Ground) when it's in the build, else the Standard ground
-    Trees speciesTrees; Grass grass;
+    Trees speciesTrees; Grass grass; FarTrees far;
     /* the ball is drawn at least 2.6 px across its radius (immediate-mode-primitives.js: r = max(.024, 2.6/k)), so it can be followed
        in the air; and the tracer (r3Tracer): a glowing ribbon along the flight up to where it lands, fading once the next shot is set up */
     Mesh trMesh; Material trMat; GameObject trGo; float trFade; GolfGo.Sim.Flight trF; double trLand = 9;
@@ -660,7 +660,7 @@ public class HoleTest : MonoBehaviour
         hud.SetReplayBtn(st == S.Aim && canReplay && !mapView && fc == null && !hud.ChoiceOpen);
         hud.SetFF(FfActive, ff);
         CameraUpdate(fdt);
-        speciesTrees?.Lod(cam.transform.position);
+        speciesTrees?.Lod(cam.transform.position); far?.Draw();
         // the grass: densest round the ball (or the look camera's spot); none in the overview or while the look camera is far out
         grass?.Draw(cam, fc != null && st == S.Aim ? new Vector2(fc.tx, fc.tz) : b, b, (float)windA, (float)windMph, mapView || (fc != null && st == S.Aim && fc.dist > 140));
         SlopeGrid(dt);
