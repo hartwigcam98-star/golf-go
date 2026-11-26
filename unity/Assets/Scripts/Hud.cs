@@ -523,8 +523,9 @@ public class Hud
         for (int i = 0; i < 4; i++)
         {
             int k = i; var b = Box(root, "LB" + i, 15.5f, i == 3 ? Sun : new Color(12 / 255f, 30 / 255f, 46 / 255f, .9f));
-            var t = Txt(b.transform, "T", fBold, 14, i == 3 ? Ink : Cream, TextAnchor.MiddleCenter); t.text = ln[i];
-            float w = Mathf.Ceil(t.preferredWidth) + 26; At(b.rectTransform, 0, STop + 84, w, 31); At(t.rectTransform, 0, 0, w, 31);
+            var t = Txt(b.transform, "T", fBold, 14, i == 3 ? Ink : Cream, TextAnchor.MiddleLeft); t.text = ln[i];
+            float ic = i == 3 ? 0 : 20, tw = Mathf.Ceil(t.preferredWidth), w = tw + 26 + ic; At(b.rectTransform, 0, STop + 84, w, 31); At(t.rectTransform, 13 + ic, 0, tw + 4, 31);
+            if (i < 3) At(Pic(b.transform, "Ico", Icon(i == 0 ? "flagHole" : i == 1 ? "map" : "target")).rectTransform, 13, 7.5f, 16, 16);
             var dr = Drop(root, b.rectTransform, 15.5f, 3, new Color(0, 0, 0, .25f));
             Press(b, () => onLookBar?.Invoke(k)); lookBar[i] = (b, t, dr, w);
         }
@@ -539,6 +540,18 @@ public class Hud
         retPill = Box(lookRet, "Pill", 11, new Color(12 / 255f, 30 / 255f, 46 / 255f, .88f)); retPill.rectTransform.pivot = new Vector2(.5f, 1);
         retT = Txt(retPill.transform, "T", fBold, 13, Cream, TextAnchor.MiddleCenter); retT.rectTransform.anchorMin = Vector2.zero; retT.rectTransform.anchorMax = Vector2.one; retT.rectTransform.pivot = new Vector2(.5f, .5f); retT.rectTransform.offsetMin = retT.rectTransform.offsetMax = Vector2.zero;
         lookRet.gameObject.SetActive(false);
+    }
+    // drawPinLabel: the pin's yardage in a pill above the flag
+    Image pinPill; Text pinPillT;
+    public void SetPinLabel(bool shown, Vector2 px, string txt)
+    {
+        if (pinPill == null)
+        {
+            pinPill = Box(aimLayer, "PinLbl", 10, new Color(12 / 255f, 30 / 255f, 46 / 255f, .85f)); pinPill.rectTransform.pivot = new Vector2(.5f, 0);
+            pinPillT = Txt(pinPill.transform, "T", fBold, 13, Cream, TextAnchor.MiddleCenter); var r = pinPillT.rectTransform; r.anchorMin = Vector2.zero; r.anchorMax = Vector2.one; r.pivot = new Vector2(.5f, .5f); r.offsetMin = r.offsetMax = Vector2.zero;
+        }
+        if (pinPill.gameObject.activeSelf != shown) pinPill.gameObject.SetActive(shown); if (!shown) return;
+        Set(pinPillT, txt); pinPill.rectTransform.sizeDelta = new Vector2(Mathf.Ceil(pinPillT.preferredWidth) + 14, 20); pinPill.rectTransform.anchoredPosition = Css(px) + new Vector2(0, 6);   // (its bottom 6 above the flag's top)
     }
     public Action onCam; public Action<int> onLookBar; Image camBtn, camDrop; Text camNum, retT; RectTransform lookRet; RawImage retRing; Image retPill;
     readonly (Image b, Text t, Image d, float w)[] lookBar = new (Image, Text, Image, float)[4];
@@ -692,6 +705,16 @@ public class Hud
                       float r = Mathf.Sqrt((x - 12) * (x - 12) + (y - 12) * (y - 12));
                       return A(ec, Cov(Mathf.Min(Mathf.Abs(Mathf.Max(d1, d2)), Mathf.Abs(r - 3.2f)) - 1));
                   }; break; }
+            case "flagHole":   // the ⛳ of "Green": a pole, a red flag, the green under it
+                f = (x, y) =>
+                {
+                    float e = ((x - 12) * (x - 12)) / 81f + ((y - 19.5f) * (y - 19.5f)) / 9f;
+                    var c = Over(Color.clear, Hex("#7cc257"), Cov((Mathf.Sqrt(e) - 1) * 3)); c = Over(c, Ink, Cov((Mathf.Sqrt(((x - 12) * (x - 12)) / 4f + ((y - 19.5f) * (y - 19.5f)) / 1f) - 1)));
+                    c = Over(c, Cream, Cov(SdSeg(x, y, 12, 3, 12, 19.5f) - .9f));
+                    return Over(c, Hex("#ff4d4d"), Cov(SdPoly(x, y, new[] { new Vector2(12.5f, 3), new Vector2(20, 6), new Vector2(12.5f, 9) })));
+                }; break;
+            case "target":     // the ◎ of "Landing"
+                f = (x, y) => { float r = Mathf.Sqrt((x - 12) * (x - 12) + (y - 12) * (y - 12)); return A(Cream, Cov(Mathf.Min(Mathf.Abs(r - 8.5f) - 1.2f, r - 3.2f))); }; break;
             case "camera":  // M3 8.5h3.2l1.6-2.5h8.4l1.6 2.5H21v10H3z, circle (12, 13.2) r 3.3, stroke 2
                 { var o = new[] { new Vector2(3, 8.5f), new Vector2(6.2f, 8.5f), new Vector2(7.8f, 6), new Vector2(16.2f, 6), new Vector2(17.8f, 8.5f), new Vector2(21, 8.5f), new Vector2(21, 18.5f), new Vector2(3, 18.5f), new Vector2(3, 8.5f) };
                   f = (x, y) => { float r = Mathf.Sqrt((x - 12) * (x - 12) + (y - 13.2f) * (y - 13.2f)); return A(Cream, Cov(Mathf.Min(SdPolyline(x, y, o), Mathf.Abs(r - 3.3f)) - 1)); }; break; }

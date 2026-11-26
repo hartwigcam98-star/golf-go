@@ -358,7 +358,7 @@ public class HoleTest : MonoBehaviour
         flagOut = GolfGo.Sim.Putt.FlagOut(Lie0, PinDist);   // inside 15 ft on the green the flag comes out (a ball needs less pace to drop)
         ShowFlag();
         st = S.Aim; mpos = IMPACT; mapView = false; swingBack0 = false; inCup = false; if (pick) landPt = null; hud.SetSwing("SWING", 0, true); RefreshHud();
-        hud.SetHint("Drag to aim · Tap Swing to start");
+        lastHint = null;
         PlaceGolfer(); swingT = -1;
     }
     void ShowFlag() { for (int k = 0; k < 2 && k < flag.childCount; k++) flag.GetChild(k).gameObject.SetActive(!flagOut); }
@@ -438,6 +438,10 @@ public class HoleTest : MonoBehaviour
         hud.SetCam(aimingHud && !mapView && !lkH && !C.putter && Lie0 != "green", CAMV);
         hud.SetLookBar(lkH, lkH && NearGreen, lkH && fc.read, lkH && fc.follow);
         LookRet(lkH);
+        PinAndFlag();
+        if (st == S.Aim && !mapView) { string h = fc != null ? (fc.follow ? "Scouting your shot \u00b7 change club or aim \u00b7 drag to turn \u00b7 pinch to zoom" : "Free look \u00b7 tap Landing to follow your shot again") : "Drag to aim \u00b7 Tap Swing to start"; if (h != lastHint) { lastHint = h; hud.SetHint(h); } }
+        else if (st == S.Aim && mapView && lastHint != "map") { lastHint = "map"; hud.SetHint("Tap the map button to return to your ball"); }
+        else if (st != S.Aim) lastHint = null;
         hud.SetFlagChip(st == S.Aim && C.putter && Lie0 == "green" && !hud.ChoiceOpen, flagOut);
         if (st == S.Aim && (fc != null) != swingBack0) { swingBack0 = fc != null; hud.SetSwing(swingBack0 ? "\u21a9 BACK" : "SWING", 0, true); }
         if (st == S.Power)
@@ -613,6 +617,20 @@ public class HoleTest : MonoBehaviour
     }
     // the reticle and its pill (hud.js): the lie there, how far, uphill or down, and how far from the pin when it's close
     Vector2 landPx; float landRy; bool landOk;
+    string lastHint;
+    // the flagstick grows when far off so it's always at least 30 px tall (ps), and the pin's yardage sits above it (drawPinLabel)
+    void PinAndFlag()
+    {
+        var pw = HoleData.U(D.pin[0], D.pin[1], D.H(D.pin[0], D.pin[1])); var pc = cam.WorldToScreenPoint(pw);
+        float ps = pc.z >= .3f ? Mathf.Max(1, 30 / (2.6f * (VfPx / pc.z / hud.K))) : 1;
+        if (flag.childCount >= 2)
+        {
+            flag.GetChild(0).localPosition = new Vector3(0, 1.25f * ps, 0); flag.GetChild(0).localScale = new Vector3(.056f * ps, 1.25f * ps, .056f * ps);
+            flag.GetChild(1).localPosition = new Vector3(.28f * ps, 2.3f * ps, 0); flag.GetChild(1).localScale = new Vector3(.55f * ps, .35f * ps, .01f * ps);
+        }
+        var top = cam.WorldToScreenPoint(pw + Vector3.up * 2.6f * ps);
+        hud.SetPinLabel(pc.z >= .3f && top.z >= .3f && !inCup && !(AimingSt && C.putter) && !mapView, top, Mathf.RoundToInt(PinDist) + "y");
+    }
     void LookRet(bool on)
     {
         if (!on) { hud.SetLookRet(false, default, false, 0, ""); return; }
