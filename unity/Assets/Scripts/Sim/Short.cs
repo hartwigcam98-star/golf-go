@@ -50,7 +50,7 @@ namespace GolfGo.Sim
         public Finish FinishAt(ShotIn s, double carry)
         {
             var c = S.Club(s.club); var (dx, dy) = M.Dir(s.aim); var Mv = S.ShotMods(c, s);
-            var f = new Flight { sx = s.bx, sy = s.by, y0 = C.HAt(s.bx, s.by) + .03, dx = dx, dy = dy, px = -dy, py = dx, carry = carry, lat = 0, wx = dx * 0, wy = dy * 0, apex = S.ShotApex(c, carry, s) * Mv.apex, rollMul = Mv.roll, back = Mv.back * S.Cm.Spin };
+            var f = new Flight { sx = s.bx, sy = s.by, y0 = C.HAt(s.bx, s.by) + .03, dx = dx, dy = dy, px = -dy, py = dx, carry = carry, lat = 0, wx = dx * 0, wy = dy * 0, apex = S.ShotApex(c, carry, s) * Mv.apex, rollMul = Mv.roll * S.Cm.Roll(c, s.stype), back = Mv.back * S.Cm.SpinC(c) };
             double lx = s.bx + dx * carry, ly = s.by + dy * carry, u = .5;
             for (; u < 2.4; u += .01) { var q = f.Pos(u); lx = q.x; ly = q.y; if (q.Y <= C.HAt(q.x, q.y) + .03) break; }
             string L = H.Lie(lx, ly);

@@ -5,7 +5,7 @@
    usage: node record_short.js <site> <outDir>                                                                            */
 const fs = require('fs'), path = require('path'), boot = require('./boot.js');
 const SITE = process.argv[2], OUT = process.argv[3];
-const GOLFER = process.env.GOLFER || '';
+const GOLFER = process.env.GOLFER || '', BAGS = process.env.BAG || '';
 (async () => {
   const g = await boot(SITE);
   await g.ev(`(()=>{Math.random=rng(99);G.mode='practice';G.pinSeed=424242;G.scores=[];setCourse('troy',false);startHole(0);$('introM').hidden=true;try{R3R.on=false;}catch(e){}
@@ -16,7 +16,9 @@ const GOLFER = process.env.GOLFER || '';
     const one=()=>1;window.__ID={carry:one,err:one,win:one,curve:1,spin:1,wind:1,putt:1,mis:1,sgVar:1,puttD:1,misFull:1,perf:1.03};
     G.cm=__ID;BAGC.set(__ID,{v:BAGV,w:__ID});
     // GOLFER=<id>: that golfer's own game instead (charMods, the standard bag: the Unity game's golfers)
-    if(${JSON.stringify(GOLFER)})G.cm=charMods(CHARS.find(c=>c.id===${JSON.stringify(GOLFER)}));return 'ok';})()`);
+    if(${JSON.stringify(GOLFER)})G.cm=charMods(CHARS.find(c=>c.id===${JSON.stringify(GOLFER)}));
+    // BAG=drv,irn,wdg,ball: that gear in the bag (the standard putter)
+    if(${JSON.stringify(BAGS)}){const b=${JSON.stringify(BAGS)}.split(',');BAG.drv=b[0];BAG.irn=b[1];BAG.wdg=b[2];BAG.ball=b[3];BAGV++;}return 'ok';})()`);
   // spots round the green on every lie
   const spots = JSON.parse(await g.ev(`(()=>{const p=G.hole.pin,o={};for(let r=4;r<=60;r+=1.5)for(let k=0;k<48;k++){const a=k/48*TAU+r*.37,x=p[0]+Math.cos(a)*r,y=p[1]+Math.sin(a)*r,L=lieAt(x,y);
       if(L==='water'||L==='ob'||L==='green')continue;(o[L]=o[L]||[]).push([+x.toFixed(2),+y.toFixed(2),+r.toFixed(1)]);}
@@ -68,7 +70,8 @@ const GOLFER = process.env.GOLFER || '';
   }
   fs.mkdirSync(OUT, { recursive: true });
   if (GOLFER) for (const r of res) r.golfer = GOLFER;
-  fs.writeFileSync(path.join(OUT, 'short_cases' + (GOLFER ? '_' + GOLFER : '') + '.json'), JSON.stringify(res));
+  if (BAGS) for (const r of res) r.bag = BAGS;
+  fs.writeFileSync(path.join(OUT, 'short_cases' + (GOLFER ? '_' + GOLFER : '') + (BAGS ? '_bag' : '') + '.json'), JSON.stringify(res));
   const by = {}; for (const r of res) { const k = r.pre.stype + '@' + r.pre.lie; by[k] = (by[k] || 0) + 1; }
   const out = {}; for (const r of res) { const k = r.out ? r.out.kind + (r.out.gimme ? ':gimme' : '') : 'none'; out[k] = (out[k] || 0) + 1; }
   console.log(res.length, 'cases', JSON.stringify(by)); console.log(JSON.stringify(out), 'errors', g.errs.slice(0, 3));

@@ -43,6 +43,8 @@ static class Program
         int pbad = Putting(root, S, C, "putt_cases.json");
         // each of the Unity game's golfers (Dex, Andre, Danny: their own charMods, the standard bag), short game, full shots and putts
         foreach (var g in new[] { "ch06", "ch28", "ch42" }) { sbad += ShortGame(root, S, C, "short_cases_" + g + ".json"); pbad += Putting(root, S, C, "putt_cases_" + g + ".json"); }
+        // and with the Unity game's fixed bag (Bomber driver, Cavity irons, Low-spin ball: the gear that rolls out)
+        foreach (var g in new[] { "ch06", "ch28", "ch42" }) sbad += ShortGame(root, S, C, "short_cases_" + g + "_bag.json");
         S.Cm = CharMods.Neutral;
         int rbad = RoundFlow(root, T);
         return bad == 0 && lbad == 0 && sbad == 0 && pbad == 0 && rbad == 0 ? 0 : 1;
@@ -121,6 +123,7 @@ static class Program
         {
             n++; var pre = (Dictionary<string, object>)c["pre"]; var w = (Dictionary<string, object>)c["wind"]; var diffs = new List<string>();
             S.Cm = c.TryGetValue("golfer", out var gid) && gid is string gs ? CharMods.For(gs) : CharMods.Neutral;
+            if (c.TryGetValue("bag", out var bg) && bg is string bs) { var q = bs.Split(','); S.Cm = S.Cm.WithBag(q[0], q[1], q[2], q[3]); }
             void Chk(string k, double a, double b, double tol = 1e-6) { if (Math.Abs(a - b) > tol * Math.Max(1, Math.Abs(b))) diffs.Add($"{k} {a:G9} vs web {b:G9}"); }
             var s = new ShotIn { bx = D(c["bx"]), by = D(c["by"]), aim = D(pre["aim"]), lie = (string)pre["lie"], onTeeBox = (bool)pre["onTee"], buried = (bool)c["buried"], windA = D(w["a"]), windMph = D(w["mph"]) };
             if (c["chose"] is Dictionary<string, object> ch)

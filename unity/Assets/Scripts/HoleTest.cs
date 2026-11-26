@@ -15,6 +15,9 @@ public class HoleTest : MonoBehaviour
     // stage 6: the web game's golfer (recorded body and swing), the swing's clock from the strike, how far back he went
     WaterReflect WR; Material waterMat;
     Golfer GF; string golferId; float swingClock = -1, swingBack = 1, launchAt;
+    // the golfer's own game and the Unity game's one bag (Cam, Nov 25: no bag screen; the gear that rolls the ball out: Bomber driver,
+    // Cavity-back irons, Low-spin ball; standard wedges and putter)
+    static GolfGo.Sim.CharMods GolferMods(string id) => GolfGo.Sim.CharMods.For(id).WithBag("bomb", "cav", "std", "low");
     // each golfer's trait (golfers.js), shown when picking
     static string Trait(string id) => id == "ch06" ? "Pure striker: irons and hybrids stray 15% less" : id == "ch28" ? "Pro swing: driver and woods stray 15% less" : id == "ch42" ? "Range rat: perfect strikes +5% with woods, irons bite harder" : "";
     static readonly string[][] Golfers = { new[] { "ch06", "Dex" }, new[] { "ch28", "Andre" }, new[] { "ch42", "Danny" } };
@@ -437,7 +440,7 @@ public class HoleTest : MonoBehaviour
     void ShowFlag() { for (int k = 0; k < 2 && k < flag.childCount; k++) flag.GetChild(k).gameObject.SetActive(!flagOut); }
     void LoadGolfer(string id)
     {
-        try { var g = new Golfer(id, M("Leaf0")); GF?.Destroy(); GF = g; golferId = id; PlayerPrefs.SetString("golfer", id); if (SK != null) { SK.Cm = GolfGo.Sim.CharMods.For(id); if (st == S.Aim) PrepareShot(false); } golfer.gameObject.SetActive(false); }
+        try { var g = new Golfer(id, M("Leaf0")); GF?.Destroy(); GF = g; golferId = id; PlayerPrefs.SetString("golfer", id); if (SK != null) { SK.Cm = GolferMods(id); if (st == S.Aim) PrepareShot(false); } golfer.gameObject.SetActive(false); }
         catch (System.Exception e) { Debug.LogError("[golfer] " + e); }   // (the simple figure stays if a golfer can't load)
     }
     void PlaceGolfer()
@@ -954,7 +957,7 @@ public class HoleTest : MonoBehaviour
         // pinIndex (a Quick play round): one of the hole's three pin spots, from the round's seed
         if (CO.pins != null && CO.pins.Length == 3) { int k = (int)System.Math.Floor(new GolfGo.Sim.Rng(roundSeed + i * 7919).Next() * 3) % 3; CO.pin = new[] { CO.pins[k][0], CO.pins[k][1] }; }
         D.pin = new[] { (float)CO.pin[0], (float)CO.pin[1] };
-        SK = new GolfGo.Sim.Strike(TU, CO) { Cm = GolfGo.Sim.CharMods.For(golferId) };   // the golfer's own game (charMods)
+        SK = new GolfGo.Sim.Strike(TU, CO) { Cm = GolferMods(golferId) };   // the golfer's own game (charMods)
         SH = new GolfGo.Sim.SimHole(Resources.Load<TextAsset>(HolePath("_sim")).text); SB = new GolfGo.Sim.Ball(SH, CO, SK); SG = new GolfGo.Sim.Short(SK, SH, CO); PT = new GolfGo.Sim.Putt(SK, SH, CO);
         RD = new GolfGo.Sim.Round(SK, SH, CO, SG, PT);
         var w = GolfGo.Sim.Round.HoleWind(roundSeed, i); windA = w.a; windMph = w.mph;
