@@ -187,7 +187,8 @@ public static class GolfGoBuild
             Prepare();
             PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
             PlayerSettings.SplashScreen.show = false; PlayerSettings.fullScreenMode = FullScreenMode.Windowed; PlayerSettings.resizableWindow = true;
-            PlayerSettings.defaultScreenWidth = 590; PlayerSettings.defaultScreenHeight = 1278; QualitySettings.antiAliasing = 4;
+            PlayerSettings.defaultScreenWidth = 300; PlayerSettings.defaultScreenHeight = 650; QualitySettings.antiAliasing = 4;
+            PlayerSettings.runInBackground = true;   // (the build Mac's window never has focus: without this the player sits paused and takes no pictures)
             var r = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = new[] { "Assets/Scenes/Hole.unity" }, locationPathName = "build/mac/GolfGo.app", target = BuildTarget.StandaloneOSX, options = BuildOptions.None });
             Debug.Log("GolfGoBuild mac result: " + r.summary.result + " errors " + r.summary.totalErrors);
             EditorApplication.Exit(r.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? 0 : 1);
