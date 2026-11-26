@@ -117,7 +117,7 @@ public static class GolfGoBuild
         foreach (var grp in new[] { BuildTargetGroup.iOS, BuildTargetGroup.Standalone })
             foreach (UnityEngine.Rendering.GraphicsTier tier in Enum.GetValues(typeof(UnityEngine.Rendering.GraphicsTier)))
             {
-                var ts = UnityEditor.Rendering.EditorGraphicsSettings.GetTierSettings(grp, tier); ts.hdr = true; ts.hdrMode = CameraHDRMode.FP16;
+                var ts = UnityEditor.Rendering.EditorGraphicsSettings.GetTierSettings(grp, tier); ts.hdr = true; ts.hdrMode = UnityEngine.Rendering.CameraHDRMode.FP16;
                 UnityEditor.Rendering.EditorGraphicsSettings.SetTierSettings(grp, tier, ts);
             }
         Debug.Log("GolfGoBuild: colour space " + PlayerSettings.colorSpace + ", linear lights " + UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity);
