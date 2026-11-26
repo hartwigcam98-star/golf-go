@@ -16,7 +16,7 @@ Shader "GolfGo/Grass"
         _GB ("Course map rect", Vector) = (0, 0, 1, 1)
         _GC0 ("Density centre 0", Vector) = (0, 0, 0, 1)
         _GC1 ("Density centre 1", Vector) = (0, 0, 0, 1)
-        _GD ("Density cap, desert, ball", Vector) = (110, 0, 1e5, 1e5)
+        _GD ("Density cap, desert, ball", Vector) = (110, 0, 100000, 100000)
         _WV ("Wind", Vector) = (0, 0, 0, 0)
         _TK ("Turf tints", Vector) = (1, 1, 1, 1)
         _GCap ("This level's blades per tile cap", Float) = 110
