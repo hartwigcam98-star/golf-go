@@ -26,9 +26,8 @@ const SITE = process.argv[2], OUT = process.argv[3], CID = process.argv[4] || 't
       return JSON.stringify(out);})()`);
     fs.writeFileSync(path.join(OUT, 'h' + nn + '_look.json'), look);
     // the surface map (a data texture) as a PNG
-    const surf = await g.ev(`(()=>{const t=R3.GU.gSurf.value,im=t.image,c=document.createElement('canvas');c.width=im.width;c.height=im.height;const x=c.getContext('2d'),d=x.createImageData(im.width,im.height);
-      d.data.set(im.data.length===d.data.length?im.data:new Uint8ClampedArray(im.data.buffer));x.putImageData(d,0,0);return JSON.stringify({png:c.toDataURL('image/png'),flipY:!!t.flipY,w:im.width,h:im.height});})()`);
-    const S = JSON.parse(surf); fs.writeFileSync(path.join(OUT, 'h' + nn + '_surf.png'), Buffer.from(S.png.split(',')[1], 'base64'));
+    const surf = JSON.parse(await g.ev(`(()=>{const im=R3.GU.gSurf.value.image;return JSON.stringify({w:im.width,h:im.height,d:Array.from(new Uint8Array(im.data.buffer,im.data.byteOffset,im.data.byteLength))});})()`));
+    fs.writeFileSync(path.join(OUT, 'h' + nn + '_surf.png'), require('./png_raw.js')(surf.w, surf.h, Uint8Array.from(surf.d)));   // (raw: no canvas, see png_raw.js)
     if (i === 0) {   // the course's shared textures
       const tx = JSON.parse(await g.ev(`(()=>{const GU=R3.GU,o={};const cv=im=>{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;c.getContext('2d').drawImage(im,0,0);return c;};
         for(const[k,n,f]of[['dShort','det_short','png'],['dRough','det_rough','png'],['dFes','det_fescue','png'],['dSand','det_sand','png'],['pG','turf_g','jpeg'],['pGN','turf_gn','jpeg'],['pS','turf_s','jpeg'],['pSN','turf_sn','jpeg'],['gStex','surround','png']]){

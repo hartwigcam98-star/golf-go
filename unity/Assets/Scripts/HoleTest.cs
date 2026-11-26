@@ -305,7 +305,7 @@ public class HoleTest : MonoBehaviour
         BuildWater(); BuildSkirt();
         Try("buildings", () => Built.Build(HolePath(""), holeRoot, holeAssets));   // the clubhouse, houses, structures, bridges and props (Built.cs)
         // the grass blades (Grass.cs), on this hole's ground textures
-        grass?.Dispose(); grass = null; far?.Dispose(); far = null; Try("far trees", () => far = new FarTrees(HolePath("")));   // (the far trees: FarTrees.cs)
+        grass?.Dispose(); grass = null; far?.Dispose(); far = null; Try("far trees", () => far = new FarTrees(HolePath(""), holeRoot));   // (the far trees: FarTrees.cs)
         if (slopeMat != null && slopeMat.shader.name == "GolfGo/Ground")
             Try("grass", () => grass = new Grass(D, slopeMat.GetTexture("_Surf"), slopeMat.GetTexture("_MainTex"), slopeMat.GetVector("_GSB"), slopeMat.GetVector("_GB"), slopeMat.GetVector("_TK")));
         float ph = D.H(D.pin[0], D.pin[1]); flag = new GameObject("Flag").transform; flag.SetParent(holeRoot); flag.position = HoleData.U(D.pin[0], D.pin[1], ph);

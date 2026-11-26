@@ -10,29 +10,17 @@ Shader "GolfGo/Far"
         Cull Off
         CGPROGRAM
         #pragma surface surf Standard vertex:vert
-        #pragma multi_compile_instancing
-        #pragma instancing_options procedural:setupF
-        #pragma target 4.5
+        #pragma target 3.5
         #include "GolfGoSky.cginc"
         sampler2D _MainTex; float4 _MainTex_TexelSize;
+        // one static mesh for all of a hole's far trees (FarTrees.cs): four corners a tree, its data in the vertex
+        // (texcoord1: position + flip, texcoord2: size, texcoord3: atlas rect, tangent: tint); no instancing or buffers
         struct FarTree { float3 p; float4 s; float4 r; float3 c; };
-        #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            StructuredBuffer<FarTree> _Far;
-        #endif
-        void setupF ()
-        {
-        #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            unity_ObjectToWorld = float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1); unity_WorldToObject = unity_ObjectToWorld;
-        #endif
-        }
         struct Input { float2 uvA; float3 tint; float3 worldPos; };
         void vert (inout appdata_full v, out Input o)
         {
             UNITY_INITIALIZE_OUTPUT(Input, o);
-            FarTree t = (FarTree)0;
-        #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            t = _Far[unity_InstanceID];
-        #endif
+            FarTree t; t.p = v.texcoord1.xyz; t.s = float4(v.texcoord2.xy, v.texcoord1.w, 0); t.r = v.texcoord3; t.c = v.tangent.xyz;
             float3 toE = _GGE - t.p; float2 hz = normalize(toE.xz + float2(1e-4, 0)); float3 rgt = float3(hz.y, 0, -hz.x);
             float3 n = normalize(float3(hz.x, 0, hz.y) * .75 + rgt * v.vertex.x * 1.3 + float3(0, v.vertex.y * .9 - .15, 0));
             float3 p = t.p + rgt * v.vertex.x * t.s.x + float3(0, v.vertex.y * t.s.y, 0);

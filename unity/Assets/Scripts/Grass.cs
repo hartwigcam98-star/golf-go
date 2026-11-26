@@ -10,7 +10,7 @@ public class Grass
     const int S = 4, MAXT = 1200; const float K = .7f;
     static readonly int[] CAPS = { 110, 64, 36, 18, 8 };
     static Mesh[] meshes; static Texture2D noise;
-    readonly Material[] mats = new Material[5]; readonly ComputeBuffer[] bufs = new ComputeBuffer[5]; readonly int[] counts = new int[5];
+    readonly Material[] mats = new Material[5]; readonly List<Matrix4x4> mx = new List<Matrix4x4>(1023); readonly int[] counts = new int[5];
     readonly List<Vector2>[] lists = new List<Vector2>[5];
     readonly HoleData D; readonly Texture2D ht; readonly Dictionary<long, bool> mask = new Dictionary<long, bool>();
     static readonly Bounds Big = new Bounds(Vector3.zero, Vector3.one * 1e5f);
@@ -34,7 +34,7 @@ public class Grass
     public Grass(HoleData d, Texture surf, Texture ground, Vector4 gSB, Vector4 gB, Vector4 tK)
     {
         D = d; var sh = Shader.Find("GolfGo/Grass"); var bm = Resources.Load<Material>("Mats/Grass");
-        Why = bm == null ? "no material" : bm.shader == null ? "no shader" : !bm.shader.isSupported ? "shader unsupported" : !SystemInfo.supportsComputeShaders ? "no compute" : null;
+        Why = bm == null ? "no material" : bm.shader == null ? "no shader" : !bm.shader.isSupported ? "shader unsupported" : !SystemInfo.supportsInstancing ? "no instancing" : null;
         if (Why != null) return;
         if (meshes == null) { meshes = new Mesh[5]; for (int k = 0; k < 5; k++) meshes[k] = Geo(CAPS[k], 901 + k * 77); }
         if (noise == null)
@@ -50,13 +50,13 @@ public class Grass
         {
             var m = new Material(bm); m.SetTexture("_HT", ht); m.SetTexture("_Surf", surf); m.SetTexture("_MainTex", ground); m.SetTexture("_Noise", noise);
             m.SetVector("_HB", new Vector4(g.x0, g.y0, g.st, g.nx)); m.SetFloat("_HN", g.ny); m.SetVector("_GSB", gSB); m.SetVector("_GB", gB); m.SetVector("_TK", tK); m.SetFloat("_GCap", CAPS[k]);
-            mats[k] = m; bufs[k] = new ComputeBuffer(MAXT, 8); lists[k] = new List<Vector2>(MAXT);
+            m.enableInstancing = true; mats[k] = m; lists[k] = new List<Vector2>(MAXT);
         }
         ok = true;
     }
     public void Dispose()
     {
-        for (int k = 0; k < 5; k++) { bufs[k]?.Release(); if (mats[k]) Object.Destroy(mats[k]); }
+        for (int k = 0; k < 5; k++) { if (mats[k]) Object.Destroy(mats[k]); }
         if (ht) Object.Destroy(ht); ok = false;
     }
     // r3GrassTileHas: a tile with rough (or fescue) anywhere on its 5 x 5 lie points
@@ -111,9 +111,13 @@ public class Grass
         for (int k = 0; k < 5; k++)
         {
             int n = lists[k].Count; if (n == 0) continue; Drawn += n;
-            bufs[k].SetData(lists[k]); var m = mats[k]; m.SetBuffer("_Tiles", bufs[k]);
+            var m = mats[k];
             m.SetVector("_GC0", gC0); m.SetVector("_GC1", gC1); m.SetVector("_GD", gD); m.SetVector("_WV", wV);
-            Graphics.DrawMeshInstancedProcedural(meshes[k], 0, m, Big, n, null, UnityEngine.Rendering.ShadowCastingMode.Off, true);
+            for (int o = 0; o < n; o += 1023)
+            {   // each tile: a translation to its corner (Unity's (x, 0, -y)); the shader builds the blades in world space from it
+                mx.Clear(); for (int q = o; q < Mathf.Min(n, o + 1023); q++) { var t = lists[k][q]; mx.Add(Matrix4x4.Translate(new Vector3(t.x, 0, -t.y))); }
+                Graphics.DrawMeshInstanced(meshes[k], 0, m, mx.ToArray(), mx.Count, null, UnityEngine.Rendering.ShadowCastingMode.Off, true);
+            }
         }
     }
 }

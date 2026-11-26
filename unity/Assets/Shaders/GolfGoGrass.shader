@@ -28,23 +28,12 @@ Shader "GolfGo/Grass"
         CGPROGRAM
         #pragma surface surf GG vertex:vert exclude_path:deferred
         #pragma multi_compile_instancing
-        #pragma instancing_options procedural:setupG
-        #pragma target 4.5
+        #pragma target 3.5
         #include "GolfGoBake.cginc"
         sampler2D _HT, _Surf, _MainTex, _Noise; float4 _HT_TexelSize;
         float4 _HB, _GSB, _GB, _GC0, _GC1, _GD, _WV, _TK; float _HN, _GCap;
-        #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            StructuredBuffer<float2> _Tiles;
-        #endif
-        float2 tileOff;
-        void setupG ()
-        {
-        #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            tileOff = _Tiles[unity_InstanceID];
-            unity_ObjectToWorld = float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-            unity_WorldToObject = unity_ObjectToWorld;
-        #endif
-        }
+        // Nov 26 (build 24): ordinary GPU instancing (Grass.cs: DrawMeshInstanced), each tile's corner in its matrix's translation
+        // (Unity's (x, 0, -y)); procedural instancing from a buffer drew nothing on the phone
         struct Input { float4 color : COLOR; float3 worldPos; };
 
         float hAt (int2 i) { i = clamp(i, int2(0, 0), int2(_HB.w - 1, _HN - 1)); return tex2Dlod(_HT, float4((i + .5) / float2(_HB.w, _HN), 0, 0)).r; }
@@ -58,10 +47,7 @@ Shader "GolfGo/Grass"
 
         void vert (inout appdata_full v)
         {
-            float2 to = 0;
-        #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-            to = tileOff;
-        #endif
+            float3 T0 = float3(unity_ObjectToWorld._m03, unity_ObjectToWorld._m13, unity_ObjectToWorld._m23); float2 to = float2(T0.x, -T0.z);
             float4 bl = float4(v.texcoord.xy, v.texcoord1.xy); float3 position = v.vertex.xyz;
             float2 gq = to + bl.xy;
             float dd0 = length(gq - _GC0.xy), dd1 = length(gq - _GC1.xy);
@@ -102,7 +88,7 @@ Shader "GolfGo/Grass"
                 vGc = cc * cc;
             }
             // the game's (x, up, y south) to Unity's (x, up, z north)
-            v.vertex = float4(gW.x, gW.y, -gW.z, 1); v.normal = float3(objectNormal.x, objectNormal.y, -objectNormal.z); v.color = float4(vGc, 1);
+            v.vertex = float4(float3(gW.x, gW.y, -gW.z) - T0, 1);   // (the instance matrix adds the tile's corner back) v.normal = float3(objectNormal.x, objectNormal.y, -objectNormal.z); v.color = float4(vGc, 1);
         }
         void surf (Input IN, inout SurfaceOutputGG o)
         {
