@@ -403,14 +403,14 @@ public class HoleTest : MonoBehaviour
         if (CAMV < 0) CAMV = PlayerPrefs.GetInt("camv", 1);   // (Cam, Nov 25: the lower aiming view; the camera button cycles all three)
         cam.fieldOfView = 50; cam.nearClipPlane = .3f; cam.farClipPlane = 5000; cam.allowMSAA = true;
         // the web game's sun, sky, clouds, weather and finish (GolfGoLook.cs); the old light and fog stay only if its shaders can't run
-        look = cam.gameObject.AddComponent<GolfGoLook>(); look.sun = L;
-        if (look.Ok) { RenderSettings.fog = false; look.Weather(PlayerPrefs.GetInt("wx", 0)); }
+        gLook = cam.gameObject.AddComponent<GolfGoLook>(); gLook.sun = L;
+        if (gLook.Ok) { RenderSettings.fog = false; gLook.Weather(PlayerPrefs.GetInt("wx", 0)); }
     }
-    GolfGoLook look;
+    GolfGoLook gLook;
     // r3NewWx: each new round rolls its weather (Sunny, Partly cloudy, Cloudy, Overcast) and says so
     void NewWeather()
     {
-        if (look == null || !look.Ok) return; int i = Random.Range(0, GolfGoLook.WX.Length); PlayerPrefs.SetInt("wx", i); look.Weather(i);
+        if (gLook == null || !gLook.Ok) return; int i = Random.Range(0, GolfGoLook.WX.Length); PlayerPrefs.SetInt("wx", i); gLook.Weather(i);
         wxToast = GolfGoLook.WX[i].n.ToUpperInvariant(); wxToastAt = Time.time + 1.4f;   // (a timer of its own: loading the hole cancels Invokes)
     }
     string wxToast; float wxToastAt = -1;
