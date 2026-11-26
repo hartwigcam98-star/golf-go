@@ -23,10 +23,12 @@ namespace GolfGo.Sim
                 default: return Neutral;
             }
         }
-        /* the bag (golfers.js bagFx, bagWrap): Cam, Nov 25: the Unity game has no bag screen; it plays one fixed bag (WithBag). The
-           putter is always the standard one. */
-        public string drv = "std", irn = "std", wdg = "std", ball = "std";
-        public CharMods WithBag(string d, string i, string w, string b) { var m = (CharMods)MemberwiseClone(); m.drv = d; m.irn = i; m.wdg = w; m.ball = b; return m; }
+        /* the bag (golfers.js bagFx, bagWrap): the gear the player picked (driver & woods, irons & hybrid, wedges, putter, ball) */
+        public string drv = "std", irn = "std", wdg = "std", ptr = "std", ball = "std";
+        public CharMods WithBag(string d, string i, string w, string p, string b) { var m = (CharMods)MemberwiseClone(); m.drv = d; m.irn = i; m.wdg = w; m.ptr = p; m.ball = b; return m; }
+        // the putter: the line (putt, by the distance to the pin in yards) and the meter's fineness (puttM)
+        public double PuttB(double d) => Putt * (ptr == "blade" ? 1.15 : ptr == "mallet" ? .9 : ptr == "lock" ? (d < 4 ? .8 : d > 10 ? 1.15 : 1) : 1);
+        public double PuttM(double d) => ptr == "blade" ? .85 : ptr == "mallet" ? 1.25 : ptr == "lock" && d > 10 ? 1.4 : 1;
         static bool W(Club c) => c.kind == "wood"; static bool I(Club c) => c.kind == "iron" || c.kind == "hybrid"; static bool Wd(Club c) => c.kind == "wedge";
         static readonly System.Collections.Generic.HashSet<string> SHORTN = new System.Collections.Generic.HashSet<string> { "chip", "pitch", "spin", "flop" };
         double BCarry(Club c) { if (c.putter) return 0; double a = 0; if (W(c)) a += drv == "bomb" ? .05 : drv == "max" ? -.035 : 0; if (I(c)) a += irn == "cav" ? .03 : irn == "forged" ? -.02 : 0; a += ball == "dist" ? .02 : ball == "ure" ? -.02 : 0; return a; }

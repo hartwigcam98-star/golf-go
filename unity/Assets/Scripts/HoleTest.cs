@@ -15,9 +15,52 @@ public class HoleTest : MonoBehaviour
     // stage 6: the web game's golfer (recorded body and swing), the swing's clock from the strike, how far back he went
     WaterReflect WR; Material waterMat;
     Golfer GF; string golferId; float swingClock = -1, swingBack = 1, launchAt;
-    // the golfer's own game and the Unity game's one bag (Cam, Nov 25: no bag screen; the gear that rolls the ball out: Bomber driver,
-    // Cavity-back irons, Low-spin ball; standard wedges and putter)
-    static GolfGo.Sim.CharMods GolferMods(string id) => GolfGo.Sim.CharMods.For(id).WithBag("bomb", "cav", "std", "low");
+    // the golfer's own game with the bag the player built (Cam, Nov 25: "bring back the build your bag")
+    static string[] BagNow() { var q = PlayerPrefs.GetString("bag", "std,std,std,std,std").Split(','); return q.Length == 5 ? q : new[] { "std", "std", "std", "std", "std" }; }
+    static GolfGo.Sim.CharMods GolferMods(string id) { var q = BagNow(); return GolfGo.Sim.CharMods.For(id).WithBag(q[0], q[1], q[2], q[3], q[4]); }
+    // BAG_SLOTS (golfers.js): each slot's models, with what each gains (+) and gives up (−)
+    static readonly (string k, string name, (string id, string name, string[] g, string[] c)[] m)[] BAG_SLOTS = {
+        ("drv", "Driver & woods", new[] { ("std", "Standard", new string[0], new string[0]),
+            ("bomb", "Bomber", new[] { "+5% carry with woods", "Rolls out a little more" }, new[] { "Wood misses stray 10% wider" }),
+            ("max", "Max forgiveness", new[] { "Wood misses stray 15% less", "Mistimed woods lose half the distance" }, new[] { "\u22123.5% carry with woods" }),
+            ("shape", "Shaper", new[] { "Draws and fades 40% stronger with woods" }, new[] { "Perfect window 10% smaller with woods" }) }),
+        ("irn", "Irons & hybrid", new[] { ("std", "Standard", new string[0], new string[0]),
+            ("cav", "Cavity back", new[] { "+3% carry", "Mistimed shots lose 30% less" }, new[] { "Rolls out 25% more on greens", "Shaping 20% weaker" }),
+            ("forged", "Forged", new[] { "Checks up 15% more", "Shaping 15% stronger" }, new[] { "\u22122% carry" }),
+            ("blade", "Blades", new[] { "Perfect strikes bite twice as hard", "Shaping 35% stronger" }, new[] { "Perfect window 8% smaller", "Mistimed shots lose 20% more" }) }),
+        ("wdg", "Wedges", new[] { ("std", "Standard", new string[0], new string[0]),
+            ("high", "High bounce", new[] { "Bunker shot window 15% bigger", "Rough and fescue hurt chips and pitches 40% less" }, new[] { "Flop and spinner windows 20% smaller" }),
+            ("low", "Low bounce", new[] { "Flop and spinner windows 20% bigger", "A little more backspin" }, new[] { "Bunker window 15% smaller", "Rough and fescue hurt chips and pitches 40% more" }),
+            ("milled", "Milled spin", new[] { "Chips and pitches check 30% more", "Backspin 30% stronger" }, new[] { "Mishit chips and pitches go 20% further wrong" }) }),
+        ("ptr", "Putter", new[] { ("std", "Standard", new string[0], new string[0]),
+            ("blade", "Blade", new[] { "Finer putting meter: the same tap misses the pace 15% less" }, new[] { "Line wanders 15% more" }),
+            ("mallet", "Mallet", new[] { "Line wanders 10% less" }, new[] { "Coarser putting meter: pace misses 25% more" }),
+            ("lock", "Arm-lock", new[] { "Inside 12 ft the line wanders 20% less" }, new[] { "Beyond 30 ft: line 15% wider, pace misses 40% more" }) }),
+        ("ball", "Ball", new[] { ("std", "Standard", new string[0], new string[0]),
+            ("dist", "Distance", new[] { "+2% carry on every club" }, new[] { "Chips and pitches release 25% more", "Less backspin, wind moves it 5% more" }),
+            ("ure", "Tour urethane", new[] { "Approaches roll 10% less, short game checks 15% more", "More backspin" }, new[] { "\u22122% carry on every club" }),
+            ("low", "Low spin", new[] { "Wind moves it 20% less" }, new[] { "Shaping 30% weaker", "Approaches roll out 20% more, chips 10% more" }) }) };
+    static string GearLine((string id, string name, string[] g, string[] c) m) => m.id == "std" ? "Balanced: no strengths, no weaknesses" : string.Join(" \u00b7 ", System.Linq.Enumerable.Concat(System.Linq.Enumerable.Select(m.g, t => "+ " + t), System.Linq.Enumerable.Select(m.c, t => "\u2212 " + t)));
+    // the bag panel (renderBag): each slot and its model; tap a slot to pick another
+    string BagSummary() { var q = BagNow(); var n = new List<string>(); for (int i = 0; i < 5; i++) if (q[i] != "std") n.Add(System.Array.Find(BAG_SLOTS[i].m, m => m.id == q[i]).name); return n.Count == 0 ? "Standard bag" : string.Join(" \u00b7 ", n); }
+    void BagMenu()
+    {
+        var q = BagNow(); var opts = new List<(string, string, bool)>();
+        for (int i = 0; i < 5; i++) { var Sl = BAG_SLOTS[i]; var cur = System.Array.Find(Sl.m, m => m.id == q[i]); if (cur.name == null) cur = Sl.m[0]; opts.Add((Sl.name + " \u00b7 " + cur.name, GearLine(cur), false)); }
+        opts.Add(("Done", "", true));
+        hud.ShowChoice("Your bag", "Build your bag", "Every model trades a strength for a weakness.", opts, k => { hud.HideChoice(); if (k < 5) SlotMenu(k); else Menu(); });
+    }
+    void SlotMenu(int i)
+    {
+        var Sl = BAG_SLOTS[i]; var q = BagNow(); var opts = new List<(string, string, bool)>();
+        foreach (var m in Sl.m) opts.Add((m.name, GearLine(m), m.id == q[i]));
+        hud.ShowChoice("Your bag", Sl.name, null, opts, k =>
+        {
+            q[i] = Sl.m[k].id; PlayerPrefs.SetString("bag", string.Join(",", q));
+            if (SK != null) { SK.Cm = GolferMods(golferId); if (st == S.Aim) PrepareShot(false); }
+            hud.HideChoice(); BagMenu();
+        });
+    }
     // each golfer's trait (golfers.js), shown when picking
     static string Trait(string id) => id == "ch06" ? "Pure striker: irons and hybrids stray 15% less" : id == "ch28" ? "Pro swing: driver and woods stray 15% less" : id == "ch42" ? "Range rat: perfect strikes +5% with woods, irons bite harder" : "";
     static readonly string[][] Golfers = { new[] { "ch06", "Dex" }, new[] { "ch28", "Andre" }, new[] { "ch42", "Danny" } };
@@ -1014,11 +1057,12 @@ public class HoleTest : MonoBehaviour
     {
         if (hud.ChoiceOpen || !(st == S.Aim || st == S.Holed)) return;
         string gName = System.Array.Find(Golfers, g => g[0] == golferId)?[1] ?? golferId;
-        var opts = new List<(string, string, bool)> { ("Resume", "", true), ("Scorecard", "Thru " + holesDone + " · Round " + DiffStr(roundDiff), false), ("Golfer", "Playing as " + gName, false), ("Flight zoom", TRZ >= 1.5f ? "Closest" : TRZ >= 1.3f ? "Closer" : "Standard", false), ("Restart hole", "Hole " + (hi + 1) + " from the tee", false), ("New round", "Troy Burne from the 1st", false) };
+        var opts = new List<(string, string, bool)> { ("Resume", "", true), ("Scorecard", "Thru " + holesDone + " · Round " + DiffStr(roundDiff), false), ("Golfer", "Playing as " + gName, false), ("Bag", BagSummary(), false), ("Flight zoom", TRZ >= 1.5f ? "Closest" : TRZ >= 1.3f ? "Closer" : "Standard", false), ("Restart hole", "Hole " + (hi + 1) + " from the tee", false), ("New round", "Troy Burne from the 1st", false) };
         hud.ShowChoice("Paused", "Troy Burne · Hole " + (hi + 1), null, opts, k =>
         {
-            if (k == 1) ShowCard(false); else if (k == 2) PickGolfer(); else if (k == 3) { float z = TRZ; PlayerPrefs.SetFloat("trz", z >= 1.5f ? 1 : z >= 1.3f ? 1.5f : 1.3f); hud.HideChoice(); Menu(); }
-            else if (k == 4) { if (scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); } else if (k == 5) NewRound();
+            if (k == 1) ShowCard(false); else if (k == 2) PickGolfer(); else if (k == 3) { hud.HideChoice(); BagMenu(); }
+            else if (k == 4) { float z = TRZ; PlayerPrefs.SetFloat("trz", z >= 1.5f ? 1 : z >= 1.3f ? 1.5f : 1.3f); hud.HideChoice(); Menu(); }
+            else if (k == 5) { if (scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); } else if (k == 6) NewRound();
         });
     }
 

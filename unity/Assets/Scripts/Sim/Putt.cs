@@ -34,8 +34,9 @@ namespace GolfGo.Sim
         // calcPuttMax: the meter's full stroke in yards of roll
         public double Max(double bx, double by, string lie)
         {
-            var q = Need(bx, by, lie); double n = Math.Max(0, q.need);
-            return lie == "green" ? M.Clamp(n / FlagAt(q.d * 3), 1, 80) : M.Clamp(n * 1.4 + .1, .3, 80);
+            var q = Need(bx, by, lie); double n = Math.Max(0, q.need), k = S.Cm.PuttM(q.d);
+            double b = lie == "green" ? M.Clamp(n / FlagAt(q.d * 3), 1, 80) : M.Clamp(n * 1.4 + .1, .3, 80);
+            return k == 1 ? b : Math.Max(b * k, n * 1.12 + .2);   // v103: a blade putter's meter is finer
         }
         // puttTargetPower: where the flag sits on the meter (null inside a foot)
         public double? TargetPower(double bx, double by, string lie, double puttMax) { var q = Need(bx, by, lie); if (q.d < .3) return null; return Math.Max(0, q.need / puttMax); }
@@ -62,7 +63,7 @@ namespace GolfGo.Sim
                 else { missBy = ae - w; e = HARSH ? M.Sign(e) * (.018 + (ae - w) * 2.6) + (R.Next() - .5) * (ae - w) * 1.4 : M.Sign(e) * (.012 + (ae - w) * 1.6); }
             }
             double D = Math.Max(lie == "green" ? .3 : .05, puttMax * power * (HARSH ? 1 - Math.Min(.3, missBy * 2.4 * S.Cm.PuttD) : 1)), mu = Mu(lie);
-            double a = aim - e * (HARSH ? 1.45 : 1.1) * S.Cm.Putt; var (dx, dy) = M.Dir(a); double v = Math.Sqrt(2 * mu * D);
+            double a = aim - e * (HARSH ? 1.45 : 1.1) * S.Cm.PuttB(M.Hypot(bx - C.pin[0], by - C.pin[1])); var (dx, dy) = M.Dir(a); double v = Math.Sqrt(2 * mu * D);
             return new Stroke { vx = dx * v, vy = dy * v, D = D, missBy = missBy, perfect = perfect, miss = miss };
         }
     }

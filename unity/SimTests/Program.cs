@@ -42,9 +42,9 @@ static class Program
         int sbad = ShortGame(root, S, C, "short_cases.json");
         int pbad = Putting(root, S, C, "putt_cases.json");
         // each of the Unity game's golfers (Dex, Andre, Danny: their own charMods, the standard bag), short game, full shots and putts
-        foreach (var g in new[] { "ch06", "ch28", "ch42" }) { sbad += ShortGame(root, S, C, "short_cases_" + g + ".json"); pbad += Putting(root, S, C, "putt_cases_" + g + ".json"); }
-        // and with the Unity game's fixed bag (Bomber driver, Cavity irons, Low-spin ball: the gear that rolls out)
-        foreach (var g in new[] { "ch06", "ch28", "ch42" }) sbad += ShortGame(root, S, C, "short_cases_" + g + "_bag.json");
+        // ... and with gear in the bag (short_cases_<golfer>_<drv-irn-wdg-ptr-ball>.json, putt_cases_<golfer>_<putter>.json)
+        foreach (var f in Directory.GetFiles(Path.Combine(root, "SimTests"), "short_cases_*.json")) sbad += ShortGame(root, S, C, Path.GetFileName(f));
+        foreach (var f in Directory.GetFiles(Path.Combine(root, "SimTests"), "putt_cases_*.json")) pbad += Putting(root, S, C, Path.GetFileName(f));
         S.Cm = CharMods.Neutral;
         int rbad = RoundFlow(root, T);
         return bad == 0 && lbad == 0 && sbad == 0 && pbad == 0 && rbad == 0 ? 0 : 1;
@@ -113,6 +113,8 @@ static class Program
     }
     /* Stage 3: short-game shots round the green (short_cases.json, a neutral golfer in the web game). Before the swing the meter's
        size, the planned carry and finish and chooseShort's pick must match; then the strike (flight fields, 1e-6) and the landing. */
+    // a recorded bag: drv,irn,wdg,ptr,ball (the first recordings had no putter field: drv,irn,wdg,ball)
+    static CharMods Bag(CharMods m, string bs) { var q = bs.Split(','); return q.Length == 4 ? m.WithBag(q[0], q[1], q[2], "std", q[3]) : m.WithBag(q[0], q[1], q[2], q[3], q[4]); }
     static int ShortGame(string root, Strike S, Course C, string file)
     {
         var H = new SimHole(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy/h01_sim.json")));
@@ -123,7 +125,7 @@ static class Program
         {
             n++; var pre = (Dictionary<string, object>)c["pre"]; var w = (Dictionary<string, object>)c["wind"]; var diffs = new List<string>();
             S.Cm = c.TryGetValue("golfer", out var gid) && gid is string gs ? CharMods.For(gs) : CharMods.Neutral;
-            if (c.TryGetValue("bag", out var bg) && bg is string bs) { var q = bs.Split(','); S.Cm = S.Cm.WithBag(q[0], q[1], q[2], q[3]); }
+            if (c.TryGetValue("bag", out var bg) && bg is string bs) S.Cm = Bag(S.Cm, bs);
             void Chk(string k, double a, double b, double tol = 1e-6) { if (Math.Abs(a - b) > tol * Math.Max(1, Math.Abs(b))) diffs.Add($"{k} {a:G9} vs web {b:G9}"); }
             var s = new ShotIn { bx = D(c["bx"]), by = D(c["by"]), aim = D(pre["aim"]), lie = (string)pre["lie"], onTeeBox = (bool)pre["onTee"], buried = (bool)c["buried"], windA = D(w["a"]), windMph = D(w["mph"]) };
             if (c["chose"] is Dictionary<string, object> ch)
@@ -190,6 +192,7 @@ static class Program
         {
             n++; var pre = (Dictionary<string, object>)c["pre"]; var diffs = new List<string>();
             S.Cm = c.TryGetValue("golfer", out var gid) && gid is string gs ? CharMods.For(gs) : CharMods.Neutral;
+            if (c.TryGetValue("bag", out var bg) && bg is string bs) S.Cm = Bag(S.Cm, bs);
             void Chk(string k, double a, double b, double tol = 1e-6) { if (Math.Abs(a - b) > tol * Math.Max(1, Math.Abs(b))) diffs.Add($"{k} {a:G9} vs web {b:G9}"); }
             double bx = D(c["bx"]), by = D(c["by"]); string lie = (string)pre["lie"];
             var q = P.Need(bx, by, lie); Chk("need", q.need, D(pre["need"])); Chk("d", q.d, D(pre["d"]));
