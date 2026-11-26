@@ -16,7 +16,7 @@ Shader "GolfGo/Far"
         // one static mesh for all of a hole's far trees (FarTrees.cs): four corners a tree, its data in the vertex
         // (texcoord1: position + flip, texcoord2: size, texcoord3: atlas rect, tangent: tint); no instancing or buffers
         struct FarTree { float3 p; float4 s; float4 r; float3 c; };
-        struct Input { float2 uvA; float3 tint; float3 worldPos; };
+        struct Input { float2 atlUV; float3 tint; float3 worldPos; };
         void vert (inout appdata_full v, out Input o)
         {
             UNITY_INITIALIZE_OUTPUT(Input, o);
@@ -26,12 +26,12 @@ Shader "GolfGo/Far"
             float3 p = t.p + rgt * v.vertex.x * t.s.x + float3(0, v.vertex.y * t.s.y, 0);
             v.vertex = float4(p.x, p.y, -p.z, 1); v.normal = float3(n.x, n.y, -n.z);
             float2 uv = v.texcoord.xy;
-            o.uvA = float2(lerp(t.r.x, t.r.z, t.s.z > 0 ? uv.x : 1 - uv.x), lerp(t.r.y, t.r.w, uv.y)); o.tint = t.c;
+            o.atlUV = float2(lerp(t.r.x, t.r.z, t.s.z > 0 ? uv.x : 1 - uv.x), lerp(t.r.y, t.r.w, uv.y)); o.tint = t.c;
         }
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
-            float4 c = tex2D(_MainTex, IN.uvA);
-            float2 ts = IN.uvA * _MainTex_TexelSize.zw, qx = ddx(ts), qy = ddy(ts); float lod = .5 * log2(max(max(dot(qx, qx), dot(qy, qy)), 1e-6));
+            float4 c = tex2D(_MainTex, IN.atlUV);
+            float2 ts = IN.atlUV * _MainTex_TexelSize.zw, qx = ddx(ts), qy = ddy(ts); float lod = .5 * log2(max(max(dot(qx, qx), dot(qy, qy)), 1e-6));
             clip(c.a * (1 + max(lod, 0) * .2) - .5);
             float3 alb = c.rgb * IN.tint;
             float3 vv = normalize(_WorldSpaceCameraPos - IN.worldPos);
