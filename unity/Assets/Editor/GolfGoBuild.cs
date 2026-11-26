@@ -72,6 +72,26 @@ public static class GolfGoBuild
         var gP = "Assets/Resources/Mats/GroundG.mat"; var gmat = AssetDatabase.LoadAssetAtPath<Material>(gP);
         if (!gmat && gsh) { gmat = new Material(gsh); AssetDatabase.CreateAsset(gmat, gP); } else if (gmat && gsh) gmat.shader = gsh;
         if (gmat) EditorUtility.SetDirty(gmat);
+        // the species trees (Assets/Shaders/GolfGoTree.shader): bark photo and normal map (raw, repeating), the leaf atlas (sRGB, clamped)
+        {
+            var bi = AssetImporter.GetAtPath("Assets/Resources/trees/bark.png") as TextureImporter;
+            if (bi) { bi.sRGBTexture = false; bi.wrapMode = TextureWrapMode.Repeat; bi.mipmapEnabled = true; bi.anisoLevel = 4; bi.maxTextureSize = 512; bi.SaveAndReimport(); }
+            var bn = AssetImporter.GetAtPath("Assets/Resources/trees/bark_n.png") as TextureImporter;
+            if (bn) { bn.textureType = TextureImporterType.NormalMap; bn.wrapMode = TextureWrapMode.Repeat; bn.mipmapEnabled = true; bn.maxTextureSize = 512; bn.SaveAndReimport(); }
+            var li = AssetImporter.GetAtPath("Assets/Resources/trees/leaves.png") as TextureImporter;
+            if (li) { li.sRGBTexture = true; li.alphaIsTransparency = true; li.wrapMode = TextureWrapMode.Clamp; li.mipmapEnabled = true; li.anisoLevel = 4; li.maxTextureSize = 2048; li.SaveAndReimport(); }
+            AssetDatabase.ImportAsset("Assets/Shaders/GolfGoTree.shader", ImportAssetOptions.ForceUpdate);
+            var tsh = Shader.Find("GolfGo/Tree"); if (!tsh) Debug.LogError("GolfGo/Tree shader didn't compile");
+            foreach (var (n, kind, tex, nm) in new[] { ("TreeBark", 0, "bark", "bark_n"), ("TreeMass", 1, "", ""), ("TreeLeaf", 2, "leaves", "") })
+            {
+                var tp = "Assets/Resources/Mats/" + n + ".mat"; var tm = AssetDatabase.LoadAssetAtPath<Material>(tp);
+                if (!tsh) break; if (!tm) { tm = new Material(tsh); AssetDatabase.CreateAsset(tm, tp); } else tm.shader = tsh;
+                tm.SetFloat("_Kind", kind); tm.SetFloat("_Cull", kind == 2 ? 0 : 2); tm.enableInstancing = true;
+                if (tex != "") tm.SetTexture("_MainTex", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/trees/" + tex + ".png"));
+                if (nm != "") tm.SetTexture("_BumpMap", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/trees/" + nm + ".png"));
+                EditorUtility.SetDirty(tm);
+            }
+        }
         var skyP = "Assets/Resources/Mats/Sky.mat"; var sky = AssetDatabase.LoadAssetAtPath<Material>(skyP);
         if (!sky) { sky = new Material(Shader.Find("Skybox/Procedural")); AssetDatabase.CreateAsset(sky, skyP); }
         sky.SetFloat("_SunSize", .03f); sky.SetFloat("_AtmosphereThickness", .9f); sky.SetColor("_SkyTint", new Color(.45f, .6f, .85f));

@@ -102,7 +102,9 @@ public class HoleTest : MonoBehaviour
         // trees: a trunk, and a crown of leaf cards from the web game's leaf atlas (clusters of cards round an ellipsoid, as the game
         // draws them), merged per tint so the whole course is a handful of draw calls
         var cyl = Prim(PrimitiveType.Cylinder); Material bark = M("Bark");
-        var T = D.trees; var root = new GameObject("Trees").transform; root.SetParent(holeRoot); var rnd = new System.Random(77);
+        // the web game's species trees when they're exported for this hole (Trees.cs); the old leaf-card crowns otherwise
+        speciesTrees = Trees.Available(HolePath("")) ? new Trees(HolePath(""), holeRoot) : null;
+        var T = speciesTrees != null ? new float[0] : D.trees; var root = new GameObject("Trees").transform; root.SetParent(holeRoot); var rnd = new System.Random(77);
         var lists = new List<Vector3>[5]; var uvs = new List<Vector2>[5]; var nrm = new List<Vector3>[5];
         for (int z = 0; z < 5; z++) { lists[z] = new List<Vector3>(); uvs[z] = new List<Vector2>(); nrm[z] = new List<Vector3>(); }
         int[] broad = { 2, 3, 6, 7, 13, 15 }, pine = { 10, 11 };
@@ -165,6 +167,7 @@ public class HoleTest : MonoBehaviour
         float F(int i) => i < a.Count ? System.Convert.ToSingle(a[i]) : 0; return new Vector4(F(0), F(1), F(2), F(3));
     }
     // the hole's ground material: the web game's ground shader (GolfGo/Ground) when it's in the build, else the Standard ground
+    Trees speciesTrees;
     Material slopeMat; float slFade; Vector2 slRotV = new Vector2(1, 0);
     // slopeWanted (webgl-ground.js): on the green, putting, a short shot within 40 yd, a putt rolling, or looking near the green
     bool SlopeWanted()
@@ -510,6 +513,7 @@ public class HoleTest : MonoBehaviour
         hud.SetReplayBtn(st == S.Aim && canReplay && !mapView && fc == null && !hud.ChoiceOpen);
         hud.SetFF(FfActive, ff);
         CameraUpdate(fdt);
+        speciesTrees?.Lod(cam.transform.position);
         SlopeGrid(dt);
         if (WR != null) WR.Render(cam);   // the water's mirror, from where the camera now is
     }
