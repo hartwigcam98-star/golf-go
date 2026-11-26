@@ -29,7 +29,6 @@ public class HoleTest : MonoBehaviour
 
     HoleData D;
     Camera cam; Transform ball, golfer, club, flag; Mesh ground;
-    LineRenderer aimLine; Transform ring;
     Vector2 b, prev; float bY; float aim; int ci, strokes;
     enum S { Aim, Power, Acc, Flight, Roll, Holed } S st = S.Aim;
     float meter, meterDir = 1; // swing meter
@@ -235,9 +234,6 @@ public class HoleTest : MonoBehaviour
         RenderSettings.fog = true; RenderSettings.fogMode = FogMode.Linear; RenderSettings.fogStartDistance = 250; RenderSettings.fogEndDistance = 900; RenderSettings.fogColor = new Color(.74f, .82f, .9f);
         cam = Camera.main; if (!cam) { cam = new GameObject("Camera").AddComponent<Camera>(); cam.tag = "MainCamera"; }
         cam.fieldOfView = 50; cam.nearClipPlane = .1f; cam.farClipPlane = 1500; cam.allowMSAA = true;
-        // aim line and landing ring
-        aimLine = new GameObject("Aim").AddComponent<LineRenderer>(); aimLine.material = M("White"); aimLine.widthMultiplier = .25f; aimLine.positionCount = 0; aimLine.numCapVertices = 2;
-        ring = Make(null, cyl, M("Gold"), Vector3.zero, new Vector3(3, .02f, 3)); ring.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
     }
     static Mesh Prim(PrimitiveType t) { var o = GameObject.CreatePrimitive(t); var m = o.GetComponent<MeshFilter>().sharedMesh; Destroy(o); return m; }
     static Transform Make(Transform parent, Mesh mesh, Material mat, Vector3 pos, Vector3 scale)
@@ -266,7 +262,8 @@ public class HoleTest : MonoBehaviour
         hud.onPower = () => { if (st != S.Aim || C.putter) return; pshot = !pshot; RefreshHud(); };
         hud.onShotType = SetShot;
         hud.onSpin = () => { if (st == S.Aim) hud.SetHint("Strike point and shot height come over with stage 3"); };
-        hud.onMap = () => { if (st == S.Aim) mapView = !mapView; };
+        hud.onMap = () => { if (st == S.Aim) { mapView = !mapView; if (mapView) fc = null; } };
+        hud.onLook = () => { if (fc != null && !(fc.fly != null && fc.fly.dir < 0)) LookEnd(); else LookStart(); };
         hud.onMenu = Menu;
     }
     // the lie the shot is played from (shotLie): the turf, or the cart path where it shows
@@ -287,7 +284,7 @@ public class HoleTest : MonoBehaviour
         && !(t == "spin" && !(Lie0 == "fairway" || Lie0 == "tee" || Lie0 == "cut"));
     void SizeShort() { swMax = 0; flagKey = null; if (Short) swMax = SG.SetMax(Si()); }
     // the flag on the meter: where the planned carry sits (shortPlan, worked out again only when the shot changes)
-    string flagKey; double flagTp;
+    string flagKey; double flagTp; GolfGo.Sim.Short.Plan planC;
     void ShortFlag()
     {
         if (!(st == S.Aim || st == S.Power || st == S.Acc)) { hud.SetFlag(-1, "", false); return; }
@@ -299,7 +296,7 @@ public class HoleTest : MonoBehaviour
         }
         if (!Short || swMax <= 0) { hud.SetFlag(-1, "", false); return; }
         string key = ci + "|" + stype + "|" + aim.ToString("F4") + "|" + b.x.ToString("F2") + "|" + b.y.ToString("F2") + "|" + pshot;
-        if (key != flagKey) { var s = Si(); flagTp = SG.FlagPower(s, SG.PlanFor(s)); flagKey = key; }
+        if (key != flagKey) { var s = Si(); planC = SG.PlanFor(s); flagTp = SG.FlagPower(s, planC); flagKey = key; }
         bool over = flagTp > 1; float pos = IMPACT + (float)SG.PowerToMeter(Mathf.Min(1, (float)flagTp)) * (1 - IMPACT);
         hud.SetFlag(pos, over ? "Beyond max" : Mathf.RoundToInt(PinDist) + " y", over);
     }
@@ -340,7 +337,7 @@ public class HoleTest : MonoBehaviour
         if (C.putter) puttMax = PT.Max(b.x, b.y, Lie0);
         flagOut = GolfGo.Sim.Putt.FlagOut(Lie0, PinDist);   // inside 15 ft on the green the flag comes out (a ball needs less pace to drop)
         for (int k = 0; k < 2 && k < flag.childCount; k++) flag.GetChild(k).gameObject.SetActive(!flagOut);
-        st = S.Aim; mpos = IMPACT; mapView = false; hud.SetSwing("SWING", 0, true); RefreshHud();
+        st = S.Aim; mpos = IMPACT; mapView = false; swingBack0 = false; if (pick) landPt = null; hud.SetSwing("SWING", 0, true); RefreshHud();
         hud.SetHint("Drag to aim · Tap Swing to start");
         PlaceGolfer(); swingT = -1;
     }
@@ -365,6 +362,7 @@ public class HoleTest : MonoBehaviour
     // on the way back down strikes it: how far from the white line that tap lands decides perfect, nice, hook or slice
     void Swing()
     {
+        if (st == S.Aim && fc != null) { LookEnd(); return; }   // tap(): while looking, Swing flies the camera back first
         if (st == S.Aim) { st = S.Power; mpos = IMPACT; mdir = 1; mapView = false; tapMark = -1; hud.SetSwing("POWER", 1, true); hud.SetHint("Tap to set power"); RefreshHud(); return; }
         if (st == S.Power) { mPower = (mpos - IMPACT) / (1 - IMPACT); st = S.Acc; hud.SetSwing("IMPACT!", 2, true); hud.SetHint("Tap on the white line"); return; }
         if (st == S.Acc) StrikeNow(Mathf.Clamp(mpos - IMPACT, -.12f, .4f));
@@ -376,7 +374,7 @@ public class HoleTest : MonoBehaviour
     {
         float win = Win; tapMark = e.HasValue ? IMPACT + e.Value : -1; tapGood = e.HasValue && Mathf.Abs(e.Value) <= win;
         fromLie = Lie0; strokes++; prev = b; swingT = 0;
-        if (GF != null) { swingClock = 0; swingBack = Mathf.Max(.15f, (float)Power); launchAt = C.putter ? GF.PuttImpactT : GF.ImpactT; } hud.SetSwing("SWING", 0, false); hud.SetHint(""); aimLine.positionCount = 0; ring.gameObject.SetActive(false);
+        if (GF != null) { swingClock = 0; swingBack = Mathf.Max(.15f, (float)Power); launchAt = C.putter ? GF.PuttImpactT : GF.ImpactT; } hud.SetSwing("SWING", 0, false); hud.SetHint(""); hud.AimHide();
         if (C.putter)
         {
             // the web game's putter stroke (GolfGo.Sim.Putt): the window, a pull or push and a short miss, then the roll on the same ball
@@ -411,7 +409,10 @@ public class HoleTest : MonoBehaviour
     {
         float dt = Mathf.Min(Time.unscaledDeltaTime, .05f);
         Fps(Time.unscaledDeltaTime);
-        if (st == S.Aim && !hud.ChoiceOpen) { HandleAimDrag(); DrawAim(); }
+        if (st == S.Aim && !hud.ChoiceOpen) { HandleTouches(); ShortFlag(); DrawAim(); } else hud.AimHide();
+        LookStep(dt);
+        hud.SetLook(st == S.Aim && !mapView && !hud.ChoiceOpen, fc != null);
+        if (st == S.Aim && (fc != null) != swingBack0) { swingBack0 = fc != null; hud.SetSwing(swingBack0 ? "\u21a9 BACK" : "SWING", 0, true); }
         if (st == S.Power)
         {
             mpos += mdir * dt * SpeedP; if (mpos >= 1) { mpos = 1; mdir = -1; }
@@ -444,25 +445,183 @@ public class HoleTest : MonoBehaviour
         CameraUpdate(dt);
         if (WR != null) WR.Render(cam);   // the water's mirror, from where the camera now is
     }
-    void HandleAimDrag()
+    // ---------- touches (input.js): one finger drags the aim; a second finger (a pinch) opens the look camera; in the look camera one finger
+    // turns round the marker (sideways) and looks nearer or further (up and down), two pan, pinch-zoom and twist ----------
+    readonly Dictionary<int, Vector2> pts = new Dictionary<int, Vector2>(); readonly List<int> ptOrder = new List<int>(); int dragId = -1;
+    float VfPx => cam.projectionMatrix[1, 1] * Screen.height / 2;   // the focal length in screen pixels (the web's V.f, in its px)
+    bool OverHud(Vector2 p, int id) => p.y < hud.BottomFrac * Screen.height || (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(id));
+    void HandleTouches()
     {
-        float dx = 0;
-        if (Input.touchCount == 1) { var t = Input.GetTouch(0); if (t.phase == TouchPhase.Moved && t.position.y > Screen.height * .3f) dx = t.deltaPosition.x / Screen.width; }
-        else if (Input.GetMouseButton(0) && Input.mousePosition.y > Screen.height * .3f) dx = Input.GetAxis("Mouse X") * .02f;
-        if (dx != 0) { aim += dx * (C.putter ? .6f : 1.2f); PlaceGolfer(); }
+        if (Input.touchCount == 0) { pts.Clear(); ptOrder.Clear(); dragId = -1; HandleMouse(); return; }
+        // the first two fingers down, as they were last frame
+        var prev2 = ptOrder.Take(2).Select(i => (i, pts[i])).ToList(); Vector2 dragOld = dragId >= 0 && pts.TryGetValue(dragId, out var dq) ? dq : default;
+        for (int n = 0; n < Input.touchCount; n++)
+        {
+            var t = Input.GetTouch(n);
+            if (t.phase == TouchPhase.Began)
+            {
+                if (OverHud(t.position, t.fingerId)) continue;
+                pts[t.fingerId] = t.position; ptOrder.Add(t.fingerId);
+                if (pts.Count >= 2 && fc == null) LookStart();
+                dragId = fc != null ? -1 : t.fingerId; continue;
+            }
+            if (!pts.ContainsKey(t.fingerId)) continue;
+            if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled) { pts.Remove(t.fingerId); ptOrder.Remove(t.fingerId); if (dragId == t.fingerId) dragId = -1; continue; }
+            pts[t.fingerId] = t.position;
+        }
+        if (fc != null)
+        {
+            prev2 = prev2.Where(q => pts.ContainsKey(q.Item1)).ToList(); if (prev2.Count == 0) return;
+            var ids = prev2.Select(q => q.Item1).ToList(); var old = prev2.Select(q => q.Item2).ToList(); var nw = ids.Select(i => pts[i]).ToList();
+            if (ids.Count == 1) { var d = nw[0] - old[0]; LookTurn(-d.x / hud.K * .0075f); LookPan(0, -d.y); }
+            else
+            {   // (screen y is up here, down on the web: the pan's y and the twist change sign)
+                var mo = (old[0] + old[1]) / 2; var mn = (nw[0] + nw[1]) / 2;
+                float so = Vector2.Distance(old[0], old[1]), sn = Vector2.Distance(nw[0], nw[1]);
+                float ao = Mathf.Atan2(old[1].y - old[0].y, old[1].x - old[0].x), an = Mathf.Atan2(nw[1].y - nw[0].y, nw[1].x - nw[0].x), da = an - ao;
+                if (da > Mathf.PI) da -= 2 * Mathf.PI; if (da < -Mathf.PI) da += 2 * Mathf.PI;
+                LookPan(mn.x - mo.x, -(mn.y - mo.y)); if (so > 20 * hud.K && sn > 20 * hud.K) LookZoom(so / sn); LookTurn(da);
+            }
+            return;
+        }
+        if (dragId >= 0 && pts.TryGetValue(dragId, out var dp) && dragOld != default) { float dx = dp.x - dragOld.x; if (dx != 0) { aim += dx / VfPx * (C.putter ? .5f : .8f); PlaceGolfer(); } }
+    }
+    Vector2 mouseOld; bool mouseDown;
+    void HandleMouse()
+    {   // (the editor: drag to aim, or to turn and look in the look camera; the wheel zooms)
+        Vector2 mp = Input.mousePosition;
+        if (Input.GetMouseButtonDown(0)) { mouseDown = !OverHud(mp, -1); mouseOld = mp; }
+        if (!Input.GetMouseButton(0)) mouseDown = false;
+        if (mouseDown) { var d = mp - mouseOld; mouseOld = mp; if (fc != null) { LookTurn(-d.x / hud.K * .0075f); LookPan(0, -d.y); } else if (d.x != 0) { aim += d.x / VfPx * (C.putter ? .5f : .8f); PlaceGolfer(); } }
+        float w = Input.mouseScrollDelta.y; if (w != 0 && !mapView && (fc != null || LookStart())) LookZoom(Mathf.Exp(Mathf.Clamp(-w * 100, -120, 120) * .0025f));
+    }
+
+    // ---------- the look camera (camera.js "scout cam"): flies out along the shot to a low view of the landing spot; three zoom steps,
+    // pinch zooms smoothly; with the putter it looks at the cup. Swing (or the eye) flies it back to the golfer ----------
+    class Fly { public float t, dir, dur, bx, bz; public Vector3 fE, fL; }
+    class Look { public float tx, tz, yaw, yawOff, dist, distT, pan; public int lvl; public bool follow; public Fly fly; }
+    Look fc; Vector2? landPt; bool swingBack0;
+    static float LookPitch(float d) => Mathf.Clamp(.3f + d / 350, .3f, 1.2f);
+    float ScoutCarry => landPt.HasValue ? Vector2.Distance(landPt.Value, b) : 40;
+    float[] ScoutLevels()
+    {
+        if (C.putter) return new float[] { 24, 48, 96 };
+        float cy = ScoutCarry, d0 = Mathf.Clamp(7 + cy * .055f + Mathf.Max(0, cy - 180) * .04f, 11, 25);   // long shots sit a little further back
+        return new[] { d0, d0 * 2.4f, d0 * 5.5f };
+    }
+    void LookClamp()
+    {   // within 150 yd of the line from the ball to the pin
+        fc.dist = Mathf.Clamp(fc.dist, 2, 460);
+        var a = b; var v = new Vector2(D.pin[0], D.pin[1]) - a; float l2 = v.sqrMagnitude; if (l2 == 0) l2 = 1;
+        float t = Mathf.Clamp01(Vector2.Dot(new Vector2(fc.tx, fc.tz) - a, v) / l2); var c = a + v * t; var o = new Vector2(fc.tx, fc.tz) - c; float d = o.magnitude;
+        if (d > 150) { fc.tx = c.x + o.x * 150 / d; fc.tz = c.y + o.y * 150 / d; }
+    }
+    bool LookStart()
+    {
+        if (st != S.Aim || hud.ChoiceOpen) return false; mapView = false;
+        if (fc == null)
+        {
+            var q = landPt ?? b; var L = ScoutLevels();
+            fc = new Look { tx = q.x, tz = q.y, yaw = aim, dist = L[0], distT = L[0], lvl = 0, follow = true,
+                fly = new Fly { t = 0, dir = 1, dur = .55f + Mathf.Min(.5f, ScoutCarry / 500), fE = camPos, fL = camLook, bx = b.x, bz = b.y } };
+            if (C.putter)
+            {   // putting, it looks at the cup from behind the ball's line (Oct 24, Pappa)
+                var p = new Vector2(D.pin[0], D.pin[1]); float d = Vector2.Distance(p, b); fc.tx = p.x; fc.tz = p.y; fc.follow = false; fc.lvl = -1;
+                if (d > 1) fc.yaw = Mathf.Atan2(p.x - b.x, -(p.y - b.y)); fc.dist = fc.distT = Mathf.Clamp(d * .55f + 3, 5, 30);
+            }
+            LookClamp();
+        }
+        else if (fc.fly != null && fc.fly.dir < 0) fc.fly.dir = 1;   // tapped again while flying back: turn round
+        return true;
+    }
+    void LookEnd()
+    {   // fly back along the same path to where the address camera wants to be now (the aim may have changed)
+        if (fc == null) return; NormalTarget(out var E, out var L);
+        if (fc.fly == null) fc.fly = new Fly { t = 1, dir = -1, dur = .5f + Mathf.Min(.45f, ScoutCarry / 550), fE = E, fL = L, bx = b.x, bz = b.y };
+        else { fc.fly.dir = -1; fc.fly.fE = E; fc.fly.fL = L; }
+    }
+    void LookPan(float px, float py)
+    {   // screen pixels; py > 0 = the finger moving down the screen (looks further on)
+        if (fc == null) return;
+        if (fc.follow) { fc.pan += Mathf.Sqrt(px * px + py * py); if (fc.pan < 26 * hud.K) return; fc.follow = false; }
+        float s = fc.dist / VfPx, sp = Mathf.Max(Mathf.Sin(LookPitch(fc.dist)), .3f); var f = Dir(fc.yaw);
+        fc.tx += f.y * px * s + f.x * py * s / sp; fc.tz += -f.x * px * s + f.y * py * s / sp; LookClamp();
+    }
+    void LookZoom(float k) { if (fc == null || !(k > 0) || float.IsInfinity(k)) return; fc.lvl = -1; fc.distT = Mathf.Clamp((fc.distT > 0 ? fc.distT : fc.dist) * k, 2, 460); }
+    void LookTurn(float a) { if (fc == null) return; if (fc.follow) fc.yawOff += a; else fc.yaw += a; }
+    void LookStep(float dt)
+    {
+        if (fc != null && (st != S.Aim || mapView || hud.ChoiceOpen)) fc = null;
+        if (fc?.fly != null) { var F = fc.fly; F.t += F.dir * dt / F.dur; if (F.dir > 0 && F.t >= 1) fc.fly = null; else if (F.dir < 0 && F.t <= 0) fc = null; }
+        if (fc == null) return;
+        if (fc.follow && fc.lvl >= 0) fc.distT = ScoutLevels()[fc.lvl];   // club changes re-frame the view
+        fc.dist += (fc.distT - fc.dist) * (1 - Mathf.Exp(-dt * 6));
+        if (fc.follow && landPt.HasValue)
+        {
+            float k = fc.fly != null ? 1 : 1 - Mathf.Exp(-dt * 7), dy = aim + fc.yawOff - fc.yaw;
+            while (dy > Mathf.PI) dy -= 2 * Mathf.PI; while (dy < -Mathf.PI) dy += 2 * Mathf.PI;
+            fc.tx += (landPt.Value.x - fc.tx) * k; fc.tz += (landPt.Value.y - fc.tz) * k; fc.yaw += dy * k;
+        }
+    }
+    void LookTarget(out Vector3 pos, out Vector3 look)
+    {
+        float pt = LookPitch(fc.dist); var f = Dir(fc.yaw); float ty = D.H(fc.tx, fc.tz), hz = fc.dist * Mathf.Cos(pt);
+        // look a little past the marker so it sits low in the frame with the ground beyond it in view
+        float ah = C.putter ? 0 : fc.dist * .2f, ax2 = fc.tx + f.x * ah, az2 = fc.tz + f.y * ah;
+        var E1 = HoleData.U(fc.tx - f.x * hz, fc.tz - f.y * hz, ty + fc.dist * Mathf.Sin(pt)); var L1 = HoleData.U(ax2, az2, ty * .6f + D.H(ax2, az2) * .4f);
+        var F = fc.fly; if (F == null) { pos = E1; look = L1; return; }
+        // along the shot: the camera rides up over the ball's path and comes down behind the landing spot
+        float t = Mathf.Clamp01(F.t), s = t * t * (3 - 2 * t), sl = 1 - Mathf.Pow(1 - t, 2.2f), c = Vector2.Distance(new Vector2(fc.tx, fc.tz), new Vector2(F.bx, F.bz));
+        pos = Vector3.LerpUnclamped(F.fE, E1, s) + Vector3.up * (Mathf.Sin(Mathf.PI * s) * Mathf.Min(26, 4 + c * .1f)); look = Vector3.LerpUnclamped(F.fL, L1, sl);
+    }
+
+    // ---------- the aim (post-chain.js): white dots along the predicted flight (on the ground for a putt), the pulsing gold ring where it
+    // lands, the carry beside it (none while the look camera follows it) ----------
+    static readonly Color DotC = new Color(1, 1, 1, .9f);
+    void Dot(Vector2 g, float h)
+    {
+        var p = cam.WorldToScreenPoint(HoleData.U(g.x, g.y, h)); if (p.z < .3f) return;
+        float k = VfPx / p.z / hud.K; hud.AimDot(p, Mathf.Clamp(.06f * k, 1.4f, 3), DotC);
     }
     void DrawAim()
     {
-        var d = Dir(aim); float dist = MaxDist; int n = 24; aimLine.positionCount = n + 1;
-        float y0 = D.H(b.x, b.y);
-        for (int i = 0; i <= n; i++)
+        hud.AimBegin();
+        var d = Dir(aim); var pv = new Vector2(-d.y, d.x); Vector2 m; float landD; float y0 = D.H(b.x, b.y) + .03f;
+        if (C.putter)
         {
-            float s = i / (float)n; var g = b + d * dist * s;
-            float y = C.putter ? D.H(g.x, g.y) + .05f : y0 + (float)C.apex * ArcH(s) + .05f; if (!C.putter && s > .5f) y = Mathf.Max(y, D.H(g.x, g.y) + .05f);
-            aimLine.SetPosition(i, HoleData.U(g.x, g.y, y));
+            float Dd = MaxDist; m = b + d * Dd; landD = Dd;
+            for (int i = 1; i <= 30; i++) { var q = b + d * Dd * (i / 30f); Dot(q, D.H(q.x, q.y) + .05f); }
         }
-        aimLine.widthMultiplier = C.putter ? .03f : .25f;
-        var e = b + d * dist; ring.gameObject.SetActive(true); ring.position = HoleData.U(e.x, e.y, D.H(e.x, e.y) + .03f); ring.localScale = C.putter ? new Vector3(.4f, .01f, .4f) : new Vector3(Mathf.Max(3, dist * .03f), .01f, Mathf.Max(3, dist * .03f));
+        else if (Short && swMax > 0 && planC != null)
+        {
+            var si = Si(); var Mv = SK.ShotMods(C, si); float c2 = (float)planC.carry, ap = (float)(SK.ShotApex(C, c2, si) * Mv.apex);
+            for (int i = 1; i <= 60; i++) { float u = i / 36f; var q = b + d * c2 * u; float Y = y0 + ap * ArcH(u); if (u > .5f && Y <= D.H(q.x, q.y)) break; Dot(q, Y); }
+            m = new Vector2((float)planC.F.lx, (float)planC.F.ly); landD = Vector2.Distance(m, b);
+        }
+        else
+        {
+            var si = Si(); var Mv = SK.ShotMods(C, si); float Dd = MaxDist * (float)Mv.carry, cv = (float)Mv.curve * Dd, ap = (float)(SK.ShotApex(C, Dd, si) * Mv.apex); m = b;
+            for (int i = 1; i <= 90; i++)
+            {
+                float u = i / 36f; var q = b + d * Dd * u + pv * cv * u * u; float Y = y0 + ap * ArcH(u); m = q;
+                if (u > .5f && Y <= D.H(q.x, q.y)) break; Dot(q, Y);
+            }
+            landD = Vector2.Distance(m, b);
+        }
+        landPt = m;
+        // groundEllipse: a ring of 3 yd (a putt's .35) on the ground, at least 13 px across
+        float r = C.putter ? .35f : 3, gy = D.H(m.x, m.y) + .02f; var cw = HoleData.U(m.x, m.y, gy); var c = cam.WorldToScreenPoint(cw); bool ring = c.z >= .3f;
+        if (ring)
+        {
+            var fh = cam.transform.forward; fh.y = 0; fh = fh.sqrMagnitude > 1e-6f ? fh.normalized : Vector3.forward;
+            var a = cam.WorldToScreenPoint(cw + fh * r); var bb = cam.WorldToScreenPoint(cw - fh * r);
+            float k = VfPx / c.z / hud.K, rx = r * k, ry = a.z >= .3f && bb.z >= .3f ? Mathf.Abs(a.y - bb.y) / 2 / hud.K : rx * .3f;
+            if (rx < 13) { ry *= 13 / rx; rx = 13; }
+            float pulse = 1 + Mathf.Sin(Time.time * 4) * .08f;
+            string txt = fc != null && fc.follow && !C.putter ? "" : C.putter ? Mathf.RoundToInt(landD * 3) + " ft" : Mathf.RoundToInt(landD) + " y";
+            hud.AimRing(c, rx * pulse, Mathf.Max(ry, 1) * pulse, txt);
+        }
+        hud.AimEnd(ring);
     }
     /* the ball after the strike: the web game's own flight, trees, landing, hops, roll and cup (GolfGo.Sim.Ball), stepped at its
        60 a second whatever the screen runs at, so a shot plays out exactly as it would in the web game */
@@ -642,10 +801,10 @@ public class HoleTest : MonoBehaviour
         shiftFor = f; shiftAspect = cam.aspect; cam.ResetProjectionMatrix(); var m = cam.projectionMatrix; m[1, 2] = -2 * f * .9f; cam.projectionMatrix = m;
     }
     float shiftAspect;
-    void CameraUpdate(float dt)
+    // the camera when not looking: the overview (map), the flight, or the address view
+    void NormalTarget(out Vector3 pos, out Vector3 look)
     {
-        FrameAboveHud();
-        Vector3 pos, look; var bp = HoleData.U(b.x, b.y, bY);
+        var bp = HoleData.U(b.x, b.y, bY);
         if (mapView && st == S.Aim)
         {   // the map button: the whole hole from above (the web's overview, simplified)
             var pin = new Vector2(D.pin[0], D.pin[1]); var mid = (b + pin) / 2; var dd = Dir(aim); var d3m = new Vector3(dd.x, 0, -dd.y);
@@ -661,7 +820,13 @@ public class HoleTest : MonoBehaviour
             look = bp + d3 * (putt ? 6 : 45) + Vector3.up * (putt ? 0 : 4);
             float gy = D.H(pos.x, -pos.z) + .8f; if (pos.y < gy) pos.y = gy;
         }
-        float k = 1 - Mathf.Exp(-dt * (st == S.Flight ? 3 : 5));
+    }
+    void CameraUpdate(float dt)
+    {
+        FrameAboveHud();
+        bool lk = fc != null && st == S.Aim, flyK = lk && fc.fly != null;
+        Vector3 pos, look; if (lk) LookTarget(out pos, out look); else NormalTarget(out pos, out look);
+        float k = 1 - Mathf.Exp(-dt * (flyK ? 40 : lk ? 9 : st == S.Flight ? 3 : 5));
         camPos = camPos == Vector3.zero ? pos : Vector3.Lerp(camPos, pos, k); camLook = camLook == Vector3.zero ? look : Vector3.Lerp(camLook, look, k);
         cam.transform.position = camPos; cam.transform.LookAt(camLook);
     }

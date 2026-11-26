@@ -166,9 +166,11 @@ public class Hud
         W = Screen.width / K; Hh = Screen.height / K;
         var sa = Screen.safeArea; float sTop = (Screen.height - sa.yMax) / K, sBot = sa.yMin / K;
 
+        BuildAim();   // first: under everything else
         BuildTop(sTop);
         BuildToast();
         BuildBottom(sBot, impact);
+        BuildLook();
         fpsT = Txt(root, "Fps", fBold, 11, A(Mint, .9f)); At(fpsT.rectTransform, 14, sTop + 10 + 67 + 6, 200, 14);
     }
 
@@ -462,6 +464,55 @@ public class Hud
 
     // ---------- icons (the web game's inline SVGs, drawn the same) ----------
     readonly Dictionary<string, Texture2D> icons = new Dictionary<string, Texture2D>();
+    // ---------- the aim overlay (post-chain.js): white dots along the predicted flight, the pulsing gold landing ring, its yardage ----------
+    RectTransform aimLayer; readonly List<RawImage> dots = new List<RawImage>(); int dotN; EllipseRing ringInk, ringGold; Text ringT; Texture2D dotTex;
+    void BuildAim()
+    {
+        aimLayer = RT("AimLayer", root); At(aimLayer, 0, 0, W, Hh);
+        dotTex = Tex(8, 8, (x, y) => A(Color.white, Cov(Mathf.Sqrt((x - 4) * (x - 4) + (y - 4) * (y - 4)) - 3.5f)));
+        EllipseRing Ring(string n, Color c) { var r = RT(n, aimLayer).gameObject.AddComponent<EllipseRing>(); r.color = c; r.raycastTarget = false; r.rectTransform.pivot = new Vector2(.5f, .5f); r.rectTransform.sizeDelta = Vector2.zero; r.enabled = false; return r; }
+        ringInk = Ring("RingInk", Ink); ringGold = Ring("RingGold", Sun);
+        ringT = Txt(aimLayer, "RingT", fBold, 13, Cream); ringT.rectTransform.pivot = new Vector2(0, .5f); ringT.rectTransform.sizeDelta = new Vector2(80, 18);
+        var o = ringT.gameObject.AddComponent<Outline>(); o.effectColor = Ink; o.effectDistance = new Vector2(1.5f, -1.5f); ringT.enabled = false;
+    }
+    // screen pixels (Unity's: y up) to the canvas (CSS px from the top left)
+    Vector2 Css(Vector2 px) => new Vector2(px.x / K, -(Screen.height - px.y) / K);
+    public void AimBegin() { dotN = 0; }
+    public void AimDot(Vector2 px, float rCss, Color c)
+    {
+        if (dotN == dots.Count) { var d = Pic(aimLayer, "Dot", dotTex); d.rectTransform.pivot = new Vector2(.5f, .5f); dots.Add(d); }
+        var im = dots[dotN++]; im.enabled = true; im.color = c; im.rectTransform.anchoredPosition = Css(px); im.rectTransform.sizeDelta = new Vector2(rCss * 2, rCss * 2);
+    }
+    // the ring: centre in screen px, radii in CSS px (already pulsed); label "" for none
+    public void AimRing(Vector2 px, float rx, float ry, string label)
+    {
+        var c = Css(px);
+        ringInk.enabled = ringGold.enabled = true;
+        ringInk.rectTransform.anchoredPosition = ringGold.rectTransform.anchoredPosition = c;
+        ringInk.Set(rx + 1, ry + 1, 3.5f); ringGold.Set(rx, ry, 2.5f);
+        ringT.enabled = label != ""; Set(ringT, label); ringT.rectTransform.anchoredPosition = c + new Vector2(rx + 6, 0);
+    }
+    public void AimEnd(bool ring)
+    {
+        for (int i = dotN; i < dots.Count; i++) dots[i].enabled = false;
+        if (!ring) { ringInk.enabled = ringGold.enabled = false; ringT.enabled = false; }
+    }
+    public void AimHide() { AimBegin(); AimEnd(false); }
+
+    // ---------- the look button (.lookbtn): a round button above the bottom panel's right side; gold while looking ----------
+    public Action onLook; Image lookBtn, lookDrop; RawImage lookIco;
+    void BuildLook()
+    {
+        lookBtn = Box(root, "Look", 23, Panel); At(lookBtn.rectTransform, W - 12 - 46, Hh * (1 - BottomFrac) - 12 - 46, 46, 46); lookDrop = Drop(root, lookBtn.rectTransform, 23, 3, new Color(0, 0, 0, .28f));
+        lookIco = Pic(lookBtn.transform, "Ico", Icon("eye")); At(lookIco.rectTransform, 11, 11, 24, 24);
+        Press(lookBtn, () => onLook?.Invoke());
+    }
+    public void SetLook(bool shown, bool on)
+    {
+        if (lookBtn.gameObject.activeSelf != shown) { lookBtn.gameObject.SetActive(shown); lookDrop.gameObject.SetActive(shown); }
+        var c = on ? Sun : Panel; if (lookBtn.color != c) { lookBtn.color = c; lookIco.texture = Icon(on ? "eyeInk" : "eye"); }
+    }
+
     Texture2D Icon(string n)
     {
         if (icons.TryGetValue(n, out var t)) return t;
@@ -488,6 +539,15 @@ public class Hud
             case "map":     // M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z, M9 4v14 M15 6v14, stroke 2
                 { var o = new[] { new Vector2(3, 6), new Vector2(9, 4), new Vector2(15, 6), new Vector2(21, 4), new Vector2(21, 18), new Vector2(15, 20), new Vector2(9, 18), new Vector2(3, 20), new Vector2(3, 6) };
                   f = (x, y) => A(Cream, Cov(Mathf.Min(SdPolyline(x, y, o), Mathf.Min(SdSeg(x, y, 9, 4, 9, 18), SdSeg(x, y, 15, 6, 15, 20))) - 1)); break; }
+            case "eye":     // M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z, circle r 3.2, stroke 2 (the look button)
+            case "eyeInk":
+                { var ec = n == "eye" ? Cream : Ink;
+                  f = (x, y) =>
+                  {   // the almond: where two discs of radius 10.94 (centres 4.44 above and below) overlap
+                      float d1 = Mathf.Sqrt((x - 12) * (x - 12) + (y - 16.44f) * (y - 16.44f)) - 10.94f, d2 = Mathf.Sqrt((x - 12) * (x - 12) + (y - 7.56f) * (y - 7.56f)) - 10.94f;
+                      float r = Mathf.Sqrt((x - 12) * (x - 12) + (y - 12) * (y - 12));
+                      return A(ec, Cov(Mathf.Min(Mathf.Abs(Mathf.Max(d1, d2)), Mathf.Abs(r - 3.2f)) - 1));
+                  }; break; }
             case "chevL": f = (x, y) => A(Cream, Cov(SdPolyline(x, y, new[] { new Vector2(15, 5), new Vector2(8, 12), new Vector2(15, 19) }) - 1.5f)); break;
             case "chevR": f = (x, y) => A(Cream, Cov(SdPolyline(x, y, new[] { new Vector2(9, 5), new Vector2(16, 12), new Vector2(9, 19) }) - 1.5f)); break;
             case "ball":    // the strike-point ball: white disc, ink rim, cross hairs, the coral dot
