@@ -92,6 +92,10 @@ public static class GolfGoBuild
                 EditorUtility.SetDirty(tm);
             }
         }
+        // the shot tracer
+        AssetDatabase.ImportAsset("Assets/Shaders/GolfGoTracer.shader", ImportAssetOptions.ForceUpdate);
+        { var trs = Shader.Find("GolfGo/Tracer"); var trp = "Assets/Resources/Mats/Tracer.mat"; var trm = AssetDatabase.LoadAssetAtPath<Material>(trp);
+          if (trs) { if (!trm) { trm = new Material(trs); AssetDatabase.CreateAsset(trm, trp); } else trm.shader = trs; EditorUtility.SetDirty(trm); } else Debug.LogError("GolfGo/Tracer shader didn't compile"); }
         var skyP = "Assets/Resources/Mats/Sky.mat"; var sky = AssetDatabase.LoadAssetAtPath<Material>(skyP);
         if (!sky) { sky = new Material(Shader.Find("Skybox/Procedural")); AssetDatabase.CreateAsset(sky, skyP); }
         sky.SetFloat("_SunSize", .03f); sky.SetFloat("_AtmosphereThickness", .9f); sky.SetColor("_SkyTint", new Color(.45f, .6f, .85f));

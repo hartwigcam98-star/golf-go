@@ -168,6 +168,46 @@ public class HoleTest : MonoBehaviour
     }
     // the hole's ground material: the web game's ground shader (GolfGo/Ground) when it's in the build, else the Standard ground
     Trees speciesTrees;
+    /* the ball is drawn at least 2.6 px across its radius (immediate-mode-primitives.js: r = max(.024, 2.6/k)), so it can be followed
+       in the air; and the tracer (r3Tracer): a glowing ribbon along the flight up to where it lands, fading once the next shot is set up */
+    Mesh trMesh; Material trMat; GameObject trGo; float trFade; GolfGo.Sim.Flight trF; double trLand = 9;
+    const int TRN = 160;
+    void BallAndTracer(float dt)
+    {
+        Vector3 bc; if (st == S.Replay) bc = ReplayBall(); else bc = HoleData.U(b.x, b.y, bY);
+        var sp = cam.WorldToScreenPoint(bc); float k = sp.z > .3f ? VfPx / sp.z / hud.K : 1e3f, r = Mathf.Max(.024f, 2.6f / k);
+        ball.localScale = Vector3.one * r * 2; ball.position = bc + Vector3.up * r;
+        // the tracer: the live shot's flight (not a putt), drawn up to where it lands
+        if (trGo == null)
+        {
+            trMat = M("Tracer"); if (trMat == null) return;
+            trMesh = new Mesh { name = "Tracer" }; trMesh.MarkDynamic(); var idx = new int[(TRN - 1) * 6];
+            for (int i = 0; i < TRN - 1; i++) { int a = i * 2, o = i * 6; idx[o] = a; idx[o + 1] = a + 1; idx[o + 2] = a + 2; idx[o + 3] = a + 1; idx[o + 4] = a + 3; idx[o + 5] = a + 2; }
+            trMesh.vertices = new Vector3[TRN * 2]; trMesh.uv = new Vector2[TRN * 2]; trMesh.triangles = idx; trMesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1e5f);
+            trGo = new GameObject("Tracer"); trGo.AddComponent<MeshFilter>().sharedMesh = trMesh; trGo.AddComponent<MeshRenderer>().sharedMaterial = trMat;
+            trGo.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+        if (st == S.Flight && SB.f != null && SB.f != trF && !fPutt)
+        {   // a new flight: where it comes down (r3TvPlan's search)
+            trF = SB.f; trFade = 1; trLand = 2.4;
+            for (double u = .5; u < 2.4; u += .01) { var q = trF.Pos(u); if (q.Y <= D.H((float)q.x, (float)q.y) + .03) { trLand = u; break; } }
+        }
+        if (trF == null || st == S.Replay || mapView) { trGo.SetActive(false); return; }
+        if (AimingSt) { trFade = Mathf.Max(0, trFade - dt * 1.5f); if (trFade <= 0) { trF = null; trGo.SetActive(false); return; } }
+        double u1 = System.Math.Min(SB.f == trF ? SB.U : trLand, trLand); if (u1 < .01) { trGo.SetActive(false); return; }
+        var P = new Vector3[TRN * 2]; var UV = new Vector2[TRN * 2]; var E = cam.transform.position;
+        Vector3 F(double u) { var q = trF.Pos(u); return HoleData.U((float)q.x, (float)q.y, (float)q.Y); }
+        for (int i = 0; i < TRN; i++)
+        {
+            double u = u1 * i / (TRN - 1); var p = F(u); var t = F(System.Math.Min(u1, u + .01)) - F(System.Math.Max(0, u - .01));
+            var c = E - p; float cd = c.magnitude; if (cd < 1e-3f) cd = 1; var s = Vector3.Cross(t, c); float sl = s.magnitude; if (sl < 1e-6f) sl = 1;
+            s *= Mathf.Max(.05f, cd * .0032f) / sl;
+            P[i * 2] = p - s; P[i * 2 + 1] = p + s; UV[i * 2] = new Vector2(i / (float)(TRN - 1), 0); UV[i * 2 + 1] = new Vector2(i / (float)(TRN - 1), 1);
+        }
+        trMesh.vertices = P; trMesh.uv = UV; trMat.SetFloat("_Op", trFade); trGo.SetActive(true);
+    }
+    // Flight zoom (the web's pause menu: Standard, Closer, Closest): how close the camera frames the ball in flight
+    static float TRZ => PlayerPrefs.GetFloat("trz", 1);
     Material slopeMat; float slFade; Vector2 slRotV = new Vector2(1, 0);
     // slopeWanted (webgl-ground.js): on the green, putting, a short shot within 40 yd, a putt rolling, or looking near the green
     bool SlopeWanted()
@@ -509,7 +549,7 @@ public class HoleTest : MonoBehaviour
         }
         if (st == S.Flight || st == S.Roll) StepSim(fdt);
         if (st == S.Replay) StepReplay(fdt);
-        ball.position = st == S.Replay ? ReplayBall() : HoleData.U(b.x, b.y, bY + .035f);
+        BallAndTracer(fdt);
         hud.SetReplayBtn(st == S.Aim && canReplay && !mapView && fc == null && !hud.ChoiceOpen);
         hud.SetFF(FfActive, ff);
         CameraUpdate(fdt);
@@ -796,7 +836,7 @@ public class HoleTest : MonoBehaviour
         for (int i = 1; i < r.Count; i++) if (r[i].x >= t) { var a = r[i - 1]; var q = r[i]; float k = (t - a.x) / ((q.x - a.x) == 0 ? 1 : q.x - a.x); return a + (q - a) * k; }
         return r[r.Count - 1];
     }
-    Vector3 ReplayBall() { var p = ReplayPoint(Mathf.Max(0, rpT)); return HoleData.U(p.y, p.z, p.w + .035f); }
+    Vector3 ReplayBall() { var p = ReplayPoint(Mathf.Max(0, rpT)); return HoleData.U(p.y, p.z, p.w); }
     void StartReplay(System.Action done = null)
     {
         if (last == null || last.rec.Count < 6) { done?.Invoke(); return; }
@@ -965,10 +1005,11 @@ public class HoleTest : MonoBehaviour
     {
         if (hud.ChoiceOpen || !(st == S.Aim || st == S.Holed)) return;
         string gName = System.Array.Find(Golfers, g => g[0] == golferId)?[1] ?? golferId;
-        var opts = new List<(string, string, bool)> { ("Resume", "", true), ("Scorecard", "Thru " + holesDone + " · Round " + DiffStr(roundDiff), false), ("Golfer", "Playing as " + gName, false), ("Restart hole", "Hole " + (hi + 1) + " from the tee", false), ("New round", "Troy Burne from the 1st", false) };
+        var opts = new List<(string, string, bool)> { ("Resume", "", true), ("Scorecard", "Thru " + holesDone + " · Round " + DiffStr(roundDiff), false), ("Golfer", "Playing as " + gName, false), ("Flight zoom", TRZ >= 1.5f ? "Closest" : TRZ >= 1.3f ? "Closer" : "Standard", false), ("Restart hole", "Hole " + (hi + 1) + " from the tee", false), ("New round", "Troy Burne from the 1st", false) };
         hud.ShowChoice("Paused", "Troy Burne · Hole " + (hi + 1), null, opts, k =>
         {
-            if (k == 1) ShowCard(false); else if (k == 2) PickGolfer(); else if (k == 3) { if (scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); } else if (k == 4) NewRound();
+            if (k == 1) ShowCard(false); else if (k == 2) PickGolfer(); else if (k == 3) { float z = TRZ; PlayerPrefs.SetFloat("trz", z >= 1.5f ? 1 : z >= 1.3f ? 1.5f : 1.3f); hud.HideChoice(); Menu(); }
+            else if (k == 4) { if (scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); } else if (k == 5) NewRound();
         });
     }
 
@@ -1019,8 +1060,8 @@ public class HoleTest : MonoBehaviour
         }
         var dd = shotRot;
         if (inCup) { var p = new Vector2(D.pin[0], D.pin[1]); float gp = D.H(p.x, p.y); var e = p - dd * 4.5f; E = HoleData.U(e.x, e.y, gp + 2.2f); L = HoleData.U(p.x, p.y, gp); return; }
-        if (st == S.Flight) { var e = b - dd * 31; var l = b + dd * 8; E = HoleData.U(e.x, e.y, bY * .55f + gb * .45f + 9); L = HoleData.U(l.x, l.y, bY * .85f + gb * .15f); return; }   // trailing the ball
-        { bool putt = fromLie == "green"; float back = putt ? 6 : 20, ht = putt ? 2.8f : 7; var e = b - dd * back; E = HoleData.U(e.x, e.y, gb + ht); L = HoleData.U(b.x, b.y, gb); }
+        if (st == S.Flight) { var e = b - dd * 31; var l = b + dd * 8; E = HoleData.U(e.x, e.y, bY * .55f + gb * .45f + 9); L = HoleData.U(l.x, l.y, bY * .85f + gb * .15f); zoom = TRZ; return; }   // trailing the ball
+        { bool putt = fromLie == "green"; float back = putt ? 6 : 20, ht = putt ? 2.8f : 7; var e = b - dd * back; E = HoleData.U(e.x, e.y, gb + ht); L = HoleData.U(b.x, b.y, gb); zoom = putt ? 1 : TRZ; }
     }
     void CameraUpdate(float dt)
     {

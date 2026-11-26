@@ -116,6 +116,7 @@ namespace GolfGo.Sim
         public double[] pin; public int dice; public List<double[]> rec = new List<double[]>();
         double D() { dice++; return R.Next(); }
         // the flight in progress (G.flight) and its running fields
+        public double U => u;   // (how far along the flight: the tracer)
         public Flight f; Club fc; double u; bool pinHitF, knocked; double? lx, ly, qx, qy, qY; HashSet<SimHole.Tree> rus;
         bool dropping; double dvx, dvz, dvy;
         // the hops (G.hop) and the roll (G.roll)
