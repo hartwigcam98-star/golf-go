@@ -43,6 +43,8 @@ public class HoleTest : MonoBehaviour
     static string GearLine((string id, string name, string[] g, string[] c) m) => m.id == "std" ? "Balanced: no strengths, no weaknesses" : string.Join(" \u00b7 ", System.Linq.Enumerable.Concat(System.Linq.Enumerable.Select(m.g, t => "+ " + t), System.Linq.Enumerable.Select(m.c, t => "\u2212 " + t)));
     // the bag panel (renderBag): each slot and its model; tap a slot to pick another
     string BagSummary() { var q = BagNow(); var n = new List<string>(); for (int i = 0; i < 5; i++) if (q[i] != "std") n.Add(System.Array.Find(BAG_SLOTS[i].m, m => m.id == q[i]).name); return n.Count == 0 ? "Standard bag" : string.Join(" \u00b7 ", n); }
+    // drawBallGear: Distance is optic yellow, Low spin orange, the rest white (the urethane's red band is left out)
+    void BallColour() { var q = BagNow(); var c = q[4] == "dist" ? new Color(1, .93f, .28f) : q[4] == "low" ? new Color(1, .52f, .14f) : Color.white; var r = ball.GetComponent<MeshRenderer>(); r.sharedMaterial.color = c * new Color(.96f, .96f, .94f, 1); }
     void BagMenu()
     {
         var q = BagNow(); var opts = new List<(string, string, bool)>();
@@ -56,7 +58,7 @@ public class HoleTest : MonoBehaviour
         foreach (var m in Sl.m) opts.Add((m.name, GearLine(m), m.id == q[i]));
         hud.ShowChoice("Your bag", Sl.name, null, opts, k =>
         {
-            q[i] = Sl.m[k].id; PlayerPrefs.SetString("bag", string.Join(",", q));
+            q[i] = Sl.m[k].id; PlayerPrefs.SetString("bag", string.Join(",", q)); BallColour();
             if (SK != null) { SK.Cm = GolferMods(golferId); if (st == S.Aim) PrepareShot(false); }
             hud.HideChoice(); BagMenu();
         });
@@ -97,7 +99,7 @@ public class HoleTest : MonoBehaviour
         TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); Clubs = TU.Clubs();
         lightB = (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(Resources.Load<TextAsset>("troy/light_bounds").text);
         BuildWorld(); BuildHud();
-        golferId = PlayerPrefs.GetString("golfer", "ch06"); LoadGolfer(golferId);
+        golferId = PlayerPrefs.GetString("golfer", "ch06"); LoadGolfer(golferId); BallColour();
         NewRound();
     }
 
@@ -347,7 +349,7 @@ public class HoleTest : MonoBehaviour
         Make(golfer, Prim(PrimitiveType.Cylinder), M("Red"), new Vector3(0, 1.98f, 0), new Vector3(.28f, .04f, .28f));
         club = new GameObject("Club").transform; club.SetParent(golfer, false); club.localPosition = new Vector3(0, 1.3f, .1f);
         Make(club, cyl, M("Dark"), new Vector3(0, -.55f, .25f), new Vector3(.02f, .55f, .02f)).localRotation = Quaternion.Euler(25, 0, 0);
-        ball = Make(null, sph, M("White"), Vector3.zero, Vector3.one * .06f);
+        ball = Make(null, sph, new Material(M("White")), Vector3.zero, Vector3.one * .06f);   // (its own material: the ball's colour follows the bag)
         ball.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
         // light and camera
         var L = new GameObject("Sun").AddComponent<Light>(); L.type = LightType.Directional; L.intensity = 1.15f; L.shadows = LightShadows.Soft;
