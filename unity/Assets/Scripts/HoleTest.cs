@@ -686,11 +686,11 @@ public class HoleTest : MonoBehaviour
             mpos += mdir * dt * SpeedP; if (mpos >= 1) { mpos = 1; mdir = -1; }
             else if (mdir < 0 && mpos <= IMPACT) { PrepareShot(false); hud.SetHint("No power set · tap once more on the way up"); }
         }
-        else if (st == S.Acc) { mpos -= dt * SpeedA; if (mpos <= 0) { mpos = 0; StrikeNow(null); } }
+        else if (st == S.Acc) { mpos -= dt * SpeedA; if (mpos <= 0) { mpos = 0; StrikeNow(null); } }   // (StrikeNow keeps mpos: the cursor shows the tap)
         bool live = st == S.Power || st == S.Acc;
         float lockAt = IMPACT + mPower * (1 - IMPACT);
         ShortFlag();
-        hud.SetMeter(IMPACT, live ? mpos : IMPACT, st == S.Power ? mpos : st == S.Acc ? lockAt : IMPACT, st == S.Acc ? lockAt : -1, winC, live ? -1 : tapMark, tapGood);
+        hud.SetMeter(IMPACT, mpos, st == S.Power ? mpos : st == S.Acc ? lockAt : IMPACT, st == S.Acc ? lockAt : -1, winC, live ? -1 : tapMark, tapGood);   // (the cursor stays where it was tapped until the next shot, as the web's m.pos does)
         if (st == S.Aim && hud.aimHold != 0)
         {   // loop.js: holding an aim arrow turns faster the longer it's held
             aimHeld += dt; float Dd = Mathf.Max(MaxDist, 3); aim += hud.aimHold * Mathf.Max(.6f, Dd * .04f) / Dd * (1 + aimHeld * 2.5f) * dt; PlaceGolfer();
