@@ -103,10 +103,12 @@ namespace GolfGo.Sim
 
         // chooseShort: from a bunker by the green a splash (a blast when plugged) with the SW; otherwise inside 70 yd off the green,
         // the chip or pitch and club that finish closest, with a penalty for landing short of the green and a preference for chips
+        // CI(id): the club in that slot of the player's set (a swapped-in 64° for "LW"); the stock club when nothing is swapped
+        public Func<string, string> Slot = id => id;
         public (string stype, string club)? Choose(ShotIn s0)
         {
             double d = PinDist(s0); string L = s0.lie;
-            if (BunkerSide(L, d)) return (s0.buried ? "blast" : "splash", "SW");
+            if (BunkerSide(L, d)) return (s0.buried ? "blast" : "splash", Slot("SW"));
             if (L == "sand" || L == "green" || d > 70) return null;
             var cands = new List<(string, string)>();
             if (d <= 40) foreach (var id in new[] { "7I", "8I", "9I", "PW", "GW", "SW", "LW" }) cands.Add(("chip", id));
@@ -114,10 +116,10 @@ namespace GolfGo.Sim
             (string, string)? best = null; double bs = 0; var p = C.pin;
             foreach (var (st, id) in cands)
             {
-                var s = Copy(s0); s.stype = st; s.club = id; s.swMax = 0; var P = PlanFor(s); if (P.over || P.bad) continue;
+                var s = Copy(s0); s.stype = st; s.club = Slot(id); s.swMax = 0; var P = PlanFor(s); if (P.over || P.bad) continue;
                 double miss = M.Hypot(P.F.x - p[0], P.F.y - p[1]), landPen = P.F.L == "green" ? 0 : (P.F.L == "fairway" || P.F.L == "tee") ? 1.2 : P.F.L == "cut" ? 1.8 : P.F.L == "rough" ? 4 : 8;
                 double sc = miss + landPen + (st == "pitch" ? 1.6 : 0) + (st == "chip" ? Math.Abs(Tab(T, "CHIP_R", id, 1) - 2) * .15 : 0);
-                if (best == null || sc < bs) { best = (st, id); bs = sc; }
+                if (best == null || sc < bs) { best = (st, Slot(id)); bs = sc; }
             }
             return best;
         }

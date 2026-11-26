@@ -44,7 +44,7 @@ namespace GolfGo.Sim
     {
         public CharMods Cm = CharMods.Neutral;   // the golfer (charMods)
         public readonly Tuning T; readonly Course C; readonly System.Collections.Generic.Dictionary<string, Club> clubs = new System.Collections.Generic.Dictionary<string, Club>();
-        public Strike(Tuning t, Course c) { T = t; C = c; foreach (var k in t.Clubs()) clubs[k.id] = k; }
+        public Strike(Tuning t, Course c) { T = t; C = c; foreach (var k in t.Clubs()) clubs[k.id] = k; foreach (var kv in Tuning.ALT) foreach (var k in kv.Value) if (!clubs.ContainsKey(k.id)) clubs[k.id] = k; }
         public Club Club(string id) => clubs[id];
 
         public static bool IsShort(string st) => st != "full" && st != "punch";   // (isShort: the short-game shot types)

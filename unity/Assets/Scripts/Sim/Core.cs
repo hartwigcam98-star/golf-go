@@ -30,17 +30,40 @@ namespace GolfGo.Sim
                 {
                     id = (string)d["id"], name = (string)d["name"], kind = d.TryGetValue("kind", out var k) ? (string)k : "",
                     carry = d.TryGetValue("carry", out var c) && c is double cc ? cc : 0, roll = d.TryGetValue("roll", out var r) && r is double rr ? rr : 0,
-                    apex = d.TryGetValue("apex", out var a) && a is double aa ? aa : 0, loft = d.TryGetValue("loft", out var lf) && lf is double ll ? ll : 1,
+                    apex = d.TryGetValue("apex", out var a) && a is double aa ? aa : 0, loft = d.TryGetValue("loft", out var lf) && lf is double ll ? ll : 1, deg = d.TryGetValue("deg", out var dg) && dg is double dd ? dd : 0,
                     putter = d.TryGetValue("putter", out var p) && p is bool pb && pb, tid = d.TryGetValue("tid", out var ti) ? ti as string : null
                 });
             }
             return l;
         }
+        /* v103 club swaps (clubs-and-surfaces.js CLUB_ALT): a slot, named by its stock club, can hold another club; tid = the stock club
+           whose tables it borrows */
+        public static readonly Dictionary<string, Club[]> ALT = new Dictionary<string, Club[]>
+        {
+            { "3W", new[] { A("4W", "4 Wood", 16.5, 222, .105, 29.5, .855, "wood", "3W"), A("MD", "Mini Driver", 13, 240, .12, 28.5, .82, "wood", "3W") } },
+            { "5W", new[] { A("7W", "7 Wood", 21, 205, .09, 31.5, .89, "wood", "5W"), A("3H", "3 Hybrid", 19, 210, .09, 30.5, .88, "hybrid", "4H") } },
+            { "4H", new[] { A("3H", "3 Hybrid", 19, 210, .09, 30.5, .88, "hybrid", "4H"), A("5H", "5 Hybrid", 25, 190, .08, 32, .93, "hybrid", "4H"), A("4I", "4 Iron", 23, 192, .075, 31, .93, "iron", "5I"), A("DI", "Driving Iron", 20, 205, .095, 28.5, .88, "iron", "5I") } },
+            { "5I", new[] { A("5H", "5 Hybrid", 25, 190, .08, 32, .93, "hybrid", "4H") } },
+            { "GW", new[] { A("52", "52\u00b0 Gap Wedge", 52, 101, .02, 38.5, 1.21, "wedge", "GW") } },
+            { "SW", new[] { A("54", "54\u00b0 Sand Wedge", 54, 98, .018, 38.5, 1.23, "wedge", "SW") } },
+            { "LW", new[] { A("58", "58\u00b0 Lob Wedge", 58, 82, .014, 39.5, 1.29, "wedge", "LW"), A("64", "64\u00b0 Lob Wedge", 64, 66, .01, 41, 1.38, "wedge", "LW") } }
+        };
+        static Club A(string id, string name, double deg, double carry, double roll, double apex, double loft, string kind, string tid) => new Club { id = id, name = name, deg = deg, carry = carry, roll = roll, apex = apex, loft = loft, kind = kind, tid = tid };
+        static Tuning() { foreach (var kv in ALT) foreach (var c in kv.Value) c.slot = kv.Key; }
+        // clubSet: the stock set with the swaps (slot -> club id), the four slots after the driver kept longest first
+        public List<Club> ClubSet(IDictionary<string, string> sw)
+        {
+            var a = Clubs();
+            for (int i = 0; i < a.Count; i++) if (sw != null && sw.TryGetValue(a[i].id, out var id) && ALT.TryGetValue(a[i].id, out var alts)) { var x = Array.Find(alts, q => q.id == id); if (x != null) a[i] = x; }
+            var L = System.Linq.Enumerable.ToList(System.Linq.Enumerable.OrderByDescending(a.GetRange(1, 4), x => x.carry));   // (a stable sort, as JS's)
+            for (int i = 0; i < 4; i++) a[1 + i] = L[i];
+            return a;
+        }
     }
 
     public class Club
     {
-        public string id, name, kind, tid; public double carry, roll, apex, loft; public bool putter;
+        public string id, name, kind, tid, slot; public double carry, roll, apex, loft, deg; public bool putter;
         public string Tid => tid ?? id;
         public string Group
         {

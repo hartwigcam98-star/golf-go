@@ -126,6 +126,9 @@ static class Program
             n++; var pre = (Dictionary<string, object>)c["pre"]; var w = (Dictionary<string, object>)c["wind"]; var diffs = new List<string>();
             S.Cm = c.TryGetValue("golfer", out var gid) && gid is string gs ? CharMods.For(gs) : CharMods.Neutral;
             if (c.TryGetValue("bag", out var bg) && bg is string bs) S.Cm = Bag(S.Cm, bs);
+            // club swaps: the short game's choice takes the club in each slot of the swapped set
+            var swap = new Dictionary<string, string>(); if (c.TryGetValue("swap", out var sw) && sw is string sws) foreach (var p in sws.Split(',')) { var q = p.Split(':'); swap[q[0]] = q[1]; }
+            SG.Slot = id => swap.TryGetValue(id, out var x) ? x : id;
             void Chk(string k, double a, double b, double tol = 1e-6) { if (Math.Abs(a - b) > tol * Math.Max(1, Math.Abs(b))) diffs.Add($"{k} {a:G9} vs web {b:G9}"); }
             var s = new ShotIn { bx = D(c["bx"]), by = D(c["by"]), aim = D(pre["aim"]), lie = (string)pre["lie"], onTeeBox = (bool)pre["onTee"], buried = (bool)c["buried"], windA = D(w["a"]), windMph = D(w["mph"]) };
             if (c["chose"] is Dictionary<string, object> ch)

@@ -10,10 +10,12 @@ namespace GolfGo.Sim
        penalty area's relief (Rule 17: lateral within two club-lengths, back on the line, or stroke and distance). */
     public class Round
     {
-        readonly Strike S; readonly SimHole H; readonly Course C; readonly Short SG; readonly Putt PT; readonly List<Club> clubs;
+        readonly Strike S; readonly SimHole H; readonly Course C; readonly Short SG; readonly Putt PT; List<Club> clubs;
         public Round(Strike s, SimHole h, Course c, Short sg, Putt pt) { S = s; H = h; C = c; SG = sg; PT = pt; clubs = s.T.Clubs(); }
         public int Putter => clubs.FindIndex(k => k.putter);
-        public int Index(string id) => clubs.FindIndex(k => k.id == id);
+        // CI: a club by its id, or by the slot it fills (a swapped-in club)
+        public int Index(string id) { int i = clubs.FindIndex(k => k.id == id); return i >= 0 ? i : clubs.FindIndex(k => k.slot == id); }
+        public void SetClubs(List<Club> set) { clubs = set; SG.Slot = id => { int i = Index(id); return i >= 0 ? clubs[i].id : id; }; }   // the player's set (club swaps)
 
         // shotLie: the turf, the cart path where it shows, and the teeing area within 5 yd of the tee spot
         public string ShotLie(double x, double y)

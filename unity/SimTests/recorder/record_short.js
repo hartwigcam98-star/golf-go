@@ -5,7 +5,7 @@
    usage: node record_short.js <site> <outDir>                                                                            */
 const fs = require('fs'), path = require('path'), boot = require('./boot.js');
 const SITE = process.argv[2], OUT = process.argv[3];
-const GOLFER = process.env.GOLFER || '', BAGS = process.env.BAG || '';
+const GOLFER = process.env.GOLFER || '', BAGS = process.env.BAG || '', SWAP = process.env.SWAP || '';
 (async () => {
   const g = await boot(SITE);
   await g.ev(`(()=>{Math.random=rng(99);G.mode='practice';G.pinSeed=424242;G.scores=[];setCourse('troy',false);startHole(0);$('introM').hidden=true;try{R3R.on=false;}catch(e){}
@@ -18,7 +18,9 @@ const GOLFER = process.env.GOLFER || '', BAGS = process.env.BAG || '';
     // GOLFER=<id>: that golfer's own game instead (charMods, the standard bag: the Unity game's golfers)
     if(${JSON.stringify(GOLFER)})G.cm=charMods(CHARS.find(c=>c.id===${JSON.stringify(GOLFER)}));
     // BAG=drv,irn,wdg,ptr,ball: that gear in the bag
-    if(${JSON.stringify(BAGS)}){const b=${JSON.stringify(BAGS)}.split(',');BAG.drv=b[0];BAG.irn=b[1];BAG.wdg=b[2];BAG.ptr=b[3];BAG.ball=b[4];BAGV++;}return 'ok';})()`);
+    if(${JSON.stringify(BAGS)}){const b=${JSON.stringify(BAGS)}.split(',');BAG.drv=b[0];BAG.irn=b[1];BAG.wdg=b[2];BAG.ptr=b[3];BAG.ball=b[4];BAGV++;}
+    // SWAP=slot:id,...: club swaps (bagSwap)
+    if(${JSON.stringify(SWAP)}){for(const p of ${JSON.stringify(SWAP)}.split(',')){const[k,id]=p.split(':');BAG.set[k]=id;}BAGV++;clubsFor(false);}return 'ok';})()`);
   // spots round the green on every lie
   const spots = JSON.parse(await g.ev(`(()=>{const p=G.hole.pin,o={};for(let r=4;r<=60;r+=1.5)for(let k=0;k<48;k++){const a=k/48*TAU+r*.37,x=p[0]+Math.cos(a)*r,y=p[1]+Math.sin(a)*r,L=lieAt(x,y);
       if(L==='water'||L==='ob'||L==='green')continue;(o[L]=o[L]||[]).push([+x.toFixed(2),+y.toFixed(2),+r.toFixed(1)]);}
@@ -28,7 +30,7 @@ const GOLFER = process.env.GOLFER || '', BAGS = process.env.BAG || '';
   const cases = []; let seed = 31000;
   for (const [lie, pts] of Object.entries(spots.pick)) for (const [bx, by, r] of pts) {
     const shots = lie === 'sand' ? (r <= 45 ? [['splash', 'SW'], ['pick', 'SW'], ['blast', 'SW'], ['blast', 'SW', 1], ['splash', 'LW']] : [['full', '9I'], ['punch', '7I']])
-      : [['choose'], ['chip', '8I'], ['chip', 'SW'], ['pitch', 'GW'], ['pitch', 'LW'], ['flop', 'LW'], ['spin', 'SW'], ['punch', '8I']].concat(GOLFER ? [['full', '7I'], ['full', '4H'], ['full', '3W'], ['full', 'PW']] : []);
+      : [['choose'], ['chip', '8I'], ['chip', 'SW'], ['pitch', 'GW'], ['pitch', 'LW'], ['flop', 'LW'], ['spin', 'SW'], ['punch', '8I']].concat(GOLFER ? [['full', '7I'], ['full', '4H'], ['full', '3W'], ['full', 'PW']] : []).concat(SWAP ? SWAP.split(',').map(p => p.split(':')[1]).flatMap(id => /^\d/.test(id) ? [['chip', id], ['pitch', id], ['flop', id]] : [['full', id], ['punch', id]]) : []);
     let k = 0;
     for (const s of shots) { cases.push({ bx, by, stype: s[0], club: s[1] || null, buried: !!s[2], scale: [1, .85, 1.15, 1, .93][k % 5], e: [0, .012, -.015, .03, -.035, null, .006][(cases.length) % 7], seed: seed++, lseed: 500000 + seed * 11 }); k++; }
   }
@@ -71,7 +73,8 @@ const GOLFER = process.env.GOLFER || '', BAGS = process.env.BAG || '';
   fs.mkdirSync(OUT, { recursive: true });
   if (GOLFER) for (const r of res) r.golfer = GOLFER;
   if (BAGS) for (const r of res) r.bag = BAGS;
-  fs.writeFileSync(path.join(OUT, 'short_cases' + (GOLFER ? '_' + GOLFER : '') + (BAGS ? '_' + BAGS.replace(/,/g, '-') : '') + '.json'), JSON.stringify(res));
+  if (SWAP) for (const r of res) r.swap = SWAP;
+  fs.writeFileSync(path.join(OUT, 'short_cases' + (GOLFER ? '_' + GOLFER : '') + (BAGS ? '_' + BAGS.replace(/,/g, '-') : '') + (SWAP ? '_swap' + SWAP.replace(/[,:]/g, '') : '') + '.json'), JSON.stringify(res));
   const by = {}; for (const r of res) { const k = r.pre.stype + '@' + r.pre.lie; by[k] = (by[k] || 0) + 1; }
   const out = {}; for (const r of res) { const k = r.out ? r.out.kind + (r.out.gimme ? ':gimme' : '') : 'none'; out[k] = (out[k] || 0) + 1; }
   console.log(res.length, 'cases', JSON.stringify(by)); console.log(JSON.stringify(out), 'errors', g.errs.slice(0, 3));

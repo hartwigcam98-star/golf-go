@@ -45,13 +45,55 @@ public class HoleTest : MonoBehaviour
     string BagSummary() { var q = BagNow(); var n = new List<string>(); for (int i = 0; i < 5; i++) if (q[i] != "std") n.Add(System.Array.Find(BAG_SLOTS[i].m, m => m.id == q[i]).name); return n.Count == 0 ? "Standard bag" : string.Join(" \u00b7 ", n); }
     // drawBallGear: Distance is optic yellow, Low spin orange, the rest white (the urethane's red band is left out)
     void BallColour() { var q = BagNow(); var c = q[4] == "dist" ? new Color(1, .93f, .28f) : q[4] == "low" ? new Color(1, .52f, .14f) : Color.white; var r = ball.GetComponent<MeshRenderer>(); r.sharedMaterial.color = c * new Color(.96f, .96f, .94f, 1); }
+    // club swaps (CLUB_ALT): slot -> club id, saved as "3W:MD;LW:64"
+    static Dictionary<string, string> Swaps()
+    {
+        var d = new Dictionary<string, string>();
+        foreach (var p in PlayerPrefs.GetString("swaps", "").Split(';')) { var q = p.Split(':'); if (q.Length == 2 && GolfGo.Sim.Tuning.ALT.ContainsKey(q[0])) d[q[0]] = q[1]; }
+        return d;
+    }
+    static readonly string[] SwapSlots = { "3W", "5W", "4H", "5I", "GW", "SW", "LW" };
+    static string ClubLabel(GolfGo.Sim.Club c) => c.id == "1W" ? "Driver" : c.id == "MD" ? "Mini driver" : c.id == "DI" ? "Driving iron" : c.name;
+    void ApplyClubs()
+    {
+        string cur = C.id; Clubs = TU.ClubSet(Swaps()); RD?.SetClubs(Clubs);
+        int k = Clubs.FindIndex(c => c.id == cur); if (k >= 0) ci = k; ci = Mathf.Clamp(ci, 0, Clubs.Count - 1);
+        if (st == S.Aim) PrepareShot(false);
+    }
+    // the yardage table's swaps (renderBag): each swappable slot, what's in it, and its carry for this golfer with this bag
+    void ClubsMenu()
+    {
+        var sw = Swaps(); var opts = new List<(string, string, bool)>(); var stock = TU.Clubs();
+        foreach (var sl in SwapSlots)
+        {
+            var c = sw.TryGetValue(sl, out var id) ? System.Array.Find(GolfGo.Sim.Tuning.ALT[sl], q => q.id == id) : stock.Find(q => q.id == sl);
+            var stk = stock.Find(q => q.id == sl);
+            opts.Add(("\u21c4 " + stk.name + " slot", ClubLabel(c) + " \u00b7 " + Mathf.RoundToInt((float)(c.carry * SK.Cm.Carry(c))) + "y carry", false));
+        }
+        opts.Add(("Done", "", true));
+        hud.ShowChoice("Your bag", "Club swaps", "Each slot can take a different club.", opts, k => { hud.HideChoice(); if (k < SwapSlots.Length) SwapMenu(SwapSlots[k]); else BagMenu(); });
+    }
+    void SwapMenu(string sl)
+    {
+        var sw = Swaps(); var stock = TU.Clubs().Find(q => q.id == sl); var all = new List<GolfGo.Sim.Club> { stock }; all.AddRange(GolfGo.Sim.Tuning.ALT[sl]);
+        string cur = sw.TryGetValue(sl, out var id) ? id : sl; var opts = new List<(string, string, bool)>();
+        foreach (var c in all) opts.Add((ClubLabel(c), c.deg + "\u00b0 \u00b7 " + Mathf.RoundToInt((float)(c.carry * SK.Cm.Carry(c))) + "y carry", c.id == cur));
+        hud.ShowChoice("Your bag", stock.name + " slot", null, opts, k =>
+        {
+            var c = all[k]; if (c.id == sl) sw.Remove(sl); else sw[sl] = c.id;   // (bagSwap)
+            var parts = new List<string>(); foreach (var kv in sw) parts.Add(kv.Key + ":" + kv.Value); PlayerPrefs.SetString("swaps", string.Join(";", parts));
+            ApplyClubs(); hud.HideChoice(); ClubsMenu();
+        });
+    }
     void BagMenu()
     {
         var q = BagNow(); var opts = new List<(string, string, bool)>();
         for (int i = 0; i < 5; i++) { var Sl = BAG_SLOTS[i]; var cur = System.Array.Find(Sl.m, m => m.id == q[i]); if (cur.name == null) cur = Sl.m[0]; opts.Add((Sl.name + " \u00b7 " + cur.name, GearLine(cur), false)); }
+        opts.Add(("Club swaps", SwapSummary(), false));
         opts.Add(("Done", "", true));
-        hud.ShowChoice("Your bag", "Build your bag", "Every model trades a strength for a weakness.", opts, k => { hud.HideChoice(); if (k < 5) SlotMenu(k); else Menu(); });
+        hud.ShowChoice("Your bag", "Build your bag", "Every model trades a strength for a weakness.", opts, k => { hud.HideChoice(); if (k < 5) SlotMenu(k); else if (k == 5) ClubsMenu(); else Menu(); });
     }
+    string SwapSummary() { var sw = Swaps(); if (sw.Count == 0) return "Stock set"; var n = new List<string>(); foreach (var kv in sw) { var c = System.Array.Find(GolfGo.Sim.Tuning.ALT[kv.Key], q => q.id == kv.Value); if (c != null) n.Add(ClubLabel(c)); } return string.Join(" \u00b7 ", n); }
     void SlotMenu(int i)
     {
         var Sl = BAG_SLOTS[i]; var q = BagNow(); var opts = new List<(string, string, bool)>();
@@ -96,7 +138,7 @@ public class HoleTest : MonoBehaviour
         Application.targetFrameRate = 120; QualitySettings.vSyncCount = 0; Screen.sleepTimeout = SleepTimeout.NeverSleep;
         QualitySettings.shadowDistance = 160; QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowResolution = ShadowResolution.High;
         // the game's own mechanics (GolfGo.Sim, checked shot for shot against the web game) and its numbers
-        TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); Clubs = TU.Clubs();
+        TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); Clubs = TU.ClubSet(Swaps());
         lightB = (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(Resources.Load<TextAsset>("troy/light_bounds").text);
         BuildWorld(); BuildHud();
         golferId = PlayerPrefs.GetString("golfer", "ch06"); LoadGolfer(golferId); BallColour();
@@ -440,7 +482,7 @@ public class HoleTest : MonoBehaviour
     {
         string lie = Lie0; float pd = PinDist;
         hud.SetTop(D.course + " · Hudson, WI", D.hole, "Par " + D.par + " · " + D.len + " yds", "Stroke " + (strokes + 1) + " · Round " + DiffStr(roundDiff));
-        hud.SetClub(C.id == "1W" ? "Driver" : C.id, C.putter ? "Putter · " + Mathf.RoundToInt(MaxDist * 3) + " ft" : (C.id == "1W" ? (strokes == 0 ? "Off the tee" : "Off the deck") : C.name) + " · " + Mathf.RoundToInt(MaxDist) + "y", ci > 0, ci < Clubs.Count - 1);
+        hud.SetClub(C.id == "1W" ? "Driver" : char.IsDigit(C.id[0]) && C.id.Length == 2 && C.kind == "wedge" ? C.id + "\u00b0" : C.id, C.putter ? "Putter · " + Mathf.RoundToInt(MaxDist * 3) + " ft" : (C.id == "1W" ? (strokes == 0 ? "Off the tee" : "Off the deck") : C.name) + " · " + Mathf.RoundToInt(MaxDist) + "y", ci > 0, ci < Clubs.Count - 1);
         hud.SetLie(LieName.TryGetValue(lie, out var ln) ? ln : Cap(lie), Hud.Hex(LieCol.TryGetValue(lie, out var lc) ? lc : "#6db14a"), lie == "green" || pd < 20 ? "Cup " + Mathf.RoundToInt(pd * 3) + " ft" : "Pin " + Mathf.RoundToInt(pd) + " yds");
         hud.SetShot(stype, C.putter, st == S.Aim, pshot && !C.putter, ShotEnabled, GolfGo.Sim.Short.BunkerSide(lie, pd)); winC = Win;
         // the meter's scale: carry yards along it (feet of roll for a putt on the green)
@@ -1011,7 +1053,7 @@ public class HoleTest : MonoBehaviour
         D.pin = new[] { (float)CO.pin[0], (float)CO.pin[1] };
         SK = new GolfGo.Sim.Strike(TU, CO) { Cm = GolferMods(golferId) };   // the golfer's own game (charMods)
         SH = new GolfGo.Sim.SimHole(Resources.Load<TextAsset>(HolePath("_sim")).text); SB = new GolfGo.Sim.Ball(SH, CO, SK); SG = new GolfGo.Sim.Short(SK, SH, CO); PT = new GolfGo.Sim.Putt(SK, SH, CO);
-        RD = new GolfGo.Sim.Round(SK, SH, CO, SG, PT);
+        RD = new GolfGo.Sim.Round(SK, SH, CO, SG, PT); RD.SetClubs(Clubs);
         var w = GolfGo.Sim.Round.HoleWind(roundSeed, i); windA = w.a; windMph = w.mph;
         BuildHole(); Resources.UnloadUnusedAssets();   // (the last hole's 4K textures go)
         strokes = 0; buried = false; b = new Vector2(D.tee[0], D.tee[1]); prev = b; bY = D.H(b.x, b.y); fromLie = "tee";
