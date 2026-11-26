@@ -221,6 +221,11 @@ public class HoleTest : MonoBehaviour
         ground = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32, vertices = v, uv = uv, triangles = t };
         ground.RecalculateNormals(); ground.RecalculateBounds(); holeAssets.Add(ground);
         if (ground.normals.Length > 0 && ground.normals[nx * (ny / 2) + nx / 2].y < 0) { System.Array.Reverse(t); ground.triangles = t; ground.RecalculateNormals(); }
+        {   // tangents along east (x), square to the normal: the ground shader's turf normal map and micro-relief use that frame (the web's Tt)
+            var nn = ground.normals; var tg = new Vector4[nn.Length];
+            for (int k = 0; k < nn.Length; k++) { var tv = (Vector3.right - nn[k] * nn[k].x).normalized; tg[k] = new Vector4(tv.x, tv.y, tv.z, 1); }
+            ground.tangents = tg;
+        }
         var go = new GameObject("Ground"); go.transform.SetParent(holeRoot); go.AddComponent<MeshFilter>().sharedMesh = ground; var mr = go.AddComponent<MeshRenderer>();
         look = LoadLook();
         var gm = GroundMat(); mr.sharedMaterial = gm; holeAssets.Add(gm);
@@ -305,7 +310,21 @@ public class HoleTest : MonoBehaviour
             Try("grass", () => grass = new Grass(D, slopeMat.GetTexture("_Surf"), slopeMat.GetTexture("_MainTex"), slopeMat.GetVector("_GSB"), slopeMat.GetVector("_GB"), slopeMat.GetVector("_TK")));
         float ph = D.H(D.pin[0], D.pin[1]); flag = new GameObject("Flag").transform; flag.SetParent(holeRoot); flag.position = HoleData.U(D.pin[0], D.pin[1], ph);
         Make(flag, cyl, M("White"), flag.position + Vector3.up * 1.2f, new Vector3(.03f, 1.2f, .03f));
-        var cloth = Make(flag, Prim(PrimitiveType.Cube), M("Red"), flag.position + new Vector3(.28f, 2.15f, 0), new Vector3(.55f, .35f, .01f));
+        // the flag (r3FlagMesh): a 12 x 4 cloth in the course's colours and emblem (troy/flag.png, r3FlagCanvas), rippled every frame
+        if (flagMesh == null)
+        {
+            flagMesh = new Mesh { name = "Flag cloth" }; flagMesh.MarkDynamic(); var fv = new Vector3[FLAG_N * 2]; var fuv = new Vector2[FLAG_N * 2]; var ft = new List<int>();
+            for (int j = 0; j <= 4; j++) for (int i = 0; i <= 12; i++) { int k = j * 13 + i; fuv[k] = fuv[k + FLAG_N] = new Vector2(i / 12f, j / 4f); }
+            for (int j = 0; j < 4; j++) for (int i = 0; i < 12; i++)
+            {   // both faces (the web's DoubleSide): the back is its own copy, wound the other way, so its normals face out too
+                int a = j * 13 + i, c = a + 13; ft.AddRange(new[] { a, c, a + 1, a + 1, c, c + 1 }); int A = a + FLAG_N, Cc = c + FLAG_N; ft.AddRange(new[] { A, A + 1, Cc, A + 1, Cc + 1, Cc });
+            }
+            flagMesh.vertices = fv; flagMesh.uv = fuv; flagMesh.SetTriangles(ft, 0);
+            var ftex = Resources.Load<Texture2D>("troy/flag"); flagMat = new Material(Shader.Find("Standard")); flagMat.SetFloat("_Glossiness", .15f);
+            if (ftex) flagMat.mainTexture = ftex; else flagMat.color = new Color(.12f, .31f, .24f);
+        }
+        var cloth = new GameObject("Cloth").transform; cloth.SetParent(flag, false); cloth.gameObject.AddComponent<MeshFilter>().sharedMesh = flagMesh;
+        var clr = cloth.gameObject.AddComponent<MeshRenderer>(); clr.sharedMaterial = flagMat; clr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
         Make(flag, cyl, M("Dark"), flag.position + Vector3.up * .005f, new Vector3(CUP * 2, .01f, CUP * 2));
     }
     // ---------- the ground's look (Stage 6) ----------
@@ -322,11 +341,29 @@ public class HoleTest : MonoBehaviour
        in the air; and the tracer (r3Tracer): a glowing ribbon along the flight up to where it lands, fading once the next shot is set up */
     Mesh trMesh; Material trMat; GameObject trGo; float trFade; GolfGo.Sim.Flight trF; double trLand = 9;
     const int TRN = 160;
+    Transform peg, pegCap;
+    // pegFor: tee height in ball radii (driver and mini driver high, woods and hybrids middling, irons low)
+    float PegFor() => C.putter ? 0 : C.id == "1W" || C.id == "MD" ? 1.5f : C.kind == "wood" || C.kind == "hybrid" ? .65f : .35f;
     void BallAndTracer(float dt)
     {
         Vector3 bc; if (st == S.Replay) bc = ReplayBall(); else bc = HoleData.U(b.x, b.y, bY);
         var sp = cam.WorldToScreenPoint(bc); float k = sp.z > .3f ? VfPx / sp.z / hud.K : 1e3f, r = Mathf.Max(.024f, 2.6f / k);
-        ball.localScale = Vector3.one * r * 2; ball.position = bc + Vector3.up * r;
+        // teed up (immediate-mode-primitives.js): the first shot from the tee box sits on a peg (driver high, irons low) until the club gets there
+        bool pre = st == S.Flight && GF != null && swingClock >= 0 && swingClock < launchAt;
+        float pk = Lie0 == "tee" && !mapView && ((strokes == 0 && AimingSt) || (pre && strokes == 1 && fromLie == "tee")) ? PegFor() : 0;
+        ball.localScale = Vector3.one * r * 2; ball.position = bc + Vector3.up * (r + pk * r);
+        if (peg == null)
+        {
+            var pm = new Material(Shader.Find("Standard")) { color = new Color(.957f, .945f, .91f) }; pm.SetFloat("_Glossiness", .35f);
+            peg = Make(null, Prims.Get(PrimitiveType.Cylinder), pm, Vector3.zero, Vector3.one); pegCap = Make(null, Prims.Get(PrimitiveType.Cylinder), pm, Vector3.zero, Vector3.one);
+        }
+        peg.gameObject.SetActive(pk > 0); pegCap.gameObject.SetActive(pk > 0);
+        if (pk > 0)
+        {   // cylAB(ground - .01 to the ball's foot, r * .16) and a cup on top (r * .16 * 2.6 across, .9 of the peg's radius deep)
+            float pr = r * .16f, ph = pk * r;
+            peg.position = bc + Vector3.up * ((ph - .01f) / 2); peg.localScale = new Vector3(pr * 2, (ph + .01f) / 2, pr * 2);
+            pegCap.position = bc + Vector3.up * (ph - pr * .45f); pegCap.localScale = new Vector3(pr * 5.2f, pr * .45f, pr * 5.2f);
+        }
         // the tracer: the live shot's flight (not a putt), drawn up to where it lands
         if (trGo == null)
         {
@@ -380,9 +417,9 @@ public class HoleTest : MonoBehaviour
         if (gg == null || gg.shader == null || !gg.shader.isSupported)
         { var std = new Material(M("Ground")); std.mainTexture = Resources.Load<Texture2D>(HolePath("_ground")); return std; }
         var gm = new Material(gg);
-        if (groundShared == null) groundShared = new[] { "det_short", "det_rough", "det_fescue", "det_sand", "turf_g", "turf_s", "surround" }.Select(n => Resources.Load<Texture2D>("troy/" + n)).ToArray();
+        if (groundShared == null) groundShared = new[] { "det_short", "det_rough", "det_fescue", "det_sand", "turf_g", "turf_s", "surround", "turf_gn", "turf_sn" }.Select(n => Resources.Load<Texture2D>("troy/" + n)).ToArray();
         gm.SetTexture("_MainTex", Resources.Load<Texture2D>(HolePath("_ground"))); gm.SetTexture("_Surf", Resources.Load<Texture2D>(HolePath("_surf")));
-        string[] slots = { "_DS", "_DR", "_DF", "_DD", "_PG", "_PS", "_Surround" }; for (int k = 0; k < slots.Length; k++) if (groundShared[k]) gm.SetTexture(slots[k], groundShared[k]);
+        string[] slots = { "_DS", "_DR", "_DF", "_DD", "_PG", "_PS", "_Surround", "_PGN", "_PSN" }; for (int k = 0; k < slots.Length; k++) if (groundShared[k]) gm.SetTexture(slots[k], groundShared[k]);
         gm.SetVector("_GB", V4(look, "gB", new Vector4(D.tex.x0, D.tex.y0, D.tex.w, D.tex.h))); gm.SetVector("_GSB", V4(look, "gSB", new Vector4(D.lg.x0, D.lg.y0, D.lg.nx, D.lg.ny)));
         gm.SetVector("_GSS", V4(look, "gSS", Vector4.zero)); gm.SetVector("_TK", V4(look, "tK", Vector4.one)); gm.SetVector("_RLS", V4(look, "rlS", Vector4.zero)); gm.SetVector("_RLG", V4(look, "rlG", Vector4.zero));
         gm.SetFloat("_POn", look != null && look.TryGetValue("pOn", out var po) && po is double pd ? (float)pd : 1); gm.SetFloat("_GMode", 1); gm.SetFloat("_LightOn", 0);
@@ -459,6 +496,7 @@ public class HoleTest : MonoBehaviour
         cam.fieldOfView = 50; cam.nearClipPlane = .3f; cam.farClipPlane = 5000; cam.allowMSAA = true;
         // the web game's sun, sky, clouds, weather and finish (GolfGoLook.cs); the old light and fog stay only if its shaders can't run
         Try("look", () => { gLook = cam.gameObject.AddComponent<GolfGoLook>(); gLook.sun = L; });
+        GolfGoLook.AfterPost = () => { if (FX != null && !mapView) Try("flames", () => FX.DrawFlames(cam, VfPx, hud.K)); };
         Try("weather", () => { if (gLook != null && gLook.Ok) { RenderSettings.fog = false; gLook.Weather(PlayerPrefs.GetInt("wx", 0)); } });
     }
     GolfGoLook gLook;
@@ -650,6 +688,20 @@ public class HoleTest : MonoBehaviour
         else if (FL.sgChunk) hud.Toast("GRABBED!", "The fescue caught the club", Hud.Hex("#ffb46a"));
         else if (Mathf.Abs(ev) > .035f) hud.Toast(ev > 0 ? "HOOK!" : "SLICE!", ev > 0 ? "Tapped early" : "Tapped late", Hud.Hex("#ff9b6a"));
         else if (ev != 0) hud.Toast(ev > 0 ? "PULLED" : "PUSHED", ev > 0 ? "A touch early" : "A touch late", Hud.Hex("#ffd2a8"));
+        if (FX != null)
+        {
+            FX.flame = FL.perfect == 2 && pshot ? "red" : null; FX.ClearTrail();   // (Oct 28, Cam: flames only on a power shot struck dead centre)
+            float bx0 = b.x, by0 = b.y, aim0 = aim, pw = (float)Power, pk = fromLie == "tee" && strokes == 1 ? PegFor() : 0; string lie0 = fromLie, sty = stype;
+            bool fat = FL.miss || (FL.misKind == "chunk" && FL.misT >= .5), thin = FL.misKind == "blade" && FL.misT >= .5, div = Effects.DivotFor(C, sty, lie0, thin);
+            float sw = (float)(FL.carry / System.Math.Max(1, MaxDist)); bool birds = C.kind == "wood" && FL.carry > 170; var land = FL.Pos(1); float ft = (float)FL.T;
+            bool drv = C.kind == "wood";
+            fxQ = () =>
+            {
+                if (div) FX.Divot(bx0, by0, aim0, sw, sty, lie0, fat);
+                if (pk > 0) FX.Tee(bx0, by0, aim0, pk, pw, drv);
+                if (birds && Random.value < .4f) FX.BirdsNear(SH, (float)land.x, (float)land.y, ft * .75f);
+            };
+        }
         fs = b; var td = new Vector2((float)FL.dx, (float)FL.dy); fd = td; fCarry = (float)FL.carry; fT = (float)FL.T; fu = 0; fRollMul = (float)FL.rollMul; fPutt = false;
         SB.windA = windA; SB.windMph = windMph; SB.flagOut = flagOut; SB.Launch(FL, Random.Range(1, int.MaxValue)); simAcc = 0; evSeen = 0; st = S.Flight;
     }
@@ -715,6 +767,12 @@ public class HoleTest : MonoBehaviour
         hud.SetReplayBtn(st == S.Aim && canReplay && !mapView && fc == null && !hud.ChoiceOpen);
         hud.SetFF(FfActive, ff);
         CameraUpdate(fdt);
+        if (FX != null)
+        {   // the bits that wait for the club to reach the ball (the divot, the tee peg, birds off a big drive), then everything moving
+            bool launched = !(GF != null && swingClock >= 0 && swingClock < launchAt);
+            if (fxQ != null && launched) { var q = fxQ; fxQ = null; Try("effects", q); }
+            Try("effects", () => { FX.Step(fdt, (float)windA, (float)windMph); FX.Draw(cam, VfPx / hud.K, mapView); });
+        }
         Try("trees lod", () => speciesTrees?.Lod(cam.transform.position)); Try("far draw", () => far?.Draw());
         // the grass: densest round the ball (or the look camera's spot); none in the overview or while the look camera is far out
         Try("grass draw", () => grass?.Draw(cam, fc != null && st == S.Aim ? new Vector2(fc.tx, fc.tz) : b, b, (float)windA, (float)windMph, mapView || (fc != null && st == S.Aim && fc.dist > 140)));
@@ -877,10 +935,29 @@ public class HoleTest : MonoBehaviour
         if (flag.childCount >= 2)
         {
             flag.GetChild(0).localPosition = new Vector3(0, 1.25f * ps, 0); flag.GetChild(0).localScale = new Vector3(.056f * ps, 1.25f * ps, .056f * ps);
-            flag.GetChild(1).localPosition = new Vector3(.28f * ps, 2.3f * ps, 0); flag.GetChild(1).localScale = new Vector3(.55f * ps, .35f * ps, .01f * ps);
+            FlagPose(2.48f * ps, ps);
         }
         var top = cam.WorldToScreenPoint(pw + Vector3.up * 2.6f * ps);
         hud.SetPinLabel(pc.z >= .3f && top.z >= .3f && !inCup && !(AimingSt && C.putter) && !mapView, top, Mathf.RoundToInt(PinDist) + "y");
+    }
+    // r3FlagPose: the flag hangs from the top of the stick, turned downwind (swaying when it's calm), rippling faster in more wind,
+    // drooping when there's none; 0.64 x 0.4 yd, scaled up with distance like the stick
+    const int FLAG_N = 65; static Mesh flagMesh; static Material flagMat; readonly Vector3[] flagV = new Vector3[FLAG_N * 2];
+    void FlagPose(float top, float ps)
+    {
+        float T = Time.time, mph = (float)windMph * (1 + .22f * Mathf.Sin(T * .41f) * Mathf.Sin(T * 1.7f + .6f)), calm = Mathf.Clamp01(1 - mph / 4);
+        float sway = Mathf.Sin(T * 1.3f) * .35f * calm + Mathf.Sin(T * .7f) * .12f;
+        var d = Dir((float)windA); float baseA = Mathf.Atan2(d.y, d.x), a = mph > 0 ? baseA + sway : Mathf.Sin(T * .9f) * .6f;
+        var fx = new Vector3(Mathf.Cos(a), 0, -Mathf.Sin(a)); var fz = Vector3.Cross(Vector3.up, fx);   // (the game's (cos, sin) in its plane; Unity's z is the game's -y)
+        float amp = .035f + .0075f * Mathf.Min(mph, 16), fq = 6 + mph * .35f, droop = .18f * calm, sx = .64f * ps, sy = .4f * ps, y0 = top - .2f * ps;
+        for (int j = 0; j <= 4; j++) for (int i = 0; i <= 12; i++)
+        {
+            float u = i / 12f, v = j / 4f - .5f; int k = j * 13 + i;
+            var p = fx * (u * (1 - .08f * calm) * sx) + Vector3.up * (y0 + (v - droop * u * u) * sy) + fz * (amp * Mathf.Sin(u * 7.5f - T * fq + v * 1.4f) * Mathf.Pow(u, .8f) * sx);
+            flagV[k] = flagV[k + FLAG_N] = p;
+        }
+        flagMesh.vertices = flagV; flagMesh.RecalculateNormals(); flagMesh.RecalculateBounds();
+        if (flag.childCount >= 2) { flag.GetChild(1).localPosition = Vector3.zero; flag.GetChild(1).localScale = Vector3.one; flag.GetChild(1).localRotation = Quaternion.identity; }
     }
     void LookRet(bool on)
     {
@@ -964,10 +1041,19 @@ public class HoleTest : MonoBehaviour
         while (simAcc >= SIM_DT && SB.Moving) { SB.Step(SIM_DT); simAcc -= SIM_DT; }
         b = new Vector2((float)SB.x, (float)SB.y); bY = (float)SB.bY;
         if (recOn) { recT += dt; bool air = SB.state == GolfGo.Sim.BallState.Flight; rec.Add(new Vector4(recT, b.x, b.y, air ? bY : D.H(b.x, b.y))); }
+        if (SB.state == GolfGo.Sim.BallState.Flight && FX != null && !fPutt) FX.Trail(b.x, b.y, bY);
         if (st == S.Flight && SB.state != GolfGo.Sim.BallState.Flight) st = S.Roll;
         var o = SB.outcome;
-        if (o != null) for (; evSeen < o.events.Count; evSeen++) ShotEvent(o.events[evSeen], o);
+        if (o != null) for (; evSeen < o.events.Count; evSeen++) { FxEvent(o.events[evSeen], evSeen < o.at.Count ? o.at[evSeen] : null); ShotEvent(o.events[evSeen], o); }
         if (!SB.Moving) Finish(o);
+    }
+    // the effects for what happened on the way: leaves (and now and then birds) through a tree, a pitch mark on the green
+    Effects FX; System.Action fxQ;
+    void FxEvent(string e, double[] at)
+    {
+        if (FX == null || at == null) return;
+        if (e == "rustle") { FX.Leaves((float)at[0], (float)at[1], (float)at[2], (float)at[3], (float)at[4], 8 + Random.Range(0, 6)); if (at.Length >= 8 && Random.value < .4f) FX.Birds((float)at[5], (float)at[6], (float)at[7], (float)at[0], (float)at[1], 2 + Random.Range(0, 3), 0); }
+        else if (e == "pmark") FX.PitchMark((float)at[0], (float)at[1], (float)at[3], (float)at[4]);
     }
     // the web game's toasts for what happened on the way (save-file.js)
     void ShotEvent(string e, GolfGo.Sim.Outcome o)
@@ -1075,7 +1161,7 @@ public class HoleTest : MonoBehaviour
     {
         strokes++; buried = false; st = S.Holed; hud.SetHint("");
         if (L != "water") { hud.Toast("OUT OF BOUNDS", "+1 stroke · replay from last spot", Hud.Coral); b = prev; bY = D.H(b.x, b.y); Invoke(nameof(Next), 1.6f); return; }   // stroke and distance (Rule 18.2)
-        hud.Toast("SPLASH!", "Penalty area · +1 stroke", Hud.SkyC);
+        hud.Toast("SPLASH!", "Penalty area · +1 stroke", Hud.SkyC); FX?.Splash(b.x, b.y, fPutt);
         // Rule 17: where it last crossed into the water, then lateral, back on the line, or stroke and distance; the best is marked
         var at = new[] { (double)b.x, (double)b.y }; var rec = new List<double[]>(SB.rec) { at };
         var opts = RD.ReliefOpts(RD.WaterCross(new double[] { prev.x, prev.y }, rec, at), new double[] { prev.x, prev.y }); var best = GolfGo.Sim.Round.Best(opts);
@@ -1123,6 +1209,7 @@ public class HoleTest : MonoBehaviour
         RD = new GolfGo.Sim.Round(SK, SH, CO, SG, PT); RD.SetClubs(Clubs);
         var w = GolfGo.Sim.Round.HoleWind(roundSeed, i); windA = w.a; windMph = w.mph;
         BuildHole(); Resources.UnloadUnusedAssets();   // (the last hole's 4K textures go)
+        FX = new Effects(D); fxQ = null;   // (a new hole: no divots, marks or bits from the last)
         strokes = 0; buried = false; b = new Vector2(D.tee[0], D.tee[1]); prev = b; bY = D.H(b.x, b.y); fromLie = "tee";
         hud.Toast("HOLE " + (i + 1), "Par " + D.par + " · " + D.len + " yds", Hud.Cream);
         PrepareShot(true);
@@ -1245,7 +1332,7 @@ public class HoleTest : MonoBehaviour
     string Diag()
     {
         string P(string what, int n, string why) => what + " " + (why ?? n.ToString());
-        return (QualitySettings.activeColorSpace == ColorSpace.Linear ? "linear" : "GAMMA") + " · finish " + (gLook == null ? "none" : !gLook.Ok ? "off" : gLook.Posts > 0 ? "on" : "not run")
+        return (QualitySettings.activeColorSpace == ColorSpace.Linear ? "linear" : "GAMMA") + " · finish " + (gLook == null ? "none" : !gLook.Ok ? "off" : gLook.Posts > 0 ? "on " + gLook.SrcFmt : "not run")
             + " · bake " + (baked ? "on" : "off") + " · " + P("far", far?.N ?? 0, far == null ? "none" : far.Why) + " · " + P("grass", grass?.Drawn ?? 0, grass == null ? "none" : grass.Why)
             + " · " + SystemInfo.graphicsDeviceType + " · sh " + QualitySettings.shadows + "/" + QualitySettings.shadowDistance.ToString("0");
     }

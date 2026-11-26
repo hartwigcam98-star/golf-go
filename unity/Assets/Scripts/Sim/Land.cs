@@ -104,7 +104,8 @@ namespace GolfGo.Sim
         public string lie, plie;     // rest: the turf, and what the ball feels (the cart path where it shows)
         public double[] relief;      // rest on a cart path: the free-relief spot (null when none)
         public bool gimme, buried, spinBack, pinHit, knocked;
-        public List<string> events = new List<string>();   // for the Unity side's sounds and toasts: "trunk", "branch", "rustle", "pin", "path", "lip", "rim", "spinback", "plug"
+        public List<string> events = new List<string>();   // for the Unity side's sounds and toasts: "trunk", "branch", "rustle", "pin", "path", "lip", "rim", "spinback", "plug", "pmark"
+        public List<double[]> at = new List<double[]>();     // where each event happened: x, y, height, travel x, y (+ the tree's x, y, radius for "rustle"); the effects read it
         public int dice;             // dice drawn before the fate was known
     }
 
@@ -150,7 +151,7 @@ namespace GolfGo.Sim
         public void RunToRest(double dt = 1.0 / 60, int maxFrames = 60 * 40) { for (int n = 0; n < maxFrames && Moving; n++) Step(dt); }
 
         void Fate(string kind, string how = "") { if (outcome == null) outcome = new Outcome(); outcome.kind = kind; outcome.how = how; outcome.x = x; outcome.y = y; outcome.dice = dice; outcome.knocked = knocked; outcome.pinHit = pinHitF || hPinHit; }
-        void Ev(string e) { if (outcome == null) outcome = new Outcome(); outcome.events.Add(e); }
+        void Ev(string e, double[] at = null) { if (outcome == null) outcome = new Outcome(); outcome.events.Add(e); outcome.at.Add(at ?? new[] { x, y, bY, 0, 0 }); }   // (no dice: the shot plays out the same)
         void Penalty(string L) { Fate(L); state = BallState.Penalty; }
         void Holed(string how = "") { Fate("holed", how); x = pin[0]; y = pin[1]; state = BallState.Holed; }
 
@@ -215,7 +216,7 @@ namespace GolfGo.Sim
                     }
                     if (u > .04 && InLeaf(.85) && !(rus ?? (rus = new HashSet<SimHole.Tree>())).Contains(t))
                     {   // through the leaves: the leaf count and the birds cost dice
-                        rus.Add(t); Ev("rustle"); D(); if (D() < .4) D();
+                        { var (rtx, rty) = TravelDir(u); rus.Add(t); Ev("rustle", new[] { x, y, bY, rtx, rty, t.x, t.y, t.r }); } D(); if (D() < .4) D();
                     }
                     if (u > .04 && InLeaf(.8))
                     {
@@ -257,6 +258,7 @@ namespace GolfGo.Sim
                 if (D() < pb) { buried = true; Ev("plug"); }
             }
             var (tx, ty) = TravelDir(u);
+            if (L == "green" && f.apex > 2.5) Ev("pmark", new[] { x + tx * .03, y + ty * .03, 0, tx, ty });   // a pitch mark where it came down
             string st = f.stype ?? "full";
             double R0;
             if (st == "punch") R0 = f.carry * .22 * Surf(L) * f.rollMul;

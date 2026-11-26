@@ -20,6 +20,8 @@ Shader "GolfGo/Ground"
         _DD ("Detail sand", 2D) = "gray" {}
         _PG ("Photo turf", 2D) = "gray" {}
         _PS ("Photo sand", 2D) = "gray" {}
+        _PGN ("Photo turf normals", 2D) = "bump" {}
+        _PSN ("Photo sand normals", 2D) = "bump" {}
         _Surround ("Surroundings (gStex)", 2D) = "white" {}
         _GB ("Course map rect", Vector) = (0, 0, 1, 1)
         _GSB ("Surface map rect", Vector) = (0, 0, 1, 1)
@@ -48,9 +50,9 @@ Shader "GolfGo/Ground"
         #pragma target 3.5
         #include "GolfGoBake.cginc"
         sampler2D _SlT; float4 _SLB, _SlRot; float _SlOn, _SLG, _SlDk;
-        sampler2D _MainTex, _Surf, _DS, _DR, _DF, _DD, _PG, _PS, _Surround;
+        sampler2D _MainTex, _Surf, _DS, _DR, _DF, _DD, _PG, _PS, _Surround, _PGN, _PSN;
         float4 _GB, _GSB, _GSS, _TK, _RLS, _RLG; float _GMode, _POn;
-        struct Input { float3 worldPos; };
+        struct Input { float3 worldPos; float3 worldNormal; INTERNAL_DATA };
 
         // the web game's GLSL_NOISE
         float hash (float2 p) { return frac(sin(dot(p, float2(127.1, 311.7))) * 43758.5453); }
@@ -87,6 +89,7 @@ Shader "GolfGo/Ground"
             if (w.b > .002) dF = texNFg(_DF, q / 2.8, dqx / 2.8, dqy / 2.8).r * .65 + texNFg(_DF, q / 7.9 + .23, dqx / 7.9, dqy / 7.9).r * .35;
             if (ws > .002 && _POn < .5) dD = texNFg(_DD, q / 1.1, dqx / 1.1, dqy / 1.1).r * .6 + texNFg(_DD, q / 3.7 + .5, dqx / 3.7, dqy / 3.7).r * .4;
             float det = (w.r * dS * 1.25 + w.g * dR * 1.3 + w.b * dF * 1.6 + ws * dD * 1.) * 2. - (w.r * 1.25 + w.g * 1.3 + w.b * 1.6 + ws);
+            float bump = 0, nk = 0; float3 tnm = float3(0, 0, 1);   // (the web's r3bump, r3nk, r3nm: micro-relief and the photos' normals)
             if (_POn > .5)
             {   // photographed turf and sand: their colour ratios multiply the painted course near you
                 float2 qr = float2(q.x * .8 - q.y * .6, q.x * .6 + q.y * .8);
@@ -101,8 +104,17 @@ Shader "GolfGo/Ground"
                 float3 pgl = lerp(dot(pg, float3(.333, .333, .333)).xxx, pg, lerp(.55, .35, gw)); kg *= lerp(1., .6, gw) * lerp(.78, .75, gw);
                 c *= lerp(float3(1, 1, 1), pgl, kg * 1.1) * lerp(float3(1, 1, 1), ps, ks);
                 det = (w.b * dF * 1.6) * 2. - (w.b * 1.6) + (w.r * (dS * 2. - 1.) * .35 + w.g * (dR * 2. - 1.) * .4);
+                // the photos' normal maps near you (the turf's grain and the sand's ripples catch the sun)
+                nk = (1. - smoothstep(10., 70., dist)) * min(1., w.r * lerp(.8, .45, gw) + w.g + ws * .9);
+                if (nk > .001)
+                {
+                    float3 ng = float3(0, 0, 1), ns = float3(0, 0, 1);
+                    if (w.r + w.g > .002) ng = lerp(tex2Dgrad(_PGN, ga, dqx / kga, dqy / kga).rgb, tex2Dgrad(_PGN, gb2, rx / kgb, ry / kgb).rgb, nzm) * 2. - 1.;
+                    if (ws > .002) ns = lerp(tex2Dgrad(_PSN, sa, dqx / 2.4, dqy / 2.4).rgb, tex2Dgrad(_PSN, sb, rx / 5.3, ry / 5.3).rgb, nzm) * 2. - 1.;
+                    float wn = w.r + w.g + ws + 1e-4; tnm = normalize((ng * (w.r + w.g) + ns * ws) / wn);
+                }
             }
-            c *= 1. + det * 1.45 * (1. - smoothstep(30., 190., dist));
+            c *= 1. + det * 1.45 * (1. - smoothstep(30., 190., dist)); bump = det * (1. - smoothstep(12., 60., dist));
             if (_GMode > .5)
             {
                 if (dist < 90.) c *= 1. + (vnoise(q * .75) - .5) * .07 * (w.r * (1. - w.a) + w.g) * (1. - smoothstep(25., 90., dist));
@@ -114,7 +126,7 @@ Shader "GolfGo/Ground"
                     {
                         float p1 = dot(q, float2(.8, .6)) / .14, p2 = dot(q, float2(-.45, .89)) / .14, fq = max(fwidth(p1), fwidth(p2)); fr *= 1. - smoothstep(.25, .5, fq);
                         float j = vnoise(q * 1.3) * 2.5, rk = lerp(sin(p1 * 6.2832 + j), sin(p2 * 6.2832 + j), smoothstep(.35, .65, vnoise(q * .03))) * fr * (.55 + .45 * vnoise(q * .4));
-                        c *= 1. + rk * .008;
+                        c *= 1. + rk * .008; bump += rk * .13;
                     }
                 }
             }
@@ -179,6 +191,16 @@ Shader "GolfGo/Ground"
         #endif
             // the hole's light baked in Blender (the web's bkOn): the sun's and the sky's light there (GolfGoBake.cginc)
             o.Bk = _GMode > .5 ? bakeAt(q) : half2(1, 1);
+            // micro-relief (the web's normal_fragment_maps patch): the grass and sand detail as a bump, so the sun rakes across it
+            // (Mikkelsen's surface gradient from screen derivatives, in world space), then the photos' normals on top
+            {
+                float3 Nw = normalize(WorldNormalVector(IN, float3(0, 0, 1))), Tw = WorldNormalVector(IN, float3(1, 0, 0)), Bw = WorldNormalVector(IN, float3(0, 1, 0));
+                float bh = bump * .035; float3 dpx = ddx(wp), dpy = ddy(wp), r1 = cross(dpy, Nw), r2 = cross(Nw, dpx); float dtt = dot(dpx, r1);
+                float3 gr = sign(dtt) * (ddx(bh) * r1 + ddy(bh) * r2); float3 Nb = normalize(abs(dtt) * Nw - gr);
+                float3 nts = float3(dot(Nb, Tw), dot(Nb, Bw), dot(Nb, Nw));
+                float3 tn = normalize(lerp(float3(0, 0, 1), tnm, nk));
+                o.Normal = normalize(float3(nts.xy + tn.xy, nts.z * tn.z));
+            }
             // three's roughness (perceptual, as Unity's 1 - smoothness): greens and fairway a touch glossier than rough
             o.Albedo = alb; o.Metallic = 0; o.Smoothness = 1. - (_GMode > .5 ? clamp(.97 - .2 * w.r - .04 * w.g, .72, .97) : .95); o.Occlusion = 1; o.Alpha = 1;
         }

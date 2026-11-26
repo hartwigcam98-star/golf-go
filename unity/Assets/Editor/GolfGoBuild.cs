@@ -39,6 +39,7 @@ public static class GolfGoBuild
             if (a.EndsWith("_ground.jpg")) { var ti = AssetImporter.GetAtPath(a) as TextureImporter; if (ti) { ti.maxTextureSize = 4096; ti.mipmapEnabled = true; ti.wrapMode = TextureWrapMode.Clamp; ti.anisoLevel = 4; ti.sRGBTexture = false; ti.SaveAndReimport(); } }
             else if (a.EndsWith("_light.png")) { var li = AssetImporter.GetAtPath(a) as TextureImporter; if (li) { li.maxTextureSize = 4096; li.wrapMode = TextureWrapMode.Clamp; li.sRGBTexture = false; li.SaveAndReimport(); } }
             else if (a.EndsWith("_surf.png")) { var si = AssetImporter.GetAtPath(a) as TextureImporter; if (si) { si.maxTextureSize = 1024; si.mipmapEnabled = false; si.wrapMode = TextureWrapMode.Clamp; si.sRGBTexture = false; si.filterMode = FilterMode.Bilinear; si.textureCompression = TextureImporterCompression.Uncompressed; si.npotScale = TextureImporterNPOTScale.None; si.SaveAndReimport(); } }
+            else if (a.EndsWith("/flag.png")) { var fi = AssetImporter.GetAtPath(a) as TextureImporter; if (fi) { fi.sRGBTexture = true; fi.wrapMode = TextureWrapMode.Clamp; fi.mipmapEnabled = true; fi.anisoLevel = 4; fi.SaveAndReimport(); } }   // (the flag: a picture, sRGB as the web's)
             else if (a.EndsWith(".png") || a.EndsWith(".jpg"))
             {   // the shared ground textures: tiling detail and photographed turf repeat with mips; the surroundings map clamps
                 var di = AssetImporter.GetAtPath(a) as TextureImporter; if (!di) continue; bool sur = a.EndsWith("surround.png");
@@ -112,8 +113,15 @@ public static class GolfGoBuild
         // whose variants the default stripping can leave out of the build
         { var gso = new SerializedObject(UnityEngine.Rendering.GraphicsSettings.GetGraphicsSettings()); var ip = gso.FindProperty("m_InstancingStripping");
           if (ip != null) { ip.intValue = 2; gso.ApplyModifiedPropertiesWithoutUndo(); Debug.Log("GolfGoBuild: instancing variants kept"); } else Debug.LogWarning("GolfGoBuild: no m_InstancingStripping"); }
+        // a float picture (HDR, FP16) on every tier: the finish's filmic curve, the bloom and the sun's glare work on light over 1
+        foreach (var grp in new[] { BuildTargetGroup.iOS, BuildTargetGroup.Standalone })
+            foreach (UnityEngine.Rendering.GraphicsTier tier in Enum.GetValues(typeof(UnityEngine.Rendering.GraphicsTier)))
+            {
+                var ts = UnityEditor.Rendering.EditorGraphicsSettings.GetTierSettings(grp, tier); ts.hdr = true; ts.hdrMode = CameraHDRMode.FP16;
+                UnityEditor.Rendering.EditorGraphicsSettings.SetTierSettings(grp, tier, ts);
+            }
         Debug.Log("GolfGoBuild: colour space " + PlayerSettings.colorSpace + ", linear lights " + UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity);
-        foreach (var (sn, mn) in new[] { ("GolfGo/Sky", "GGSky"), ("GolfGo/Post", "GGPost"), ("GolfGo/CloudShadow", "GGCloudShadow") })
+        foreach (var (sn, mn) in new[] { ("GolfGo/Sky", "GGSky"), ("GolfGo/Post", "GGPost"), ("GolfGo/CloudShadow", "GGCloudShadow"), ("GolfGo/Flame", "GGFlame") })
         {
             AssetDatabase.ImportAsset("Assets/Shaders/" + sn.Replace("GolfGo/", "GolfGo") + ".shader", ImportAssetOptions.ForceUpdate);
             var sh = Shader.Find(sn); if (!sh) { Debug.LogError(sn + " shader didn't compile"); continue; }
