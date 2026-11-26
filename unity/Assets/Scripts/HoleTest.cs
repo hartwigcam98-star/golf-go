@@ -12,6 +12,7 @@ public class HoleTest : MonoBehaviour
     // stage 5: the round (Troy Burne's 18), the hole being played, scores, the round's seed (pins and wind), the hole's objects
     readonly List<UnityEngine.Object> holeAssets = new List<UnityEngine.Object>();
     // stage 6: the web game's golfer (recorded body and swing), the swing's clock from the strike, how far back he went
+    WaterReflect WR; Material waterMat;
     Golfer GF; string golferId; float swingClock = -1, swingBack = 1, launchAt;
     static readonly string[][] Golfers = { new[] { "ch06", "Dex" }, new[] { "ch28", "Andre" }, new[] { "ch42", "Danny" } };
     int hi, roundSeed, roundDiff, holesDone; readonly int[] scores = new int[18], pars = new int[18]; Transform holeRoot; Dictionary<string, object> lightB;
@@ -139,10 +140,28 @@ public class HoleTest : MonoBehaviour
             var lg = new GameObject(leafMats[z]); lg.transform.SetParent(root); lg.AddComponent<MeshFilter>().sharedMesh = lm; var lr = lg.AddComponent<MeshRenderer>(); lr.sharedMaterial = M(leafMats[z]);
         }
         // flag
+        BuildWater();
         float ph = D.H(D.pin[0], D.pin[1]); flag = new GameObject("Flag").transform; flag.SetParent(holeRoot); flag.position = HoleData.U(D.pin[0], D.pin[1], ph);
         Make(flag, cyl, M("White"), flag.position + Vector3.up * 1.2f, new Vector3(.03f, 1.2f, .03f));
         var cloth = Make(flag, Prim(PrimitiveType.Cube), M("Red"), flag.position + new Vector3(.28f, 2.15f, 0), new Vector3(.55f, .35f, .01f));
         Make(flag, cyl, M("Dark"), flag.position + Vector3.up * .005f, new Vector3(CUP * 2, .01f, CUP * 2));
+    }
+    // the hole's water: the web game's own surface (hNN_look.json), mirrored into Unity's axes, on the Water layer, with its reflection
+    void BuildWater()
+    {
+        var ta = Resources.Load<TextAsset>(HolePath("_look")); if (WR != null) WR.on = false; if (ta == null) return;
+        var L = (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(ta.text);
+        if (!(L.TryGetValue("water", out var wo) && wo is List<object> W) || W.Count < 9) return;
+        int n = W.Count / 3; var v = new Vector3[n]; var t = new int[n];
+        for (int i = 0; i < n; i++) v[i] = new Vector3(System.Convert.ToSingle(W[i * 3]), System.Convert.ToSingle(W[i * 3 + 1]), -System.Convert.ToSingle(W[i * 3 + 2]));
+        for (int i = 0; i + 2 < n; i += 3) { t[i] = i; t[i + 1] = i + 2; t[i + 2] = i + 1; }   // (rewound for the mirror)
+        var m = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32, vertices = v, triangles = t }; m.RecalculateNormals(); m.RecalculateBounds(); holeAssets.Add(m);
+        var go = new GameObject("Water"); go.layer = WaterReflect.WaterLayer; go.transform.SetParent(holeRoot);
+        go.AddComponent<MeshFilter>().sharedMesh = m; var mr = go.AddComponent<MeshRenderer>();
+        if (waterMat == null) { var wm = M("Water"); if (wm != null) { waterMat = new Material(wm); WR = new WaterReflect(waterMat); } }
+        if (waterMat == null) { Destroy(go); return; }
+        mr.sharedMaterial = waterMat; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; mr.receiveShadows = false;
+        float lv = L.TryGetValue("level", out var lo) && lo is double ld ? (float)ld : v[0].y; WR.SetLevel(lv); WR.on = true;
     }
     void BuildWorld()
     {
@@ -372,6 +391,7 @@ public class HoleTest : MonoBehaviour
         if (st == S.Flight || st == S.Roll) StepSim(dt);
         ball.position = HoleData.U(b.x, b.y, bY + .035f);
         CameraUpdate(dt);
+        if (WR != null) WR.Render(cam);   // the water's mirror, from where the camera now is
     }
     void HandleAimDrag()
     {
