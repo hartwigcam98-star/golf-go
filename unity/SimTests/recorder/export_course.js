@@ -1,4 +1,4 @@
-// (re-run: node unity/SimTests/recorder/export_course.js . unity/Assets/Resources/troy [course id])
+// (re-run: node unity/SimTests/recorder/export_course.js . unity/Assets/Resources/troy [course id]; then record_round.js adds each hole's three pin spots, 'pins')
 /* Stage 5 exporter: every hole of a course from the web game, headless, for the Unity game. Per hole NN (01..18):
      hNN.json        what Unity draws and the sim's ground: course, hole, par, len, pin, tee [x, y, aim], hg / gg heights (full
                      precision), lg + lieNames (the course map's lie codes), tex (the ground texture's rect), green outline,

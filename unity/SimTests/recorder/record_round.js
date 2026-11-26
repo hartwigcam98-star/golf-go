@@ -15,12 +15,14 @@ const SITE = process.argv[2], OUT = process.argv[3];
     // the neutral golfer (as the stage 1 strike cases): every mod 1, no bag changes
     const one=()=>1;window.__ID={carry:one,err:one,win:one,curve:1,spin:1,wind:1,putt:1,mis:1,sgVar:1,puttD:1,misFull:1,perf:1.03};
     G.cm=__ID;BAGC.set(__ID,{v:BAGV,w:__ID});return 'ok';})()`);
+  // each hole's pin as exported (hNN.json, practice mode) so the C# side plays to the same cup; and the hole's three pin spots
+  const pinOf = hi => JSON.parse(fs.readFileSync(path.join(__dirname, '../../Assets/Resources/troy/h' + String(hi + 1).padStart(2, '0') + '.json'), 'utf8')).pin;
   const out = [];
   for (let hi = 0; hi < 18; hi++) {
     const r = JSON.parse(await g.ev(`(()=>{try{
-      Math.random=rng(${hi}*7+3);G.mode='practice';G.pinSeed=424242;G.roundSeed=777;startHole(${hi});$('introM').hidden=true;try{R3R.on=false;}catch(e){}
+      Math.random=rng(${hi}*7+3);G.mode='practice';G.pinSeed=424242;G.roundSeed=777;startHole(${hi});$('introM').hidden=true;try{R3R.on=false;}catch(e){}G.hole.pin=${JSON.stringify(pinOf(hi))};
       const W=holeWind(${hi}),rs=roundWindSeed();
-      const H={hole:${hi}+1,wind:W,roundSeed:rs,prep:[],water:[]};
+      const H={hole:${hi}+1,wind:W,roundSeed:rs,prep:[],water:[],pins:G.hole.pins.map(p=>[p[0],p[1]])};
       const prep=(x,y,strokes)=>{G.ball={x,y};G.prev={x,y};G.strokes=strokes;G.stype='full';G.buried=false;G.imp={x:0,y:0};G.traj=0;G.pshot=false;SJ.job=null;G.aiTurn=false;
         prepareShot();return{x,y,strokes,lie:G.lie,aim:G.aim,club:curClub().id,stype:G.stype,swMax:G.swMax,puttMax:G.puttMax,flagOut:G.flagOut,onTee:onTeeBox()};};
       const t=G.hole.line&&G.hole.line[0]||[0,0];H.prep.push(prep(G.ball.x,G.ball.y,0));
