@@ -101,7 +101,8 @@ public class Grass
         }
         foreach (var (c, r1) in new[] { (c0, r01), (c1, r11) })
         {
-            if (r1 <= 0) continue; int i0 = Mathf.FloorToInt((c.x - r1) / S), i1 = Mathf.FloorToInt((c.x + r1) / S), j0 = Mathf.FloorToInt((c.y - r1) / S), j1 = Mathf.FloorToInt((c.y + r1) / S);
+            if (r1 <= 0 || float.IsNaN(c.x) || float.IsNaN(c.y) || Mathf.Abs(c.x) > 1e5f || Mathf.Abs(c.y) > 1e5f) continue;   // (never an endless loop on a bad spot)
+            int i0 = Mathf.FloorToInt((c.x - r1) / S), i1 = Mathf.FloorToInt((c.x + r1) / S), j0 = Mathf.FloorToInt((c.y - r1) / S), j1 = Mathf.FloorToInt((c.y + r1) / S);
             for (int j = j0; j <= j1; j++) for (int i = i0; i <= i1; i++) Try(i, j);
         }
         var wd = new Vector2(Mathf.Sin(windA), -Mathf.Cos(windA)); float ws = Mathf.Clamp01(windMph / 16);

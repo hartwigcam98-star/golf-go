@@ -133,8 +133,26 @@ public class HoleTest : MonoBehaviour
     int fN; float fAcc, fMax; readonly List<float> win = new List<float>();
     Vector3 camPos, camLook;
 
+    // ---------- what went wrong, on screen (a TestFlight build has no console): the first errors, in red over the top of the picture ----------
+    static readonly List<string> errs = new List<string>();
+    static void OnLog(string msg, string stack, LogType t)
+    {
+        if (t != LogType.Error && t != LogType.Exception && t != LogType.Assert) return;
+        string line = msg + (string.IsNullOrEmpty(stack) ? "" : " @ " + stack.Split('\n')[0]);
+        if (errs.Count < 6 && !errs.Contains(line)) errs.Add(line);
+    }
+    GUIStyle errStyle;
+    void OnGUI()
+    {
+        if (errs.Count == 0) return;
+        errStyle ??= new GUIStyle(GUI.skin.label) { fontSize = Mathf.Max(14, Screen.height / 70), wordWrap = true, normal = { textColor = new Color(1, .35f, .3f) } };
+        GUI.Label(new Rect(10, Screen.height * .12f, Screen.width - 20, Screen.height * .5f), "Errors:\n" + string.Join("\n", errs), errStyle);
+    }
+    // a step that may fail on the phone: it logs (and so shows) what went wrong, and the game carries on
+    static void Try(string what, System.Action a) { try { a(); } catch (System.Exception e) { Debug.LogError(what + ": " + e.GetType().Name + " " + e.Message + " " + (e.StackTrace ?? "").Split('\n')[0]); } }
     void Awake()
     {
+        Application.logMessageReceived += OnLog;
         Application.targetFrameRate = 120; QualitySettings.vSyncCount = 0; Screen.sleepTimeout = SleepTimeout.NeverSleep;
         QualitySettings.shadowDistance = 160; QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowResolution = ShadowResolution.High;
         // the game's own mechanics (GolfGo.Sim, checked shot for shot against the web game) and its numbers
@@ -193,7 +211,7 @@ public class HoleTest : MonoBehaviour
         // draws them), merged per tint so the whole course is a handful of draw calls
         var cyl = Prim(PrimitiveType.Cylinder); Material bark = M("Bark");
         // the web game's species trees when they're exported for this hole (Trees.cs); the old leaf-card crowns otherwise
-        speciesTrees = Trees.Available(HolePath("")) ? new Trees(HolePath(""), holeRoot) : null;
+        speciesTrees = null; Try("trees", () => speciesTrees = Trees.Available(HolePath("")) ? new Trees(HolePath(""), holeRoot) : null);
         var T = speciesTrees != null ? new float[0] : D.trees; var root = new GameObject("Trees").transform; root.SetParent(holeRoot); var rnd = new System.Random(77);
         var lists = new List<Vector3>[5]; var uvs = new List<Vector2>[5]; var nrm = new List<Vector3>[5];
         for (int z = 0; z < 5; z++) { lists[z] = new List<Vector3>(); uvs[z] = new List<Vector2>(); nrm[z] = new List<Vector3>(); }
@@ -243,11 +261,11 @@ public class HoleTest : MonoBehaviour
         }
         // flag
         BuildWater(); BuildSkirt();
-        Built.Build(HolePath(""), holeRoot, holeAssets);   // the clubhouse, houses, structures, bridges and props (Built.cs)
+        Try("buildings", () => Built.Build(HolePath(""), holeRoot, holeAssets));   // the clubhouse, houses, structures, bridges and props (Built.cs)
         // the grass blades (Grass.cs), on this hole's ground textures
-        grass?.Dispose(); grass = null; far?.Dispose(); far = new FarTrees(HolePath(""));   // (the far trees: FarTrees.cs)
+        grass?.Dispose(); grass = null; far?.Dispose(); far = null; Try("far trees", () => far = new FarTrees(HolePath("")));   // (the far trees: FarTrees.cs)
         if (slopeMat != null && slopeMat.shader.name == "GolfGo/Ground")
-            grass = new Grass(D, slopeMat.GetTexture("_Surf"), slopeMat.GetTexture("_MainTex"), slopeMat.GetVector("_GSB"), slopeMat.GetVector("_GB"), slopeMat.GetVector("_TK"));
+            Try("grass", () => grass = new Grass(D, slopeMat.GetTexture("_Surf"), slopeMat.GetTexture("_MainTex"), slopeMat.GetVector("_GSB"), slopeMat.GetVector("_GB"), slopeMat.GetVector("_TK")));
         float ph = D.H(D.pin[0], D.pin[1]); flag = new GameObject("Flag").transform; flag.SetParent(holeRoot); flag.position = HoleData.U(D.pin[0], D.pin[1], ph);
         Make(flag, cyl, M("White"), flag.position + Vector3.up * 1.2f, new Vector3(.03f, 1.2f, .03f));
         var cloth = Make(flag, Prim(PrimitiveType.Cube), M("Red"), flag.position + new Vector3(.28f, 2.15f, 0), new Vector3(.55f, .35f, .01f));
@@ -403,14 +421,14 @@ public class HoleTest : MonoBehaviour
         if (CAMV < 0) CAMV = PlayerPrefs.GetInt("camv", 1);   // (Cam, Nov 25: the lower aiming view; the camera button cycles all three)
         cam.fieldOfView = 50; cam.nearClipPlane = .3f; cam.farClipPlane = 5000; cam.allowMSAA = true;
         // the web game's sun, sky, clouds, weather and finish (GolfGoLook.cs); the old light and fog stay only if its shaders can't run
-        gLook = cam.gameObject.AddComponent<GolfGoLook>(); gLook.sun = L;
-        if (gLook.Ok) { RenderSettings.fog = false; gLook.Weather(PlayerPrefs.GetInt("wx", 0)); }
+        Try("look", () => { gLook = cam.gameObject.AddComponent<GolfGoLook>(); gLook.sun = L; });
+        Try("weather", () => { if (gLook != null && gLook.Ok) { RenderSettings.fog = false; gLook.Weather(PlayerPrefs.GetInt("wx", 0)); } });
     }
     GolfGoLook gLook;
     // r3NewWx: each new round rolls its weather (Sunny, Partly cloudy, Cloudy, Overcast) and says so
     void NewWeather()
     {
-        if (gLook == null || !gLook.Ok) return; int i = Random.Range(0, GolfGoLook.WX.Length); PlayerPrefs.SetInt("wx", i); gLook.Weather(i);
+        if (gLook == null || !gLook.Ok) return; int i = Random.Range(0, GolfGoLook.WX.Length); PlayerPrefs.SetInt("wx", i); Try("weather", () => gLook.Weather(i));
         wxToast = GolfGoLook.WX[i].n.ToUpperInvariant(); wxToastAt = Time.time + 1.4f;   // (a timer of its own: loading the hole cancels Invokes)
     }
     string wxToast; float wxToastAt = -1;
@@ -660,9 +678,9 @@ public class HoleTest : MonoBehaviour
         hud.SetReplayBtn(st == S.Aim && canReplay && !mapView && fc == null && !hud.ChoiceOpen);
         hud.SetFF(FfActive, ff);
         CameraUpdate(fdt);
-        speciesTrees?.Lod(cam.transform.position); far?.Draw();
+        Try("trees lod", () => speciesTrees?.Lod(cam.transform.position)); Try("far draw", () => far?.Draw());
         // the grass: densest round the ball (or the look camera's spot); none in the overview or while the look camera is far out
-        grass?.Draw(cam, fc != null && st == S.Aim ? new Vector2(fc.tx, fc.tz) : b, b, (float)windA, (float)windMph, mapView || (fc != null && st == S.Aim && fc.dist > 140));
+        Try("grass draw", () => grass?.Draw(cam, fc != null && st == S.Aim ? new Vector2(fc.tx, fc.tz) : b, b, (float)windA, (float)windMph, mapView || (fc != null && st == S.Aim && fc.dist > 140)));
         SlopeGrid(dt);
         if (WR != null) WR.Render(cam);   // the water's mirror, from where the camera now is
     }
@@ -801,7 +819,7 @@ public class HoleTest : MonoBehaviour
         if (fc.follow && landPt.HasValue)
         {
             float k = fc.fly != null ? 1 : 1 - Mathf.Exp(-dt * 7), dy = aim + fc.yawOff - fc.yaw;
-            while (dy > Mathf.PI) dy -= 2 * Mathf.PI; while (dy < -Mathf.PI) dy += 2 * Mathf.PI;
+            dy = Mathf.Repeat(dy + Mathf.PI, 2 * Mathf.PI) - Mathf.PI;   // (wrapped to ±π without a loop)
             fc.tx += (landPt.Value.x - fc.tx) * k; fc.tz += (landPt.Value.y - fc.tz) * k; fc.yaw += dy * k;
         }
     }
