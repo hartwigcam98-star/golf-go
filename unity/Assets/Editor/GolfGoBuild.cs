@@ -53,6 +53,12 @@ public static class GolfGoBuild
         }
         // sky
         Directory.CreateDirectory("Assets/Resources/Mats");
+        // the water (the web game's water shader, Assets/Shaders/GolfGoWater.shader); a material in Resources keeps the shader in the build
+        AssetDatabase.ImportAsset("Assets/Shaders/GolfGoWater.shader", ImportAssetOptions.ForceUpdate);
+        var wsh = Shader.Find("GolfGo/Water"); if (!wsh) Debug.LogError("GolfGo/Water shader didn't compile");
+        var wP = "Assets/Resources/Mats/Water.mat"; var wm = AssetDatabase.LoadAssetAtPath<Material>(wP);
+        if (!wm && wsh) { wm = new Material(wsh); AssetDatabase.CreateAsset(wm, wP); } else if (wm && wsh) wm.shader = wsh;
+        if (wm) EditorUtility.SetDirty(wm);
         var skyP = "Assets/Resources/Mats/Sky.mat"; var sky = AssetDatabase.LoadAssetAtPath<Material>(skyP);
         if (!sky) { sky = new Material(Shader.Find("Skybox/Procedural")); AssetDatabase.CreateAsset(sky, skyP); }
         sky.SetFloat("_SunSize", .03f); sky.SetFloat("_AtmosphereThickness", .9f); sky.SetColor("_SkyTint", new Color(.45f, .6f, .85f));
