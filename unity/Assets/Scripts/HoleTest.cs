@@ -178,6 +178,9 @@ public class HoleTest : MonoBehaviour
                 if (view == 1) CAMV = 0;
                 if (view == 2) { CAMV = 1; Try("look", LookGreen); }
                 yield return new WaitForSecondsRealtime(view == 0 ? 3.5f : 2.5f);
+                // the build Mac draws about one frame a second: put the camera where it's going instead of waiting for it to ease there
+                camPos = Vector3.zero; if (fc != null) { fc.fly = null; fc.dist = fc.distT; }
+                for (int fr = 0; fr < 3; fr++) yield return null;
                 yield return new WaitForEndOfFrame();
                 var t = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false); t.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0); t.Apply();   // (the ScreenCapture module isn't in the build)
                 var name = "h" + (h + 1).ToString("00") + "_" + new[] { "tee", "tee_high", "green" }[view] + ".png";
