@@ -40,7 +40,7 @@ public class Grass
         {
             var nb = Resources.Load<TextAsset>("troy/noise");
             noise = new Texture2D(256, 256, TextureFormat.RGBA32, true, true) { wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Trilinear };
-            if (nb != null) { noise.LoadRawTextureData(nb.bytes); noise.Apply(true, true); }
+            if (nb != null) { noise.SetPixelData(nb.bytes, 0); noise.Apply(true, true); }   // (the top level only: the mips are made from it; LoadRawTextureData wants every mip and threw)
         }
         // hT: the hole's heights (the ground mesh's own grid), one float a point
         var g = d.hg; ht = new Texture2D(g.nx, g.ny, TextureFormat.RFloat, false, true) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };

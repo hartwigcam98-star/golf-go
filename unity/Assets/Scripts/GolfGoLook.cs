@@ -29,7 +29,7 @@ public class GolfGoLook : MonoBehaviour
         if (cs != null && cs.isSupported) cookieMat = new Material(cs);
         var nb = Resources.Load<TextAsset>("troy/noise");
         noise = new Texture2D(256, 256, TextureFormat.RGBA32, true, true) { wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Trilinear };
-        if (nb != null) { noise.LoadRawTextureData(nb.bytes); noise.Apply(true, true); }
+        if (nb != null) { noise.SetPixelData(nb.bytes, 0); noise.Apply(true, true); }   // (the top level only: the mips are made from it; LoadRawTextureData wants every mip and threw)
         Shader.SetGlobalTexture("_GGNoise", noise); Shader.SetGlobalVector("_GGSun", SUNW);
         RenderSettings.fog = false;   // (the haze is the finish's)
     }
