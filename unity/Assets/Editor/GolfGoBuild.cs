@@ -108,6 +108,11 @@ public static class GolfGoBuild
           if (trs) { if (!trm) { trm = new Material(trs); AssetDatabase.CreateAsset(trm, trp); } else trm.shader = trs; EditorUtility.SetDirty(trm); } else Debug.LogError("GolfGo/Tracer shader didn't compile"); }
         // the web game's light: linear colour, physical light intensities, its sky / finish / cloud shadow shaders (materials in Resources keep them in the build)
         PlayerSettings.colorSpace = ColorSpace.Linear; UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity = true;
+        // keep every instancing variant: the grass and the far trees are drawn with procedural instancing (DrawMeshInstancedProcedural),
+        // whose variants the default stripping can leave out of the build
+        { var gso = new SerializedObject(UnityEngine.Rendering.GraphicsSettings.GetGraphicsSettings()); var ip = gso.FindProperty("m_InstancingStripping");
+          if (ip != null) { ip.intValue = 2; gso.ApplyModifiedPropertiesWithoutUndo(); Debug.Log("GolfGoBuild: instancing variants kept"); } else Debug.LogWarning("GolfGoBuild: no m_InstancingStripping"); }
+        Debug.Log("GolfGoBuild: colour space " + PlayerSettings.colorSpace + ", linear lights " + UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity);
         foreach (var (sn, mn) in new[] { ("GolfGo/Sky", "GGSky"), ("GolfGo/Post", "GGPost"), ("GolfGo/CloudShadow", "GGCloudShadow") })
         {
             AssetDatabase.ImportAsset("Assets/Shaders/" + sn.Replace("GolfGo/", "GolfGo") + ".shader", ImportAssetOptions.ForceUpdate);
@@ -163,6 +168,23 @@ public static class GolfGoBuild
             EditorApplication.Exit(r.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? 0 : 1);
         }
         catch (Exception e) { Debug.LogError("GolfGoBuild failed: " + e); EditorApplication.Exit(1); }
+    }
+
+    // The look check: the same scene as a Mac player, run on GitHub's Mac with -ggshots <dir> to save pictures of a few holes
+    // (HoleTest.Shots), so the look can be compared with the web game's without a phone
+    public static void BuildMacShots()
+    {
+        try
+        {
+            Prepare();
+            PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
+            PlayerSettings.SplashScreen.show = false; PlayerSettings.fullScreenMode = FullScreenMode.Windowed; PlayerSettings.resizableWindow = true;
+            PlayerSettings.defaultScreenWidth = 590; PlayerSettings.defaultScreenHeight = 1278; QualitySettings.antiAliasing = 4;
+            var r = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = new[] { "Assets/Scenes/Hole.unity" }, locationPathName = "build/mac/GolfGo.app", target = BuildTarget.StandaloneOSX, options = BuildOptions.None });
+            Debug.Log("GolfGoBuild mac result: " + r.summary.result + " errors " + r.summary.totalErrors);
+            EditorApplication.Exit(r.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? 0 : 1);
+        }
+        catch (Exception e) { Debug.LogError("GolfGoBuild mac failed: " + e); EditorApplication.Exit(1); }
     }
 
 #if UNITY_IOS

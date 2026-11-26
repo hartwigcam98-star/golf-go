@@ -37,17 +37,19 @@ Shader "GolfGo/Ground"
         _SlDk ("Darker grid", Float) = 0
         _POn ("Photo detail on", Float) = 1
         _LightOn ("Baked light on", Float) = 1
+        _BkK ("Bake strengths (sun, sky, set)", Vector) = (0.9, 0.8, 1, 0)
     }
     SubShader
     {
         Tags { "RenderType"="Opaque" }
         LOD 200
         CGPROGRAM
-        #pragma surface surf Standard noforwardadd
+        #pragma surface surf GG noforwardadd exclude_path:deferred
         #pragma target 3.5
+        #include "GolfGoBake.cginc"
         sampler2D _SlT; float4 _SLB, _SlRot; float _SlOn, _SLG, _SlDk;
-        sampler2D _MainTex, _Light, _Surf, _DS, _DR, _DF, _DD, _PG, _PS, _Surround;
-        float4 _GB, _GSB, _GSS, _LB, _TK, _RLS, _RLG; float _GMode, _POn, _LightOn;
+        sampler2D _MainTex, _Surf, _DS, _DR, _DF, _DD, _PG, _PS, _Surround;
+        float4 _GB, _GSB, _GSS, _TK, _RLS, _RLG; float _GMode, _POn;
         struct Input { float3 worldPos; };
 
         // the web game's GLSL_NOISE
@@ -63,7 +65,7 @@ Shader "GolfGo/Ground"
         // every ground texture is imported as raw data (sRGB off), as the web game samples them (NoColorSpace): no conversion
         float3 toWeb (float3 c) { return c; }
 
-        void surf (Input IN, inout SurfaceOutputStandard o)
+        void surf (Input IN, inout SurfaceOutputGG o)
         {
             float3 wp = IN.worldPos;
             float2 q = float2(wp.x, -wp.z);
@@ -175,12 +177,10 @@ Shader "GolfGo/Ground"
         #else
             float3 alb = c * c;
         #endif
-            if (_LightOn > .5)
-            {   // the hole's Blender-baked light (0.5 = full sun and open sky), as the Standard ground's x2 detail map
-                float2 lu = (q - _LB.xy) / _LB.zw;
-                if (lu.x > 0. && lu.y > 0. && lu.x < 1. && lu.y < 1.) alb *= tex2D(_Light, float2(lu.x, 1. - lu.y)).r * unity_ColorSpaceDouble.rgb;
-            }
-            o.Albedo = alb; o.Metallic = 0; o.Smoothness = .05; o.Alpha = 1;
+            // the hole's light baked in Blender (the web's bkOn): the sun's and the sky's light there (GolfGoBake.cginc)
+            o.Bk = _GMode > .5 ? bakeAt(q) : half2(1, 1);
+            // three's roughness (perceptual, as Unity's 1 - smoothness): greens and fairway a touch glossier than rough
+            o.Albedo = alb; o.Metallic = 0; o.Smoothness = 1. - (_GMode > .5 ? clamp(.97 - .2 * w.r - .04 * w.g, .72, .97) : .95); o.Occlusion = 1; o.Alpha = 1;
         }
         ENDCG
     }

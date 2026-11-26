@@ -26,10 +26,11 @@ Shader "GolfGo/Grass"
         Tags { "RenderType" = "Opaque" "Queue" = "Geometry+50" }
         Cull Off
         CGPROGRAM
-        #pragma surface surf Standard vertex:vert
+        #pragma surface surf GG vertex:vert exclude_path:deferred
         #pragma multi_compile_instancing
         #pragma instancing_options procedural:setupG
-        #pragma target 3.5
+        #pragma target 4.5
+        #include "GolfGoBake.cginc"
         sampler2D _HT, _Surf, _MainTex, _Noise; float4 _HT_TexelSize;
         float4 _HB, _GSB, _GB, _GC0, _GC1, _GD, _WV, _TK; float _HN, _GCap;
         #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
@@ -103,15 +104,17 @@ Shader "GolfGo/Grass"
             // the game's (x, up, y south) to Unity's (x, up, z north)
             v.vertex = float4(gW.x, gW.y, -gW.z, 1); v.normal = float3(objectNormal.x, objectNormal.y, -objectNormal.z); v.color = float4(vGc, 1);
         }
-        void surf (Input IN, inout SurfaceOutputStandard o)
+        void surf (Input IN, inout SurfaceOutputGG o)
         {
             float3 alb = IN.color.rgb;
             float3 vv = normalize(_WorldSpaceCameraPos - IN.worldPos);
-            float3 em = alb * _LightColor0.rgb * .3 * pow(max(dot(-vv, _WorldSpaceLightPos0.xyz), 0), 4);   // (translucent, as the web's)
+            o.Bk = bakeAt(float2(IN.worldPos.x, -IN.worldPos.z));
+            // translucent, as the web's (its sunCol is the light's colour)
+            float3 em = alb * _LightColor0.rgb * .3 * pow(max(dot(-vv, _WorldSpaceLightPos0.xyz), 0), 4) * lerp(1., o.Bk.x, .9);
         #ifdef UNITY_COLORSPACE_GAMMA
             alb = LinearToGammaSpace(alb); em = LinearToGammaSpace(em);
         #endif
-            o.Albedo = alb; o.Emission = em; o.Smoothness = 1 - .88; o.Metallic = 0; o.Alpha = 1;
+            o.Albedo = alb; o.Emission = em; o.Smoothness = 1 - .88; o.Metallic = 0; o.Occlusion = 1; o.Alpha = 1;
         }
         ENDCG
     }

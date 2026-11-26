@@ -175,7 +175,7 @@ public class Hud
         BuildLook();
         BuildImp();
         BuildTopPills();
-        fpsT = Txt(root, "Fps", fBold, 11, A(Mint, .9f)); At(fpsT.rectTransform, 14, sTop + 10 + 67 + 6, 200, 14);
+        fpsT = Txt(root, "Fps", fBold, 11, A(Mint, .9f)); At(fpsT.rectTransform, 14, sTop + 10 + 67 + 6, 360, 30); fpsT.horizontalOverflow = HorizontalWrapMode.Overflow;   // (two lines: the FPS, then what of the look is running)
     }
 
     // ---------- top hud: the hole plate (left), wind, menu, sound (right) ----------

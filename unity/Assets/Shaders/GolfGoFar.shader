@@ -12,7 +12,7 @@ Shader "GolfGo/Far"
         #pragma surface surf Standard vertex:vert
         #pragma multi_compile_instancing
         #pragma instancing_options procedural:setupF
-        #pragma target 3.5
+        #pragma target 4.5
         #include "GolfGoSky.cginc"
         sampler2D _MainTex; float4 _MainTex_TexelSize;
         struct FarTree { float3 p; float4 s; float4 r; float3 c; };

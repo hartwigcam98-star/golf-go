@@ -81,7 +81,7 @@ public class Golfer
         smr.sharedMaterial = mat; smr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
         // the club: shaft (#c9d3da), grip (#1d1f22), head (#23292e), as the game draws them
         clubMat = new Material(Shader.Find("Standard")) { color = new Color(.79f, .83f, .85f) }; headMat = new Material(Shader.Find("Standard")) { color = new Color(.14f, .16f, .18f) };
-        Transform Part(string nm, PrimitiveType pt, Material m) { var o = GameObject.CreatePrimitive(pt); UnityEngine.Object.Destroy(o.GetComponent<Collider>()); o.name = nm; o.transform.SetParent(root.parent, false); o.GetComponent<MeshRenderer>().sharedMaterial = m; return o.transform; }
+        Transform Part(string nm, PrimitiveType pt, Material m) { var o = new GameObject(nm); o.AddComponent<MeshFilter>().sharedMesh = Prims.Get(pt); o.AddComponent<MeshRenderer>().sharedMaterial = m; o.transform.SetParent(root.parent, false); return o.transform; }
         shaft = Part("Shaft", PrimitiveType.Cylinder, clubMat); grip = Part("Grip", PrimitiveType.Cylinder, new Material(Shader.Find("Standard")) { color = new Color(.11f, .12f, .13f) }); head = Part("Head", PrimitiveType.Cube, headMat);
 
         // the swing

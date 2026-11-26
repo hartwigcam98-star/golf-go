@@ -71,6 +71,8 @@ public class Trees
         }
         Lod(Vector3.zero, true);
     }
+    // the trees leave the live shadow map where the hole's light is baked (the bake has their shadows: the web's r3Shadow)
+    public static bool Cast = true;
     GameObject Part(Mesh[] model, int at, Vector3 pos, Quaternion rot, Vector3 sc, Material[] M, MaterialPropertyBlock mpb)
     {
         var go = new GameObject(at == 0 ? "Tree" : "Tree lite"); go.transform.SetParent(root, false); go.transform.SetPositionAndRotation(pos, rot); go.transform.localScale = sc;
@@ -79,7 +81,7 @@ public class Trees
             var me = model[at + k]; if (me == null) continue;
             var c = new GameObject(k == 0 ? "Bark" : k == 1 ? "Mass" : "Leaves"); c.transform.SetParent(go.transform, false);
             c.AddComponent<MeshFilter>().sharedMesh = me; var r = c.AddComponent<MeshRenderer>(); r.sharedMaterial = M[k]; r.SetPropertyBlock(mpb);
-            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; r.receiveShadows = true;
+            r.shadowCastingMode = Cast ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off; r.receiveShadows = true;
         }
         return go;
     }

@@ -161,6 +161,32 @@ public class HoleTest : MonoBehaviour
         BuildWorld(); BuildHud();
         golferId = PlayerPrefs.GetString("golfer", "ch06"); LoadGolfer(golferId); BallColour();
         NewRound();
+        // the look check on GitHub's Mac (unity-test.yml): -ggshots <folder> saves pictures of a few holes, then quits
+        var args = System.Environment.GetCommandLineArgs(); int ai = System.Array.IndexOf(args, "-ggshots");
+        if (ai >= 0 && ai + 1 < args.Length) StartCoroutine(Shots(args[ai + 1]));
+    }
+    // sunny (the web screenshots' weather), the tee view on four holes in the lower camera, then the higher one and the green from the look camera
+    System.Collections.IEnumerator Shots(string dir)
+    {
+        System.IO.Directory.CreateDirectory(dir); Application.targetFrameRate = 30;
+        if (gLook != null && gLook.Ok) Try("weather", () => gLook.Weather(0));
+        foreach (int h in new[] { 0, 4, 9, 13 })
+        {
+            LoadHole(h); CAMV = 1;
+            for (int view = 0; view < 3; view++)
+            {
+                if (view == 1) CAMV = 0;
+                if (view == 2) { CAMV = 1; Try("look", LookGreen); }
+                yield return new WaitForSecondsRealtime(view == 0 ? 3.5f : 2.5f);
+                yield return new WaitForEndOfFrame();
+                var t = ScreenCapture.CaptureScreenshotAsTexture();
+                var name = "h" + (h + 1).ToString("00") + "_" + new[] { "tee", "tee_high", "green" }[view] + ".png";
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, name), t.EncodeToPNG()); Destroy(t);
+                Debug.Log("GGSHOT " + name + " " + Screen.width + "x" + Screen.height + " · " + Diag() + (errs.Count > 0 ? " · errors: " + string.Join(" | ", errs) : ""));
+            }
+            if (fc != null) { Try("look end", LookEnd); yield return new WaitForSecondsRealtime(1.5f); }
+        }
+        Debug.Log("GGSHOT done"); Application.Quit();
     }
 
     // ---------- world ----------
@@ -196,7 +222,10 @@ public class HoleTest : MonoBehaviour
             float lx0 = D.tex.x0, ly0 = D.tex.y0, lw = D.tex.w, lh = D.tex.h;
             if (lightB != null && lightB.TryGetValue(hi.ToString(), out var lbo) && lbo is List<object> lb) { lx0 = System.Convert.ToSingle(lb[0]); ly0 = System.Convert.ToSingle(lb[1]); lw = System.Convert.ToSingle(lb[2]); lh = System.Convert.ToSingle(lb[3]); }
             gm.SetTexture("_Light", lt); gm.SetVector("_LB", new Vector4(lx0, ly0, lw, lh)); gm.SetFloat("_LightOn", 1);
+            // (the grass blades read the same bake: globals, their shader has no such properties)
+            Shader.SetGlobalTexture("_Light", lt); Shader.SetGlobalVector("_LB", new Vector4(lx0, ly0, lw, lh)); Shader.SetGlobalFloat("_LightOn", 1); baked = true;
         }
+        else { Shader.SetGlobalFloat("_LightOn", 0); baked = false; }
         else if (lt != null)
         {
             gm.SetTexture("_DetailAlbedoMap", lt); gm.EnableKeyword("_DETAIL_MULX2");
@@ -205,13 +234,13 @@ public class HoleTest : MonoBehaviour
             float sx = D.tex.w / lw, sy = D.tex.h / lh;
             gm.SetTextureScale("_DetailAlbedoMap", new Vector2(sx, sy)); gm.SetTextureOffset("_DetailAlbedoMap", new Vector2((D.tex.x0 - lx0) / lw, 1 - sy - (D.tex.y0 - ly0) / lh));
         }
-        mr.receiveShadows = true; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;   // (the trees', the golfer's and the buildings' live shadows; the baked light map is off)
+        mr.receiveShadows = true; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;   // (live shadows: the golfer's and the buildings'; the trees' only where there's no bake, as the web's r3Shadow)
 
         // trees: a trunk, and a crown of leaf cards from the web game's leaf atlas (clusters of cards round an ellipsoid, as the game
         // draws them), merged per tint so the whole course is a handful of draw calls
         var cyl = Prim(PrimitiveType.Cylinder); Material bark = M("Bark");
         // the web game's species trees when they're exported for this hole (Trees.cs); the old leaf-card crowns otherwise
-        speciesTrees = null; Try("trees", () => speciesTrees = Trees.Available(HolePath("")) ? new Trees(HolePath(""), holeRoot) : null);
+        speciesTrees = null; Trees.Cast = !baked; Try("trees", () => speciesTrees = Trees.Available(HolePath("")) ? new Trees(HolePath(""), holeRoot) : null);
         var T = speciesTrees != null ? new float[0] : D.trees; var root = new GameObject("Trees").transform; root.SetParent(holeRoot); var rnd = new System.Random(77);
         var lists = new List<Vector3>[5]; var uvs = new List<Vector2>[5]; var nrm = new List<Vector3>[5];
         for (int z = 0; z < 5; z++) { lists[z] = new List<Vector3>(); uvs[z] = new List<Vector2>(); nrm[z] = new List<Vector3>(); }
@@ -280,7 +309,7 @@ public class HoleTest : MonoBehaviour
         float F(int i) => i < a.Count ? System.Convert.ToSingle(a[i]) : 0; return new Vector4(F(0), F(1), F(2), F(3));
     }
     // the hole's ground material: the web game's ground shader (GolfGo/Ground) when it's in the build, else the Standard ground
-    Trees speciesTrees; Grass grass; FarTrees far;
+    Trees speciesTrees; Grass grass; FarTrees far; bool baked;
     /* the ball is drawn at least 2.6 px across its radius (immediate-mode-primitives.js: r = max(.024, 2.6/k)), so it can be followed
        in the air; and the tracer (r3Tracer): a glowing ribbon along the flight up to where it lands, fading once the next shot is set up */
     Mesh trMesh; Material trMat; GameObject trGo; float trFade; GolfGo.Sim.Flight trF; double trLand = 9;
@@ -432,7 +461,7 @@ public class HoleTest : MonoBehaviour
         wxToast = GolfGoLook.WX[i].n.ToUpperInvariant(); wxToastAt = Time.time + 1.4f;   // (a timer of its own: loading the hole cancels Invokes)
     }
     string wxToast; float wxToastAt = -1;
-    static Mesh Prim(PrimitiveType t) { var o = GameObject.CreatePrimitive(t); var m = o.GetComponent<MeshFilter>().sharedMesh; Destroy(o); return m; }
+    static Mesh Prim(PrimitiveType t) => Prims.Get(t);   // (not CreatePrimitive: it adds a collider, and the build has no physics)
     static Transform Make(Transform parent, Mesh mesh, Material mat, Vector3 pos, Vector3 scale)
     {
         var o = new GameObject(mesh.name); if (parent) o.transform.SetParent(parent, true);
@@ -1204,13 +1233,21 @@ public class HoleTest : MonoBehaviour
         var fw = camLook - camPos; cam.transform.position = camPos; cam.transform.rotation = Quaternion.LookRotation(fw.sqrMagnitude > 1e-8f ? fw : Vector3.forward, Vector3.up);
     }
 
+    // what's running (the look's pieces), under the FPS: colour space, the finish, bake, far trees, grass tiles, shadows
+    string Diag()
+    {
+        string P(string what, int n, string why) => what + " " + (why ?? n.ToString());
+        return (QualitySettings.activeColorSpace == ColorSpace.Linear ? "linear" : "GAMMA") + " · finish " + (gLook == null ? "none" : !gLook.Ok ? "off" : gLook.Posts > 0 ? "on" : "not run")
+            + " · bake " + (baked ? "on" : "off") + " · " + P("far", far?.N ?? 0, far == null ? "none" : far.Why) + " · " + P("grass", grass?.Drawn ?? 0, grass == null ? "none" : grass.Why)
+            + " · " + SystemInfo.graphicsDeviceType + " · sh " + QualitySettings.shadows + "/" + QualitySettings.shadowDistance.ToString("0");
+    }
     void Fps(float raw)
     {
         fN++; fAcc += raw; fMax = Mathf.Max(fMax, raw);
         if (fAcc >= .5f)
         {
             int f = Mathf.RoundToInt(fN / fAcc);
-            hud.SetFps(f + " FPS · worst " + Mathf.RoundToInt(fMax * 1000) + " ms · " + Screen.currentResolution.refreshRateRatio.value.ToString("0") + " Hz");
+            hud.SetFps(f + " FPS · worst " + Mathf.RoundToInt(fMax * 1000) + " ms · " + Screen.currentResolution.refreshRateRatio.value.ToString("0") + " Hz\n" + Diag());
             fN = 0; fAcc = 0; fMax = 0;
         }
     }

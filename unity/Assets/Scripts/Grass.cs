@@ -14,7 +14,7 @@ public class Grass
     readonly List<Vector2>[] lists = new List<Vector2>[5];
     readonly HoleData D; readonly Texture2D ht; readonly Dictionary<long, bool> mask = new Dictionary<long, bool>();
     static readonly Bounds Big = new Bounds(Vector3.zero, Vector3.one * 1e5f);
-    public bool ok;
+    public bool ok; public string Why; public int Drawn;   // (for the on-screen check: why not, and the tiles drawn last frame)
 
     static Mesh Geo(int cap, int seed)
     {   // r3GrassGeo: n blades in a tile, each a 5-point blade (3 for the sparsest level): x across, y up, z its rank; uv0 its spot, uv1 two randoms
@@ -34,7 +34,8 @@ public class Grass
     public Grass(HoleData d, Texture surf, Texture ground, Vector4 gSB, Vector4 gB, Vector4 tK)
     {
         D = d; var sh = Shader.Find("GolfGo/Grass"); var bm = Resources.Load<Material>("Mats/Grass");
-        if (bm == null || bm.shader == null || !bm.shader.isSupported || !SystemInfo.supportsComputeShaders) return;
+        Why = bm == null ? "no material" : bm.shader == null ? "no shader" : !bm.shader.isSupported ? "shader unsupported" : !SystemInfo.supportsComputeShaders ? "no compute" : null;
+        if (Why != null) return;
         if (meshes == null) { meshes = new Mesh[5]; for (int k = 0; k < 5; k++) meshes[k] = Geo(CAPS[k], 901 + k * 77); }
         if (noise == null)
         {
@@ -75,7 +76,7 @@ public class Grass
     // r3GrassUpdate: which tiles, at which level, this frame; then draw them. c0: the ball or the look point (game x, y)
     public void Draw(Camera cam, Vector2 c0, Vector2 ball, float windA, float windMph, bool hide)
     {
-        if (!ok || hide) return;
+        Drawn = 0; if (!ok || hide) return;
         Vector3 Ew = cam.transform.position, Fw = cam.transform.forward, Rw = cam.transform.right;
         float ex = Ew.x, ez = -Ew.z, eY = Ew.y, eh = eY - D.H(ex, ez);
         Vector3 F = new Vector3(Fw.x, Fw.y, -Fw.z), Rt = new Vector3(Rw.x, Rw.y, -Rw.z);
@@ -109,7 +110,7 @@ public class Grass
         var gC0 = new Vector4(c0.x, c0.y, r00, r01); var gC1 = new Vector4(c1.x, c1.y, r10, Mathf.Max(r11, .01f)); var gD = new Vector4(CAPS[0], 0, ball.x, ball.y); var wV = new Vector4(wd.x, wd.y, .12f + .5f * ws, 0);
         for (int k = 0; k < 5; k++)
         {
-            int n = lists[k].Count; if (n == 0) continue;
+            int n = lists[k].Count; if (n == 0) continue; Drawn += n;
             bufs[k].SetData(lists[k]); var m = mats[k]; m.SetBuffer("_Tiles", bufs[k]);
             m.SetVector("_GC0", gC0); m.SetVector("_GC1", gC1); m.SetVector("_GD", gD); m.SetVector("_WV", wV);
             Graphics.DrawMeshInstancedProcedural(meshes[k], 0, m, Big, n, null, UnityEngine.Rendering.ShadowCastingMode.Off, true);

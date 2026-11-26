@@ -4,12 +4,14 @@ using UnityEngine;
    camera. Exported per hole by export_far.js (hNN_far.bytes) with the picture atlas (trees/imp.png); drawn in one call (GolfGo/Far). */
 public class FarTrees
 {
+    public string Why; public int N => buf != null ? n : 0;   // (for the on-screen check)
     static Mesh quad; ComputeBuffer buf; Material mat; int n; static readonly Bounds Big = new Bounds(Vector3.zero, Vector3.one * 1e5f);
     public FarTrees(string holePath)
     {
         var ta = Resources.Load<TextAsset>(holePath + "_far"); var bm = Resources.Load<Material>("Mats/Far");
-        if (ta == null || bm == null || bm.shader == null || !bm.shader.isSupported || !SystemInfo.supportsComputeShaders) return;
-        var b = ta.bytes; n = System.BitConverter.ToInt32(b, 0); if (n == 0) return;
+        Why = ta == null ? "no data" : bm == null ? "no material" : bm.shader == null ? "no shader" : !bm.shader.isSupported ? "shader unsupported" : !SystemInfo.supportsComputeShaders ? "no compute" : null;
+        if (Why != null) return;
+        var b = ta.bytes; n = System.BitConverter.ToInt32(b, 0); if (n == 0) { Why = "0 trees"; return; }
         var f = new float[n * 14]; System.Buffer.BlockCopy(b, 4, f, 0, n * 56);
         buf = new ComputeBuffer(n, 56); buf.SetData(f); mat = new Material(bm); mat.SetBuffer("_Far", buf);
         if (quad == null)

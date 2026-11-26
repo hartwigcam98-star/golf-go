@@ -79,6 +79,27 @@ jobs:
             curl -fsSL -o "unity/Assets/Resources/Fonts/$(basename $f)" "https://raw.githubusercontent.com/google/fonts/main/ofl/$f" || echo "::warning::font $f not fetched (the HUD falls back to the built-in font)"
           done
           ls -la unity/Assets/Resources/Fonts
+      # The look check: the same scene as a Mac player on this Mac, pictures of a few holes (HoleTest.Shots) with the on-screen
+      # readout, uploaded as the look-shots artifact before the iPhone build starts (nothing here can stop the iPhone build)
+      - name: Look check (Mac player pictures)
+        continue-on-error: true
+        timeout-minutes: 35
+        run: |
+          mkdir -p shots
+          "$UNITY_EDITOR_PATH" -batchmode -quit -nographics -projectPath "$GITHUB_WORKSPACE/unity" -buildTarget StandaloneOSX \
+            -executeMethod GolfGoBuild.BuildMacShots -logFile - 2>&1 | tee shots/mac-build.log | grep -E "GolfGoBuild|error CS|Shader error|Exception" | head -60
+          APP=unity/build/mac/GolfGo.app; BIN=$(ls "$APP"/Contents/MacOS/* 2>/dev/null | head -1); echo "player: $BIN"; test -n "$BIN"
+          system_profiler SPDisplaysDataType 2>/dev/null | head -20 || true
+          "$BIN" -ggshots "$GITHUB_WORKSPACE/shots" -screen-width 590 -screen-height 1278 -screen-fullscreen 0 -logFile "$GITHUB_WORKSPACE/shots/player.log" & P=$!
+          for i in $(seq 1 120); do kill -0 $P 2>/dev/null || break; sleep 2; done; kill $P 2>/dev/null || true
+          grep -E "GGSHOT|Error|Exception|Metal|GfxDevice" shots/player.log | head -60 || true; ls -la shots
+      - name: Upload the look pictures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: look-shots
+          path: shots
+          if-no-files-found: warn
       - name: Unity build (Xcode project)
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}

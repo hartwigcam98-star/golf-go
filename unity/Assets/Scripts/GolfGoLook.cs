@@ -2,7 +2,7 @@ using UnityEngine;
 
 /* The web game's light and finish on the Unity camera (sky.js, weather.js, lighting-shared-by-every.js, post-chain.js):
    - the sun: SUN (-.52, .58, .63) normalised, colour SUN_COL (1.5, 1.36, 1.12) x the weather's sun strength, in linear light
-     (three's lights work without Unity's 1/pi: the same numbers);
+     (three's lights divide by pi and the web's sun is SUN_COL x pi; Unity's don't: the same numbers);
    - the sky (GolfGo/Sky) as the skybox, which also lights the course: ambient from the sky (x the weather's env) and the sky's
      reflections, as the web's image-based light from the sky;
    - the clouds' shadows drifting over the course (the sun's cookie, GolfGo/CloudShadow);
@@ -70,8 +70,10 @@ public class GolfGoLook : MonoBehaviour
             Graphics.Blit(null, cookie, cookieMat);
         }
     }
+    public int Posts;   // (finish passes run: for the on-screen check)
     void OnRenderImage(RenderTexture src, RenderTexture dst)
     {
+        Posts++;
         if (post == null) { Graphics.Blit(src, dst); return; }
         var w = WX[wx]; post.SetFloat("_GGExpo", .97f * w.ex); post.SetFloat("_GGAsp", (float)cam.pixelWidth / cam.pixelHeight);
         post.SetMatrix("_GGInvProj", cam.projectionMatrix.inverse); post.SetMatrix("_GGCamToWorld", cam.cameraToWorldMatrix);
