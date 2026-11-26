@@ -30,15 +30,15 @@ public static class GolfGoBuild
         Mat("Bark", new Color(.32f, .25f, .18f)); Mat("White", new Color(.96f, .96f, .94f), .4f); Mat("Red", new Color(.85f, .16f, .14f));
         Mat("Dark", new Color(.08f, .09f, .1f)); Mat("Gold", new Color(1, .79f, .24f)); Mat("Shirt", new Color(.47f, .7f, .92f));
         Mat("Pants", new Color(.93f, .92f, .88f)); Mat("Skin", new Color(.86f, .66f, .52f));
-        // the course map texture at full size (it holds every fairway stripe and bunker edge)
-        var ti = AssetImporter.GetAtPath("Assets/Resources/troy1_ground.png") as TextureImporter;
-        if (ti) { ti.maxTextureSize = 4096; ti.mipmapEnabled = true; ti.wrapMode = TextureWrapMode.Clamp; ti.anisoLevel = 4; ti.SaveAndReimport(); }
-        // the hole's Blender-baked light (sun shadows of every tree, sky occlusion), the same map the web game uses, as a x2 detail
-        // map over the course texture: 0.5 = full sun and open sky, darker under the trees
-        var li = AssetImporter.GetAtPath("Assets/Resources/troy1_light.png") as TextureImporter;
-        if (li) { li.maxTextureSize = 4096; li.wrapMode = TextureWrapMode.Clamp; li.sRGBTexture = false; li.SaveAndReimport(); }
-        var g = Mat("Ground", Color.white, 0);
-        g.SetTexture("_DetailAlbedoMap", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/troy1_light.png"));
+        // every hole's course map texture at full size (it holds every fairway stripe and bunker edge), and its Blender-baked light
+        // (sun shadows of every tree, sky occlusion), the same map the web game uses, as a x2 detail map: 0.5 = full sun and open sky
+        foreach (var f in System.IO.Directory.GetFiles("Assets/Resources/troy"))
+        {
+            string a = f.Replace('\\', '/');
+            if (a.EndsWith("_ground.jpg")) { var ti = AssetImporter.GetAtPath(a) as TextureImporter; if (ti) { ti.maxTextureSize = 4096; ti.mipmapEnabled = true; ti.wrapMode = TextureWrapMode.Clamp; ti.anisoLevel = 4; ti.SaveAndReimport(); } }
+            else if (a.EndsWith("_light.png")) { var li = AssetImporter.GetAtPath(a) as TextureImporter; if (li) { li.maxTextureSize = 4096; li.wrapMode = TextureWrapMode.Clamp; li.sRGBTexture = false; li.SaveAndReimport(); } }
+        }
+        var g = Mat("Ground", Color.white, 0);   // (each hole sets its own textures on a copy at run time)
         g.SetFloat("_UVSec", 0); g.EnableKeyword("_DETAIL_MULX2"); EditorUtility.SetDirty(g);
         // leaf cards: the web game's own leaf atlas (4 x 4 clusters), alpha-tested
         var lf = AssetImporter.GetAtPath("Assets/Resources/leaves.png") as TextureImporter;

@@ -209,6 +209,33 @@ public class Hud
         toastB = Txt(toastRT, "T2", fBold, 17, Cream, TextAnchor.UpperCenter); At(toastB.rectTransform, 16, fs + 6, W - 32, 22);
         var s2 = toastB.gameObject.AddComponent<Shadow>(); s2.effectColor = Ink; s2.effectDistance = new Vector2(0, -2);
     }
+    // ---------- the choice sheet (the web game's #reliefM: an eyebrow, a heading, option buttons with a sub line, the best one marked) ----------
+    RectTransform sheet;
+    public bool ChoiceOpen => sheet != null;
+    public void HideChoice() { if (sheet) UnityEngine.Object.Destroy(sheet.gameObject); sheet = null; }
+    // body: optional text above the buttons (the scorecard); opts: (label, sub line, marked best)
+    public void ShowChoice(string eyebrow, string title, string body, IList<(string a, string b, bool best)> opts, Action<int> pick)
+    {
+        HideChoice();
+        var dim = Box(root, "Sheet", 0, new Color(0, 0, 0, .45f)); sheet = At(dim.rectTransform, 0, 0, W, Hh); dim.raycastTarget = true;   // (swallows taps behind it)
+        float pw = Mathf.Min(W - 32, 360), bh = 58, gap = 8, bodyH = string.IsNullOrEmpty(body) ? 0 : 18 * (body.Split('\n').Length) + 12;
+        float ph = 20 + 16 + 6 + 30 + 12 + bodyH + opts.Count * (bh + gap) + 12;
+        var pnl = Box(sheet, "Panel", 18, new Color(12 / 255f, 30 / 255f, 46 / 255f, .97f), 2, new Color(1, 1, 1, .12f)); At(pnl.rectTransform, (W - pw) / 2, Mathf.Max(20, (Hh - ph) / 2 - 40), pw, ph);
+        var eb = Txt(pnl.transform, "Eb", fBold, 12, A(Sun, .9f)); At(eb.rectTransform, 18, 20, pw - 36, 16); eb.text = (eyebrow ?? "").ToUpperInvariant();
+        var hd = Txt(pnl.transform, "H", fDisp, 26, Cream); At(hd.rectTransform, 18, 40, pw - 36, 30); hd.text = title;
+        float y = 82;
+        if (bodyH > 0) { var bt = Txt(pnl.transform, "Body", fBody, 14, Cream, TextAnchor.UpperLeft); At(bt.rectTransform, 18, y, pw - 36, bodyH); bt.text = body; bt.supportRichText = true; y += bodyH; }
+        for (int i = 0; i < opts.Count; i++)
+        {
+            int k = i; var o = opts[i];
+            var bb = Box(pnl.transform, "Opt" + i, 12, o.best ? A(Sun, .18f) : Panel2, o.best ? 2 : 0, Sun); At(bb.rectTransform, 14, y, pw - 28, bh);
+            var ta = Txt(bb.transform, "A", fBold, 16, o.best ? Sun : Cream); At(ta.rectTransform, 14, 9, pw - 56, 20); ta.text = o.a;
+            var tb = Txt(bb.transform, "B", fBody, 12, A(Cream, .75f)); At(tb.rectTransform, 14, 31, pw - 56, 18); tb.text = o.b ?? ""; tb.horizontalOverflow = HorizontalWrapMode.Wrap;
+            Press(bb, () => { HideChoice(); pick?.Invoke(k); });
+            y += bh + gap;
+        }
+    }
+
     public void Toast(string a, string b, Color c) { toastA.text = a; toastA.color = c; toastB.text = (b ?? "").ToUpperInvariant(); toastT = 0; }
 
     // ---------- bottom hud ----------

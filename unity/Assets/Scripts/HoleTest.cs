@@ -5,10 +5,13 @@ using UnityEngine.UI;
 /* Golf Go, Unity test (Nov 2026): one real hole (Troy Burne 1) from the web game's own data, to measure how smoothly a native
    build runs on the same phones. Ground (heights + painted course map), measured trees, a golfer, a two-tap swing, ball flight
    with the web game's drag curve, roll with slopes, putting, holing out. 120 Hz where the screen allows it; the FPS readout
-   is top left. Everything is built in code at start, from Resources/troy1.json and troy1_ground.png. */
+   is top left. Everything is built in code, hole by hole, from Resources/troy/hNN*.json, hNN_ground.jpg and hNN_light.png. */
 public class HoleTest : MonoBehaviour
 {
-    GolfGo.Sim.Tuning TU; GolfGo.Sim.Course CO; GolfGo.Sim.Strike SK; GolfGo.Sim.Flight FL; GolfGo.Sim.SimHole SH; GolfGo.Sim.Ball SB; GolfGo.Sim.Short SG; GolfGo.Sim.Putt PT; float simAcc; int evSeen;
+    GolfGo.Sim.Tuning TU; GolfGo.Sim.Course CO; GolfGo.Sim.Strike SK; GolfGo.Sim.Flight FL; GolfGo.Sim.SimHole SH; GolfGo.Sim.Ball SB; GolfGo.Sim.Short SG; GolfGo.Sim.Putt PT; GolfGo.Sim.Round RD; float simAcc; int evSeen;
+    // stage 5: the round (Troy Burne's 18), the hole being played, scores, the round's seed (pins and wind), the hole's objects
+    readonly List<UnityEngine.Object> holeAssets = new List<UnityEngine.Object>();
+    int hi, roundSeed, roundDiff, holesDone; readonly int[] scores = new int[18], pars = new int[18]; Transform holeRoot; Dictionary<string, object> lightB;
     double puttMax = 10; bool flagOut;   // stage 4: the putter meter's length (yards of roll), the flag out inside 15 ft
     List<GolfGo.Sim.Club> Clubs;
     string stype = "full"; double swMax; bool buried;   // stage 3: the shot type, the short-game meter's size, a plugged lie
@@ -37,21 +40,22 @@ public class HoleTest : MonoBehaviour
     {
         Application.targetFrameRate = 120; QualitySettings.vSyncCount = 0; Screen.sleepTimeout = SleepTimeout.NeverSleep;
         QualitySettings.shadowDistance = 160; QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowResolution = ShadowResolution.High;
-        D = HoleData.Load("troy1");
         // the game's own mechanics (GolfGo.Sim, checked shot for shot against the web game) and its numbers
-        TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); CO = new GolfGo.Sim.Course(Resources.Load<TextAsset>("troy1").text);
-        SK = new GolfGo.Sim.Strike(TU, CO); Clubs = TU.Clubs();
-        SH = new GolfGo.Sim.SimHole(Resources.Load<TextAsset>("troy1_sim").text); SB = new GolfGo.Sim.Ball(SH, CO, SK); SG = new GolfGo.Sim.Short(SK, SH, CO); PT = new GolfGo.Sim.Putt(SK, SH, CO);   // stage 2: what the ball does after the strike
-        windA = Random.value * Mathf.PI * 2; windMph = Mathf.Round(Random.value * 14);
+        TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); Clubs = TU.Clubs();
+        lightB = (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(Resources.Load<TextAsset>("troy/light_bounds").text);
         BuildWorld(); BuildHud();
-        b = new Vector2(D.tee[0], D.tee[1]); bY = D.H(b.x, b.y); strokes = 0;
-        AimAtPin(); ci = 0; PrepareShot(true);
+        NewRound();
     }
 
     // ---------- world ----------
     Material M(string n) => Resources.Load<Material>("Mats/" + n);
-    void BuildWorld()
+    string HolePath(string suffix) => "troy/h" + (hi + 1).ToString("00") + suffix;
+    // the hole's own objects: ground (heights + course map + baked light), trees, flag; built again for every hole
+    void BuildHole()
     {
+        if (holeRoot) Destroy(holeRoot.gameObject);
+        foreach (var o in holeAssets) if (o) Destroy(o); holeAssets.Clear();
+        holeRoot = new GameObject("Hole " + (hi + 1)).transform;
         var g = D.hg; int nx = g.nx, ny = g.ny;
         var v = new Vector3[nx * ny]; var uv = new Vector2[nx * ny];
         for (int j = 0; j < ny; j++) for (int i = 0; i < nx; i++)
@@ -64,16 +68,26 @@ public class HoleTest : MonoBehaviour
         for (int j = 0; j < ny - 1; j++) for (int i = 0; i < nx - 1; i++)
         { int a = j * nx + i, bb = a + 1, c = a + nx, d = c + 1; t[q++] = a; t[q++] = bb; t[q++] = c; t[q++] = bb; t[q++] = d; t[q++] = c; }
         ground = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32, vertices = v, uv = uv, triangles = t };
-        ground.RecalculateNormals(); ground.RecalculateBounds();
+        ground.RecalculateNormals(); ground.RecalculateBounds(); holeAssets.Add(ground);
         if (ground.normals.Length > 0 && ground.normals[nx * (ny / 2) + nx / 2].y < 0) { System.Array.Reverse(t); ground.triangles = t; ground.RecalculateNormals(); }
-        var go = new GameObject("Ground"); go.AddComponent<MeshFilter>().sharedMesh = ground; var mr = go.AddComponent<MeshRenderer>();
-        var gm = new Material(M("Ground")); gm.mainTexture = Resources.Load<Texture2D>("troy1_ground"); mr.sharedMaterial = gm;
+        var go = new GameObject("Ground"); go.transform.SetParent(holeRoot); go.AddComponent<MeshFilter>().sharedMesh = ground; var mr = go.AddComponent<MeshRenderer>();
+        var gm = new Material(M("Ground")); gm.mainTexture = Resources.Load<Texture2D>(HolePath("_ground")); mr.sharedMaterial = gm; holeAssets.Add(gm);
+        // the hole's Blender-baked light as the x2 detail map; its rect can differ from the ground texture's, so map one onto the other
+        var lt = Resources.Load<Texture2D>(HolePath("_light"));
+        if (lt != null)
+        {
+            gm.SetTexture("_DetailAlbedoMap", lt); gm.EnableKeyword("_DETAIL_MULX2");
+            float lx0 = D.tex.x0, ly0 = D.tex.y0, lw = D.tex.w, lh = D.tex.h;
+            if (lightB != null && lightB.TryGetValue(hi.ToString(), out var lbo) && lbo is List<object> lb) { lx0 = System.Convert.ToSingle(lb[0]); ly0 = System.Convert.ToSingle(lb[1]); lw = System.Convert.ToSingle(lb[2]); lh = System.Convert.ToSingle(lb[3]); }
+            float sx = D.tex.w / lw, sy = D.tex.h / lh;
+            gm.SetTextureScale("_DetailAlbedoMap", new Vector2(sx, sy)); gm.SetTextureOffset("_DetailAlbedoMap", new Vector2((D.tex.x0 - lx0) / lw, 1 - sy - (D.tex.y0 - ly0) / lh));
+        }
         mr.receiveShadows = false; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;   // tree shadows come from the baked light map
 
         // trees: a trunk, and a crown of leaf cards from the web game's leaf atlas (clusters of cards round an ellipsoid, as the game
         // draws them), merged per tint so the whole course is a handful of draw calls
         var cyl = Prim(PrimitiveType.Cylinder); Material bark = M("Bark");
-        var T = D.trees; var root = new GameObject("Trees").transform; var rnd = new System.Random(77);
+        var T = D.trees; var root = new GameObject("Trees").transform; root.SetParent(holeRoot); var rnd = new System.Random(77);
         var lists = new List<Vector3>[5]; var uvs = new List<Vector2>[5]; var nrm = new List<Vector3>[5];
         for (int z = 0; z < 5; z++) { lists[z] = new List<Vector3>(); uvs[z] = new List<Vector2>(); nrm[z] = new List<Vector3>(); }
         int[] broad = { 2, 3, 6, 7, 13, 15 }, pine = { 10, 11 };
@@ -110,23 +124,26 @@ public class HoleTest : MonoBehaviour
                 }
             }
         }
-        var tm = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 }; tm.CombineMeshes(trunks.ToArray(), true, true);
+        var tm = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 }; tm.CombineMeshes(trunks.ToArray(), true, true); holeAssets.Add(tm);
         var tgo = new GameObject("Trunks"); tgo.transform.SetParent(root); tgo.AddComponent<MeshFilter>().sharedMesh = tm; tgo.AddComponent<MeshRenderer>().sharedMaterial = bark;
         string[] leafMats = { "Leaf0", "Leaf1", "Leaf2", "Leaf3", "Pine" };
         for (int z = 0; z < 5; z++)
         {
             if (lists[z].Count == 0) continue;
             var idx = new int[lists[z].Count / 4 * 6]; for (int i = 0, o = 0; i < lists[z].Count; i += 4) { idx[o++] = i; idx[o++] = i + 2; idx[o++] = i + 1; idx[o++] = i; idx[o++] = i + 3; idx[o++] = i + 2; }
-            var lm = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 }; lm.SetVertices(lists[z]); lm.SetUVs(0, uvs[z]); lm.SetNormals(nrm[z]); lm.SetTriangles(idx, 0); lm.RecalculateBounds();
+            var lm = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 }; lm.SetVertices(lists[z]); lm.SetUVs(0, uvs[z]); lm.SetNormals(nrm[z]); lm.SetTriangles(idx, 0); lm.RecalculateBounds(); holeAssets.Add(lm);
             var lg = new GameObject(leafMats[z]); lg.transform.SetParent(root); lg.AddComponent<MeshFilter>().sharedMesh = lm; var lr = lg.AddComponent<MeshRenderer>(); lr.sharedMaterial = M(leafMats[z]);
         }
-        var sph = Prim(PrimitiveType.Sphere);
-        RenderSettings.skybox = M("Sky"); DynamicGI.UpdateEnvironment();
         // flag
-        float ph = D.H(D.pin[0], D.pin[1]); flag = new GameObject("Flag").transform; flag.position = HoleData.U(D.pin[0], D.pin[1], ph);
+        float ph = D.H(D.pin[0], D.pin[1]); flag = new GameObject("Flag").transform; flag.SetParent(holeRoot); flag.position = HoleData.U(D.pin[0], D.pin[1], ph);
         Make(flag, cyl, M("White"), flag.position + Vector3.up * 1.2f, new Vector3(.03f, 1.2f, .03f));
         var cloth = Make(flag, Prim(PrimitiveType.Cube), M("Red"), flag.position + new Vector3(.28f, 2.15f, 0), new Vector3(.55f, .35f, .01f));
         Make(flag, cyl, M("Dark"), flag.position + Vector3.up * .005f, new Vector3(CUP * 2, .01f, CUP * 2));
+    }
+    void BuildWorld()
+    {
+        var cyl = Prim(PrimitiveType.Cylinder); var sph = Prim(PrimitiveType.Sphere);
+        RenderSettings.skybox = M("Sky"); DynamicGI.UpdateEnvironment();
         // golfer (simple figure) and ball
         golfer = new GameObject("Golfer").transform;
         Make(golfer, Prim(PrimitiveType.Capsule), M("Shirt"), new Vector3(0, 1.15f, 0), new Vector3(.42f, .5f, .3f));
@@ -176,10 +193,10 @@ public class HoleTest : MonoBehaviour
         hud.onShotType = SetShot;
         hud.onSpin = () => { if (st == S.Aim) hud.SetHint("Strike point and shot height come over with stage 3"); };
         hud.onMap = () => { if (st == S.Aim) mapView = !mapView; };
-        hud.onMenu = () => { if (st == S.Aim || st == S.Holed) { CancelInvoke(); ArmRestart(); } };
+        hud.onMenu = Menu;
     }
     // the lie the shot is played from (shotLie): the turf, or the cart path where it shows
-    string Lie0 => SH.PhysLie(b.x, b.y);
+    string Lie0 => RD.ShotLie(b.x, b.y);
     bool Short => !C.putter && GolfGo.Sim.Strike.IsShort(stype);
     // the meter's power: the short game's meter is curved (power = meter^SG_K), so small swings are easier to judge
     double Power => Short ? SG.MeterToPower(mPower) : mPower;
@@ -217,7 +234,7 @@ public class HoleTest : MonoBehaviour
     void RefreshHud()
     {
         string lie = Lie0; float pd = PinDist;
-        hud.SetTop(D.course + " · Hudson, WI", D.hole, "Par " + D.par + " · " + D.len + " yds", "Stroke " + (strokes + 1) + " · Round E");
+        hud.SetTop(D.course + " · Hudson, WI", D.hole, "Par " + D.par + " · " + D.len + " yds", "Stroke " + (strokes + 1) + " · Round " + DiffStr(roundDiff));
         hud.SetClub(C.id == "1W" ? "Driver" : C.id, C.putter ? "Putter · " + Mathf.RoundToInt(MaxDist * 3) + " ft" : (C.id == "1W" ? (strokes == 0 ? "Off the tee" : "Off the deck") : C.name) + " · " + Mathf.RoundToInt(MaxDist) + "y", ci > 0, ci < Clubs.Count - 1);
         hud.SetLie(LieName.TryGetValue(lie, out var ln) ? ln : Cap(lie), Hud.Hex(LieCol.TryGetValue(lie, out var lc) ? lc : "#6db14a"), lie == "green" || pd < 20 ? "Cup " + Mathf.RoundToInt(pd * 3) + " ft" : "Pin " + Mathf.RoundToInt(pd) + " yds");
         hud.SetShot(stype, C.putter, st == S.Aim, pshot && !C.putter, ShotEnabled, GolfGo.Sim.Short.BunkerSide(lie, pd)); winC = Win;
@@ -241,14 +258,8 @@ public class HoleTest : MonoBehaviour
         string lie = Lie0;
         if (pick)
         {
-            float pd = PinDist;
-            int pt = Clubs.FindIndex(k => k.putter);
-            if (lie == "green" || (pd < 14 && (lie == "fairway" || lie == "tee" || lie == "cut"))) ci = pt;   // autoClub
-            else { ci = pt - 1; for (int k = 0; k < pt; k++) if (Clubs[k].carry <= pd * 1.02f) { ci = k; break; } if (strokes == 0 && D.par >= 4) ci = 0; }
-            AimAtPin();
-            if (ci == pt && lie != "green" && !PT.LineClean(b.x, b.y)) ci = Clubs.FindIndex(k => k.id == "PW");   // a putt from off the green only when the line is all mown grass
-            stype = "full";
-            if (ci != pt) { var pk = SG.Choose(Si()); if (pk != null) { stype = pk.Value.stype; ci = Clubs.FindIndex(k => k.id == pk.Value.club); } }   // chooseShort
+            if (strokes > 0) { var w = GolfGo.Sim.Round.Shift(windA, windMph, () => Random.value); windA = w.a; windMph = w.mph; }   // the wind shifts once per stroke
+            var o = RD.Prepare(b.x, b.y, buried, windA, windMph); aim = (float)o.aim; ci = o.club; stype = o.stype;   // prepareShot (round parity-tested)
         }
         if (C.putter) stype = "full"; else if (!SG.ShotOK(stype, ci) && !GolfGo.Sim.Strike.BunkerT(stype)) stype = "full";
         SizeShort();
@@ -316,7 +327,7 @@ public class HoleTest : MonoBehaviour
     {
         float dt = Mathf.Min(Time.unscaledDeltaTime, .05f);
         Fps(Time.unscaledDeltaTime);
-        if (st == S.Aim) { HandleAimDrag(); DrawAim(); }
+        if (st == S.Aim && !hud.ChoiceOpen) { HandleAimDrag(); DrawAim(); }
         if (st == S.Power)
         {
             mpos += mdir * dt * SpeedP; if (mpos >= 1) { mpos = 1; mdir = -1; }
@@ -396,9 +407,8 @@ public class HoleTest : MonoBehaviour
         if (o.spinBack) hud.Toast("SPIN BACK!", "", Hud.Mint);
         buried = o.buried && o.lie == "sand";   // a plugged ball stays plugged: only a blast
         if (o.relief != null)
-        {   // free relief from the cart path (Rule 16.1): the drop beside it (the web game asks first; that choice comes with round flow)
-            b = new Vector2((float)o.relief[0], (float)o.relief[1]); bY = D.H(b.x, b.y);
-            hud.Toast("FREE RELIEF", "Dropped beside the cart path · " + Mathf.RoundToInt(PinDist) + " yds", Hud.Mint);
+        {   // on the cart path (Rule 16.1): free relief beside it, or play it off the concrete; the player chooses (pathAsk)
+            hud.Toast("ON THE CART PATH", "", Hud.Hex("#d8d2c4")); st = S.Holed; var rel = o.relief; Invoke(nameof(AskPath), 1.1f); pathRel = rel; return;
         }
         else
         {
@@ -410,8 +420,40 @@ public class HoleTest : MonoBehaviour
         }
         Stop();
     }
-    string holedHow = "", fromLie = "tee";
-    void Penalty(string L) { strokes++; buried = false; b = prev; bY = D.H(b.x, b.y); hud.Toast(L == "water" ? "IN THE WATER" : "OUT OF BOUNDS", "One-stroke penalty", Hud.Hex("#ff9b6a")); hud.SetHint(""); Invoke(nameof(Next), 1.2f); st = S.Holed; }
+    string holedHow = "", fromLie = "tee"; double[] pathRel;
+    void AskPath()
+    {
+        var p = new Vector2(D.pin[0], D.pin[1]); float dr = Vector2.Distance(new Vector2((float)pathRel[0], (float)pathRel[1]), p); string Lr = SH.Lie(pathRel[0], pathRel[1]);
+        var opts = new List<(string, string, bool)> { ("Take free relief", Mathf.RoundToInt(dr) + " yds to the pin · " + (LieName.TryGetValue(Lr, out var ln) ? ln : Cap(Lr)) + " · dropped beside the path", true),
+            ("Play it as it lies", Mathf.RoundToInt(PinDist) + " yds to the pin · Cart path · clean but firm, no spin shots", false) };
+        hud.ShowChoice("Cart path · no penalty", "Free relief?", null, opts, k =>
+        {
+            if (k == 0) { b = new Vector2((float)pathRel[0], (float)pathRel[1]); bY = D.H(b.x, b.y); hud.Toast("FREE RELIEF", "Dropped beside the cart path · " + Mathf.RoundToInt(PinDist) + " yds", Hud.Mint); }
+            else hud.Toast("PLAY IT", "Off the cart path", Hud.Hex("#d8d2c4"));
+            PrepareShot(true);
+        });
+    }
+    void Penalty(string L)
+    {
+        strokes++; buried = false; st = S.Holed; hud.SetHint("");
+        if (L != "water") { hud.Toast("OUT OF BOUNDS", "+1 stroke · replay from last spot", Hud.Coral); b = prev; bY = D.H(b.x, b.y); Invoke(nameof(Next), 1.6f); return; }   // stroke and distance (Rule 18.2)
+        hud.Toast("SPLASH!", "Penalty area · +1 stroke", Hud.SkyC);
+        // Rule 17: where it last crossed into the water, then lateral, back on the line, or stroke and distance; the best is marked
+        var at = new[] { (double)b.x, (double)b.y }; var rec = new List<double[]>(SB.rec) { at };
+        var opts = RD.ReliefOpts(RD.WaterCross(new double[] { prev.x, prev.y }, rec, at), new double[] { prev.x, prev.y }); var best = GolfGo.Sim.Round.Best(opts);
+        reliefOpts = opts; reliefBest = best; Invoke(nameof(AskRelief), 1.5f);
+    }
+    List<GolfGo.Sim.Round.Relief> reliefOpts; GolfGo.Sim.Round.Relief reliefBest;
+    void AskRelief()
+    {
+        var L = new List<(string, string, bool)>();
+        foreach (var q in reliefOpts) L.Add((q.name, Mathf.RoundToInt((float)q.d) + " yds to the pin · " + (LieName.TryGetValue(q.L, out var ln) ? ln : Cap(q.L)) + (q.k == "lat" ? " · within two club-lengths" : q.k == "line" ? " · back on the line" : " · stroke and distance"), q == reliefBest));
+        hud.ShowChoice("Penalty area · +1 stroke", "Take relief", null, L, k =>
+        {
+            var q = reliefOpts[k]; b = new Vector2((float)q.x, (float)q.y); bY = D.H(b.x, b.y);
+            hud.Toast(q.k == "replay" ? "REPLAY" : "DROP", q.name + " · " + Mathf.RoundToInt((float)q.d) + " yds", Hud.Mint); PrepareShot(true);
+        });
+    }
     void Stop() { st = S.Holed; Invoke(nameof(Next), .9f); }
     void Next() { PrepareShot(true); }
     void Holed()
@@ -419,9 +461,75 @@ public class HoleTest : MonoBehaviour
         st = S.Holed; b = new Vector2(D.pin[0], D.pin[1]); bY = D.H(b.x, b.y) - .08f; int tp = strokes - D.par;
         string nm = strokes == 1 ? "HOLE IN ONE" : tp <= -3 ? "ALBATROSS" : tp == -2 ? "EAGLE" : tp == -1 ? "BIRDIE" : tp == 0 ? "PAR" : tp == 1 ? "BOGEY" : "+" + tp;
         string how = holedHow; holedHow = "";
-        hud.Toast(nm, strokes + (strokes == 1 ? " stroke" : " strokes") + (how != "" ? " · " + how : ""), tp < 0 ? Hud.Sun : tp == 0 ? Hud.Mint : Hud.Cream); hud.SetHint(""); hud.SetSwing("AGAIN", 0, false); Invoke(nameof(ArmRestart), .6f);
+        hud.Toast(nm, strokes + (strokes == 1 ? " stroke" : " strokes") + (how != "" ? " · " + how : ""), tp < 0 ? Hud.Sun : tp == 0 ? Hud.Mint : Hud.Cream); hud.SetHint(""); hud.SetSwing("SWING", 0, false);
+        if (scores[hi] == 0) { scores[hi] = strokes; pars[hi] = D.par; roundDiff += strokes - D.par; holesDone++; }
+        Invoke(nameof(HoleDone), 1.8f);
     }
-    void ArmRestart() { st = S.Aim; strokes = 0; b = new Vector2(D.tee[0], D.tee[1]); bY = D.H(b.x, b.y); PrepareShot(true); }
+    // ---------- the round (stage 5): Troy Burne's 18 in order, the web game's Quick play pins and wind ----------
+    void NewRound()
+    {
+        CancelInvoke(); hud.HideChoice(); roundSeed = Random.Range(1, 1000000000); roundDiff = 0; holesDone = 0;
+        for (int k = 0; k < 18; k++) { scores[k] = 0; pars[k] = 0; }
+        LoadHole(0);
+    }
+    void LoadHole(int i)
+    {
+        CancelInvoke(); hud.HideChoice(); hi = i;
+        D = HoleData.Load(HolePath(""));
+        CO = new GolfGo.Sim.Course(Resources.Load<TextAsset>(HolePath("")).text);
+        // pinIndex (a Quick play round): one of the hole's three pin spots, from the round's seed
+        if (CO.pins != null && CO.pins.Length == 3) { int k = (int)System.Math.Floor(new GolfGo.Sim.Rng(roundSeed + i * 7919).Next() * 3) % 3; CO.pin = new[] { CO.pins[k][0], CO.pins[k][1] }; }
+        D.pin = new[] { (float)CO.pin[0], (float)CO.pin[1] };
+        SK = new GolfGo.Sim.Strike(TU, CO);
+        SH = new GolfGo.Sim.SimHole(Resources.Load<TextAsset>(HolePath("_sim")).text); SB = new GolfGo.Sim.Ball(SH, CO, SK); SG = new GolfGo.Sim.Short(SK, SH, CO); PT = new GolfGo.Sim.Putt(SK, SH, CO);
+        RD = new GolfGo.Sim.Round(SK, SH, CO, SG, PT);
+        var w = GolfGo.Sim.Round.HoleWind(roundSeed, i); windA = w.a; windMph = w.mph;
+        BuildHole(); Resources.UnloadUnusedAssets();   // (the last hole's 4K textures go)
+        strokes = 0; buried = false; b = new Vector2(D.tee[0], D.tee[1]); prev = b; bY = D.H(b.x, b.y); fromLie = "tee";
+        hud.Toast("HOLE " + (i + 1), "Par " + D.par + " · " + D.len + " yds", Hud.Cream);
+        PrepareShot(true);
+    }
+    void HoleDone()
+    {
+        string res = ScoreName(scores[hi], pars[hi]);
+        var opts = new List<(string, string, bool)>();
+        if (hi < 17) opts.Add(("Next hole", "Hole " + (hi + 2) + " · Par " + NextPar(), true));
+        opts.Add(("Scorecard", "The round so far", hi >= 17));
+        if (hi >= 17) opts.Add(("New round", "Back to the 1st tee", false));
+        hud.ShowChoice("Hole " + (hi + 1) + " · Par " + pars[hi], res, "Round " + DiffStr(roundDiff) + " · " + Total() + " strokes through " + holesDone, opts,
+            k => { var a = opts[k].Item1; if (a == "Next hole") LoadHole(hi + 1); else if (a == "New round") NewRound(); else ShowCard(true); });
+    }
+    string NextPar() { try { return HoleData.Load("troy/h" + (hi + 2).ToString("00")).par.ToString(); } catch { return "?"; } }
+    int Total() { int t = 0; for (int k = 0; k < 18; k++) t += scores[k]; return t; }
+    static string DiffStr(int d) => d == 0 ? "E" : d > 0 ? "+" + d : d.ToString();
+    static string ScoreName(int s, int par) { int tp = s - par; return s == 1 ? "Hole in one" : tp <= -3 ? "Albatross" : tp == -2 ? "Eagle" : tp == -1 ? "Birdie" : tp == 0 ? "Par" : tp == 1 ? "Bogey" : tp == 2 ? "Double bogey" : "+" + tp; }
+    // the scorecard (pause menu / after a hole): hole, par, score, in two nines
+    void ShowCard(bool afterHole)
+    {
+        var sb = new System.Text.StringBuilder();
+        for (int half = 0; half < 2; half++)
+        {
+            int ps = 0, ss = 0; var l1 = new System.Text.StringBuilder(half == 0 ? "Out " : "In  "); var l2 = new System.Text.StringBuilder("Par "); var l3 = new System.Text.StringBuilder("You ");
+            for (int k = half * 9; k < half * 9 + 9; k++) { l1.Append((k + 1).ToString().PadLeft(3)); l2.Append(pars[k] > 0 ? pars[k].ToString().PadLeft(3) : "  ·"); l3.Append(scores[k] > 0 ? scores[k].ToString().PadLeft(3) : "  ·"); ps += pars[k]; ss += scores[k]; }
+            sb.Append(l1).Append('\n').Append(l2).Append("  ").Append(ps > 0 ? ps.ToString() : "").Append('\n').Append(l3).Append("  ").Append(ss > 0 ? ss.ToString() : "").Append(half == 0 ? "\n\n" : "");
+        }
+        bool done = holesDone >= 18 || (afterHole && hi >= 17);
+        var opts = new List<(string, string, bool)>();
+        if (afterHole && hi < 17) opts.Add(("Next hole", "Hole " + (hi + 2), true));
+        else if (!afterHole) opts.Add(("Back to the hole", "", true));
+        if (done || !afterHole) opts.Add(("New round", "Start again from the 1st", done));
+        hud.ShowChoice("Troy Burne · " + (done ? "Final" : "Thru " + holesDone), "Round " + DiffStr(roundDiff) + " · " + Total(), sb.ToString(), opts,
+            k => { var a = opts[k].Item1; if (a == "Next hole") LoadHole(hi + 1); else if (a == "New round") NewRound(); });
+    }
+    void Menu()
+    {
+        if (hud.ChoiceOpen || !(st == S.Aim || st == S.Holed)) return;
+        var opts = new List<(string, string, bool)> { ("Resume", "", true), ("Scorecard", "Thru " + holesDone + " · Round " + DiffStr(roundDiff), false), ("Restart hole", "Hole " + (hi + 1) + " from the tee", false), ("New round", "Troy Burne from the 1st", false) };
+        hud.ShowChoice("Paused", "Troy Burne · Hole " + (hi + 1), null, opts, k =>
+        {
+            if (k == 1) ShowCard(false); else if (k == 2) { if (scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); } else if (k == 3) NewRound();
+        });
+    }
 
     /* the picture sits above the controls (Cam, Nov 25: the HUD covered the golfer): the projection's centre is moved up by most of
        the bottom panel's height, so the frame the camera aims sits in the open part of the screen. The camera keeps its place and

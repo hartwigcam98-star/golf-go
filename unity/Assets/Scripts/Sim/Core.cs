@@ -74,7 +74,7 @@ namespace GolfGo.Sim
     /* The ground the sim plays on: heights on the hole's 2-yd grid (hAt), the fine green grid (hFine) and the lie map. */
     public class Course
     {
-        public double[] pin, tee; public int par; public double len; public double[][] segs; public double[] line0 = { 0, 0 };
+        public double[] pin, tee; public int par; public double len; public double[][] segs; public double[] line0 = { 0, 0 }; public double[][] pins;   // the hole's three pin spots (pinIndex picks one per round)
         // h.at: the point s yards along the centreline (and its heading)
         public (double x, double y, double a) At(double s0)
         {
@@ -113,6 +113,7 @@ namespace GolfGo.Sim
             if (o.TryGetValue("segs", out var sg) && sg is List<object> sl) { segs = new double[sl.Count][]; for (int i = 0; i < sl.Count; i++) segs[i] = Arr(sl[i]); }
             if (o.TryGetValue("line0", out var l0) && l0 is List<object>) line0 = Arr(l0);
             if (o.TryGetValue("len", out var lenO) && lenO is double lnd) len = lnd;
+            if (o.TryGetValue("pins", out var pso) && pso is List<object> psl) { pins = new double[psl.Count][]; for (int i = 0; i < psl.Count; i++) pins[i] = Arr(psl[i]); }
         }
         // terrain-height.js hAtH: bilinear on the 2-yd grid (outside it the game reads the elevation model; the test hole stays inside)
         public double HAt(double x, double y)
@@ -124,7 +125,7 @@ namespace GolfGo.Sim
             return (d[j * n + i] * (1 - tx) + d[j * n + i + 1] * tx) * (1 - ty) + (d[(j + 1) * n + i] * (1 - tx) + d[(j + 1) * n + i + 1] * tx) * ty;
         }
         // beyond the hole's grid the web game reads the course's elevation model (demRel); the sim uses the web game's own heights
-        // there, sampled every 4 yd (troy1_sim.json "wide"): close, not bit for bit, and only out of bounds
+        // there, sampled every 4 yd (hNN_sim.json "wide"): close, not bit for bit, and only out of bounds
         public bool Outside(double x, double y) { var g = hg; double fx = (x - g.x0) / g.st, fy = (y - g.y0) / g.st; return fx < 0 || fy < 0 || fx >= g.nx - 1 || fy >= g.ny - 1; }
         public void SetOuter(double x0, double y0, double st, int nx, int ny, double[] d) { outer = new G { x0 = x0, y0 = y0, st = st, nx = nx, ny = ny, d = d }; }
         // hFineH: the 0.5-yd grid round the green, else hAt
