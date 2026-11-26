@@ -423,8 +423,19 @@ public class HoleTest : MonoBehaviour
     }
     void ArmRestart() { st = S.Aim; strokes = 0; b = new Vector2(D.tee[0], D.tee[1]); bY = D.H(b.x, b.y); PrepareShot(true); }
 
+    /* the picture sits above the controls (Cam, Nov 25: the HUD covered the golfer): the projection's centre is moved up by most of
+       the bottom panel's height, so the frame the camera aims sits in the open part of the screen. The camera keeps its place and
+       angle (the aiming height Cam picked); only where the picture lands on the screen changes. */
+    float shiftFor = -1;
+    void FrameAboveHud()
+    {
+        float f = hud != null ? hud.BottomFrac : 0; if (Mathf.Approximately(f, shiftFor) && cam.aspect == shiftAspect) return;
+        shiftFor = f; shiftAspect = cam.aspect; cam.ResetProjectionMatrix(); var m = cam.projectionMatrix; m[1, 2] = -2 * f * .9f; cam.projectionMatrix = m;
+    }
+    float shiftAspect;
     void CameraUpdate(float dt)
     {
+        FrameAboveHud();
         Vector3 pos, look; var bp = HoleData.U(b.x, b.y, bY);
         if (mapView && st == S.Aim)
         {   // the map button: the whole hole from above (the web's overview, simplified)

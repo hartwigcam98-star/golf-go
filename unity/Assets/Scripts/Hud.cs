@@ -20,6 +20,7 @@ public class Hud
 
     public float K;                    // screen pixels per CSS pixel
     public float W, Hh;                // the canvas in CSS pixels
+    public float BottomFrac;           // the share of the screen's height the bottom panel (club, shots, meter, buttons) covers
     RectTransform root, safe;
     Font fDisp, fBody, fBold;
 
@@ -220,7 +221,7 @@ public class Hud
         // the dark fade behind it: linear-gradient(to top, rgba(9,24,36,.94) 62%, transparent)
         var bgC = new Color(9 / 255f, 24 / 255f, 36 / 255f, .94f);
         var bg = Pic(root, "BottomFade", Tex(4, 64, (x, y) => { float t = 1 - y / 64f; return A(bgC, t >= .62f ? 1 : t / .62f); }));
-        At(bg.rectTransform, 0, top, W, Hh - top);
+        At(bg.rectTransform, 0, top, W, Hh - top); BottomFrac = (Hh - top) / Hh;
         var inner = At(RT("Inner", root), ix, 0, iw, Hh);
 
         // club row: [‹ name ›] [lie / pin chips] [strike point]
