@@ -11,7 +11,7 @@ static class Program
     {
         string dir = AppContext.BaseDirectory, root = FindUp(dir, "Assets");
         var T = new Tuning(File.ReadAllText(Path.Combine(root, "Assets/Resources/tuning.json")));
-        var C = new Course(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy1.json")));
+        var C = new Course(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy/h01.json")));
         var S = new Strike(T, C);
         var cases = (List<object>)MiniJson.Parse(File.ReadAllText(Path.Combine(root, "SimTests/strike_cases.json")));
         int bad = 0, n = 0;
@@ -41,7 +41,8 @@ static class Program
         int lbad = Landings(root, S, C);
         int sbad = ShortGame(root, S, C);
         int pbad = Putting(root, S, C);
-        return bad == 0 && lbad == 0 && sbad == 0 && pbad == 0 ? 0 : 1;
+        int rbad = RoundFlow(root, T);
+        return bad == 0 && lbad == 0 && sbad == 0 && pbad == 0 && rbad == 0 ? 0 : 1;
     }
 
     /* Stage 2: each case in land_cases.json is a shot the web game struck on Troy Burne 1, then flew, bounced and rolled to rest
@@ -49,7 +50,7 @@ static class Program
        (1e-6 yd), the same way (rest / holed / water / ob, and how), on the same frame, having drawn the same dice. */
     static int Landings(string root, Strike S, Course C)
     {
-        var H = new SimHole(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy1_sim.json")));
+        var H = new SimHole(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy/h01_sim.json")));
         var cases = (List<object>)MiniJson.Parse(File.ReadAllText(Path.Combine(root, "SimTests/land_cases.json")));
         int bad = 0, n = 0; var kinds = new Dictionary<string, int>();
         foreach (Dictionary<string, object> c in cases)
@@ -109,7 +110,7 @@ static class Program
        size, the planned carry and finish and chooseShort's pick must match; then the strike (flight fields, 1e-6) and the landing. */
     static int ShortGame(string root, Strike S, Course C)
     {
-        var H = new SimHole(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy1_sim.json")));
+        var H = new SimHole(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy/h01_sim.json")));
         var SG = new Short(S, H, C);
         var cases = (List<object>)MiniJson.Parse(File.ReadAllText(Path.Combine(root, "SimTests/short_cases.json")));
         int bad = 0, n = 0; var kinds = new Dictionary<string, int>();
@@ -171,7 +172,7 @@ static class Program
        the stroke's starting velocity, then the roll to rest. */
     static int Putting(string root, Strike S, Course C)
     {
-        var H = new SimHole(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy1_sim.json")));
+        var H = new SimHole(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy/h01_sim.json")));
         var P = new Putt(S, H, C);
         var cases = (List<object>)MiniJson.Parse(File.ReadAllText(Path.Combine(root, "SimTests/putt_cases.json")));
         int bad = 0, n = 0; var kinds = new Dictionary<string, int>();
@@ -211,6 +212,63 @@ static class Program
         }
         var ks = new List<string>(); foreach (var kv in kinds) ks.Add(kv.Key + " " + kv.Value);
         Console.WriteLine($"putting parity: {n - bad}/{n} cases match the web game ({string.Join(", ", ks)})");
+        return bad;
+    }
+    /* Stage 5: all 18 holes (round_cases.json): each hole's wind, prepareShot from the tee and spots all over the hole (lie, aim,
+       club, shot type, meter sizes, flag out), and shots into the water: the path, where it crossed, the relief options and the best. */
+    static int RoundFlow(string root, Tuning T)
+    {
+        var holes = (List<object>)MiniJson.Parse(File.ReadAllText(Path.Combine(root, "SimTests/round_cases.json")));
+        int bad = 0, n = 0, nw = 0;
+        foreach (Dictionary<string, object> hc in holes)
+        {
+            int hn = (int)D(hc["hole"]); string nn = hn.ToString("00");
+            var C = new Course(File.ReadAllText(Path.Combine(root, $"Assets/Resources/troy/h{nn}.json")));
+            var H = new SimHole(File.ReadAllText(Path.Combine(root, $"Assets/Resources/troy/h{nn}_sim.json")));
+            var S = new Strike(T, C); var R = new Round(S, H, C, new Short(S, H, C), new Putt(S, H, C));
+            void Bad(string what) { bad++; if (bad <= 40) Console.WriteLine($"hole {hn}: {what}"); }
+            n++; var w = (Dictionary<string, object>)hc["wind"]; var hw = Round.HoleWind((int)D(hc["roundSeed"]), hn - 1);
+            if (Math.Abs(hw.a - D(w["a"])) > 1e-9 || hw.mph != D(w["mph"])) Bad($"wind {hw.a:F4}/{hw.mph} vs web {D(w["a"]):F4}/{D(w["mph"])}");
+            foreach (Dictionary<string, object> p in (List<object>)hc["prep"])
+            {
+                n++; double x = D(p["x"]), y = D(p["y"]); var o = R.Prepare(x, y, false, 0, 0); var d = new List<string>();
+                if (o.lie != (string)p["lie"]) d.Add($"lie {o.lie} vs {p["lie"]}");
+                if (Math.Abs(o.aim - D(p["aim"])) > 1e-9) d.Add($"aim {o.aim:F6} vs {D(p["aim"]):F6}");
+                string club = T.Clubs()[o.club].id; if (club != (string)p["club"]) d.Add($"club {club} vs {p["club"]}");
+                if (o.stype != (string)p["stype"]) d.Add($"shot {o.stype} vs {p["stype"]}");
+                if (Math.Abs(o.swMax - D(p["swMax"])) > 1e-6 * Math.Max(1, D(p["swMax"]))) d.Add($"swMax {o.swMax:G8} vs {D(p["swMax"]):G8}");
+                if (Math.Abs(o.puttMax - D(p["puttMax"])) > 1e-6 * Math.Max(1, D(p["puttMax"]))) d.Add($"puttMax {o.puttMax:G8} vs {D(p["puttMax"]):G8}");
+                if (o.flagOut != (bool)p["flagOut"]) d.Add("flag out");
+                if (R.OnTeeBox(x, y, o.lie) != (bool)p["onTee"]) d.Add("on tee");
+                if (d.Count > 0) Bad($"prepare at {x:F1},{y:F1}: " + string.Join("; ", d));
+            }
+            foreach (Dictionary<string, object> wc in (List<object>)hc["water"])
+            {
+                n++; nw++; var fl = (Dictionary<string, object>)wc["flight"];
+                double F(string k) => fl.TryGetValue(k, out var v) && v is double dd ? dd : 0;
+                var f = new Flight { sx = F("sx"), sy = F("sy"), y0 = F("y0"), dx = F("dx"), dy = F("dy"), px = F("px"), py = F("py"), carry = F("carry"), lat = F("lat"), wx = F("wx"), wy = F("wy"), apex = F("apex"), T = F("T"),
+                    rollMul = F("rollMul"), rel = F("rel"), back = F("back"), full = F("full"), fly = fl.TryGetValue("fly", out var fy) && fy is bool fb && fb, club = (string)fl["club"], stype = "full" };
+                var b = new Ball(H, C, S) { windA = 1, windMph = 3 }; b.Launch(f, (int)D(wc["lseed"])); b.RunToRest();
+                string kind = wc["kind"] as string ?? "none", got = b.outcome?.kind ?? "none";
+                if (kind == "rest" || kind == "none") { if (got != "rest" && got != "holed" && kind == "rest") Bad($"water shot ended {got} vs web rest"); continue; }
+                if (got != kind) { Bad($"water shot ended {got} vs web {kind}"); continue; }
+                if (kind != "water") continue;
+                var op = (Dictionary<string, object>)wc["opts"]; var prev = new[] { D(wc["bx"]), D(wc["by"]) }; var at = new[] { b.x, b.y };
+                var rec = new List<double[]>(b.rec) { at };   // (endRec adds the spot it went in)
+                var Cx = R.WaterCross(prev, rec, at); var wC = (List<object>)op["C"];
+                if (Math.Abs(Cx[0] - D(wC[0])) > 1e-6 || Math.Abs(Cx[1] - D(wC[1])) > 1e-6) { Bad($"crossed at {Cx[0]:F3},{Cx[1]:F3} vs web {D(wC[0]):F3},{D(wC[1]):F3}"); continue; }
+                var opts = R.ReliefOpts(Cx, prev); var wo = (List<object>)op["o"];
+                if (opts.Count != wo.Count) { Bad($"{opts.Count} relief options vs web {wo.Count}"); continue; }
+                for (int i = 0; i < opts.Count; i++)
+                {
+                    var q = (Dictionary<string, object>)wo[i];
+                    if (opts[i].k != (string)q["k"] || Math.Abs(opts[i].x - D(q["x"])) > 1e-6 || Math.Abs(opts[i].y - D(q["y"])) > 1e-6 || opts[i].L != (string)q["L"])
+                        Bad($"relief {i}: {opts[i].k} {opts[i].x:F3},{opts[i].y:F3} {opts[i].L} vs web {q["k"]} {D(q["x"]):F3},{D(q["y"]):F3} {q["L"]}");
+                }
+                if (Round.Best(opts).k != (string)op["best"]) Bad($"best relief {Round.Best(opts).k} vs web {op["best"]}");
+            }
+        }
+        Console.WriteLine($"round parity: {n - bad}/{n} checks match the web game (18 holes: winds, shot setups, {nw} water shots and their relief)");
         return bad;
     }
     static double D(object o) => Convert.ToDouble(o);

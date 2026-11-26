@@ -113,7 +113,7 @@ namespace GolfGo.Sim
         public readonly SimHole H; readonly Course C; readonly Strike S; Rng R;
         public double x, y, bY; public BallState state; public Outcome outcome;
         public double windA, windMph; public bool flagOut;
-        public double[] pin; public int dice;
+        public double[] pin; public int dice; public List<double[]> rec = new List<double[]>();
         double D() { dice++; return R.Next(); }
         // the flight in progress (G.flight) and its running fields
         public Flight f; Club fc; double u; bool pinHitF, knocked; double? lx, ly, qx, qy, qY; HashSet<SimHole.Tree> rus;
@@ -128,13 +128,13 @@ namespace GolfGo.Sim
         public void Launch(Flight fl, int seed)
         {
             f = fl; fc = S.Club(fl.club); u = 0; pinHitF = false; knocked = false; lx = ly = qx = qy = qY = null; rus = null; dropping = false;
-            R = new Rng(seed); dice = 0; outcome = null; rim = false;
+            R = new Rng(seed); dice = 0; outcome = null; rim = false; rec.Clear();
             x = fl.sx; y = fl.sy; bY = fl.y0; state = BallState.Flight;
         }
         // a ball already rolling (a putt, a chip's run-out, or a test): from (x, y) at (vx, vy) yd/s
         public void LaunchRoll(double x0, double y0, double vx, double vy, int seed)
         {
-            f = null; fc = null; u = 0; pinHitF = false; knocked = false; hPinHit = false; dropping = false; R = new Rng(seed); dice = 0; outcome = null;
+            f = null; fc = null; u = 0; pinHitF = false; knocked = false; hPinHit = false; dropping = false; R = new Rng(seed); dice = 0; outcome = null; rec.Clear();
             x = x0; y = y0; bY = C.HAt(x0, y0); StartRollV(vx, vy, false);
         }
         public bool Moving => state == BallState.Flight || state == BallState.Bounce || state == BallState.Roll;
@@ -142,6 +142,7 @@ namespace GolfGo.Sim
         public void Step(double dt)
         {
             if (state == BallState.Flight) StepFlight(dt);
+            if (Moving) rec.Add(new[] { x, y });   // the shot's path, as the loop records it (after the flight's step): waterCross reads it
             if (state == BallState.Bounce) StepHop(dt);
             if (state == BallState.Roll) StepRoll(dt);
         }

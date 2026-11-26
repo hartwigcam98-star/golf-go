@@ -74,7 +74,25 @@ namespace GolfGo.Sim
     /* The ground the sim plays on: heights on the hole's 2-yd grid (hAt), the fine green grid (hFine) and the lie map. */
     public class Course
     {
-        public double[] pin, tee; public int par;
+        public double[] pin, tee; public int par; public double len; public double[][] segs; public double[] line0 = { 0, 0 };
+        // h.at: the point s yards along the centreline (and its heading)
+        public (double x, double y, double a) At(double s0)
+        {
+            var g = segs[segs.Length - 1]; foreach (var q in segs) if (s0 <= q[4] + q[3]) { g = q; break; }
+            if (s0 < 0) g = segs[0]; double t = s0 - g[4]; return (g[0] + Math.Sin(g[2]) * t, g[1] - Math.Cos(g[2]) * t, g[2]);
+        }
+        // alongCl: how far along the centreline the nearest point to (x, y) is
+        public double AlongCl(double x, double y)
+        {
+            double best = 1e9, bs = 0;
+            for (int i = 0; i < segs.Length; i++)
+            {
+                var g = segs[i]; double dx = Math.Sin(g[2]), dy = -Math.Cos(g[2]), t = (x - g[0]) * dx + (y - g[1]) * dy;
+                double tc = M.Clamp(t, i == 0 ? -1e4 : 0, i == segs.Length - 1 ? 1e4 : g[3]), d = M.Hypot(x - g[0] - dx * tc, y - g[1] - dy * tc);
+                if (d < best) { best = d; bs = g[4] + tc; }
+            }
+            return bs;
+        }
         G hg, gg, outer; double lx0, ly0; int lnx, lny; int[] lie; string[] lieNames;
         class G { public double x0, y0, st; public int nx, ny; public double[] d; }
         static G Grid(Dictionary<string, object> o)
@@ -91,6 +109,10 @@ namespace GolfGo.Sim
             var ld = (List<object>)lg["data"]; lie = new int[ld.Count]; for (int i = 0; i < lie.Length; i++) lie[i] = Convert.ToInt32(ld[i]);
             var ln = (List<object>)o["lieNames"]; lieNames = new string[ln.Count]; for (int i = 0; i < ln.Count; i++) lieNames[i] = (string)ln[i];
             pin = Arr(o["pin"]); tee = Arr(o["tee"]); par = Convert.ToInt32(o["par"]);
+            // the hole's centreline (h.segs: x, y, heading, length, distance from the tee) and the tee spot line0, for aimTarget / onTeeBox
+            if (o.TryGetValue("segs", out var sg) && sg is List<object> sl) { segs = new double[sl.Count][]; for (int i = 0; i < sl.Count; i++) segs[i] = Arr(sl[i]); }
+            if (o.TryGetValue("line0", out var l0) && l0 is List<object>) line0 = Arr(l0);
+            if (o.TryGetValue("len", out var ln) && ln is double lnd) len = lnd;
         }
         // terrain-height.js hAtH: bilinear on the 2-yd grid (outside it the game reads the elevation model; the test hole stays inside)
         public double HAt(double x, double y)
