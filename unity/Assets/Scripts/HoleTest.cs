@@ -1058,8 +1058,11 @@ public class HoleTest : MonoBehaviour
         if (GF != null && swingClock >= 0 && swingClock < launchAt) return;   // the ball waits for the club (impact: IMPACT_T into the swing)
         simAcc += dt;
         while (simAcc >= SIM_DT && SB.Moving) { SB.Step(SIM_DT); simAcc -= SIM_DT; }
-        b = new Vector2((float)SB.x, (float)SB.y); bY = (float)SB.bY;
-        if (recOn) { recT += dt; bool air = SB.state == GolfGo.Sim.BallState.Flight; rec.Add(new Vector4(recT, b.x, b.y, air ? bY : D.H(b.x, b.y))); }
+        b = new Vector2((float)SB.x, (float)SB.y);
+        // in the air (flight, hops) the sim's height; rolling, the ground under it (the sim leaves bY where the ball touched down, and
+        // the web draws a rolling ball at hAt: an uphill roll was drawn under the turf, the ball "disappearing into the ground")
+        bool airNow = SB.state == GolfGo.Sim.BallState.Flight || SB.state == GolfGo.Sim.BallState.Bounce; bY = airNow ? (float)SB.bY : D.H(b.x, b.y);
+        if (recOn) { recT += dt; rec.Add(new Vector4(recT, b.x, b.y, airNow ? bY : D.H(b.x, b.y))); }   // (the web: in the air through the hops too)
         if (SB.state == GolfGo.Sim.BallState.Flight && FX != null && !fPutt) FX.Trail(b.x, b.y, bY);
         if (st == S.Flight && SB.state != GolfGo.Sim.BallState.Flight) st = S.Roll;
         var o = SB.outcome;
