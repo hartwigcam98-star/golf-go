@@ -39,8 +39,11 @@ static class Program
         }
         Console.WriteLine($"strike parity: {n - bad}/{n} cases match the web game");
         int lbad = Landings(root, S, C);
-        int sbad = ShortGame(root, S, C);
-        int pbad = Putting(root, S, C);
+        int sbad = ShortGame(root, S, C, "short_cases.json");
+        int pbad = Putting(root, S, C, "putt_cases.json");
+        // each of the Unity game's golfers (Dex, Andre, Danny: their own charMods, the standard bag), short game, full shots and putts
+        foreach (var g in new[] { "ch06", "ch28", "ch42" }) { sbad += ShortGame(root, S, C, "short_cases_" + g + ".json"); pbad += Putting(root, S, C, "putt_cases_" + g + ".json"); }
+        S.Cm = Mods.Neutral;
         int rbad = RoundFlow(root, T);
         return bad == 0 && lbad == 0 && sbad == 0 && pbad == 0 && rbad == 0 ? 0 : 1;
     }
@@ -108,15 +111,16 @@ static class Program
     }
     /* Stage 3: short-game shots round the green (short_cases.json, a neutral golfer in the web game). Before the swing the meter's
        size, the planned carry and finish and chooseShort's pick must match; then the strike (flight fields, 1e-6) and the landing. */
-    static int ShortGame(string root, Strike S, Course C)
+    static int ShortGame(string root, Strike S, Course C, string file)
     {
         var H = new SimHole(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy/h01_sim.json")));
         var SG = new Short(S, H, C);
-        var cases = (List<object>)MiniJson.Parse(File.ReadAllText(Path.Combine(root, "SimTests/short_cases.json")));
+        var cases = (List<object>)MiniJson.Parse(File.ReadAllText(Path.Combine(root, "SimTests/" + file)));
         int bad = 0, n = 0; var kinds = new Dictionary<string, int>();
         foreach (Dictionary<string, object> c in cases)
         {
             n++; var pre = (Dictionary<string, object>)c["pre"]; var w = (Dictionary<string, object>)c["wind"]; var diffs = new List<string>();
+            S.Cm = c.TryGetValue("golfer", out var gid) && gid is string gs ? Mods.For(gs) : Mods.Neutral;
             void Chk(string k, double a, double b, double tol = 1e-6) { if (Math.Abs(a - b) > tol * Math.Max(1, Math.Abs(b))) diffs.Add($"{k} {a:G9} vs web {b:G9}"); }
             var s = new ShotIn { bx = D(c["bx"]), by = D(c["by"]), aim = D(pre["aim"]), lie = (string)pre["lie"], onTeeBox = (bool)pre["onTee"], buried = (bool)c["buried"], windA = D(w["a"]), windMph = D(w["mph"]) };
             if (c["chose"] is Dictionary<string, object> ch)
@@ -165,20 +169,21 @@ static class Program
             if (diffs.Count > 0) { bad++; if (bad <= 40) Console.WriteLine($"short {n} ({s.stype} {s.club} from {s.lie} {D(c["bx"]):F1},{D(c["by"]):F1} e{c["e"]}): " + string.Join("; ", diffs)); }
         }
         var ks = new List<string>(); foreach (var kv in kinds) ks.Add(kv.Key + " " + kv.Value);
-        Console.WriteLine($"short-game parity: {n - bad}/{n} cases match the web game ({string.Join(", ", ks)})");
+        Console.WriteLine($"short-game parity ({file}): {n - bad}/{n} cases match the web game ({string.Join(", ", ks)})");
         return bad;
     }
     /* Stage 4: putts on Troy 1's green and fringe (putt_cases.json): the meter's length, the need, the flag, the window, flag out,
        the stroke's starting velocity, then the roll to rest. */
-    static int Putting(string root, Strike S, Course C)
+    static int Putting(string root, Strike S, Course C, string file)
     {
         var H = new SimHole(File.ReadAllText(Path.Combine(root, "Assets/Resources/troy/h01_sim.json")));
         var P = new Putt(S, H, C);
-        var cases = (List<object>)MiniJson.Parse(File.ReadAllText(Path.Combine(root, "SimTests/putt_cases.json")));
+        var cases = (List<object>)MiniJson.Parse(File.ReadAllText(Path.Combine(root, "SimTests/" + file)));
         int bad = 0, n = 0; var kinds = new Dictionary<string, int>();
         foreach (Dictionary<string, object> c in cases)
         {
             n++; var pre = (Dictionary<string, object>)c["pre"]; var diffs = new List<string>();
+            S.Cm = c.TryGetValue("golfer", out var gid) && gid is string gs ? Mods.For(gs) : Mods.Neutral;
             void Chk(string k, double a, double b, double tol = 1e-6) { if (Math.Abs(a - b) > tol * Math.Max(1, Math.Abs(b))) diffs.Add($"{k} {a:G9} vs web {b:G9}"); }
             double bx = D(c["bx"]), by = D(c["by"]); string lie = (string)pre["lie"];
             var q = P.Need(bx, by, lie); Chk("need", q.need, D(pre["need"])); Chk("d", q.d, D(pre["d"]));
@@ -211,7 +216,7 @@ static class Program
             if (diffs.Count > 0) { bad++; if (bad <= 40) Console.WriteLine($"putt {n} ({lie} {bx:F2},{by:F2} e{c["e"]}): " + string.Join("; ", diffs)); }
         }
         var ks = new List<string>(); foreach (var kv in kinds) ks.Add(kv.Key + " " + kv.Value);
-        Console.WriteLine($"putting parity: {n - bad}/{n} cases match the web game ({string.Join(", ", ks)})");
+        Console.WriteLine($"putting parity ({file}): {n - bad}/{n} cases match the web game ({string.Join(", ", ks)})");
         return bad;
     }
     /* Stage 5: all 18 holes (round_cases.json): each hole's wind, prepareShot from the tee and spots all over the hole (lie, aim,

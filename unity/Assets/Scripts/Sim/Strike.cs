@@ -42,6 +42,7 @@ namespace GolfGo.Sim
 
     public class Strike
     {
+        public Mods Cm = Mods.Neutral;   // the golfer (charMods)
         public readonly Tuning T; readonly Course C; readonly System.Collections.Generic.Dictionary<string, Club> clubs = new System.Collections.Generic.Dictionary<string, Club>();
         public Strike(Tuning t, Course c) { T = t; C = c; foreach (var k in t.Clubs()) clubs[k.id] = k; }
         public Club Club(string id) => clubs[id];
@@ -101,13 +102,13 @@ namespace GolfGo.Sim
         public double PerfectWin(Club c, ShotIn s)
         {
             double k = s.aiTurn ? 1 : .8;
-            if (c.putter) return .026 * k;
+            if (c.putter) return .026 * k * Cm.Win(c, s.stype);
             bool sh = IsShort(s.stype);
             double b = ((s.lie == "sand" && !BunkerT(s.stype) && !sh) || (s.lie == "dirt" && !sh)) ? T.Num("SAND_WIN")
                 : (s.lie == "rough" || s.lie == "sand" || s.lie == "fescue" || s.lie == "dirt") ? .018 : s.lie == "cut" ? .022 : .024;
             b *= T.ShotK(s.stype, "win") * k;
             bool tight = ApprShot(c, s.stype) || (!sh && c.kind == "wood" && s.lie == "tee");
-            return b * ShotMods(c, s).win * 1 * (tight ? T.Num("APPR_WIN") : 1);
+            return b * ShotMods(c, s).win * Cm.Win(c, s.stype) * (tight ? T.Num("APPR_WIN") : 1);
         }
         // shotApex (state.js)
         public double ShotApex(Club c, double carry, ShotIn s) => c.apex * T.ShotK(s.stype, "a") * Math.Sqrt(M.Clamp(carry / (c.carry * T.ShotK(s.stype, "c")), .2, 1)) * (s.impY > 0 ? 1 - .22 * s.impY : 1 - .14 * s.impY);
@@ -132,7 +133,7 @@ namespace GolfGo.Sim
                 else { missBy = ae - w; e = HARSH ? M.Sign(e) * (.018 + (ae - w) * 2.6) + (R.Next() - .5) * (ae - w) * 1.4 : M.Sign(e) * (.012 + (ae - w) * 1.6); }
             }
             string st = s.stype;
-            const double perf = 1.03, bite = 1;
+            double perf = Cm.Perf; const double bite = 1;
             bool perfTee = perfect == 2 && !sh && club.kind == "wood";
             double perfBite = perfect == 2 && !sh && !perfTee ? 1 - M.Clamp((perf - 1) * 5 * bite, 0, .6) : 1;
             double lm = LieMul(club, lie, st, s.onTeeBox) * (1 + (R.Next() * 2 - 1) * LieVar(club, lie));
@@ -144,7 +145,7 @@ namespace GolfGo.Sim
             if (sh && !miss && missBy > 0)
             {
                 var BL = T.Obj("BLADE"); double chipAmp = Convert.ToDouble(BL["chipAmp"]), chipR = Convert.ToDouble(BL["chipR"]); var brel = (System.Collections.Generic.Dictionary<string, object>)BL["rel"];
-                double amp = st == "chip" ? chipAmp : st == "flop" ? 1.5 : st == "pitch" ? .6 : st == "spin" ? 1.1 : st == "pick" ? 1.5 : st == "splash" ? 1 : st == "blast" ? .8 : 1;
+                double amp = (st == "chip" ? chipAmp : st == "flop" ? 1.5 : st == "pitch" ? .6 : st == "spin" ? 1.1 : st == "pick" ? 1.5 : st == "splash" ? 1 : st == "blast" ? .8 : 1) * Cm.Mis;
                 double t = M.Clamp(missBy / T.Num("SG_RAMP"), 0, 1), bs = M.Clamp((.07 + missBy * 6) * amp, .07, .5) * t, br = st == "chip" ? chipR : 1.4;
                 mis = true;
                 if (e > 0) { mc = 1 - M.Clamp((.05 + missBy * 7) * amp, .05, .45) * t; ma = 1 - .25 * t; mr = 1 - .5 * t; }
@@ -156,7 +157,7 @@ namespace GolfGo.Sim
             double SG(string k, double d) => sgl != null && sgl.TryGetValue(k, out var v) && v is double x ? x : d;
             if (sgl != null)
             {
-                sgv = 1 + (R.Next() * 2 - 1) * SG("v", 0) * 1 * (st == "flop" ? .7 : 1) * 1;
+                sgv = 1 + (R.Next() * 2 - 1) * SG("v", 0) * 1 * (st == "flop" ? .7 : 1) * Cm.SgVar;
                 double ch = SG("chunk", 0);
                 if (ch != 0 && !mis && R.Next() < ch * 1) { sgChunk = true; sgv *= .62 + R.Next() * .16; }
             }
@@ -166,14 +167,14 @@ namespace GolfGo.Sim
             else if (!sh && lie == "dirt" && !miss && missBy > 0 && e > 0) { var f = (System.Collections.Generic.List<object>)T.Raw("DIRT_FAT"); fat = M.Clamp(Convert.ToDouble(f[0]) + missBy * Convert.ToDouble(f[1]), 0, Convert.ToDouble(f[2])); }
             // apprDisp
             double adC = 1, adL = 0;
-            if (ApprShot(club, st)) { double k = ApprK(club) * (perfect == 2 ? .5 : perfect == 1 ? .8 : 1) * 1; adC = 1 + R.Gauss() * k * .9; adL = R.Gauss() * k; }
-            double clubCarry = club.carry;
+            if (ApprShot(club, st)) { double k = ApprK(club) * (perfect == 2 ? .5 : perfect == 1 ? .8 : 1) * Cm.Err(club, st); adC = 1 + R.Gauss() * k * .9; adL = R.Gauss() * k; }
+            double clubCarry = club.carry * Cm.Carry(club);
             bool useSw = sh && s.swMax != 0;
             double carry = adC * sgv * mc * Math.Max(useSw ? .5 : 2, (useSw ? s.swMax : clubCarry * lm * T.ShotK(st, "c")) * power * Mv.carry * (perfTee ? perf : 1)
-                * (1 - (HARSH ? Math.Min(.32, missBy * 3.6 * 1) : Math.Min(.16, missBy * 1.6))) * (1 - fat));
+                * (1 - (HARSH ? Math.Min(.32, missBy * 3.6 * Cm.MisFull) : Math.Min(.16, missBy * 1.6))) * (1 - fat));
             var (dx, dy) = M.Dir(s.aim); double px = -dy, py = dx;
-            double lat = -e * 1.8 * em * carry * 1 * 1 + Mv.curve * 1 * carry + adL * carry;
-            var (wxu, wyu) = M.Dir(s.windA); double wk = s.windMph * .85 * (carry / 200) * club.loft * T.ShotK(st, "w") * Mv.wind * 1;
+            double lat = -e * 1.8 * em * carry * Cm.Err(club, st) * 1 + Mv.curve * Cm.Curve * carry + adL * carry;
+            var (wxu, wyu) = M.Dir(s.windA); double wk = s.windMph * .85 * (carry / 200) * club.loft * T.ShotK(st, "w") * Mv.wind * Cm.Wind;
             double thin = HARSH ? Math.Min(1, missBy / .06) : 0;
             double apex = ShotApex(club, carry, s) * Mv.apex * (1 - .3 * thin) * ma;
             var F = new Flight
@@ -181,7 +182,7 @@ namespace GolfGo.Sim
                 sx = s.bx, sy = s.by, y0 = C.HAt(s.bx, s.by) + .03, dx = dx, dy = dy, px = px, py = py, carry = carry, lat = lat, wx = wxu * wk, wy = wyu * wk, apex = apex,
                 T = Flight.Time(carry, apex),
                 rollMul = Mv.roll * (1 + .7 * thin) * mr * (flyer > 1 ? 1 - (1 - perfBite) * .5 : perfBite) * flyer * (sgl != null ? 1 + ((st == "chip" ? SG("chip", 1) : SG("r", 1)) - 1) * 1 : 1) * (sgChunk ? .5 : 1),
-                rel = mrel, back = msp * Mv.back * 1 * (1 - .8 * thin) * (sgl != null ? SG("back", 1) : 1), fly = flyer > 1 && lie != "cut",
+                rel = mrel, back = msp * Mv.back * Cm.Spin * (1 - .8 * thin) * (sgl != null ? SG("back", 1) : 1), fly = flyer > 1 && lie != "cut",
                 full = sh ? 0 : clubCarry * lm * T.ShotK(st, "c") * Mv.carry,
                 perfect = perfect, missBy = missBy, miss = miss, club = club.id, stype = st
             };

@@ -34,7 +34,7 @@ namespace GolfGo.Sim
         public bool TeeDriver(double x, double y, double aim, string lie)
         {
             if (C.par < 4 || !OnTeeBox(x, y, lie)) return false;
-            double dC = clubs[0].carry; if (M.Hypot(x - C.pin[0], y - C.pin[1]) < dC + 25) return false;
+            double dC = clubs[0].carry * S.Cm.Carry(clubs[0]); if (M.Hypot(x - C.pin[0], y - C.pin[1]) < dC + 25) return false;
             var (dx, dy) = M.Dir(aim); double px = -dy, py = dx, bad = 0, n = 0;
             for (double s = dC - 10; s <= dC + 30; s += 8) for (double w = -14; w <= 14; w += 7)
                 { string L = H.Lie(x + dx * s + px * w, y + dy * s + py * w); n++; if (L == "water" || L == "ob" || L == "sand" || L == "fescue" || L == "dirt") bad += Math.Abs(w) > 10 ? .6 : 1; }
@@ -48,10 +48,10 @@ namespace GolfGo.Sim
             if (d < 14 && (lie == "fairway" || lie == "tee" || lie == "cut")) return PUTTER;
             if (TeeDriver(x, y, aim, lie)) return 0;
             double Mul(Club c) => S.LieMul(c, lie, "full", onTee);
-            if (lie == "sand") { for (int i = PUTTER - 1; i >= Index("5I"); i--) { var c = clubs[i]; if (c.carry * Mul(c) >= d * .97) return i; } return Index("5I"); }
+            if (lie == "sand") { for (int i = PUTTER - 1; i >= Index("5I"); i--) { var c = clubs[i]; if (c.carry * S.Cm.Carry(c) * Mul(c) >= d * .97) return i; } return Index("5I"); }
             int lo = onTee ? 0 : 1;
-            for (int i = PUTTER - 1; i >= lo; i--) { var c = clubs[i]; if (c.carry * Mul(c) >= d * (lie == "fescue" ? .93 : .97) && S.LieErr(c, lie) < 2.4) return i; }
-            if (lie == "rough" || lie == "fescue") { int bi = lo; double bs = -1; for (int i = lo; i < PUTTER; i++) { var c = clubs[i]; double sc = c.carry * Mul(c) / (1 + (S.LieErr(c, lie) - 1) * .5); if (sc > bs) { bs = sc; bi = i; } } return bi; }
+            for (int i = PUTTER - 1; i >= lo; i--) { var c = clubs[i]; if (c.carry * S.Cm.Carry(c) * Mul(c) >= d * (lie == "fescue" ? .93 : .97) && S.LieErr(c, lie) < 2.4) return i; }
+            if (lie == "rough" || lie == "fescue") { int bi = lo; double bs = -1; for (int i = lo; i < PUTTER; i++) { var c = clubs[i]; double sc = c.carry * S.Cm.Carry(c) * Mul(c) / (1 + (S.LieErr(c, lie) - 1) * .5); if (sc > bs) { bs = sc; bi = i; } } return bi; }
             return lo;
         }
         public class Setup { public string lie, stype = "full"; public double aim, swMax, puttMax; public int club; public bool flagOut; }

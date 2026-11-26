@@ -47,7 +47,7 @@ namespace GolfGo.Sim
             for (int i = 1; i < 20; i++) { double t = i / 20.0; string L = H.Lie(bx + (p[0] - bx) * t, by + (p[1] - by) * t); if (L != "green" && L != "fairway" && L != "tee" && L != "cut") return false; }
             return true;
         }
-        public double Window(bool aiTurn) => .026 * (aiTurn ? 1 : .8);
+        public double Window(bool aiTurn) => .026 * (aiTurn ? 1 : .8) * S.Cm.WinPutt;
 
         public class Stroke { public double vx, vy, D, missBy; public int perfect; public bool miss; }
         // the putter's strike (strikeShot): the same dice as a full swing's timing, then the distance and the line
@@ -61,8 +61,8 @@ namespace GolfGo.Sim
                 if (ae <= w) { perfect = ae <= w * .5 ? 2 : 1; e = HARSH && perfect == 1 ? M.Sign(e) * (ae - w * .5) * .45 : 0; }
                 else { missBy = ae - w; e = HARSH ? M.Sign(e) * (.018 + (ae - w) * 2.6) + (R.Next() - .5) * (ae - w) * 1.4 : M.Sign(e) * (.012 + (ae - w) * 1.6); }
             }
-            double D = Math.Max(lie == "green" ? .3 : .05, puttMax * power * (HARSH ? 1 - Math.Min(.3, missBy * 2.4 * 1) : 1)), mu = Mu(lie);
-            double a = aim - e * (HARSH ? 1.45 : 1.1) * 1; var (dx, dy) = M.Dir(a); double v = Math.Sqrt(2 * mu * D);
+            double D = Math.Max(lie == "green" ? .3 : .05, puttMax * power * (HARSH ? 1 - Math.Min(.3, missBy * 2.4 * S.Cm.PuttD) : 1)), mu = Mu(lie);
+            double a = aim - e * (HARSH ? 1.45 : 1.1) * S.Cm.Putt; var (dx, dy) = M.Dir(a); double v = Math.Sqrt(2 * mu * D);
             return new Stroke { vx = dx * v, vy = dy * v, D = D, missBy = missBy, perfect = perfect, miss = miss };
         }
     }

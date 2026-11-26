@@ -5,6 +5,7 @@
    usage: node record_putt.js <site> <outDir>                                                                              */
 const fs = require('fs'), path = require('path'), boot = require('./boot.js');
 const SITE = process.argv[2], OUT = process.argv[3];
+const GOLFER = process.env.GOLFER || '';
 (async () => {
   const g = await boot(SITE);
   await g.ev(`(()=>{Math.random=rng(99);G.mode='practice';G.pinSeed=424242;G.scores=[];setCourse('troy',false);startHole(0);$('introM').hidden=true;try{R3R.on=false;}catch(e){}
@@ -13,7 +14,9 @@ const SITE = process.argv[2], OUT = process.argv[3];
     for(const n of ['toast','leafBurst','birdsFrom','splashDrops','tone','later','showShotStats','saveGame','shortPrep','r3React','queueDivot'])try{eval(n+'=no');}catch(e){}
     // the neutral golfer (as the stage 1 strike cases): every mod 1, no bag changes
     const one=()=>1;window.__ID={carry:one,err:one,win:one,curve:1,spin:1,wind:1,putt:1,mis:1,sgVar:1,puttD:1,misFull:1,perf:1.03};
-    G.cm=__ID;BAGC.set(__ID,{v:BAGV,w:__ID});return 'ok';})()`);
+    G.cm=__ID;BAGC.set(__ID,{v:BAGV,w:__ID});
+    // GOLFER=<id>: that golfer's own game instead (charMods, the standard bag: the Unity game's golfers)
+    if(${JSON.stringify(GOLFER)})G.cm=charMods(CHARS.find(c=>c.id===${JSON.stringify(GOLFER)}));return 'ok';})()`);
   const spots = JSON.parse(await g.ev(`(()=>{const p=G.hole.pin,o={green:[],fringe:[]};for(let r=.4;r<=32;r*=1.13)for(let k=0;k<12;k++){const a=k/12*TAU+r*1.7,x=p[0]+Math.cos(a)*r,y=p[1]+Math.sin(a)*r,L=lieAt(x,y);
       if(L==='green')o.green.push([+x.toFixed(3),+y.toFixed(3)]);else if((L==='fairway'||L==='cut'||L==='tee')&&r<14)o.fringe.push([+x.toFixed(3),+y.toFixed(3)]);}
     const pick=(v,n)=>{const s=[];for(let i=0;i<n&&v.length;i++)s.push(v[Math.floor(i*v.length/n)]);return s;};return JSON.stringify({green:pick(o.green,70),fringe:pick(o.fringe,24),n:[o.green.length,o.fringe.length]});})()`));
@@ -50,7 +53,8 @@ const SITE = process.argv[2], OUT = process.argv[3];
     else res.push(r);
   }
   fs.mkdirSync(OUT, { recursive: true });
-  fs.writeFileSync(path.join(OUT, 'putt_cases.json'), JSON.stringify(res));
+  if (GOLFER) for (const r of res) r.golfer = GOLFER;
+  fs.writeFileSync(path.join(OUT, 'putt_cases' + (GOLFER ? '_' + GOLFER : '') + '.json'), JSON.stringify(res));
   const out = {}; for (const r of res) { const k = r.pre.lie + ':' + (r.out ? r.out.kind + (r.out.how ? '/' + r.out.how : '') + (r.out.gimme ? '/gimme' : '') : 'none'); out[k] = (out[k] || 0) + 1; }
   console.log(res.length, 'cases', JSON.stringify(out), 'flag out', res.filter(r => r.pre.flagOut).length, 'errors', g.errs.slice(0, 3));
   await g.close();

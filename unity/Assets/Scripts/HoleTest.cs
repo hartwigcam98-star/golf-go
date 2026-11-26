@@ -15,6 +15,8 @@ public class HoleTest : MonoBehaviour
     // stage 6: the web game's golfer (recorded body and swing), the swing's clock from the strike, how far back he went
     WaterReflect WR; Material waterMat;
     Golfer GF; string golferId; float swingClock = -1, swingBack = 1, launchAt;
+    // each golfer's trait (golfers.js), shown when picking
+    static string Trait(string id) => id == "ch06" ? "Pure striker: irons and hybrids stray 15% less" : id == "ch28" ? "Pro swing: driver and woods stray 15% less" : id == "ch42" ? "Range rat: perfect strikes +5% with woods, irons bite harder" : "";
     static readonly string[][] Golfers = { new[] { "ch06", "Dex" }, new[] { "ch28", "Andre" }, new[] { "ch42", "Danny" } };
     int hi, roundSeed, roundDiff, holesDone; readonly int[] scores = new int[18], pars = new int[18]; Transform holeRoot; Dictionary<string, object> lightB;
     double puttMax = 10; bool flagOut;   // stage 4: the putter meter's length (yards of roll), the flag out inside 15 ft
@@ -369,7 +371,7 @@ public class HoleTest : MonoBehaviour
     void AimAtPin() { var d = new Vector2(D.pin[0], D.pin[1]) - b; aim = Mathf.Atan2(d.x, -d.y); }
     Vector2 Dir(float a) => new Vector2(Mathf.Sin(a), -Mathf.Cos(a));
     // previewDist: the putt's reach, the short-game meter's size, or the club's natural distance from this lie with this shot
-    float MaxDist => C.putter ? (float)puttMax : Short && swMax > 0 ? (float)swMax : (float)(C.carry * SK.LieMul(C, Lie0, stype, strokes == 0) * TU.ShotK(stype, "c"));
+    float MaxDist => C.putter ? (float)puttMax : Short && swMax > 0 ? (float)swMax : (float)(C.carry * SK.Cm.Carry(C) * SK.LieMul(C, Lie0, stype, strokes == 0) * TU.ShotK(stype, "c"));
 
     void PrepareShot(bool pick)
     {
@@ -392,7 +394,7 @@ public class HoleTest : MonoBehaviour
     void ShowFlag() { for (int k = 0; k < 2 && k < flag.childCount; k++) flag.GetChild(k).gameObject.SetActive(!flagOut); }
     void LoadGolfer(string id)
     {
-        try { var g = new Golfer(id, M("Leaf0")); GF?.Destroy(); GF = g; golferId = id; PlayerPrefs.SetString("golfer", id); golfer.gameObject.SetActive(false); }
+        try { var g = new Golfer(id, M("Leaf0")); GF?.Destroy(); GF = g; golferId = id; PlayerPrefs.SetString("golfer", id); if (SK != null) { SK.Cm = GolfGo.Sim.Mods.For(id); if (st == S.Aim) PrepareShot(false); } golfer.gameObject.SetActive(false); }
         catch (System.Exception e) { Debug.LogError("[golfer] " + e); }   // (the simple figure stays if a golfer can't load)
     }
     void PlaceGolfer()
@@ -437,7 +439,7 @@ public class HoleTest : MonoBehaviour
         // the web game's strike toasts (save-file.js strikeShot)
         float ev = e ?? 0;
         if (FL.miss) hud.Toast("MISHIT!", "Timing missed the impact line", Hud.Coral);
-        else if (FL.perfect == 2) hud.Toast("PERFECT!", (pshot ? "Full-power fireball" : "Dead centre") + (Short ? "" : C.kind == "wood" ? " · +3% carry" : " · bites on landing"), pshot ? Hud.Hex("#ff8a3c") : Hud.Hex("#7cc8ff"));
+        else if (FL.perfect == 2) hud.Toast("PERFECT!", (pshot ? "Full-power fireball" : "Dead centre") + (Short ? "" : C.kind == "wood" ? " · +" + Mathf.RoundToInt((float)(SK.Cm.Perf - 1) * 100) + "% carry" : " · bites on landing"), pshot ? Hud.Hex("#ff8a3c") : Hud.Hex("#7cc8ff"));
         else if (FL.perfect == 1) hud.Toast("NICE SHOT!", "", Hud.Sun);
         else if (FL.misKind != null && FL.misT >= .5) hud.Toast(FL.misKind == "chunk" ? "CHUNKED!" : "BLADED!", FL.misKind == "chunk" ? "Tapped early · caught it fat" : "Tapped late · caught it thin", Hud.Hex("#ff9b6a"));
         else if (FL.misKind != null) hud.Toast(FL.misKind == "chunk" ? "A TOUCH FAT" : "A TOUCH THIN", FL.misKind == "chunk" ? "A touch early" : "A touch late", Hud.Hex("#ffd2a8"));
@@ -908,7 +910,7 @@ public class HoleTest : MonoBehaviour
         // pinIndex (a Quick play round): one of the hole's three pin spots, from the round's seed
         if (CO.pins != null && CO.pins.Length == 3) { int k = (int)System.Math.Floor(new GolfGo.Sim.Rng(roundSeed + i * 7919).Next() * 3) % 3; CO.pin = new[] { CO.pins[k][0], CO.pins[k][1] }; }
         D.pin = new[] { (float)CO.pin[0], (float)CO.pin[1] };
-        SK = new GolfGo.Sim.Strike(TU, CO);
+        SK = new GolfGo.Sim.Strike(TU, CO) { Cm = GolfGo.Sim.Mods.For(golferId) };   // the golfer's own game (charMods)
         SH = new GolfGo.Sim.SimHole(Resources.Load<TextAsset>(HolePath("_sim")).text); SB = new GolfGo.Sim.Ball(SH, CO, SK); SG = new GolfGo.Sim.Short(SK, SH, CO); PT = new GolfGo.Sim.Putt(SK, SH, CO);
         RD = new GolfGo.Sim.Round(SK, SH, CO, SG, PT);
         var w = GolfGo.Sim.Round.HoleWind(roundSeed, i); windA = w.a; windMph = w.mph;
@@ -952,7 +954,7 @@ public class HoleTest : MonoBehaviour
     }
     void PickGolfer()
     {
-        var opts = new List<(string, string, bool)>(); foreach (var g in Golfers) opts.Add((g[1], g[0] == golferId ? "Playing now" : "", g[0] == golferId));
+        var opts = new List<(string, string, bool)>(); foreach (var g in Golfers) opts.Add((g[1], (g[0] == golferId ? "Playing now · " : "") + Trait(g[0]), g[0] == golferId));
         hud.ShowChoice("Golfer", "Who's playing?", "The look only for now: shots play the same for every golfer", opts, k => { if (Golfers[k][0] != golferId) LoadGolfer(Golfers[k][0]); PlaceGolfer(); });
     }
     void Menu()

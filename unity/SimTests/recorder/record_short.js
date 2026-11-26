@@ -5,6 +5,7 @@
    usage: node record_short.js <site> <outDir>                                                                            */
 const fs = require('fs'), path = require('path'), boot = require('./boot.js');
 const SITE = process.argv[2], OUT = process.argv[3];
+const GOLFER = process.env.GOLFER || '';
 (async () => {
   const g = await boot(SITE);
   await g.ev(`(()=>{Math.random=rng(99);G.mode='practice';G.pinSeed=424242;G.scores=[];setCourse('troy',false);startHole(0);$('introM').hidden=true;try{R3R.on=false;}catch(e){}
@@ -13,17 +14,19 @@ const SITE = process.argv[2], OUT = process.argv[3];
     for(const n of ['toast','leafBurst','birdsFrom','splashDrops','tone','later','showShotStats','saveGame','shortPrep','r3React','queueDivot'])try{eval(n+'=no');}catch(e){}
     // the neutral golfer (as the stage 1 strike cases): every mod 1, no bag changes
     const one=()=>1;window.__ID={carry:one,err:one,win:one,curve:1,spin:1,wind:1,putt:1,mis:1,sgVar:1,puttD:1,misFull:1,perf:1.03};
-    G.cm=__ID;BAGC.set(__ID,{v:BAGV,w:__ID});return 'ok';})()`);
+    G.cm=__ID;BAGC.set(__ID,{v:BAGV,w:__ID});
+    // GOLFER=<id>: that golfer's own game instead (charMods, the standard bag: the Unity game's golfers)
+    if(${JSON.stringify(GOLFER)})G.cm=charMods(CHARS.find(c=>c.id===${JSON.stringify(GOLFER)}));return 'ok';})()`);
   // spots round the green on every lie
   const spots = JSON.parse(await g.ev(`(()=>{const p=G.hole.pin,o={};for(let r=4;r<=60;r+=1.5)for(let k=0;k<48;k++){const a=k/48*TAU+r*.37,x=p[0]+Math.cos(a)*r,y=p[1]+Math.sin(a)*r,L=lieAt(x,y);
       if(L==='water'||L==='ob'||L==='green')continue;(o[L]=o[L]||[]).push([+x.toFixed(2),+y.toFixed(2),+r.toFixed(1)]);}
     return JSON.stringify({pin:p,o:Object.fromEntries(Object.entries(o).map(([k,v])=>[k,v.length]))
-      ,pick:Object.fromEntries(Object.entries(o).map(([k,v])=>{const n={fairway:14,cut:10,rough:14,fescue:8,sand:12,dirt:6,tee:2}[k]||4,s=[];for(let i=0;i<n&&v.length;i++)s.push(v[Math.floor(i*v.length/n)]);return[k,s];}))});})()`));
+      ,pick:Object.fromEntries(Object.entries(o).map(([k,v])=>{const n=Math.ceil(({fairway:14,cut:10,rough:14,fescue:8,sand:12,dirt:6,tee:2}[k]||4)*(${JSON.stringify(GOLFER)}?.5:1)),s=[];for(let i=0;i<n&&v.length;i++)s.push(v[Math.floor(i*v.length/n)]);return[k,s];}))});})()`));
   console.log('lies round the green', JSON.stringify(spots.o));
   const cases = []; let seed = 31000;
   for (const [lie, pts] of Object.entries(spots.pick)) for (const [bx, by, r] of pts) {
     const shots = lie === 'sand' ? (r <= 45 ? [['splash', 'SW'], ['pick', 'SW'], ['blast', 'SW'], ['blast', 'SW', 1], ['splash', 'LW']] : [['full', '9I'], ['punch', '7I']])
-      : [['choose'], ['chip', '8I'], ['chip', 'SW'], ['pitch', 'GW'], ['pitch', 'LW'], ['flop', 'LW'], ['spin', 'SW'], ['punch', '8I']];
+      : [['choose'], ['chip', '8I'], ['chip', 'SW'], ['pitch', 'GW'], ['pitch', 'LW'], ['flop', 'LW'], ['spin', 'SW'], ['punch', '8I']].concat(GOLFER ? [['full', '7I'], ['full', '4H'], ['full', '3W'], ['full', 'PW']] : []);
     let k = 0;
     for (const s of shots) { cases.push({ bx, by, stype: s[0], club: s[1] || null, buried: !!s[2], scale: [1, .85, 1.15, 1, .93][k % 5], e: [0, .012, -.015, .03, -.035, null, .006][(cases.length) % 7], seed: seed++, lseed: 500000 + seed * 11 }); k++; }
   }
@@ -64,7 +67,8 @@ const SITE = process.argv[2], OUT = process.argv[3];
     else if (!r.skip) res.push(r);
   }
   fs.mkdirSync(OUT, { recursive: true });
-  fs.writeFileSync(path.join(OUT, 'short_cases.json'), JSON.stringify(res));
+  if (GOLFER) for (const r of res) r.golfer = GOLFER;
+  fs.writeFileSync(path.join(OUT, 'short_cases' + (GOLFER ? '_' + GOLFER : '') + '.json'), JSON.stringify(res));
   const by = {}; for (const r of res) { const k = r.pre.stype + '@' + r.pre.lie; by[k] = (by[k] || 0) + 1; }
   const out = {}; for (const r of res) { const k = r.out ? r.out.kind + (r.out.gimme ? ':gimme' : '') : 'none'; out[k] = (out[k] || 0) + 1; }
   console.log(res.length, 'cases', JSON.stringify(by)); console.log(JSON.stringify(out), 'errors', g.errs.slice(0, 3));

@@ -21,7 +21,7 @@ namespace GolfGo.Sim
         }
         public static bool BunkerSide(string lie, double pinDist) => lie == "sand" && pinDist <= 45;
         public double PinDist(ShotIn s) => M.Hypot(s.bx - C.pin[0], s.by - C.pin[1]);
-        public double NatMax(Club c, ShotIn s) => c.carry * S.LieMul(c, s.lie, s.stype, s.onTeeBox) * T.ShotK(s.stype, "c");
+        public double NatMax(Club c, ShotIn s) => c.carry * S.Cm.Carry(c) * S.LieMul(c, s.lie, s.stype, s.onTeeBox) * T.ShotK(s.stype, "c");
 
         // setShortMax: every short-game shot's meter is sized from the carry it needs, so the flag sits high on it
         public double SetMax(ShotIn s)
@@ -50,7 +50,7 @@ namespace GolfGo.Sim
         public Finish FinishAt(ShotIn s, double carry)
         {
             var c = S.Club(s.club); var (dx, dy) = M.Dir(s.aim); var Mv = S.ShotMods(c, s);
-            var f = new Flight { sx = s.bx, sy = s.by, y0 = C.HAt(s.bx, s.by) + .03, dx = dx, dy = dy, px = -dy, py = dx, carry = carry, lat = 0, wx = dx * 0, wy = dy * 0, apex = S.ShotApex(c, carry, s) * Mv.apex, rollMul = Mv.roll, back = Mv.back };
+            var f = new Flight { sx = s.bx, sy = s.by, y0 = C.HAt(s.bx, s.by) + .03, dx = dx, dy = dy, px = -dy, py = dx, carry = carry, lat = 0, wx = dx * 0, wy = dy * 0, apex = S.ShotApex(c, carry, s) * Mv.apex, rollMul = Mv.roll, back = Mv.back * S.Cm.Spin };
             double lx = s.bx + dx * carry, ly = s.by + dy * carry, u = .5;
             for (; u < 2.4; u += .01) { var q = f.Pos(u); lx = q.x; ly = q.y; if (q.Y <= C.HAt(q.x, q.y) + .03) break; }
             string L = H.Lie(lx, ly);
