@@ -168,6 +168,7 @@ public class Hud
 
         BuildAim();   // first: under everything else
         BuildTop(sTop);
+        BuildFlagChip(sTop);
         BuildToast();
         BuildBottom(sBot, impact);
         BuildLook();
@@ -578,6 +579,20 @@ public class Hud
         for (int i = 0; i < 3; i++) { bool on = i - 1 == traj; trajB[i].b.color = on ? PaperInk : Color.clear; trajB[i].t.color = on ? Sun : PaperInk; }
         Set(spinT, putter ? "\u2014" : shortTxt.ToUpperInvariant());
         spinDot.enabled = !putter; spinDot.rectTransform.anchoredPosition = new Vector2(24 + (12 + imp.x * 6) * 22 / 24f, -(6 + (12 - imp.y * 6) * 22 / 24f));
+    }
+
+    // ---------- #flagBtn: on the green with the putter, a chip top right under the menu: the flagstick in or out ----------
+    public Action onFlag; Image flagChip, flagChipDrop; Text flagChipT;
+    void BuildFlagChip(float sTop)
+    {
+        float w = 104; flagChip = Box(root, "FlagChip", 16, Panel); At(flagChip.rectTransform, W - 12 - w, sTop + 10 + 40 + 8, w, 32); flagChipDrop = Drop(root, flagChip.rectTransform, 16, 3, new Color(0, 0, 0, .28f));
+        flagChipT = Txt(flagChip.transform, "T", fDisp, 14, Cream, TextAnchor.MiddleCenter); At(flagChipT.rectTransform, 0, 0, w, 32);
+        Press(flagChip, () => onFlag?.Invoke()); SetFlagChip(false, false);
+    }
+    public void SetFlagChip(bool shown, bool flagOut)
+    {
+        if (flagChip.gameObject.activeSelf != shown) { flagChip.gameObject.SetActive(shown); flagChipDrop.gameObject.SetActive(shown); }
+        Set(flagChipT, flagOut ? "Flag out" : "Flag in");
     }
 
     Texture2D Icon(string n)

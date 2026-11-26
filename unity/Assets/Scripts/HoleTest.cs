@@ -265,6 +265,7 @@ public class HoleTest : MonoBehaviour
         hud.onSpin = () => { if (st != S.Aim || C.putter) return; hud.ShowImp(!hud.ImpOpen); RefreshHud(); };
         hud.onImp = v => { if (st != S.Aim || C.putter) return; imp = v; RefreshHud(); };
         hud.onTraj = t => { if (st != S.Aim || C.putter) return; traj = t; RefreshHud(); };
+        hud.onFlag = () => { if (st != S.Aim || !C.putter) return; flagOut = !flagOut; ShowFlag(); };
         hud.onImpReset = () => { imp = Vector2.zero; traj = 0; RefreshHud(); };
         hud.onMap = () => { if (st == S.Aim) { mapView = !mapView; if (mapView) fc = null; } };
         hud.onLook = () => { if (fc != null && !(fc.fly != null && fc.fly.dir < 0)) LookEnd(); else LookStart(); };
@@ -352,11 +353,12 @@ public class HoleTest : MonoBehaviour
         SizeShort();
         if (C.putter) puttMax = PT.Max(b.x, b.y, Lie0);
         flagOut = GolfGo.Sim.Putt.FlagOut(Lie0, PinDist);   // inside 15 ft on the green the flag comes out (a ball needs less pace to drop)
-        for (int k = 0; k < 2 && k < flag.childCount; k++) flag.GetChild(k).gameObject.SetActive(!flagOut);
+        ShowFlag();
         st = S.Aim; mpos = IMPACT; mapView = false; swingBack0 = false; if (pick) landPt = null; hud.SetSwing("SWING", 0, true); RefreshHud();
         hud.SetHint("Drag to aim · Tap Swing to start");
         PlaceGolfer(); swingT = -1;
     }
+    void ShowFlag() { for (int k = 0; k < 2 && k < flag.childCount; k++) flag.GetChild(k).gameObject.SetActive(!flagOut); }
     void LoadGolfer(string id)
     {
         try { var g = new Golfer(id, M("Leaf0")); GF?.Destroy(); GF = g; golferId = id; PlayerPrefs.SetString("golfer", id); golfer.gameObject.SetActive(false); }
@@ -429,6 +431,7 @@ public class HoleTest : MonoBehaviour
         if (st == S.Aim && !hud.ChoiceOpen) { HandleTouches(); ShortFlag(); DrawAim(); } else hud.AimHide();
         LookStep(dt);
         hud.SetLook(st == S.Aim && !mapView && !hud.ChoiceOpen, fc != null);
+        hud.SetFlagChip(st == S.Aim && C.putter && Lie0 == "green" && !hud.ChoiceOpen, flagOut);
         if (st == S.Aim && (fc != null) != swingBack0) { swingBack0 = fc != null; hud.SetSwing(swingBack0 ? "\u21a9 BACK" : "SWING", 0, true); }
         if (st == S.Power)
         {
