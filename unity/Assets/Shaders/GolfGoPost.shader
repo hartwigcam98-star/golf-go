@@ -166,9 +166,13 @@ Shader "GolfGo/Post"
             #endif
                 if (skyRaw(rawAt(q))) return float4(1, 1e4, 0, 1);
                 float3 P = vp(q); if (P.z > 140.) return float4(1, P.z, 0, 1);
-                float2 dp = _CameraDepthTexture_TexelSize.xy;
+                // the spot's plane from its neighbours one AO texel away (two screen pixels: the depth texture can be coarser than the
+                // picture, and a neighbour reading the same depth texel tips the plane toward the camera: bands of false shade across the
+                // ground in build 28's look check); the nearer-depth side, as the web's, unless that side hasn't moved at all
+                float2 dp = _GGK.zw; float e = 1e-5 * P.z;
                 float3 px1 = vp(q + float2(dp.x, 0)), px0 = vp(q - float2(dp.x, 0)), py1 = vp(q + float2(0, dp.y)), py0 = vp(q - float2(0, dp.y));
-                float3 dx = abs(px1.z - P.z) < abs(P.z - px0.z) ? px1 - P : P - px0, dy = abs(py1.z - P.z) < abs(P.z - py0.z) ? py1 - P : P - py0;
+                float ax1 = abs(px1.z - P.z), ax0 = abs(P.z - px0.z), ay1 = abs(py1.z - P.z), ay0 = abs(P.z - py0.z);
+                float3 dx = (ax1 < ax0 && ax1 > e) || ax0 <= e ? px1 - P : P - px0, dy = (ay1 < ay0 && ay1 > e) || ay0 <= e ? py1 - P : P - py0;
                 float3 N = normalize(cross(dx, dy)); if (dot(N, P) > 0.) N = -N;
                 float Rw = clamp(P.z * .05, .45, 3.); float2 rad = _GGK.xy * .5 * Rw / P.z;
                 if (rad.x < _GGK.z * 1.5) return float4(1, P.z, 0, 1);
