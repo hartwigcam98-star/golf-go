@@ -1460,6 +1460,9 @@ public class HoleTest : MonoBehaviour
         float W = hud.W, H = hud.Hh, f = Mathf.Min(H / 2 / Mathf.Tan(31 * Mathf.Deg2Rad), W / 2 / Mathf.Tan(24 * Mathf.Deg2Rad)) * zoom, cy = (hud.TopH + (H - hud.BotH)) / 2;
         const float n = .3f, fa = 5000; float Kx = 2 * f / W, Ky = 2 * f / H, Kz = 1 - 2 * cy / H;
         var m = new Matrix4x4(); m[0, 0] = Kx; m[1, 1] = Ky; m[1, 2] = -Kz; m[2, 2] = -(fa + n) / (fa - n); m[2, 3] = -2 * fa * n / (fa - n); m[3, 2] = -1;
+        // Unity fits the shadow cascades to the camera's fieldOfView, not to this matrix: give it a field of view that holds the whole
+        // (tall, off-centre) picture, or the edges of the screen fall outside the shadow maps (dark bands across the ground)
+        cam.fieldOfView = 2 * Mathf.Atan((1 + Mathf.Abs(Kz)) / Ky) * Mathf.Rad2Deg;
         cam.nearClipPlane = n; cam.farClipPlane = fa; cam.projectionMatrix = m;
     }
     bool CamAddress(Vector2 at, float a, out Vector3 E, out Vector3 L)
