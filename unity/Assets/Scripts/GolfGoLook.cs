@@ -103,7 +103,7 @@ public class GolfGoLook : MonoBehaviour
         if (Enhanced && sv.z > 0)
         {   // full strength with the sun on screen, fading out as it gets more than 60% of the screen beyond an edge
             float ox = Mathf.Max(0, Mathf.Max(-sv.x, sv.x - 1)), oy = Mathf.Max(0, Mathf.Max(-sv.y, sv.y - 1));
-            shK = .55f * WX[wx].sun * Mathf.Clamp01(1 - Mathf.Max(ox, oy) / .6f);
+            shK = .35f * WX[wx].sun * Mathf.Clamp01(1 - Mathf.Max(ox, oy) / .6f);
         }
         if (shK > .01f)
         {

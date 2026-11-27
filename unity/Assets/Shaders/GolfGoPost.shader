@@ -243,7 +243,7 @@ Shader "GolfGo/Post"
                 for (int k = 0; k < 24; k++)
                 {
                     float r = length((_GGSunS.xy - p) * float2(_GGAsp, 1));
-                    sum += skyAt(p) * exp(-r * 3.2) * dec; dec *= .965; p += st;
+                    sum += skyAt(p) * exp(-r * 4.2) * dec; dec *= .965; p += st;
                 }
                 float v = sum / 24. * (1. - .55 * skyAt(q));   // (the open sky itself a little less: the rays show against what's lit)
                 return float4(v, v, v, 1);
