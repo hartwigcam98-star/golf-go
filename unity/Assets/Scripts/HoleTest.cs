@@ -160,7 +160,7 @@ public class HoleTest : MonoBehaviour
         lightB = (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(Resources.Load<TextAsset>("troy/light_bounds").text);
         BuildWorld(); BuildHud();
         golferId = PlayerPrefs.GetString("golfer", "ch06"); LoadGolfer(golferId); BallColour();
-        NewRound();
+        var sv = LoadSave(); if (sv != null) Welcome(sv); else NewRound();
         // the look check on GitHub's Mac (unity-test.yml): -ggshots <folder> saves pictures of a few holes, then quits
         var args = System.Environment.GetCommandLineArgs(); int ai = System.Array.IndexOf(args, "-ggshots");
         if (ai >= 0 && ai + 1 < args.Length) StartCoroutine(Shots(args[ai + 1]));
@@ -533,9 +533,11 @@ public class HoleTest : MonoBehaviour
     {
         hud = new Hud(IMPACT);
         hud.onSwing = Swing; hud.onMeter = () => { if (st == S.Power || st == S.Acc) Swing(); };
-        hud.onClub = d => { if (st != S.Aim || Lie0 == "green") return; SFX?.Tick(); ci = Mathf.Clamp(ci + d, 0, Clubs.Count - 1); if (C.putter) pshot = false; else if (!SG.ShotOK(stype, ci)) stype = "full"; PrepareShot(false); };
+        hud.onClub = d => { if (st != S.Aim || Lie0 == "green") return; SFX?.Tick(); ci = Mathf.Clamp(ci + d, 0, Clubs.Count - 1);
+            if (C.id == "1W" && Lie0 != "tee") { hud.Toast("NO DRIVER", "Driver is off the tee only", Hud.Cream); ci = Mathf.Min(1, Clubs.Count - 1); }   // (pickClub: driverOK)
+            if (C.putter) pshot = false; else if (!SG.ShotOK(stype, ci)) stype = "full"; PrepareShot(false); };
         hud.onAimTap = d => { if (st != S.Aim) return; float Dd = Mathf.Max(MaxDist, 3); aim += d * Mathf.Max(.4f, Dd * .006f) / Dd; aimHeld = 0; PlaceGolfer(); };
-        hud.onPower = () => { if (st != S.Aim || C.putter) return; pshot = !pshot; RefreshHud(); };
+        hud.onPower = () => { if (st != S.Aim || C.putter) return; if (!pshot && stype != "full") return; pshot = !pshot; SFX?.Tick(); if (pshot) hud.Toast("POWER SHOT", "+15% on a pure strike · faster impact", Hud.Hex("#ff9a3c")); RefreshHud(); };
         hud.onShotType = SetShot;
         hud.onSpin = () => { if (st != S.Aim || C.putter) return; hud.ShowImp(!hud.ImpOpen); RefreshHud(); };
         hud.onImp = v => { if (st != S.Aim || C.putter) return; imp = v; RefreshHud(); };
@@ -621,6 +623,8 @@ public class HoleTest : MonoBehaviour
 
     void PrepareShot(bool pick)
     {
+        if (pick && strokes >= 10 && !inCup) { PickUp(); return; }   // prepareShot: the 10-stroke limit
+        if (pick) SaveRound(false);
         string lie = Lie0;
         if (pick)
         {
@@ -714,6 +718,8 @@ public class HoleTest : MonoBehaviour
                 if (birds && Random.value < .4f) FX.BirdsNear(SH, (float)land.x, (float)land.y, ft * .75f);
             };
         }
+        shotInfo = new Vector4(b.x, b.y, (float)FL.carry, (float)FL.apex);   // (showShotStats: carry and peak from the flight, total from where it stops)
+        if (FL.fat > 0) Invoke(nameof(HeavyToast), .3f);
         if (SFX != null)
         {
             float q = FL.miss ? .05f : StrikeQ(e), pw = (float)Power; string kind = C.kind, lie = fromLie; bool red = FX != null && FX.flame == "red", perf = FL.perfect > 0;
@@ -754,7 +760,7 @@ public class HoleTest : MonoBehaviour
         if (st == S.Power)
         {
             mpos += mdir * dt * SpeedP; if (mpos >= 1) { mpos = 1; mdir = -1; }
-            else if (mdir < 0 && mpos <= IMPACT) { PrepareShot(false); SFX?.Miss(); hud.SetHint("No power set · tap once more on the way up"); }
+            else if (mdir < 0 && mpos <= IMPACT) { PrepareShot(false); SFX?.Miss(); hud.Toast("NO POWER SET", "Tap once more during the backswing", Hud.Cream); }
         }
         else if (st == S.Acc) { mpos -= dt * SpeedA; if (mpos <= 0) { mpos = 0; StrikeNow(null); } }   // (StrikeNow keeps mpos: the cursor shows the tap)
         bool live = st == S.Power || st == S.Acc;
@@ -1210,7 +1216,13 @@ public class HoleTest : MonoBehaviour
             hud.Toast(q.k == "replay" ? "REPLAY" : "DROP", q.name + " · " + Mathf.RoundToInt((float)q.d) + " yds", Hud.Mint); PrepareShot(true);
         });
     }
-    void Stop() { st = S.Holed; Invoke(nameof(Next), .9f); }
+    void Stop()
+    {
+        st = S.Holed; Invoke(nameof(Next), .9f);
+        if (shotInfo.HasValue) { var I = shotInfo.Value; shotInfo = null; hud.ShotStats(Mathf.RoundToInt(I.z), Mathf.RoundToInt(Vector2.Distance(b, new Vector2(I.x, I.y))), Mathf.RoundToInt(I.w * 3)); }
+    }
+    Vector4? shotInfo;
+    void HeavyToast() => hud.Toast("HEAVY!", "Caught the sand first", Hud.Hex("#ffb46a"));
     void Next() { PrepareShot(true); }
     void Holed()
     {
@@ -1218,19 +1230,98 @@ public class HoleTest : MonoBehaviour
         string nm = strokes == 1 ? "HOLE IN ONE" : tp <= -3 ? "ALBATROSS" : tp == -2 ? "EAGLE" : tp == -1 ? "BIRDIE" : tp == 0 ? "PAR" : tp == 1 ? "BOGEY" : "+" + tp;
         string how = holedHow; holedHow = "";
         hud.Toast(nm, strokes + (strokes == 1 ? " stroke" : " strokes") + (how != "" ? " · " + how : ""), tp < 0 ? Hud.Sun : tp == 0 ? Hud.Mint : Hud.Cream); hud.SetHint(""); hud.SetSwing("SWING", 0, false);
-        if (scores[hi] == 0) { scores[hi] = strokes; pars[hi] = D.par; roundDiff += strokes - D.par; holesDone++; }
+        Record(strokes); shotInfo = null;
         Invoke(nameof(HoleDone), 1.8f);
     }
+    // ---------- the round's framing (save-file.js): the hole intro, the scorecard, the 10-stroke pick-up, the saved round ----------
+    [System.Serializable] class TipsData { public string line, name, fine; public string[] tips; public int[] par; }
+    static TipsData tipsD; static TipsData Tips => tipsD ??= JsonUtility.FromJson<TipsData>(Resources.Load<TextAsset>("troy/tips").text);
+    static readonly string[] HOWTO = {
+        "<color=#c0542f><b>Aim:</b></color> drag the screen left or right (or use the arrows) to turn. The ring and dotted arc show where a full-power shot lands.",
+        "<color=#c0542f><b>Look:</b></color> tap the eye (or pinch the screen) to scout the hole. Drag to move, pinch to zoom, twist to turn, and tap Green to read the putting surface.",
+        "<color=#c0542f><b>Pick a shot</b></color> above the meter: Full, Punch (low, runs, stays under branches), Pitch, Chip (low runner) or Flop (sky-high, stops dead).",
+        "<color=#c0542f><b>Tap Swing</b></color> to start, then <color=#c0542f><b>tap again</b></color> to set power as the marker runs right.",
+        "<color=#c0542f><b>Tap a third time</b></color> right on the white impact line as it comes back. Early hooks left, late slices right." };
+    bool intro, resuming, cardUp;
+    // #introM: the hole, its par, length and wind, the tip; on the 1st also how to play and the fine print; the whole hole behind it
+    void ShowIntro()
+    {
+        intro = true; mapView = true; fc = null;
+        var T = Tips; string tip = T != null && T.tips != null && hi < T.tips.Length ? T.tips[hi] : "";
+        var c = new Hud.Paper
+        {
+            eyebrow = T?.line ?? "Troy Burne", title = "Hole " + (hi + 1),
+            meta = new[] { "Par " + D.par, D.len + " yds", windMph >= .5 ? "Wind " + Mathf.RoundToInt((float)windMph) + " mph" : "Calm" },
+            tip = tip, fine = hi == 0 ? T?.fine : null, howto = hi == 0 ? HOWTO : null, buttons = new[] { "!Tee off", "_Menu" }
+        };
+        hud.ShowPaper(c, k => { intro = false; mapView = false; if (k == 1) Menu(); });
+    }
+    void Record(int s)
+    {
+        if (scores[hi] == 0) { scores[hi] = s; pars[hi] = D.par; roundDiff += s - D.par; holesDone++; }
+        if (hi < 17) SaveRound(true);
+    }
+    // pickUp: the 10-stroke limit
+    void PickUp()
+    {
+        st = S.Holed; strokes = 10; Record(10); hud.Toast("PICKED UP", "10-stroke limit", Hud.Cream); hud.SetSwing("SWING", 0, false); hud.SetHint("");
+        CancelInvoke(nameof(HoleDone)); Invoke(nameof(HoleDone), 1.6f);
+    }
+    // the saved round (saveGame / loadSave): after every shot and at each hole's end; Continue round on the next launch
+    [System.Serializable] class Save { public int v = 1, seed, hi, strokes, wx; public int[] scores, pars; public float bx, by, px, py, windA, windMph; public bool mid; }
+    void SaveRound(bool holeDone)
+    {
+        var sv = new Save { seed = roundSeed, hi = holeDone ? hi + 1 : hi, strokes = holeDone ? 0 : strokes, wx = gLook != null ? gLook.wx : 0, scores = (int[])scores.Clone(), pars = (int[])pars.Clone(),
+            bx = b.x, by = b.y, px = prev.x, py = prev.y, windA = (float)windA, windMph = (float)windMph, mid = !holeDone && strokes > 0 };
+        try { PlayerPrefs.SetString("round", JsonUtility.ToJson(sv)); PlayerPrefs.Save(); } catch { }
+    }
+    static Save LoadSave()
+    {
+        try { var j = PlayerPrefs.GetString("round", ""); if (j == "") return null; var sv = JsonUtility.FromJson<Save>(j); return sv != null && sv.v == 1 && sv.hi >= 0 && sv.hi < 18 && sv.scores != null && sv.scores.Length == 18 && sv.pars != null && sv.pars.Length == 18 ? sv : null; }
+        catch { return null; }
+    }
+    static void ClearSave() { PlayerPrefs.DeleteKey("round"); PlayerPrefs.Save(); }
+    // the launch with a round saved: the hole behind, and Continue round / New round
+    void Welcome(Save sv)
+    {
+        ResumeRound(sv);
+        var c = new Hud.Paper
+        {
+            eyebrow = Tips?.line ?? "Troy Burne", title = "Welcome back",
+            note = "Your round is saved: hole " + (sv.hi + 1) + ", stroke " + (sv.mid ? sv.strokes + 1 : 1) + (holesDone > 0 ? " · " + DiffStr(roundDiff) + " through " + holesDone : "") + ".",
+            buttons = new[] { "!Continue round", "~New round" }
+        };
+        hud.ShowPaper(c, k => { if (k == 1) { ClearSave(); NewRound(); } else hud.Toast("WELCOME BACK", "Hole " + (hi + 1) + " · stroke " + (strokes + 1), Hud.Mint); });
+    }
+    void ResumeRound(Save sv)
+    {
+        CancelInvoke(); hud.HideChoice(); hud.HidePaper(); roundSeed = sv.seed; roundDiff = 0; holesDone = 0;
+        for (int k = 0; k < 18; k++) { scores[k] = sv.scores[k]; pars[k] = sv.pars[k]; if (scores[k] > 0) { roundDiff += scores[k] - pars[k]; holesDone++; } }
+        if (gLook != null && gLook.Ok) Try("weather", () => gLook.Weather(Mathf.Clamp(sv.wx, 0, GolfGoLook.WX.Length - 1)));
+        resuming = true; LoadHole(sv.hi); resuming = false;
+        if (sv.mid && sv.strokes > 0)
+        {
+            strokes = sv.strokes; b = new Vector2(sv.bx, sv.by); prev = new Vector2(sv.px, sv.py); bY = D.H(b.x, b.y); fromLie = Lie0;
+            windA = sv.windA; windMph = sv.windMph; var o = RD.Prepare(b.x, b.y, buried, windA, windMph); aim = (float)o.aim; ci = o.club; stype = o.stype;
+            PrepareShot(false); camPos = Vector3.zero;
+        }
+    }
+    // #cardM: after each hole (and from the menu): the hole's result, both nines with the marks, the round so far
+    Hud.Paper CardBase() => new Hud.Paper { pars = ParsFull(), scores = (int[])scores.Clone(), totalPar = TotalPar(), legend = "Circle birdie · double circle eagle or better · square bogey · double square double or worse" };
+    int[] ParsFull() { var p = new int[18]; var T = Tips; for (int k = 0; k < 18; k++) p[k] = pars[k] > 0 ? pars[k] : T != null && T.par != null && k < T.par.Length ? T.par[k] : 0; return p; }
+    int TotalPar() { int t = 0; foreach (var p in ParsFull()) t += p; return t; }
+    static string Cap1(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpperInvariant(s[0]) + s.Substring(1).ToLowerInvariant();
+
     // ---------- the round (stage 5): Troy Burne's 18 in order, the web game's Quick play pins and wind ----------
     void NewRound()
     {
-        CancelInvoke(); hud.HideChoice(); roundSeed = Random.Range(1, 1000000000); roundDiff = 0; holesDone = 0; NewWeather();
+        CancelInvoke(); hud.HideChoice(); hud.HidePaper(); cardUp = false; roundSeed = Random.Range(1, 1000000000); roundDiff = 0; holesDone = 0; NewWeather();
         for (int k = 0; k < 18; k++) { scores[k] = 0; pars[k] = 0; }
         LoadHole(0);
     }
     void LoadHole(int i)
     {
-        CancelInvoke(); hud.HideChoice(); hi = i; canReplay = false; recOn = false; if (st == S.Replay) st = S.Aim;
+        CancelInvoke(); hud.HideChoice(); hud.HidePaper(); hud.HideStats(); cardUp = false; inCup = false; shotInfo = null; hi = i; canReplay = false; recOn = false; if (st == S.Replay) st = S.Aim;
         D = HoleData.Load(HolePath(""));
         CO = new GolfGo.Sim.Course(Resources.Load<TextAsset>(HolePath("")).text);
         // pinIndex (a Quick play round): one of the hole's three pin spots, from the round's seed
@@ -1243,19 +1334,33 @@ public class HoleTest : MonoBehaviour
         BuildHole(); Resources.UnloadUnusedAssets();   // (the last hole's 4K textures go)
         FX = new Effects(D); fxQ = null;   // (a new hole: no divots, marks or bits from the last)
         strokes = 0; buried = false; b = new Vector2(D.tee[0], D.tee[1]); prev = b; bY = D.H(b.x, b.y); fromLie = "tee";
-        hud.Toast("HOLE " + (i + 1), "Par " + D.par + " · " + D.len + " yds", Hud.Cream);
         PrepareShot(true);
+        if (!resuming) ShowIntro();
     }
     void HoleDone()
     {
-        string res = ScoreName(scores[hi], pars[hi]);
-        var opts = new List<(string, string, bool)>();
-        if (hi < 17) opts.Add(("Next hole", "Hole " + (hi + 2) + " · Par " + NextPar(), true));
-        if (canReplay) opts.Add(("Replay", "Watch the last shot again", false));   // (the web hole card's Replay)
-        opts.Add(("Scorecard", "The round so far", hi >= 17));
-        if (hi >= 17) opts.Add(("New round", "Back to the 1st tee", false));
-        hud.ShowChoice("Hole " + (hi + 1) + " · Par " + pars[hi], res, "Round " + DiffStr(roundDiff) + " · " + Total() + " strokes through " + holesDone, opts,
-            k => { var a = opts[k].Item1; if (a == "Replay") { hud.HideChoice(); StartReplay(HoleDone); } else if (a == "Next hole") LoadHole(hi + 1); else if (a == "New round") NewRound(); else ShowCard(true); });
+        cardUp = true; bool last = hi >= 17; int s0 = scores[hi]; var c = CardBase(); var btn = new List<string>();
+        if (last)
+        {   // the round's end: the total, a personal best on this device (back tees only on the web; Unity plays one set)
+            ClearSave(); int tot = Total(); int best = PlayerPrefs.GetInt("troyburne-best-18", 0); bool isBest = best == 0 || tot < best; if (isBest) PlayerPrefs.SetInt("troyburne-best-18", tot);
+            c.eyebrow = "Round complete"; c.title = tot + " (" + DiffStr(roundDiff) + ")";
+            c.note = isBest ? (best > 0 ? "New personal best — beat your old " + best + "." : "First round in the books. Go again and beat it.") : "Personal best on this device: " + best + ".";
+        }
+        else
+        {
+            c.eyebrow = "Hole " + (hi + 1) + " · " + s0 + (s0 == 1 ? " stroke" : " strokes"); c.title = Cap1(ScoreName(s0, pars[hi]));
+            c.note = "Round so far: " + DiffStr(roundDiff) + " through " + (hi + 1) + "." + (hi == 8 ? " That’s the front nine — on to the back." : "");
+        }
+        if (canReplay) btn.Add("~▶ Watch replay");
+        btn.Add(last ? "!Play again" : "!Next hole"); btn.Add("_Menu"); c.buttons = btn.ToArray();
+        hud.ShowPaper(c, k =>
+        {
+            var a = btn[k].Substring(1);
+            if (a.EndsWith("Watch replay")) { StartReplay(HoleDone); return; }
+            cardUp = false;
+            if (a == "Menu") { cardUp = true; Menu(); return; }
+            if (last) NewRound(); else LoadHole(hi + 1);
+        });
     }
     string NextPar() { try { return HoleData.Load("troy/h" + (hi + 2).ToString("00")).par.ToString(); } catch { return "?"; } }
     int Total() { int t = 0; for (int k = 0; k < 18; k++) t += scores[k]; return t; }
@@ -1264,20 +1369,11 @@ public class HoleTest : MonoBehaviour
     // the scorecard (pause menu / after a hole): hole, par, score, in two nines
     void ShowCard(bool afterHole)
     {
-        var sb = new System.Text.StringBuilder();
-        for (int half = 0; half < 2; half++)
-        {
-            int ps = 0, ss = 0; var l1 = new System.Text.StringBuilder(half == 0 ? "Out " : "In  "); var l2 = new System.Text.StringBuilder("Par "); var l3 = new System.Text.StringBuilder("You ");
-            for (int k = half * 9; k < half * 9 + 9; k++) { l1.Append((k + 1).ToString().PadLeft(3)); l2.Append(pars[k] > 0 ? pars[k].ToString().PadLeft(3) : "  ·"); l3.Append(scores[k] > 0 ? scores[k].ToString().PadLeft(3) : "  ·"); ps += pars[k]; ss += scores[k]; }
-            sb.Append(l1).Append('\n').Append(l2).Append("  ").Append(ps > 0 ? ps.ToString() : "").Append('\n').Append(l3).Append("  ").Append(ss > 0 ? ss.ToString() : "").Append(half == 0 ? "\n\n" : "");
-        }
-        bool done = holesDone >= 18 || (afterHole && hi >= 17);
-        var opts = new List<(string, string, bool)>();
-        if (afterHole && hi < 17) opts.Add(("Next hole", "Hole " + (hi + 2), true));
-        else if (!afterHole) opts.Add(("Back to the hole", "", true));
-        if (done || !afterHole) opts.Add(("New round", "Start again from the 1st", done));
-        hud.ShowChoice("Troy Burne · " + (done ? "Final" : "Thru " + holesDone), "Round " + DiffStr(roundDiff) + " · " + Total(), sb.ToString(), opts,
-            k => { var a = opts[k].Item1; if (a == "Next hole") LoadHole(hi + 1); else if (a == "New round") NewRound(); });
+        if (afterHole) { HoleDone(); return; }
+        var c = CardBase(); c.eyebrow = (Tips?.name ?? "Troy Burne") + " · " + (holesDone >= 18 ? "Final" : "Thru " + holesDone); c.title = "Round " + DiffStr(roundDiff);
+        c.note = holesDone > 0 ? Total() + " strokes through " + holesDone + (holesDone == 1 ? " hole." : " holes.") : "No holes finished yet.";
+        c.buttons = new[] { "!Back to the hole", "~New round" };
+        hud.ShowPaper(c, k => { if (k == 1) { ClearSave(); NewRound(); } else if (cardUp && st == S.Holed) HoleDone(); });
     }
     void PickGolfer()
     {
@@ -1291,9 +1387,10 @@ public class HoleTest : MonoBehaviour
         var opts = new List<(string, string, bool)> { ("Resume", "", true), ("Scorecard", "Thru " + holesDone + " · Round " + DiffStr(roundDiff), false), ("Golfer", "Playing as " + gName, false), ("Bag", BagSummary(), false), ("Flight zoom", TRZ >= 1.5f ? "Closest" : TRZ >= 1.3f ? "Closer" : "Standard", false), ("Restart hole", "Hole " + (hi + 1) + " from the tee", false), ("New round", "Troy Burne from the 1st", false) };
         hud.ShowChoice("Paused", "Troy Burne · Hole " + (hi + 1), null, opts, k =>
         {
-            if (k == 1) ShowCard(false); else if (k == 2) PickGolfer(); else if (k == 3) { hud.HideChoice(); BagMenu(); }
+            if (k == 0) { if (cardUp && st == S.Holed) HoleDone(); }
+            else if (k == 1) ShowCard(false); else if (k == 2) PickGolfer(); else if (k == 3) { hud.HideChoice(); BagMenu(); }
             else if (k == 4) { float z = TRZ; PlayerPrefs.SetFloat("trz", z >= 1.5f ? 1 : z >= 1.3f ? 1.5f : 1.3f); hud.HideChoice(); Menu(); }
-            else if (k == 5) { if (scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); } else if (k == 6) NewRound();
+            else if (k == 5) { if (scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); } else if (k == 6) { ClearSave(); NewRound(); }
         });
     }
 

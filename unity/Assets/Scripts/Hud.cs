@@ -219,7 +219,7 @@ public class Hud
     }
     // ---------- the choice sheet (the web game's #reliefM: an eyebrow, a heading, option buttons with a sub line, the best one marked) ----------
     RectTransform sheet;
-    public bool ChoiceOpen => sheet != null;
+    public bool ChoiceOpen => sheet != null || paper != null;
     public void HideChoice() { if (sheet) UnityEngine.Object.Destroy(sheet.gameObject); sheet = null; }
     // body: optional text above the buttons (the scorecard); opts: (label, sub line, marked best)
     public void ShowChoice(string eyebrow, string title, string body, IList<(string a, string b, bool best)> opts, Action<int> pick)
@@ -468,6 +468,7 @@ public class Hud
     }
     public void Tick(float dt)
     {
+        PaperTick(dt); StatsTick(dt);
         if (toastT < 0) return;
         // @keyframes pop: 0 → scale .4 transparent; 12% → 1.08 opaque; 20% → 1; 78% hold; 100% → .96, 10 px up, transparent (1.6 s)
         toastT += dt; float u = toastT / 1.6f; float s, a, dy = 0;
@@ -478,6 +479,158 @@ public class Hud
         else { s = 1; a = 0; toastT = -1; }
         toastCG.alpha = a; toastRT.localScale = new Vector3(s, s, 1); toastRT.anchoredPosition = new Vector2(W / 2, -(Hh * .3f) - 50 + dy);
     }
+
+
+    // ---------- the paper cards (index.html .modal > .card: the hole intro #introM and the scorecard #cardM) ----------
+    // .card: paper #fff6dc, ink #12283b, 22 px corners, a hard 8 px drop shadow, rising in (@keyframes rise: 24 px up, .96 → 1, .35 s);
+    // .eyebrow coral 12 px capitals; h1 44 px Lilita; .meta ink pills; p 16 px; .howto a #f3e6c2 box with coral labels; the scorecard
+    // tables (#sc, #sc2) with the score marks; buttons: .primary (ink, sun text, 54 tall), .ghost (ink outline, 46), .textbtn (underlined)
+    public class Paper
+    {
+        public string eyebrow, title, tip, note, fine, legend;
+        public string[] meta, howto;
+        public int[] pars, scores;            // the scorecard, 18 holes (0 = not played)
+        public int totalPar;
+        public string[] buttons;              // "!Label" primary, "~Label" ghost, "_Label" text button
+    }
+    RectTransform paper, paperCard; float paperT = -1; CanvasGroup paperCG;
+    public static readonly Color PaperC = Hex("#fff6dc"), PInk = Hex("#12283b"), PCoral = Hex("#c0542f"), PMuted = Hex("#6d7f8c"), HowBg = Hex("#f3e6c2");
+    public void HidePaper() { if (paper) UnityEngine.Object.Destroy(paper.gameObject); paper = null; paperT = -1; }
+    float TextH(Text t, float w)
+    {
+        var st = t.GetGenerationSettings(new Vector2(w * t.pixelsPerUnit, 0)); st.scaleFactor = t.pixelsPerUnit;
+        return t.cachedTextGeneratorForLayout.GetPreferredHeight(t.text, st) / t.pixelsPerUnit;
+    }
+    Text Para(Transform p, string text, Font f, float size, Color c, float x, ref float y, float w, float after, bool rich = false)
+    {
+        var t = Txt(p, "P", f, size, c, TextAnchor.UpperLeft); t.horizontalOverflow = HorizontalWrapMode.Wrap; t.supportRichText = rich; t.lineSpacing = 1.12f; t.text = text;
+        float h = TextH(t, w); At(t.rectTransform, x, y, w, h + 2); y += h + after; return t;
+    }
+    public void ShowPaper(Paper c, Action<int> pick)
+    {
+        HideChoice(); HidePaper();
+        var dim = Box(root, "Modal", 0, new Color(6 / 255f, 18 / 255f, 28 / 255f, .42f)); paper = At(dim.rectTransform, 0, 0, W, Hh); dim.raycastTarget = true;
+        float cw = Mathf.Min(W - 32, 420), px = 20, iw = cw - px * 2;
+        paperCard = RT("Holder", paper); var card = Box(paperCard, "Card", 22, PaperC); var ct = card.transform;
+        paperCG = paper.gameObject.AddComponent<CanvasGroup>();
+        float y = 22;
+        if (!string.IsNullOrEmpty(c.eyebrow)) { var eb = Txt(ct, "Eb", fBold, 12, PCoral); eb.text = c.eyebrow.ToUpperInvariant(); At(eb.rectTransform, px, y, iw, 16); y += 16 + 4; }
+        if (!string.IsNullOrEmpty(c.title)) { var h1 = Txt(ct, "H1", fDisp, 44, PInk, TextAnchor.UpperLeft); h1.text = c.title; h1.horizontalOverflow = HorizontalWrapMode.Wrap; float hh = Mathf.Max(44, TextH(h1, iw)); At(h1.rectTransform, px, y, iw, hh); y += hh + 6; }
+        if (c.meta != null && c.meta.Length > 0)
+        {   // .meta span: ink pills, paper text 14 bold, 3 x 10 padding, 8 apart
+            float mx = px;
+            foreach (var m in c.meta)
+            {
+                var t = Txt(ct, "M", fBold, 14, PaperC, TextAnchor.MiddleCenter); t.text = m; float tw = t.preferredWidth / Mathf.Max(.01f, t.pixelsPerUnit) + 20;
+                if (mx + tw > px + iw) { mx = px; y += 26 + 6; }
+                var pill = Box(ct, "Pill", 12, PInk); At(pill.rectTransform, mx, y, tw, 24); t.transform.SetParent(pill.transform, false); At(t.rectTransform, 0, 0, tw, 24); mx += tw + 8;
+            }
+            y += 24 + 10;
+        }
+        if (!string.IsNullOrEmpty(c.tip)) { y += 8; Para(ct, c.tip, fBody, 16, PInk, px, ref y, iw, 14); }
+        if (c.pars != null) y = ScoreTables(ct, c, px, y, iw);
+        if (!string.IsNullOrEmpty(c.legend)) Para(ct, c.legend, fBody, 12, PMuted, px, ref y, iw, 14);
+        if (!string.IsNullOrEmpty(c.note)) { y += 8; Para(ct, c.note, fBody, 16, PInk, px, ref y, iw, 14); }
+        if (!string.IsNullOrEmpty(c.fine)) { y -= 6; Para(ct, c.fine, fBody, 12, PMuted, px, ref y, iw, 14); }
+        if (c.howto != null && c.howto.Length > 0)
+        {   // .howto: the numbered steps in a sand-coloured box (12 14 12 32 padding, 6 apart, 15 px)
+            float y0 = y, by = y + 12; var hb = Box(ct, "HowTo", 14, HowBg);
+            for (int i = 0; i < c.howto.Length; i++)
+            {
+                var num = Txt(ct, "N", fBody, 15, PInk, TextAnchor.UpperRight); num.text = (i + 1) + "."; At(num.rectTransform, px + 2, by, 24, 20);
+                Para(ct, c.howto[i], fBody, 15, PInk, px + 32, ref by, iw - 32 - 14, 6, true);
+            }
+            by += 12 - 6; At(hb.rectTransform, px, y0, iw, by - y0); y = by + 16;
+        }
+        if (c.buttons != null)
+            for (int i = 0; i < c.buttons.Length; i++)
+            {
+                int k = i; string lb = c.buttons[i]; char kind = lb[0]; string label = lb.Substring(1);
+                if (kind == '!')
+                {   // .primary: 54 tall, 16 corners, ink, sun-coloured 24 px Lilita, a 4 px hard shadow
+                    var b = Box(ct, "Primary", 16, PInk); At(b.rectTransform, px, y, iw, 54); Drop(ct, b.rectTransform, 16, 4, Hex("#050e16"));
+                    var t = Txt(b.transform, "T", fDisp, 24, Sun, TextAnchor.MiddleCenter); At(t.rectTransform, 0, 0, iw, 54); t.text = label;
+                    Press(b, () => { HidePaper(); pick?.Invoke(k); }); y += 54 + 10;
+                }
+                else if (kind == '~')
+                {   // .ghost: 46 tall, 14 corners, a 2 px ink outline, 19 px Lilita
+                    var b = Box(ct, "Ghost", 14, Color.clear, 2, PInk); At(b.rectTransform, px, y, iw, 46);
+                    var t = Txt(b.transform, "T", fDisp, 19, PInk, TextAnchor.MiddleCenter); At(t.rectTransform, 0, 0, iw, 46); t.text = label;
+                    Press(b, () => { HidePaper(); pick?.Invoke(k); }); y += 46 + 10;
+                }
+                else
+                {   // .textbtn: 15 px bold, underlined, centred
+                    var b = Box(ct, "TextBtn", 0, Color.clear); At(b.rectTransform, (cw - 160) / 2, y, 160, 34);
+                    var t = Txt(b.transform, "T", fBold, 15, PInk, TextAnchor.MiddleCenter); At(t.rectTransform, 0, 0, 160, 34); t.text = label;
+                    float tw = t.preferredWidth / Mathf.Max(.01f, t.pixelsPerUnit); var ul = Box(b.transform, "U", 0, PInk); At(ul.rectTransform, (160 - tw) / 2, 25, tw, 1.5f);
+                    Press(b, () => { HidePaper(); pick?.Invoke(k); }); y += 34;
+                }
+            }
+        float ch = y + 20, cy = Mathf.Max(16 + STop, (Hh - ch) / 2);
+        At(paperCard, (W - cw) / 2, cy, cw, ch); At(card.rectTransform, 0, 0, cw, ch); Drop(paperCard, card.rectTransform, 22, 8, new Color(0, 0, 0, .28f));
+        paperY = paperCard.anchoredPosition.y; paperT = 0; PaperTick(0);
+    }
+    void PaperTick(float dt)
+    {
+        if (paperT < 0 || paper == null) return;
+        paperT += dt; float u = Mathf.Clamp01(paperT / .35f), e = 1 - Mathf.Pow(1 - u, 3) * (1 - 1.6f * u * (1 - u));   // (cubic-bezier(.2,.9,.3,1.2): a little overshoot)
+        paperCG.alpha = Mathf.Clamp01(u * 2.2f); paperCard.localScale = Vector3.one * Mathf.LerpUnclamped(.96f, 1, e);
+        paperCard.anchoredPosition = new Vector2(paperCard.anchoredPosition.x, paperY - 24 * (1 - e)); if (u >= 1) paperT = -1;
+    }
+    float paperY;
+    // #sc and #sc2: Hole / Par / You for each nine, an Out and an In total, the round's total on the second
+    float ScoreTables(Transform ct, Paper c, float px, float y, float iw)
+    {
+        for (int half = 0; half < 2; half++)
+        {
+            int from = half * 9; bool withTot = half == 1; int cols = 1 + 9 + 1 + (withTot ? 1 : 0); float lw = 38, cwid = (iw - lw) / (cols - 1), rh = 30, th = rh * 3;
+            y += 10; var wrap = Box(ct, "Sc" + half, 12, PaperC, 2, PInk); At(wrap.rectTransform, px, y, iw, th); var wt = wrap.transform;
+            var head = Box(wt, "Head", 10, PInk); At(head.rectTransform, 2, 2, iw - 4, rh - 2);
+            int ptot = 0, tot = 0, all = 0; for (int k = 0; k < 18; k++) all += c.scores[k];
+            for (int col = 0; col < cols; col++)
+            {
+                float x = col == 0 ? 0 : lw + (col - 1) * cwid, w = col == 0 ? lw : cwid; bool totCol = col >= 10;
+                if (col > 0) { var ln = Box(wt, "V", 0, A(PInk, .18f)); At(ln.rectTransform, x, rh, 1, th - rh - 2); }
+                if (totCol) { var sh = Box(wt, "TotBg", 0, A(PInk, .07f)); At(sh.rectTransform, x + 1, rh, w - 1, th - rh - 2); }
+                string h, pr, me; int i = from + col - 1;
+                if (col == 0) { h = "Hole"; pr = "Par"; me = "You"; }
+                else if (col <= 9) { h = (i + 1).ToString(); ptot += c.pars[i]; pr = c.pars[i] > 0 ? c.pars[i].ToString() : ""; tot += c.scores[i]; me = c.scores[i] > 0 ? c.scores[i].ToString() : ""; }
+                else if (col == 10) { h = half == 0 ? "Out" : "In"; pr = ptot.ToString(); me = tot > 0 ? tot.ToString() : ""; }
+                else { h = "Tot"; pr = c.totalPar.ToString(); me = all > 0 ? all.ToString() : ""; }
+                var t0 = Txt(wt, "H", fBold, 13, PaperC, TextAnchor.MiddleCenter); At(t0.rectTransform, x, 0, w, rh); t0.text = h;
+                var t1 = Txt(wt, "P", col == 0 || totCol ? fBold : fBody, 13, PInk, TextAnchor.MiddleCenter); At(t1.rectTransform, x, rh, w, rh); t1.text = pr;
+                var t2 = Txt(wt, "Y", col == 0 || totCol ? fBold : fBody, 13, PInk, TextAnchor.MiddleCenter); At(t2.rectTransform, x, rh * 2, w, rh); t2.text = me;
+                if (col >= 1 && col <= 9 && c.scores[i] > 0)
+                {   // the marks: ○ birdie, ◎ eagle or better (coral); □ bogey, ⧈ double or worse (ink)
+                    int d = c.scores[i] - c.pars[i]; float cx = x + w / 2, cy = rh * 2 + rh / 2, s = Mathf.Min(22, w - 2);
+                    void Mark(float size, bool round, Color mc) { var m = Box(wt, "Mk", round ? size / 2 : 0, Color.clear, 1.8f, mc); At(m.rectTransform, cx - size / 2, cy - size / 2, size, size); }
+                    if (d <= -1) { Mark(s, true, PCoral); if (d <= -2) Mark(s + 7, true, PCoral); }
+                    else if (d >= 1) { Mark(s, false, PInk); if (d >= 2) Mark(s + 7, false, PInk); }
+                }
+            }
+            var rl = Box(wt, "R", 0, A(PInk, .18f)); At(rl.rectTransform, 2, rh * 2, iw - 4, 1);
+            y += th + 4;
+        }
+        return y + 6;
+    }
+
+    // ---------- the shot stats pill (.shotstats: "Carry 231 · Total 254 · Peak 96 ft", top centre, 3.6 s) ----------
+    RectTransform statsRT; Text statsT;
+    public void ShotStats(int carry, int total, int peakFt)
+    {
+        if (statsRT == null)
+        {
+            var bg = Box(root, "ShotStats", 14, new Color(12 / 255f, 30 / 255f, 46 / 255f, .88f)); statsRT = bg.rectTransform;
+            statsT = Txt(bg.transform, "T", fBold, 14, Cream, TextAnchor.MiddleCenter); statsT.supportRichText = true;
+        }
+        string Y(string v) => "<color=#ffc93c>" + v + "</color>";
+        statsT.text = "Carry " + Y(carry.ToString()) + " · Total " + Y(total.ToString()) + " · Peak " + Y(peakFt + " ft");
+        float tw = statsT.preferredWidth / Mathf.Max(.01f, statsT.pixelsPerUnit) + 28;
+        At(statsRT, (W - tw) / 2, STop + 128, tw, 30); At(statsT.rectTransform, 0, 0, tw, 30); statsRT.gameObject.SetActive(true); statsT2 = 0;
+    }
+    float statsT2 = -1;
+    void StatsTick(float dt) { if (statsT2 < 0 || statsRT == null) return; statsT2 += dt; if (statsT2 > 3.6f) { statsRT.gameObject.SetActive(false); statsT2 = -1; } }
+    public void HideStats() { if (statsRT) statsRT.gameObject.SetActive(false); statsT2 = -1; }
 
     // ---------- icons (the web game's inline SVGs, drawn the same) ----------
     readonly Dictionary<string, Texture2D> icons = new Dictionary<string, Texture2D>();

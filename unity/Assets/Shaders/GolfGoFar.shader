@@ -3,13 +3,13 @@
 // a little light through when looking toward the sun. Per tree: _Far[i] (the web's world; Unity's z is turned round here).
 Shader "GolfGo/Far"
 {
-    Properties { _MainTex ("Tree picture atlas", 2D) = "white" {} }
+    Properties { _MainTex ("Tree picture atlas", 2D) = "white" {} _Cutoff ("Alpha cutoff", Float) = 0.5 }
     SubShader
     {
         Tags { "RenderType" = "TransparentCutout" "Queue" = "AlphaTest" }
         Cull Off
         CGPROGRAM
-        #pragma surface surf Standard vertex:vert
+        #pragma surface surf Standard vertex:vert addshadow alphatest:_Cutoff   // (addshadow: the cards write the depth texture too, so the finish hazes them by their own distance, not the sky's behind them)
         #pragma target 3.5
         #include "GolfGoSky.cginc"
         sampler2D _MainTex; float4 _MainTex_TexelSize;
@@ -32,11 +32,10 @@ Shader "GolfGo/Far"
         {
             float4 c = tex2D(_MainTex, IN.atlUV);
             float2 ts = IN.atlUV * _MainTex_TexelSize.zw, qx = ddx(ts), qy = ddy(ts); float lod = .5 * log2(max(max(dot(qx, qx), dot(qy, qy)), 1e-6));
-            clip(c.a * (1 + max(lod, 0) * .2) - .5);
             float3 alb = c.rgb * IN.tint;
             float3 vv = normalize(_WorldSpaceCameraPos - IN.worldPos);
             o.Emission = alb * _LightColor0.rgb * .3 * pow(max(dot(-vv, _WorldSpaceLightPos0.xyz), 0), 3);
-            o.Albedo = alb; o.Smoothness = 1 - .85; o.Metallic = 0; o.Alpha = 1;
+            o.Albedo = alb; o.Smoothness = 1 - .85; o.Metallic = 0; o.Alpha = c.a * (1 + max(lod, 0) * .2);
         }
         ENDCG
     }

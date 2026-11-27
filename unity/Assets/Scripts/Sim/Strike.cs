@@ -22,6 +22,7 @@ namespace GolfGo.Sim
         public double sx, sy, y0, dx, dy, px, py, carry, lat, wx, wy, apex, T, rollMul, rel, back, full;
         public bool fly; public int perfect; public double missBy; public bool miss; public string club, stype;
         public bool sgChunk; public string misKind; public double misT;   // for the toasts: grabbed by the fescue, chunked, bladed
+        public double fat;   // heavy from sand or dirt (strikeShot's fat: the HEAVY! toast)
         // flightS / arcH / flightPos (save-file.js)
         public const double DRAG = 1.1; static readonly double DRAG_N = 1 - Math.Exp(-DRAG);
         public static double S(double u) => u <= 1 ? (1 - Math.Exp(-DRAG * u)) / DRAG_N : 1 + (u - 1) * DRAG * Math.Exp(-DRAG) / DRAG_N;
@@ -184,7 +185,7 @@ namespace GolfGo.Sim
                 rollMul = Mv.roll * (1 + .7 * thin) * mr * (flyer > 1 ? 1 - (1 - perfBite) * .5 : perfBite) * flyer * (sgl != null ? 1 + ((st == "chip" ? SG("chip", 1) : SG("r", 1)) - 1) * Cm.SgLie(club) : 1) * (sgChunk ? .5 : 1) * Cm.Roll(club, st),
                 rel = mrel, back = msp * Mv.back * Cm.SpinC(club) * (1 - .8 * thin) * (sgl != null ? SG("back", 1) : 1), fly = flyer > 1 && lie != "cut",
                 full = sh ? 0 : clubCarry * lm * T.ShotK(st, "c") * Mv.carry,
-                perfect = perfect, missBy = missBy, miss = miss, club = club.id, stype = st
+                perfect = perfect, missBy = missBy, miss = miss, club = club.id, stype = st, fat = fat
             };
             if (lie == "sand")
             {   // the sand it's played from; a plugged ball comes out short and hot, with no spin
