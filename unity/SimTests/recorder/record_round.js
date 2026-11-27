@@ -5,10 +5,10 @@
    the line, replay, the best one).
    usage: node record_round.js <site> <outDir>                                                                              */
 const fs = require('fs'), path = require('path'), boot = require('./boot.js');
-const SITE = process.argv[2], OUT = process.argv[3];
+const SITE = process.argv[2], OUT = process.argv[3], CID = process.argv[4] || 'troy';   // (another course: round_cases_<id>.json)
 (async () => {
   const g = await boot(SITE);
-  await g.ev(`(()=>{Math.random=rng(99);G.mode='practice';G.pinSeed=424242;G.scores=[];setCourse('troy',false);startHole(0);$('introM').hidden=true;try{R3R.on=false;}catch(e){}
+  await g.ev(`(()=>{Math.random=rng(99);G.mode='practice';G.pinSeed=424242;G.scores=[];setCourse('${CID}',false);startHole(0);$('introM').hidden=true;try{R3R.on=false;}catch(e){}
     prepareShot();
     const no=()=>{};for(const k of Object.keys(sfx))if(typeof sfx[k]==='function')sfx[k]=no;
     for(const n of ['toast','leafBurst','birdsFrom','splashDrops','tone','later','showShotStats','saveGame','shortPrep','r3React','queueDivot'])try{eval(n+'=no');}catch(e){}
@@ -16,9 +16,10 @@ const SITE = process.argv[2], OUT = process.argv[3];
     const one=()=>1;window.__ID={carry:one,err:one,win:one,curve:1,spin:1,wind:1,putt:1,mis:1,sgVar:1,puttD:1,misFull:1,perf:1.03};
     G.cm=__ID;BAGC.set(__ID,{v:BAGV,w:__ID});return 'ok';})()`);
   // each hole's pin as exported (hNN.json, practice mode) so the C# side plays to the same cup; and the hole's three pin spots
-  const pinOf = hi => JSON.parse(fs.readFileSync(path.join(__dirname, '../../Assets/Resources/troy/h' + String(hi + 1).padStart(2, '0') + '.json'), 'utf8')).pin;
+  const pinOf = hi => JSON.parse(fs.readFileSync(path.join(__dirname, '../../Assets/Resources/' + CID + '/h' + String(hi + 1).padStart(2, '0') + '.json'), 'utf8')).pin;
   const out = [];
-  for (let hi = 0; hi < 18; hi++) {
+  const NH = JSON.parse(await g.ev('TB.length'));
+  for (let hi = 0; hi < NH; hi++) {
     const r = JSON.parse(await g.ev(`(()=>{try{
       Math.random=rng(${hi}*7+3);G.mode='practice';G.pinSeed=424242;G.roundSeed=777;startHole(${hi});$('introM').hidden=true;try{R3R.on=false;}catch(e){}G.hole.pin=${JSON.stringify(pinOf(hi))};
       const W=holeWind(${hi}),rs=roundWindSeed();
@@ -49,7 +50,7 @@ const SITE = process.argv[2], OUT = process.argv[3];
     console.log('hole', r.hole, 'prep', r.prep.length, 'water cells', r.nWater, 'into water', r.water.filter(w => w.kind === 'water').length, 'clubs', [...new Set(r.prep.map(p => p.club + (p.stype !== 'full' ? '/' + p.stype : '')))].join(' '));
   }
   fs.mkdirSync(OUT, { recursive: true });
-  fs.writeFileSync(path.join(OUT, 'round_cases.json'), JSON.stringify(out));
+  fs.writeFileSync(path.join(OUT, CID === 'troy' ? 'round_cases.json' : 'round_cases_' + CID + '.json'), JSON.stringify(out));
   console.log('errors', g.errs.slice(0, 3));
   await g.close();
 })();

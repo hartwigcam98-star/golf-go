@@ -2,9 +2,9 @@
    trees/imp.png: the picture atlas (r3tImpBake, 8 x 8 cells of 224 px, sRGB, row 0 = the atlas's first row as WebGL stores it)
    hNN_far.bytes: int32 n, then n * 14 float32: position (3, the web's world), size (w, h, flip, 0), atlas rect (4), tint (3) */
 const fs=require('fs'),path=require('path'),boot=require('./boot.js');
-(async()=>{const OUT=process.argv[3];const g=await boot(process.argv[2]);let atlas=false;
+(async()=>{const OUT=process.argv[3],CID=process.argv[4]||'troy';const g=await boot(process.argv[2]);let atlas=fs.existsSync(path.join(OUT,'..','trees','imp.png'));   // (the picture atlas is the same for every course: made once)
   for(let i=0;i<18;i++){
-    const r=JSON.parse(await g.ev(`(()=>{G.mode='practice';setCourse('troy',false);startHole(${i});$('introM').hidden=true;
+    const r=JSON.parse(await g.ev(`(()=>{G.mode='practice';setCourse('${CID}',false);startHole(${i});$('introM').hidden=true;
       const m=R3T.far;if(!m)return JSON.stringify({n:0});const ge=m.geometry,n=ge.instanceCount,a=k=>Array.from(ge.attributes[k].array);
       let img=null;if(!${atlas}){r3tImpBake();const I=r3tImpInfo(),rt=I.rt,w=rt.width,h=rt.height,px=new Uint8Array(w*h*4);R3.renderer.readRenderTargetPixels(rt,0,0,w,h,px);img={w,h,d:Array.from(px)};}
       return JSON.stringify({n,P:a('iP'),S:a('iS'),R:a('iR'),C:a('iC'),img});})()`));

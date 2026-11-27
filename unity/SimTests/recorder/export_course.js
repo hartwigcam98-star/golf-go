@@ -23,7 +23,7 @@ const SITE = process.argv[2], OUT = process.argv[3], CID = process.argv[4] || 't
       const trees=[];for(const t of h.trees)trees.push(+t.x.toFixed(2),+t.y.toFixed(2),+t.r.toFixed(2),+t.gh.toFixed(2),+(t.mh||0).toFixed(2),+(t.cb||0).toFixed(2),t.con?1:0);
       return JSON.stringify({course:CUR.name||'${CID}',hole:${i + 1},par:h.par,len:h.len,pin:h.pin,tee:[G.ball.x,G.ball.y,G.aim],
         hg:grid(h.hg),gg:grid(h.gg),lg:{x0:h.lg.x0,y0:h.lg.y0,nx:h.lg.nx,ny:h.lg.ny,data:Array.from(h.lg.code)},lieNames:LIE_CODES,
-        tex:{x0:b[0],y0:b[1],w:b[2]-b[0],h:b[3]-b[1]},green,trees,segs:h.segs.map(s=>[s.x,s.y,s.a,s.L,s.s0]),line0:(h.line&&h.line[0])||[0,0]});})()`);
+        tex:{x0:b[0],y0:b[1],w:b[2]-b[0],h:b[3]-b[1]},green,trees,segs:h.segs.map(s=>[s.x,s.y,s.a,s.L,s.s0]),line0:(h.line&&h.line[0])||[0,0],pins:(h.pins||[]).map(p=>[p[0],p[1]])});})()`);
     fs.writeFileSync(path.join(OUT, 'h' + nn + '.json'), hole);
     const sim = await g.ev(`(()=>{const h=G.hole,L=h.lg,names=['ob',...LIE_CODES.filter((v,i,a)=>a.indexOf(v)===i)];if(!names.includes('dirt'))names.push('dirt');if(!names.includes('path'))names.push('path');
     const lie=new Array(L.nx*L.ny);for(let j=0;j<L.ny;j++)for(let i=0;i<L.nx;i++){const n=lieAt(L.x0+i,L.y0+j);lie[j*L.nx+i]=names.indexOf(n);}

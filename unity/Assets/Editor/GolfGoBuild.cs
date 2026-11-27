@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.SceneManagement;
@@ -32,13 +33,16 @@ public static class GolfGoBuild
         Mat("Pants", new Color(.93f, .92f, .88f)); Mat("Skin", new Color(.86f, .66f, .52f));
         // every hole's course map texture at full size (it holds every fairway stripe and bunker edge), and its Blender-baked light
         // (sun shadows of every tree, sky occlusion), the same map the web game uses, as a x2 detail map: 0.5 = full sun and open sky
-        foreach (var f in System.IO.Directory.GetFiles("Assets/Resources/troy"))
+        // (every course folder: the ones with a hole 1, export_all.sh)
+        foreach (var cdir in System.IO.Directory.GetDirectories("Assets/Resources")) if (System.IO.File.Exists(System.IO.Path.Combine(cdir, "h01.json")))
+        foreach (var f in System.IO.Directory.GetFiles(cdir))
         {
             string a = f.Replace('\\', '/');
             // (the ground shader samples every ground texture raw, as the web game does: sRGB off)
             if (a.EndsWith("_ground.jpg")) { var ti = AssetImporter.GetAtPath(a) as TextureImporter; if (ti) { ti.maxTextureSize = 4096; ti.mipmapEnabled = true; ti.wrapMode = TextureWrapMode.Clamp; ti.anisoLevel = 4; ti.sRGBTexture = false; ti.SaveAndReimport(); } }
             else if (a.EndsWith("_light.png")) { var li = AssetImporter.GetAtPath(a) as TextureImporter; if (li) { li.maxTextureSize = 4096; li.wrapMode = TextureWrapMode.Clamp; li.sRGBTexture = false; li.SaveAndReimport(); } }
             else if (a.EndsWith("_surf.png")) { var si = AssetImporter.GetAtPath(a) as TextureImporter; if (si) { si.maxTextureSize = 1024; si.mipmapEnabled = false; si.wrapMode = TextureWrapMode.Clamp; si.sRGBTexture = false; si.filterMode = FilterMode.Bilinear; si.textureCompression = TextureImporterCompression.Uncompressed; si.npotScale = TextureImporterNPOTScale.None; si.SaveAndReimport(); } }
+            else if (a.EndsWith("/hero.jpg")) { var hi = AssetImporter.GetAtPath(a) as TextureImporter; if (hi) { hi.sRGBTexture = true; hi.wrapMode = TextureWrapMode.Clamp; hi.mipmapEnabled = false; hi.npotScale = TextureImporterNPOTScale.None; hi.textureCompression = TextureImporterCompression.Uncompressed; hi.SaveAndReimport(); } }   // (the home screen's course picture)
             else if (a.EndsWith("/flag.png")) { var fi = AssetImporter.GetAtPath(a) as TextureImporter; if (fi) { fi.sRGBTexture = true; fi.wrapMode = TextureWrapMode.Clamp; fi.mipmapEnabled = true; fi.anisoLevel = 4; fi.SaveAndReimport(); } }   // (the flag: a picture, sRGB as the web's)
             else if (a.EndsWith(".png") || a.EndsWith(".jpg"))
             {   // the shared ground textures: tiling detail and photographed turf repeat with mips; the surroundings map clamps
@@ -46,6 +50,8 @@ public static class GolfGoBuild
                 di.maxTextureSize = 2048; di.mipmapEnabled = true; di.wrapMode = sur ? TextureWrapMode.Clamp : TextureWrapMode.Repeat; di.sRGBTexture = false; di.anisoLevel = sur ? 1 : 8; di.SaveAndReimport();
             }
         }
+        foreach (var a in System.IO.Directory.GetFiles("Assets/Resources/home", "*.png").Concat(System.IO.Directory.GetFiles("Assets/Resources/golfers", "*_pic.jpg")))
+        { var ui = AssetImporter.GetAtPath(a.Replace('\\', '/')) as TextureImporter; if (ui) { ui.sRGBTexture = true; ui.wrapMode = TextureWrapMode.Clamp; ui.mipmapEnabled = false; ui.npotScale = TextureImporterNPOTScale.None; ui.textureCompression = TextureImporterCompression.Uncompressed; ui.SaveAndReimport(); } }
         var g = Mat("Ground", Color.white, 0);   // (each hole sets its own textures on a copy at run time)
         g.SetFloat("_UVSec", 0); g.EnableKeyword("_DETAIL_MULX2"); EditorUtility.SetDirty(g);
         // leaf cards: the web game's own leaf atlas (4 x 4 clusters), alpha-tested

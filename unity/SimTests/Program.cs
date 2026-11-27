@@ -234,16 +234,26 @@ static class Program
     /* Stage 5: all 18 holes (round_cases.json): each hole's wind, prepareShot from the tee and spots all over the hole (lie, aim,
        club, shot type, meter sizes, flag out), and shots into the water: the path, where it crossed, the relief options and the best. */
     static int RoundFlow(string root, Tuning T)
+    {   // Troy Burne (round_cases.json), then every other course with its own cases (round_cases_<course>.json)
+        int bad = 0;
+        foreach (var f in Directory.GetFiles(Path.Combine(root, "SimTests"), "round_cases*.json"))
+        {
+            var nm = Path.GetFileNameWithoutExtension(f); string cid = nm == "round_cases" ? "troy" : nm.Substring("round_cases_".Length);
+            bad += RoundFlow(root, T, f, cid);
+        }
+        return bad;
+    }
+    static int RoundFlow(string root, Tuning T, string file, string cid)
     {
-        var holes = (List<object>)MiniJson.Parse(File.ReadAllText(Path.Combine(root, "SimTests/round_cases.json")));
+        var holes = (List<object>)MiniJson.Parse(File.ReadAllText(file));
         int bad = 0, n = 0, nw = 0;
         foreach (Dictionary<string, object> hc in holes)
         {
             int hn = (int)D(hc["hole"]); string nn = hn.ToString("00");
-            var C = new Course(File.ReadAllText(Path.Combine(root, $"Assets/Resources/troy/h{nn}.json")));
-            var H = new SimHole(File.ReadAllText(Path.Combine(root, $"Assets/Resources/troy/h{nn}_sim.json")));
+            var C = new Course(File.ReadAllText(Path.Combine(root, $"Assets/Resources/{cid}/h{nn}.json")));
+            var H = new SimHole(File.ReadAllText(Path.Combine(root, $"Assets/Resources/{cid}/h{nn}_sim.json")));
             var S = new Strike(T, C); var R = new Round(S, H, C, new Short(S, H, C), new Putt(S, H, C));
-            void Bad(string what) { bad++; if (bad <= 40) Console.WriteLine($"hole {hn}: {what}"); }
+            void Bad(string what) { bad++; if (bad <= 40) Console.WriteLine($"{cid} hole {hn}: {what}"); }
             n++; var w = (Dictionary<string, object>)hc["wind"]; var hw = Round.HoleWind((int)D(hc["roundSeed"]), hn - 1);
             if (Math.Abs(hw.a - D(w["a"])) > 1e-9 || hw.mph != D(w["mph"])) Bad($"wind {hw.a:F4}/{hw.mph} vs web {D(w["a"]):F4}/{D(w["mph"])}");
             foreach (Dictionary<string, object> p in (List<object>)hc["prep"])
@@ -285,7 +295,7 @@ static class Program
                 if (Round.Best(opts).k != (string)op["best"]) Bad($"best relief {Round.Best(opts).k} vs web {op["best"]}");
             }
         }
-        Console.WriteLine($"round parity: {n - bad}/{n} checks match the web game (18 holes: winds, shot setups, {nw} water shots and their relief)");
+        Console.WriteLine($"round parity, {cid}: {n - bad}/{n} checks match the web game ({holes.Count} holes: winds, shot setups, {nw} water shots and their relief)");
         return bad;
     }
     static double D(object o) => Convert.ToDouble(o);

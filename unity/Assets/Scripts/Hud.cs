@@ -10,7 +10,7 @@ using UnityEngine.UI;
    rounded boxes are 9-sliced so they stretch without blurring their corners.
    Fonts: Lilita One (the .disp headings and buttons) and Barlow Semi Condensed (everything else), the same Google Fonts the web
    game loads; the build workflow fetches them into Resources/Fonts (the legacy font stands in if they are missing). */
-public class Hud
+public partial class Hud
 {
     // ---- the stylesheet's colours ----
     public static readonly Color Ink = Hex("#0f2233"), Cream = Hex("#fff6dc"), Sun = Hex("#ffc93c"), Coral = Hex("#ff6a48"), Mint = Hex("#8ee6a8"), SkyC = Hex("#6cc8ff");
@@ -219,7 +219,7 @@ public class Hud
     }
     // ---------- the choice sheet (the web game's #reliefM: an eyebrow, a heading, option buttons with a sub line, the best one marked) ----------
     RectTransform sheet;
-    public bool ChoiceOpen => sheet != null || paper != null;
+    public bool ChoiceOpen => sheet != null || paper != null || home != null;
     public void HideChoice() { if (sheet) UnityEngine.Object.Destroy(sheet.gameObject); sheet = null; }
     // body: optional text above the buttons (the scorecard); opts: (label, sub line, marked best)
     public void ShowChoice(string eyebrow, string title, string body, IList<(string a, string b, bool best)> opts, Action<int> pick)

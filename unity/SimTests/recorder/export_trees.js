@@ -5,10 +5,10 @@
    hNN_trees.bytes: int32 groups; per group: int32 key length + key (ascii), int32 n, then n * 9 float32: x, y, z, rotY, sx, sy, r, g, b
    trees/bark.png, bark_n.png (raw data), leaves.png (the species leaf atlas, sRGB, flipY false)                                    */
 const fs=require('fs'),path=require('path'),boot=require('./boot.js');
-(async()=>{const OUT=process.argv[3],TOUT=path.join(OUT,'..','trees');fs.mkdirSync(TOUT,{recursive:true});const g=await boot(process.argv[2]);const done=new Set();
+(async()=>{const OUT=process.argv[3],CID=process.argv[4]||'troy',TOUT=path.join(OUT,'..','trees');fs.mkdirSync(TOUT,{recursive:true});const g=await boot(process.argv[2]);const done=new Set();
   const safe=k=>k.replace(/\|/g,'_').replace(/#/g,'-');
   for(let i=0;i<18;i++){
-    const r=JSON.parse(await g.ev(`(()=>{G.mode='practice';setCourse('troy',false);startHole(${i});$('introM').hidden=true;
+    const r=JSON.parse(await g.ev(`(()=>{G.mode='practice';setCourse('${CID}',false);startHole(${i});$('introM').hidden=true;
       const P=r3tProtos(),gs=[];
       for(const gp of R3T.groups){const t=gp.ts[0],key=t.sp+(t.fall?'_fall':''),vs=P[key]||P[t.sp];let gk,v;
         if(t.mh){const lv=[...new Set(vs.filter(g=>!g.snag))],wi=Math.floor((t.shade||0)*97)%lv.length,bk=r3tBucket(t.mb/t.mh);gk=key+'|L'+wi+'#'+bk;v=r3tWarp(lv[wi],gk,bk);}

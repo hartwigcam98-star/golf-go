@@ -2,9 +2,9 @@
    structures, bridges, course props, fescue wisps: R3.trees, drawn with R3.mat.tree), per hole: hNN_built.bytes =
    int32 n, float32 min x, y, z, step x, y, z, then n * (uint16 x, y, z quantised, int8 nx, ny, nz, uint8 r, g, b): the web's 3D world */
 const fs=require('fs'),path=require('path'),boot=require('./boot.js');
-(async()=>{const OUT=process.argv[3];const g=await boot(process.argv[2]);
+(async()=>{const OUT=process.argv[3],CID=process.argv[4]||'troy';const g=await boot(process.argv[2]);
   for(let i=0;i<18;i++){
-    const r=JSON.parse(await g.ev(`(()=>{G.mode='practice';setCourse('troy',false);startHole(${i});$('introM').hidden=true;
+    const r=JSON.parse(await g.ev(`(()=>{G.mode='practice';setCourse('${CID}',false);startHole(${i});$('introM').hidden=true;
       const m=R3.trees;if(!m)return JSON.stringify({n:0});const a=m.geometry.attributes,n=a.position.count,p=[],q=[],c=[];
       // (interleaved: read each attribute through its accessors; colours are already squared into linear light by r3Geo)
       for(let k=0;k<n;k++){p.push(a.position.getX(k),a.position.getY(k),a.position.getZ(k));q.push(a.normal.getX(k),a.normal.getY(k),a.normal.getZ(k));c.push(a.color.getX(k),a.color.getY(k),a.color.getZ(k));}

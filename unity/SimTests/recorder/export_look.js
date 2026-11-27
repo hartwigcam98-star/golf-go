@@ -35,7 +35,6 @@ const SITE = process.argv[2], OUT = process.argv[3], CID = process.argv[4] || 't
         return JSON.stringify(o);})()`));
       for (const n in tx) fs.writeFileSync(path.join(OUT, n + (tx[n].f === 'jpeg' ? '.jpg' : '.png')), Buffer.from(tx[n].d.split(',')[1], 'base64'));
       console.log('shared textures', Object.keys(tx).map(n => n + (tx[n].flipY ? '' : ' (no flipY)')).join(', '));
-      console.log('surface map flipY', S.flipY, S.w + 'x' + S.h);
     }
     const L = JSON.parse(look); console.log('hole', i + 1, 'water triangles', L.water ? L.water.length / 9 : 0, 'level', L.level, 'skirt', L.skirt ? L.skirt.nx + 'x' + L.skirt.ny : 0, 'gSB', JSON.stringify(L.gSB), 'rlS', JSON.stringify(L.rlS));
   }

@@ -7,7 +7,7 @@ using UnityEngine.UI;
    build runs on the same phones. Ground (heights + painted course map), measured trees, a golfer, a two-tap swing, ball flight
    with the web game's drag curve, roll with slopes, putting, holing out. 120 Hz where the screen allows it; the FPS readout
    is top left. Everything is built in code, hole by hole, from Resources/troy/hNN*.json, hNN_ground.jpg and hNN_light.png. */
-public class HoleTest : MonoBehaviour
+public partial class HoleTest : MonoBehaviour
 {
     GolfGo.Sim.Tuning TU; GolfGo.Sim.Course CO; GolfGo.Sim.Strike SK; GolfGo.Sim.Flight FL; GolfGo.Sim.SimHole SH; GolfGo.Sim.Ball SB; GolfGo.Sim.Short SG; GolfGo.Sim.Putt PT; GolfGo.Sim.Round RD; float simAcc; int evSeen;
     // stage 5: the round (Troy Burne's 18), the hole being played, scores, the round's seed (pins and wind), the hole's objects
@@ -158,13 +158,25 @@ public class HoleTest : MonoBehaviour
         QualitySettings.shadowProjection = ShadowProjection.StableFit; ApplyGfx(PlayerPrefs.GetInt("gfx", 1) == 1);
         // the game's own mechanics (GolfGo.Sim, checked shot for shot against the web game) and its numbers
         TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); Clubs = TU.ClubSet(Swaps());
-        lightB = (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(Resources.Load<TextAsset>("troy/light_bounds").text);
+        SetCourse(PlayerPrefs.GetString("course", "troy"));
         BuildWorld(); BuildHud();
         golferId = PlayerPrefs.GetString("golfer", "ch06"); LoadGolfer(golferId); BallColour();
-        var sv = LoadSave(); if (sv != null) Welcome(sv); else NewRound();
+        // the home screen first (home-screen.js), the saved round (or the course's 1st tee) loaded quietly behind it
+        var sv = LoadSave(); if (sv != null) { SetCourse(sv.course); ResumeRound(sv); } else { SetCourse(CourseId); resuming = true; NewRound(); resuming = false; }
+        ShowHome();
         // the look check on GitHub's Mac (unity-test.yml): -ggshots <folder> saves pictures of a few holes, then quits
         var args = System.Environment.GetCommandLineArgs(); int ai = System.Array.IndexOf(args, "-ggshots");
         if (ai >= 0 && ai + 1 < args.Length) StartCoroutine(Shots(args[ai + 1]));
+    }
+    // the 3D view alone at a phone's size (590 x 1278, the window's shape: the same framing), off screen
+    void Shot3D(string dir, string file, bool enh)
+    {
+        ApplyGfx(enh);
+        var rt = new RenderTexture(590, 1278, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { antiAliasing = 4 };
+        var keep = cam.targetTexture; cam.targetTexture = rt; cam.Render(); cam.targetTexture = keep;
+        var was = RenderTexture.active; RenderTexture.active = rt;
+        var t2 = new Texture2D(590, 1278, TextureFormat.RGB24, false); t2.ReadPixels(new Rect(0, 0, 590, 1278), 0, 0); t2.Apply(); RenderTexture.active = was;
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, file), t2.EncodeToPNG()); Destroy(t2); rt.Release(); Destroy(rt); ApplyGfx(true);
     }
     /* Graphics (the menu): Enhanced, more than the web runs on a phone: ambient occlusion and sun shafts (GolfGoLook), four shadow
        cascades on a 4096 map (crisp shadows near you), the web's High grass density; Web, the web's own phone level: two cascades
@@ -180,6 +192,7 @@ public class HoleTest : MonoBehaviour
     System.Collections.IEnumerator Shots(string dir)
     {
         System.IO.Directory.CreateDirectory(dir); Application.targetFrameRate = 30;
+        HideHome(); SetCourse("troy"); practice = false;
         if (gLook != null && gLook.Ok) Try("weather", () => gLook.Weather(0));
         foreach (int h in new[] { 0, 4, 9, 13 })
         {
@@ -198,27 +211,53 @@ public class HoleTest : MonoBehaviour
                 System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, name), t.EncodeToPNG()); Destroy(t);
                 // the 3D view alone at a phone's size (590 x 1278, the same shape as the window: the same framing), off screen
                 // (Enhanced as _3d, then the web's level as _3dw, to put side by side)
-                foreach (bool enh in new[] { true, false })
-                    Try("hi-res", () =>
-                    {
-                        ApplyGfx(enh);
-                        var rt = new RenderTexture(590, 1278, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { antiAliasing = 4 };
-                        var keep = cam.targetTexture; cam.targetTexture = rt; cam.Render(); cam.targetTexture = keep;
-                        var was = RenderTexture.active; RenderTexture.active = rt;
-                        var t2 = new Texture2D(590, 1278, TextureFormat.RGB24, false); t2.ReadPixels(new Rect(0, 0, 590, 1278), 0, 0); t2.Apply(); RenderTexture.active = was;
-                        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, name.Replace(".png", enh ? "_3d.png" : "_3dw.png")), t2.EncodeToPNG()); Destroy(t2); rt.Release(); Destroy(rt);
-                    });
+                foreach (bool enh in new[] { true, false }) Try("hi-res", () => Shot3D(dir, name.Replace(".png", enh ? "_3d.png" : "_3dw.png"), enh));
                 ApplyGfx(true);
                 Debug.Log("GGSHOT " + name + " " + Screen.width + "x" + Screen.height + " · " + Diag() + (errs.Count > 0 ? " · errors: " + string.Join(" | ", errs) : ""));
             }
             if (fc != null) { Try("look end", LookEnd); yield return new WaitForSecondsRealtime(1.5f); }
         }
+        // every other course: its 1st and 10th tees (the 3D view, Enhanced and Web), and the home screen once
+        foreach (var co in Courses)
+        {
+            if (co.id == "troy") continue; SetCourse(co.id);
+            foreach (int h in new[] { 0, 9 })
+            {
+                Try("course " + co.id, () => { LoadHole(h); CAMV = 1; hud.HidePaper(); intro = false; mapView = false; });
+                yield return new WaitForSecondsRealtime(3.5f); camPos = Vector3.zero; for (int fr = 0; fr < 3; fr++) yield return null; yield return new WaitForEndOfFrame();
+                var name = co.id + "_h" + (h + 1).ToString("00") + "_tee.png";
+                var t = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false); t.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0); t.Apply();
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, name), t.EncodeToPNG()); Destroy(t);
+                Try("hi-res", () => Shot3D(dir, name.Replace(".png", "_3d.png"), true));
+                Debug.Log("GGSHOT " + name + " · " + Diag() + (errs.Count > 0 ? " · errors: " + string.Join(" | ", errs) : ""));
+            }
+        }
+        SetCourse("troy"); ShowHome(); for (int fr = 0; fr < 4; fr++) yield return null; yield return new WaitForEndOfFrame();
+        { var t = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false); t.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0); t.Apply(); System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "home.png"), t.EncodeToPNG()); Destroy(t); }
+        HomeEvent("state:AL"); for (int fr = 0; fr < 4; fr++) yield return null; yield return new WaitForEndOfFrame();
+        { var t = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false); t.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0); t.Apply(); System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "home_al.png"), t.EncodeToPNG()); Destroy(t); }
         Debug.Log("GGSHOT done"); Application.Quit();
     }
 
     // ---------- world ----------
     Material M(string n) => Resources.Load<Material>("Mats/" + n);
-    string HolePath(string suffix) => "troy/h" + (hi + 1).ToString("00") + suffix;
+    string HolePath(string suffix) => CourseId + "/h" + (hi + 1).ToString("00") + suffix;
+    /* ---------- the courses (Resources/courses.json, made by export_home.js; each course's folder by export_all.sh) ----------
+       CourseId: the course being played; what's kept per course (its tips, flag, ground textures, light bounds) is dropped on a change */
+    static string CourseId = "troy";
+    [System.Serializable] public class CourseInfo { public string id, name, town, state; }
+    [System.Serializable] class CourseList { public CourseInfo[] courses; }
+    static CourseInfo[] courseList;
+    public static CourseInfo[] Courses => courseList ??= (Resources.Load<TextAsset>("courses") is TextAsset ta ? JsonUtility.FromJson<CourseList>(ta.text).courses : null) ?? new[] { new CourseInfo { id = "troy", name = "Troy Burne", town = "Hudson, WI", state = "WI" } };
+    static CourseInfo CourseOf(string id) => System.Array.Find(Courses, c => c.id == id);
+    static string CourseName => CourseOf(CourseId)?.name ?? Tips?.name ?? CourseId;
+    void SetCourse(string id)
+    {
+        if (string.IsNullOrEmpty(id) || CourseOf(id) == null || Resources.Load<TextAsset>(id + "/h01") == null) id = "troy";
+        if (id == CourseId && lightB != null) return;
+        CourseId = id; PlayerPrefs.SetString("course", id); tipsD = null; groundShared = null; flagMat = null;
+        var lb = Resources.Load<TextAsset>(id + "/light_bounds"); lightB = lb != null ? (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(lb.text) : new Dictionary<string, object>();
+    }
     // the hole's own objects: ground (heights + course map + baked light), trees, flag; built again for every hole
     void BuildHole()
     {
@@ -338,7 +377,7 @@ public class HoleTest : MonoBehaviour
                 int a = j * 13 + i, c = a + 13; ft.AddRange(new[] { a, c, a + 1, a + 1, c, c + 1 }); int A = a + FLAG_N, Cc = c + FLAG_N; ft.AddRange(new[] { A, A + 1, Cc, A + 1, Cc + 1, Cc });
             }
             flagMesh.vertices = fv; flagMesh.uv = fuv; flagMesh.SetTriangles(ft, 0);
-            var ftex = Resources.Load<Texture2D>("troy/flag"); flagMat = new Material(Shader.Find("Standard")); flagMat.SetFloat("_Glossiness", .15f);
+            var ftex = Resources.Load<Texture2D>(CourseId + "/flag"); flagMat = new Material(Shader.Find("Standard")); flagMat.SetFloat("_Glossiness", .15f);
             if (ftex) flagMat.mainTexture = ftex; else flagMat.color = new Color(.12f, .31f, .24f);
         }
         var cloth = new GameObject("Cloth").transform; cloth.SetParent(flag, false); cloth.gameObject.AddComponent<MeshFilter>().sharedMesh = flagMesh;
@@ -435,7 +474,7 @@ public class HoleTest : MonoBehaviour
         if (gg == null || gg.shader == null || !gg.shader.isSupported)
         { var std = new Material(M("Ground")); std.mainTexture = Resources.Load<Texture2D>(HolePath("_ground")); return std; }
         var gm = new Material(gg);
-        if (groundShared == null) groundShared = new[] { "det_short", "det_rough", "det_fescue", "det_sand", "turf_g", "turf_s", "surround", "turf_gn", "turf_sn" }.Select(n => Resources.Load<Texture2D>("troy/" + n)).ToArray();
+        if (groundShared == null) groundShared = new[] { "det_short", "det_rough", "det_fescue", "det_sand", "turf_g", "turf_s", "surround", "turf_gn", "turf_sn" }.Select(n => Resources.Load<Texture2D>(CourseId + "/" + n)).ToArray();
         gm.SetTexture("_MainTex", Resources.Load<Texture2D>(HolePath("_ground"))); gm.SetTexture("_Surf", Resources.Load<Texture2D>(HolePath("_surf")));
         string[] slots = { "_DS", "_DR", "_DF", "_DD", "_PG", "_PS", "_Surround", "_PGN", "_PSN" }; for (int k = 0; k < slots.Length; k++) if (groundShared[k]) gm.SetTexture(slots[k], groundShared[k]);
         gm.SetVector("_GB", V4(look, "gB", new Vector4(D.tex.x0, D.tex.y0, D.tex.w, D.tex.h))); gm.SetVector("_GSB", V4(look, "gSB", new Vector4(D.lg.x0, D.lg.y0, D.lg.nx, D.lg.ny)));
@@ -566,7 +605,7 @@ public class HoleTest : MonoBehaviour
         hud.onImpReset = () => { imp = Vector2.zero; traj = 0; RefreshHud(); };
         hud.onMap = () => { if (st == S.Aim) { mapView = !mapView; if (mapView) fc = null; } };
         hud.onLook = () => { if (fc != null && !(fc.fly != null && fc.fly.dir < 0)) LookEnd(); else LookStart(); };
-        hud.onMenu = Menu;
+        hud.onMenu = Menu; hud.onHome = HomeEvent;
     }
     // the lie the shot is played from (shotLie): the turf, or the cart path where it shows
     string Lie0 => RD.ShotLie(b.x, b.y);
@@ -607,7 +646,7 @@ public class HoleTest : MonoBehaviour
     void RefreshHud()
     {
         string lie = Lie0; float pd = PinDist;
-        hud.SetTop(D.course + " · Hudson, WI", D.hole, "Par " + D.par + " · " + D.len + " yds", "Stroke " + (strokes + 1) + " · Round " + DiffStr(roundDiff));
+        hud.SetTop(D.course + " · " + (Tips?.town ?? CourseOf(CourseId)?.town ?? ""), D.hole, "Par " + D.par + " · " + D.len + " yds", "Stroke " + (strokes + 1) + (practice ? " · Practice" : " · Round " + DiffStr(roundDiff)));
         hud.SetClub(C.id == "1W" ? "Driver" : char.IsDigit(C.id[0]) && C.id.Length == 2 && C.kind == "wedge" ? C.id + "\u00b0" : C.id, C.putter ? "Putter · " + Mathf.RoundToInt(MaxDist * 3) + " ft" : (C.id == "1W" ? (strokes == 0 ? "Off the tee" : "Off the deck") : C.name) + " · " + Mathf.RoundToInt(MaxDist) + "y", ci > 0, ci < Clubs.Count - 1);
         hud.SetLie(LieName.TryGetValue(lie, out var ln) ? ln : Cap(lie), Hud.Hex(LieCol.TryGetValue(lie, out var lc) ? lc : "#6db14a"), lie == "green" || pd < 20 ? "Cup " + Mathf.RoundToInt(pd * 3) + " ft" : "Pin " + Mathf.RoundToInt(pd) + " yds");
         hud.SetShot(stype, C.putter, st == S.Aim, pshot && !C.putter, ShotEnabled, GolfGo.Sim.Short.BunkerSide(lie, pd)); winC = Win;
@@ -1287,8 +1326,8 @@ public class HoleTest : MonoBehaviour
         Invoke(nameof(HoleDone), 1.8f);
     }
     // ---------- the round's framing (save-file.js): the hole intro, the scorecard, the 10-stroke pick-up, the saved round ----------
-    [System.Serializable] class TipsData { public string line, name, fine; public string[] tips; public int[] par; }
-    static TipsData tipsD; static TipsData Tips => tipsD ??= JsonUtility.FromJson<TipsData>(Resources.Load<TextAsset>("troy/tips").text);
+    [System.Serializable] class TipsData { public string line, name, fine, town, tees; public string[] tips; public int[] par; }
+    static TipsData tipsD; static TipsData Tips => tipsD ??= JsonUtility.FromJson<TipsData>(Resources.Load<TextAsset>(CourseId + "/tips").text);
     static readonly string[] HOWTO = {
         "<color=#c0542f><b>Aim:</b></color> drag the screen left or right (or use the arrows) to turn. The ring and dotted arc show where a full-power shot lands.",
         "<color=#c0542f><b>Look:</b></color> tap the eye (or pinch the screen) to scout the hole. Drag to move, pinch to zoom, twist to turn, and tap Green to read the putting surface.",
@@ -1303,7 +1342,7 @@ public class HoleTest : MonoBehaviour
         var T = Tips; string tip = T != null && T.tips != null && hi < T.tips.Length ? T.tips[hi] : "";
         var c = new Hud.Paper
         {
-            eyebrow = T?.line ?? "Troy Burne", title = "Hole " + (hi + 1),
+            eyebrow = (practice ? "Practice · " : "") + (T?.line ?? CourseName), title = "Hole " + (hi + 1),
             meta = new[] { "Par " + D.par, D.len + " yds", windMph >= .5 ? "Wind " + Mathf.RoundToInt((float)windMph) + " mph" : "Calm" },
             tip = tip, fine = hi == 0 ? T?.fine : null, howto = hi == 0 ? HOWTO : null, buttons = new[] { "!Tee off", "_Menu" }
         };
@@ -1311,6 +1350,7 @@ public class HoleTest : MonoBehaviour
     }
     void Record(int s)
     {
+        if (practice) return;
         if (scores[hi] == 0) { scores[hi] = s; pars[hi] = D.par; roundDiff += s - D.par; holesDone++; }
         if (hi < 17) SaveRound(true);
     }
@@ -1321,16 +1361,17 @@ public class HoleTest : MonoBehaviour
         CancelInvoke(nameof(HoleDone)); Invoke(nameof(HoleDone), 1.6f);
     }
     // the saved round (saveGame / loadSave): after every shot and at each hole's end; Continue round on the next launch
-    [System.Serializable] class Save { public int v = 1, seed, hi, strokes, wx; public int[] scores, pars; public float bx, by, px, py, windA, windMph; public bool mid; }
+    [System.Serializable] class Save { public int v = 1, seed, hi, strokes, wx; public int[] scores, pars; public float bx, by, px, py, windA, windMph; public bool mid; public string course; }
     void SaveRound(bool holeDone)
     {
         var sv = new Save { seed = roundSeed, hi = holeDone ? hi + 1 : hi, strokes = holeDone ? 0 : strokes, wx = gLook != null ? gLook.wx : 0, scores = (int[])scores.Clone(), pars = (int[])pars.Clone(),
-            bx = b.x, by = b.y, px = prev.x, py = prev.y, windA = (float)windA, windMph = (float)windMph, mid = !holeDone && strokes > 0 };
+            bx = b.x, by = b.y, px = prev.x, py = prev.y, windA = (float)windA, windMph = (float)windMph, mid = !holeDone && strokes > 0, course = CourseId };
+        if (practice) return;   // (a practice hole is never the saved round)
         try { PlayerPrefs.SetString("round", JsonUtility.ToJson(sv)); PlayerPrefs.Save(); } catch { }
     }
     static Save LoadSave()
     {
-        try { var j = PlayerPrefs.GetString("round", ""); if (j == "") return null; var sv = JsonUtility.FromJson<Save>(j); return sv != null && sv.v == 1 && sv.hi >= 0 && sv.hi < 18 && sv.scores != null && sv.scores.Length == 18 && sv.pars != null && sv.pars.Length == 18 ? sv : null; }
+        try { var j = PlayerPrefs.GetString("round", ""); if (j == "") return null; var sv = JsonUtility.FromJson<Save>(j); if (sv != null && string.IsNullOrEmpty(sv.course)) sv.course = "troy"; return sv != null && sv.v == 1 && sv.hi >= 0 && sv.hi < 18 && sv.scores != null && sv.scores.Length == 18 && sv.pars != null && sv.pars.Length == 18 ? sv : null; }
         catch { return null; }
     }
     static void ClearSave() { PlayerPrefs.DeleteKey("round"); PlayerPrefs.Save(); }
@@ -1340,7 +1381,7 @@ public class HoleTest : MonoBehaviour
         ResumeRound(sv);
         var c = new Hud.Paper
         {
-            eyebrow = Tips?.line ?? "Troy Burne", title = "Welcome back",
+            eyebrow = Tips?.line ?? CourseName, title = "Welcome back",
             note = "Your round is saved: hole " + (sv.hi + 1) + ", stroke " + (sv.mid ? sv.strokes + 1 : 1) + (holesDone > 0 ? " · " + DiffStr(roundDiff) + " through " + holesDone : "") + ".",
             buttons = new[] { "!Continue round", "~New round" }
         };
@@ -1348,7 +1389,7 @@ public class HoleTest : MonoBehaviour
     }
     void ResumeRound(Save sv)
     {
-        CancelInvoke(); hud.HideChoice(); hud.HidePaper(); roundSeed = sv.seed; roundDiff = 0; holesDone = 0;
+        SetCourse(sv.course); practice = false; CancelInvoke(); hud.HideChoice(); hud.HidePaper(); roundSeed = sv.seed; roundDiff = 0; holesDone = 0;
         for (int k = 0; k < 18; k++) { scores[k] = sv.scores[k]; pars[k] = sv.pars[k]; if (scores[k] > 0) { roundDiff += scores[k] - pars[k]; holesDone++; } }
         if (gLook != null && gLook.Ok) Try("weather", () => gLook.Weather(Mathf.Clamp(sv.wx, 0, GolfGoLook.WX.Length - 1)));
         resuming = true; LoadHole(sv.hi); resuming = false;
@@ -1368,7 +1409,7 @@ public class HoleTest : MonoBehaviour
     // ---------- the round (stage 5): Troy Burne's 18 in order, the web game's Quick play pins and wind ----------
     void NewRound()
     {
-        CancelInvoke(); hud.HideChoice(); hud.HidePaper(); cardUp = false; roundSeed = Random.Range(1, 1000000000); roundDiff = 0; holesDone = 0; NewWeather();
+        CancelInvoke(); hud.HideChoice(); hud.HidePaper(); cardUp = false; practice = false; roundSeed = Random.Range(1, 1000000000); roundDiff = 0; holesDone = 0; NewWeather();
         for (int k = 0; k < 18; k++) { scores[k] = 0; pars[k] = 0; }
         LoadHole(0);
     }
@@ -1392,10 +1433,11 @@ public class HoleTest : MonoBehaviour
     }
     void HoleDone()
     {
+        if (practice) { PracticeDone(); return; }
         cardUp = true; bool last = hi >= 17; int s0 = scores[hi]; var c = CardBase(); var btn = new List<string>();
         if (last)
         {   // the round's end: the total, a personal best on this device (back tees only on the web; Unity plays one set)
-            ClearSave(); int tot = Total(); int best = PlayerPrefs.GetInt("troyburne-best-18", 0); bool isBest = best == 0 || tot < best; if (isBest) PlayerPrefs.SetInt("troyburne-best-18", tot);
+            ClearSave(); int tot = Total(); string bk = CourseId == "troy" ? "troyburne-best-18" : "best-18-" + CourseId; int best = PlayerPrefs.GetInt(bk, 0); bool isBest = best == 0 || tot < best; if (isBest) PlayerPrefs.SetInt(bk, tot);
             c.eyebrow = "Round complete"; c.title = tot + " (" + DiffStr(roundDiff) + ")";
             c.note = isBest ? (best > 0 ? "New personal best — beat your old " + best + "." : "First round in the books. Go again and beat it.") : "Personal best on this device: " + best + ".";
         }
@@ -1415,7 +1457,7 @@ public class HoleTest : MonoBehaviour
             if (last) NewRound(); else LoadHole(hi + 1);
         });
     }
-    string NextPar() { try { return HoleData.Load("troy/h" + (hi + 2).ToString("00")).par.ToString(); } catch { return "?"; } }
+    string NextPar() { try { return HoleData.Load(CourseId + "/h" + (hi + 2).ToString("00")).par.ToString(); } catch { return "?"; } }
     int Total() { int t = 0; for (int k = 0; k < 18; k++) t += scores[k]; return t; }
     static string DiffStr(int d) => d == 0 ? "E" : d > 0 ? "+" + d : d.ToString();
     static string ScoreName(int s, int par) { int tp = s - par; return s == 1 ? "Hole in one" : tp <= -3 ? "Albatross" : tp == -2 ? "Eagle" : tp == -1 ? "Birdie" : tp == 0 ? "Par" : tp == 1 ? "Bogey" : tp == 2 ? "Double bogey" : "+" + tp; }
@@ -1423,7 +1465,7 @@ public class HoleTest : MonoBehaviour
     void ShowCard(bool afterHole)
     {
         if (afterHole) { HoleDone(); return; }
-        var c = CardBase(); c.eyebrow = (Tips?.name ?? "Troy Burne") + " · " + (holesDone >= 18 ? "Final" : "Thru " + holesDone); c.title = "Round " + DiffStr(roundDiff);
+        var c = CardBase(); c.eyebrow = (Tips?.name ?? CourseName) + " · " + (holesDone >= 18 ? "Final" : "Thru " + holesDone); c.title = "Round " + DiffStr(roundDiff);
         c.note = holesDone > 0 ? Total() + " strokes through " + holesDone + (holesDone == 1 ? " hole." : " holes.") : "No holes finished yet.";
         c.buttons = new[] { "!Back to the hole", "~New round" };
         hud.ShowPaper(c, k => { if (k == 1) { ClearSave(); NewRound(); } else if (cardUp && st == S.Holed) HoleDone(); });
@@ -1437,14 +1479,37 @@ public class HoleTest : MonoBehaviour
     {
         if (hud.ChoiceOpen || !(st == S.Aim || st == S.Holed)) return;
         string gName = System.Array.Find(Golfers, g => g[0] == golferId)?[1] ?? golferId;
-        var opts = new List<(string, string, bool)> { ("Resume", "", true), ("Scorecard", "Thru " + holesDone + " · Round " + DiffStr(roundDiff), false), ("Golfer", "Playing as " + gName, false), ("Bag", BagSummary(), false), ("Flight zoom", TRZ >= 1.5f ? "Closest" : TRZ >= 1.3f ? "Closer" : "Standard", false), ("Graphics", GolfGoLook.Enhanced ? "Enhanced · tap for the web's look" : "Web · tap for Enhanced", false), ("Restart hole", "Hole " + (hi + 1) + " from the tee", false), ("New round", "Troy Burne from the 1st", false) };
-        hud.ShowChoice("Paused", "Troy Burne · Hole " + (hi + 1), null, opts, k =>
+        var opts = new List<(string, string, bool)> { ("Resume", "", true),
+            ("Scorecard", practice ? "Practice · no round" : "Thru " + holesDone + " · Round " + DiffStr(roundDiff), false), ("Golfer", "Playing as " + gName, false), ("Bag", BagSummary(), false),
+            ("Settings", "Flight zoom, graphics, grid lines, FPS", false), ("Restart hole", "Hole " + (hi + 1) + " from the tee", false),
+            ("Home", practice ? "Courses and rounds" : "Your round is saved", false) };
+        hud.ShowChoice("Paused", CourseName + " · Hole " + (hi + 1), null, opts, k =>
         {
             if (k == 0) { if (cardUp && st == S.Holed) HoleDone(); }
-            else if (k == 1) ShowCard(false); else if (k == 2) PickGolfer(); else if (k == 3) { hud.HideChoice(); BagMenu(); }
-            else if (k == 4) { float z = TRZ; PlayerPrefs.SetFloat("trz", z >= 1.5f ? 1 : z >= 1.3f ? 1.5f : 1.3f); hud.HideChoice(); Menu(); }
-            else if (k == 5) { bool e = !GolfGoLook.Enhanced; PlayerPrefs.SetInt("gfx", e ? 1 : 0); ApplyGfx(e); hud.HideChoice(); Menu(); }
-            else if (k == 6) { if (scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); } else if (k == 7) { ClearSave(); NewRound(); }
+            else if (k == 1) { if (practice) { hud.HideChoice(); Menu(); } else ShowCard(false); }
+            else if (k == 2) PickGolfer(); else if (k == 3) { hud.HideChoice(); BagMenu(); }
+            else if (k == 4) { hud.HideChoice(); Settings(); }
+            else if (k == 5) { if (!practice && scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); }
+            else if (k == 6) { hud.HideChoice(); if (!practice && st != S.Holed) SaveRound(false); ShowHome(); }
+        });
+    }
+    // the web's pause-menu settings: Flight zoom, Graphics (Enhanced / Web), Grid lines (Standard / Darker: the green's slope grid
+    // with a soft dark edge either side of each line, so the yellow and green lines still read on a bright green), Show FPS
+    void Settings()
+    {
+        bool dk = PlayerPrefs.GetInt("grid", 0) == 1, fps = PlayerPrefs.GetInt("fps", 1) == 1;
+        var opts = new List<(string, string, bool)> {
+            ("Flight zoom", TRZ >= 1.5f ? "Closest" : TRZ >= 1.3f ? "Closer" : "Standard", false),
+            ("Graphics", GolfGoLook.Enhanced ? "Enhanced · tap for the web's look" : "Web · tap for Enhanced", false),
+            ("Grid lines", dk ? "Darker · tap for Standard" : "Standard · tap for Darker", false),
+            ("Show FPS", fps ? "On" : "Off", false), ("Back", "", true) };
+        hud.ShowChoice("Paused", "Settings", null, opts, k =>
+        {
+            if (k == 0) { float z = TRZ; PlayerPrefs.SetFloat("trz", z >= 1.5f ? 1 : z >= 1.3f ? 1.5f : 1.3f); }
+            else if (k == 1) { bool e = !GolfGoLook.Enhanced; PlayerPrefs.SetInt("gfx", e ? 1 : 0); ApplyGfx(e); }
+            else if (k == 2) PlayerPrefs.SetInt("grid", dk ? 0 : 1);
+            else if (k == 3) { PlayerPrefs.SetInt("fps", fps ? 0 : 1); hud.SetFps(""); }
+            hud.HideChoice(); if (k == 4) Menu(); else Settings();
         });
     }
 
@@ -1528,7 +1593,7 @@ public class HoleTest : MonoBehaviour
         if (fAcc >= .5f)
         {
             int f = Mathf.RoundToInt(fN / fAcc);
-            hud.SetFps(f + " FPS · worst " + Mathf.RoundToInt(fMax * 1000) + " ms · " + Screen.currentResolution.refreshRateRatio.value.ToString("0") + " Hz\n" + Diag());
+            if (PlayerPrefs.GetInt("fps", 1) == 1) hud.SetFps(f + " FPS · worst " + Mathf.RoundToInt(fMax * 1000) + " ms · " + Screen.currentResolution.refreshRateRatio.value.ToString("0") + " Hz\n" + Diag());
             fN = 0; fAcc = 0; fMax = 0;
         }
     }
