@@ -5,7 +5,7 @@ using UnityEngine;
      (three's lights divide by pi and the web's sun is SUN_COL x pi; Unity's don't: the same numbers);
    - the sky (GolfGo/Sky) as the skybox, which also lights the course: ambient from the sky (x the weather's env) and the sky's
      reflections, as the web's image-based light from the sky;
-   - the clouds' shadows drifting over the course (the sun's cookie, GolfGo/CloudShadow);
+   - the clouds' shadows drifting over the course (in the ground, grass and tree shaders: GolfGoBake.cginc cloudAt);
    - the weather (R3_WX): Sunny, Partly cloudy, Cloudy, Overcast: sun, exposure, sky light, cloud cover, grey;
    - the finish (GolfGo/Post): haze, filmic curve x exposure, grade, vignette. */
 [RequireComponent(typeof(Camera))]
@@ -44,11 +44,10 @@ public class GolfGoLook : MonoBehaviour
             // SUN_COL x sun strength, linear (lightsUseLinearIntensity): colour = its normalised hue, intensity = the red channel
             sun.color = new Color(1, 1.36f / 1.5f, 1.12f / 1.5f).gamma; sun.intensity = 1.5f * w.sun;
             sun.shadows = LightShadows.Soft; sun.shadowStrength = 1;
-            if (cookieMat != null)
-            {
-                if (cookie == null) { cookie = new RenderTexture(256, 256, 0, RenderTextureFormat.ARGB32) { wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Bilinear }; cookie.Create(); }
-                sun.cookie = cookie; sun.cookieSize = COOKIE;
-            }
+            // no cookie: the clouds' shadows are worked out in the ground, grass and tree shaders (GolfGoBake.cginc cloudAt), as the
+            // web does. A directional light with a cookie is left out of Unity's forward base pass, so the ground (noforwardadd) got
+            // no sun at all: no golfer's shadow, no light raking across the turf, no light through the grass and the leaves
+            sun.cookie = null;
         }
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; RenderSettings.ambientIntensity = w.env;
         RenderSettings.defaultReflectionMode = UnityEngine.Rendering.DefaultReflectionMode.Custom; RenderSettings.reflectionIntensity = w.env;

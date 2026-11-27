@@ -668,6 +668,19 @@ public class Hud
         if (!ring) { ringInk.enabled = ringGold.enabled = false; ringT.enabled = false; }
     }
     public void AimHide() { AimBegin(); AimEnd(false); }
+    // the landing rings (post-chain.js G.fx): drawn each frame from the game's list, a pool of outlines under the aim
+    readonly List<EllipseRing> fxRings = new List<EllipseRing>(); int fxN;
+    public void FxBegin() { fxN = 0; }
+    public void FxRing(Vector2 px, float rx, float ry, Color c)
+    {
+        if (fxN == fxRings.Count)
+        {
+            var r = RT("FxRing", aimLayer).gameObject.AddComponent<EllipseRing>(); r.raycastTarget = false; r.rectTransform.pivot = new Vector2(.5f, .5f);
+            r.rectTransform.sizeDelta = Vector2.zero; r.rectTransform.SetSiblingIndex(0); fxRings.Add(r);
+        }
+        var e = fxRings[fxN++]; e.enabled = true; e.color = c; e.rectTransform.anchoredPosition = Css(px); e.Set(rx, ry, 2);
+    }
+    public void FxEnd() { for (int i = fxN; i < fxRings.Count; i++) fxRings[i].enabled = false; }
 
     // ---------- the look button (.lookbtn): a round button above the bottom panel's right side; gold while looking ----------
     public Action onLook; Image lookBtn, lookDrop; RawImage lookIco;

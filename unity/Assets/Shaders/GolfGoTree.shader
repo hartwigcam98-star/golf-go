@@ -20,9 +20,10 @@ Shader "GolfGo/Tree"
         Tags { "RenderType" = "TransparentCutout" "Queue" = "AlphaTest" }
         Cull [_Cull]
         CGPROGRAM
-        #pragma surface surf Standard vertex:vert addshadow fullforwardshadows
+        #pragma surface surf GG vertex:vert addshadow fullforwardshadows   // (GG: the clouds' shadows; no bake on the trees)
         #pragma multi_compile_instancing
         #pragma target 3.5
+        #include "GolfGoBake.cginc"
         sampler2D _MainTex, _BumpMap; float4 _MainTex_TexelSize; float _Kind, _Raw;
         UNITY_INSTANCING_BUFFER_START(Props)
             UNITY_DEFINE_INSTANCED_PROP(float4, _Tint)
@@ -39,8 +40,9 @@ Shader "GolfGo/Tree"
                 v.vertex.z -= cos(_Time.y * 1.1 + wz * .19) * .05 * hh;
             }
         }
-        void surf (Input IN, inout SurfaceOutputStandard o)
+        void surf (Input IN, inout SurfaceOutputGG o)
         {
+            o.Bk = half2(1, 1); o.Cloud = cloudAt(IN.worldPos);
             float4 tint = UNITY_ACCESS_INSTANCED_PROP(Props, _Tint);
             // the trees' colours are the web's display-space colours / 2, squared into linear light as r3Geo does; built things' are linear
             float3 c0 = IN.color.rgb * 2; float3 vc = (_Raw > .5 ? IN.color.rgb : c0 * c0) * tint.rgb;
@@ -69,7 +71,7 @@ Shader "GolfGo/Tree"
             {
                 float k = _Kind > 1.5 ? .5 : .3, p = _Kind > 1.5 ? 3 : 4;
                 float3 vv = normalize(_WorldSpaceCameraPos - IN.worldPos);
-                o.Emission = alb * _LightColor0.rgb * k * pow(max(dot(-vv, _WorldSpaceLightPos0.xyz), 0), p);
+                o.Emission = alb * _LightColor0.rgb * k * pow(max(dot(-vv, _WorldSpaceLightPos0.xyz), 0), p) * (1. - o.Cloud);
             }
         #ifdef UNITY_COLORSPACE_GAMMA
             alb = LinearToGammaSpace(alb); o.Emission = LinearToGammaSpace(o.Emission);

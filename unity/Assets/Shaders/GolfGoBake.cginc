@@ -5,12 +5,14 @@
 #ifndef GOLFGO_BAKE
 #define GOLFGO_BAKE
 #include "UnityPBSLighting.cginc"
+#include "GolfGoSky.cginc"
 sampler2D _Light; float4 _LB; float _LightOn; float4 _BkK;
 
 struct SurfaceOutputGG
 {
     fixed3 Albedo; float3 Normal; half3 Emission; half Metallic; half Smoothness; half Occlusion; fixed Alpha;
     half2 Bk;   // (sun, sky) at the spot, 1 = open
+    half Cloud; // how much a cloud's shadow takes off the sun here (0 = none; zero-initialised, so a shader that leaves it is unshaded)
 };
 // the bake at a spot on the game's ground plane q = (x, -z); its image's row 0 is the rect's min y (uploaded without flipY)
 half2 bakeAt (float2 q)
@@ -20,6 +22,10 @@ half2 bakeAt (float2 q)
     if (lu.x <= 0. || lu.y <= 0. || lu.x >= 1. || lu.y >= 1.) return half2(1, 1);
     return tex2D(_Light, float2(lu.x, 1. - lu.y)).rg;
 }
+// the clouds' shadows at a Unity world spot (the web's cloudShadow, lighting-shared-by-every.js), as SurfaceOutputGG.Cloud:
+// the web multiplies the direct light by it on every material; here in the shaders, not as the sun's cookie (a cookie takes the
+// sun out of Unity's base pass: no sun, no shadows, no light through the leaves on a noforwardadd shader)
+half cloudAt (float3 wpU) { return 1. - cloudShadowAt(float3(wpU.x, wpU.y, -wpU.z)); }
 inline SurfaceOutputStandard GGStd (SurfaceOutputGG s)
 {
     SurfaceOutputStandard o; o.Albedo = s.Albedo; o.Normal = s.Normal; o.Emission = s.Emission; o.Metallic = s.Metallic;
@@ -28,7 +34,7 @@ inline SurfaceOutputStandard GGStd (SurfaceOutputGG s)
 inline half4 LightingGG (SurfaceOutputGG s, float3 viewDir, UnityGI gi)
 {
     half2 k = _BkK.z > .5 ? _BkK.xy : half2(.9, .8);
-    gi.light.color *= lerp(1., s.Bk.x, k.x); gi.indirect.diffuse *= lerp(1., s.Bk.y, k.y);
+    gi.light.color *= lerp(1., s.Bk.x, k.x) * (1. - s.Cloud); gi.indirect.diffuse *= lerp(1., s.Bk.y, k.y);
     return LightingStandard(GGStd(s), viewDir, gi);
 }
 inline void LightingGG_GI (SurfaceOutputGG s, UnityGIInput data, inout UnityGI gi) { LightingStandard_GI(GGStd(s), data, gi); }

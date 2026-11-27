@@ -46,13 +46,19 @@ Shader "GolfGo/Ground"
         Tags { "RenderType"="Opaque" }
         LOD 200
         CGPROGRAM
-        #pragma surface surf GG noforwardadd exclude_path:deferred
+        #pragma surface surf GG vertex:vert noforwardadd exclude_path:deferred
         #pragma target 3.5
         #include "GolfGoBake.cginc"
         sampler2D _SlT; float4 _SLB, _SlRot; float _SlOn, _SLG, _SlDk;
         sampler2D _MainTex, _Surf, _DS, _DR, _DF, _DD, _PG, _PS, _Surround, _PGN, _PSN;
         float4 _GB, _GSB, _GSS, _TK, _RLS, _RLG; float _GMode, _POn;
-        struct Input { float3 worldPos; float3 worldNormal; INTERNAL_DATA };
+        struct Input { float3 worldPos; float3 worldNormal; float cloudV; INTERNAL_DATA };
+        // the clouds' shadows, worked out at the vertices (they're hundreds of yards across): the fragment has every sampler it can take
+        void vert (inout appdata_full v, out Input o)
+        {
+            UNITY_INITIALIZE_OUTPUT(Input, o);
+            o.cloudV = cloudAt(mul(unity_ObjectToWorld, v.vertex).xyz);
+        }
 
         // the web game's GLSL_NOISE
         float hash (float2 p) { return frac(sin(dot(p, float2(127.1, 311.7))) * 43758.5453); }
@@ -191,6 +197,7 @@ Shader "GolfGo/Ground"
         #endif
             // the hole's light baked in Blender (the web's bkOn): the sun's and the sky's light there (GolfGoBake.cginc)
             o.Bk = _GMode > .5 ? bakeAt(q) : half2(1, 1);
+            o.Cloud = IN.cloudV;   // the clouds' shadows drifting over (as the web's, in the shader: GolfGoBake.cginc)
             // micro-relief (the web's normal_fragment_maps patch): the grass and sand detail as a bump, so the sun rakes across it
             // (Mikkelsen's surface gradient from screen derivatives, in world space), then the photos' normals on top
             {

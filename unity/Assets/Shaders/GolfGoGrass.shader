@@ -96,8 +96,9 @@ Shader "GolfGo/Grass"
             float3 alb = IN.color.rgb;
             float3 vv = normalize(_WorldSpaceCameraPos - IN.worldPos);
             o.Bk = bakeAt(float2(IN.worldPos.x, -IN.worldPos.z));
+            o.Cloud = cloudAt(IN.worldPos);
             // translucent, as the web's (its sunCol is the light's colour)
-            float3 em = alb * _LightColor0.rgb * .3 * pow(max(dot(-vv, _WorldSpaceLightPos0.xyz), 0), 4) * lerp(1., o.Bk.x, .9);
+            float3 em = alb * _LightColor0.rgb * .3 * pow(max(dot(-vv, _WorldSpaceLightPos0.xyz), 0), 4) * lerp(1., o.Bk.x, .9) * (1. - o.Cloud);
         #ifdef UNITY_COLORSPACE_GAMMA
             alb = LinearToGammaSpace(alb); em = LinearToGammaSpace(em);
         #endif

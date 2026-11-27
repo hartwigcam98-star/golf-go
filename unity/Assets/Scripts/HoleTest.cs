@@ -44,7 +44,7 @@ public class HoleTest : MonoBehaviour
     // the bag panel (renderBag): each slot and its model; tap a slot to pick another
     string BagSummary() { var q = BagNow(); var n = new List<string>(); for (int i = 0; i < 5; i++) if (q[i] != "std") n.Add(System.Array.Find(BAG_SLOTS[i].m, m => m.id == q[i]).name); return n.Count == 0 ? "Standard bag" : string.Join(" \u00b7 ", n); }
     // drawBallGear: Distance is optic yellow, Low spin orange, the rest white (the urethane's red band is left out)
-    void BallColour() { var q = BagNow(); var c = q[4] == "dist" ? new Color(1, .93f, .28f) : q[4] == "low" ? new Color(1, .52f, .14f) : Color.white; var r = ball.GetComponent<MeshRenderer>(); r.sharedMaterial.color = c * new Color(.96f, .96f, .94f, 1); }
+    void BallColour() { var q = BagNow(); var c = q[4] == "dist" ? new Color(1, .93f, .28f) : q[4] == "low" ? new Color(1, .52f, .14f) : Color.white; var r = ball.GetComponent<MeshRenderer>(); r.sharedMaterial.color = c; }   // (the web's ball: tint 1,1,1 on its gloss material)
     // club swaps (CLUB_ALT): slot -> club id, saved as "3W:MD;LW:64"
     static Dictionary<string, string> Swaps()
     {
@@ -155,6 +155,8 @@ public class HoleTest : MonoBehaviour
         Application.logMessageReceived += OnLog;
         Application.targetFrameRate = 120; QualitySettings.vSyncCount = 0; Screen.sleepTimeout = SleepTimeout.NeverSleep;
         QualitySettings.shadowDistance = 160; QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowResolution = ShadowResolution.High;
+        // two cascades, the near one over the first 30%: the golfer's shadow about as sharp as the web's (2048 over 200 yd round the view)
+        QualitySettings.shadowCascades = 2; QualitySettings.shadowCascade2Split = .3f; QualitySettings.shadowProjection = ShadowProjection.StableFit;
         // the game's own mechanics (GolfGo.Sim, checked shot for shot against the web game) and its numbers
         TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); Clubs = TU.ClubSet(Swaps());
         lightB = (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(Resources.Load<TextAsset>("troy/light_bounds").text);
@@ -489,6 +491,7 @@ public class HoleTest : MonoBehaviour
         Make(club, cyl, M("Dark"), new Vector3(0, -.55f, .25f), new Vector3(.02f, .55f, .02f)).localRotation = Quaternion.Euler(25, 0, 0);
         ball = Make(null, sph, new Material(M("White")), Vector3.zero, Vector3.one * .06f);   // (its own material: the ball's colour follows the bag)
         ball.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        ball.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Glossiness", .78f);   // the web draws the ball with its gloss material (roughness .22): the sun's glint blooms
         // light and camera
         var L = new GameObject("Sun").AddComponent<Light>(); L.type = LightType.Directional; L.intensity = 1.15f; L.shadows = LightShadows.Soft;
         L.transform.rotation = Quaternion.Euler(48, -35, 0); RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
@@ -798,6 +801,7 @@ public class HoleTest : MonoBehaviour
             if (fxQ != null && launched) { var q = fxQ; fxQ = null; Try("effects", q); }
             Try("effects", () => { FX.Step(fdt, (float)windA, (float)windMph); FX.Draw(cam, VfPx / hud.K, mapView); });
         }
+        Try("rings", () => FxRingsDraw(fdt));
         Try("trees lod", () => speciesTrees?.Lod(cam.transform.position)); Try("far draw", () => far?.Draw());
         // the grass: densest round the ball (or the look camera's spot); none in the overview or while the look camera is far out
         Try("grass draw", () => grass?.Draw(cam, fc != null && st == S.Aim ? new Vector2(fc.tx, fc.tz) : b, b, (float)windA, (float)windMph, mapView || (fc != null && st == S.Aim && fc.dist > 140)));
@@ -1068,12 +1072,47 @@ public class HoleTest : MonoBehaviour
         // in the air (flight, hops) the sim's height; rolling, the ground under it (the sim leaves bY where the ball touched down, and
         // the web draws a rolling ball at hAt: an uphill roll was drawn under the turf, the ball "disappearing into the ground")
         bool airNow = SB.state == GolfGo.Sim.BallState.Flight || SB.state == GolfGo.Sim.BallState.Bounce; bY = airNow ? (float)SB.bY : D.H(b.x, b.y);
-        if (recOn) { recT += dt; rec.Add(new Vector4(recT, b.x, b.y, airNow ? bY : D.H(b.x, b.y))); }   // (the web: in the air through the hops too)
+        if (recOn) { recT += dt; rec.Add(new Vector4(recT, b.x, b.y, airNow ? bY : D.H(b.x, b.y))); }
+        {   // each hop coming down after the first landing: a ring too (the web's bounce, t .3)
+            float gap = (float)SB.bY - D.H(b.x, b.y);
+            if (SB.state == GolfGo.Sim.BallState.Flight || !SB.Moving) hopAir = false;
+            else if (SB.state == GolfGo.Sim.BallState.Bounce && gap > .08f) hopAir = true;
+            else if (hopAir && (SB.state != GolfGo.Sim.BallState.Bounce || gap < .03f)) { hopAir = false; FxRingAdd(b.x, b.y, .3f, SH.Lie(b.x, b.y) == "sand" ? 1 : 0); }
+        }   // (the web: in the air through the hops too)
         if (SB.state == GolfGo.Sim.BallState.Flight && FX != null && !fPutt) FX.Trail(b.x, b.y, bY);
         if (st == S.Flight && SB.state != GolfGo.Sim.BallState.Flight) st = S.Roll;
         var o = SB.outcome;
         if (o != null) for (; evSeen < o.events.Count; evSeen++) { FxEvent(o.events[evSeen], evSeen < o.at.Count ? o.at[evSeen] : null); ShotEvent(o.events[evSeen], o); }
         if (!SB.Moving) Finish(o);
+    }
+    // ---------- the landing rings (post-chain.js G.fx): where the ball comes down, and each hop after, a ring spreads on the ground
+    // (.6 yd growing 3 yd over .6 s, white; sand-coloured in a bunker); into the water four, 2 yd growing 8 over 1.9 s ----------
+    readonly List<Vector4> fxR = new List<Vector4>(); bool hopAir;   // (x, y, t, kind: 0 land, 1 sand, 2 splash)
+    void FxRingAdd(float x, float y, float t, int kind) { fxR.Add(new Vector4(x, y, t, kind)); }
+    void FxRingsDraw(float dt)
+    {
+        hud.FxBegin();
+        for (int i = fxR.Count - 1; i >= 0; i--) { var f = fxR[i]; f.z += dt / (f.w > 1.5f ? 1.9f : .6f); if (f.z >= 1) fxR.RemoveAt(i); else fxR[i] = f; }
+        if (!mapView && st != S.Replay)
+            foreach (var f in fxR)
+            {
+                bool spl = f.w > 1.5f; float r = spl ? 2 + f.z * 8 : .6f + f.z * 3;
+                if (!GroundEllipse(f.x, f.y, r, 4, out var c, out var rx, out var ry)) continue;
+                float a = 1 - f.z; var col = f.w > .5f && !spl ? new Color(240 / 255f, 224 / 255f, 171 / 255f, a) : new Color(1, 1, 1, a * .8f);
+                for (int i = 0; i < (spl ? 4 : 1); i++) hud.FxRing(c, rx * (1 + i * .4f), ry * (1 + i * .4f), col);
+            }
+        hud.FxEnd();
+    }
+    // camera.js groundEllipse: a ring of r yd on the ground at (x, y) on screen; radii in CSS px, at least minPx across
+    bool GroundEllipse(float x, float y, float r, float minPx, out Vector2 c, out float rx, out float ry)
+    {
+        float gy = D.H(x, y) + .02f; var cw = HoleData.U(x, y, gy); var s3 = cam.WorldToScreenPoint(cw); c = s3; rx = ry = 0;
+        if (s3.z < .3f) return false;
+        var fh = cam.transform.forward; fh.y = 0; fh = fh.sqrMagnitude > 1e-6f ? fh.normalized : Vector3.forward;
+        var a = cam.WorldToScreenPoint(cw + fh * r); var bb = cam.WorldToScreenPoint(cw - fh * r);
+        float k = VfPx / s3.z / hud.K; rx = r * k; ry = a.z >= .3f && bb.z >= .3f ? Mathf.Abs(a.y - bb.y) / 2 / hud.K : rx * .3f;
+        if (rx < minPx) { ry *= minPx / rx; rx = minPx; }
+        ry = Mathf.Max(ry, 1); return true;
     }
     // the effects for what happened on the way: leaves (and now and then birds) through a tree, a pitch mark on the green
     Effects FX; System.Action fxQ;
@@ -1088,6 +1127,7 @@ public class HoleTest : MonoBehaviour
             else if (e == "rim") SFX.Rim();
             else if (e == "land") SFX.Land();
         }
+        if (e == "land") { FxRingAdd(b.x, b.y, 0, SH.Lie(b.x, b.y) == "sand" ? 1 : 0); hopAir = false; }
         if (FX == null || at == null) return;
         if (e == "rustle") { FX.Leaves((float)at[0], (float)at[1], (float)at[2], (float)at[3], (float)at[4], 8 + Random.Range(0, 6)); if (at.Length >= 8 && Random.value < .4f) { FX.Birds((float)at[5], (float)at[6], (float)at[7], (float)at[0], (float)at[1], 2 + Random.Range(0, 3), 0); SFX?.Flutter(.6f); } }
         else if (e == "pmark") FX.PitchMark((float)at[0], (float)at[1], (float)at[3], (float)at[4]);
@@ -1198,7 +1238,7 @@ public class HoleTest : MonoBehaviour
     {
         strokes++; buried = false; st = S.Holed; hud.SetHint("");
         if (L != "water") { SFX?.Miss(); hud.Toast("OUT OF BOUNDS", "+1 stroke · replay from last spot", Hud.Coral); b = prev; bY = D.H(b.x, b.y); Invoke(nameof(Next), 1.6f); return; }   // stroke and distance (Rule 18.2)
-        hud.Toast("SPLASH!", "Penalty area · +1 stroke", Hud.SkyC); FX?.Splash(b.x, b.y, fPutt);
+        hud.Toast("SPLASH!", "Penalty area · +1 stroke", Hud.SkyC); FX?.Splash(b.x, b.y, fPutt); FxRingAdd(b.x, b.y, 0, 2);
         if (SFX != null) { if (fPutt) SFX.Plop(true); else { SFX.Splash(); SFX.Plop(false); } }
         // Rule 17: where it last crossed into the water, then lateral, back on the line, or stroke and distance; the best is marked
         var at = new[] { (double)b.x, (double)b.y }; var rec = new List<double[]>(SB.rec) { at };
@@ -1321,7 +1361,7 @@ public class HoleTest : MonoBehaviour
     }
     void LoadHole(int i)
     {
-        CancelInvoke(); hud.HideChoice(); hud.HidePaper(); hud.HideStats(); cardUp = false; inCup = false; shotInfo = null; hi = i; canReplay = false; recOn = false; if (st == S.Replay) st = S.Aim;
+        CancelInvoke(); hud.HideChoice(); hud.HidePaper(); hud.HideStats(); fxR.Clear(); hopAir = false; cardUp = false; inCup = false; shotInfo = null; hi = i; canReplay = false; recOn = false; if (st == S.Replay) st = S.Aim;
         D = HoleData.Load(HolePath(""));
         CO = new GolfGo.Sim.Course(Resources.Load<TextAsset>(HolePath("")).text);
         // pinIndex (a Quick play round): one of the hole's three pin spots, from the round's seed
