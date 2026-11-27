@@ -169,7 +169,7 @@ Shader "GolfGo/Post"
                 // the spot's plane from its neighbours one AO texel away (two screen pixels: the depth texture can be coarser than the
                 // picture, and a neighbour reading the same depth texel tips the plane toward the camera: bands of false shade across the
                 // ground in build 28's look check); the nearer-depth side, as the web's, unless that side hasn't moved at all
-                float2 dp = _GGK.zw; float e = 1e-5 * P.z;
+                float2 dp = _GGK.zw; float e = 1e-5 * P.z + 1e-4;
                 float3 px1 = vp(q + float2(dp.x, 0)), px0 = vp(q - float2(dp.x, 0)), py1 = vp(q + float2(0, dp.y)), py0 = vp(q - float2(0, dp.y));
                 float ax1 = abs(px1.z - P.z), ax0 = abs(P.z - px0.z), ay1 = abs(py1.z - P.z), ay0 = abs(P.z - py0.z);
                 float3 dx = (ax1 < ax0 && ax1 > e) || ax0 <= e ? px1 - P : P - px0, dy = (ay1 < ay0 && ay1 > e) || ay0 <= e ? py1 - P : P - py0;
@@ -185,6 +185,7 @@ Shader "GolfGo/Post"
                 }
                 float ao = pow(max(0., 1. - 2.2 * Rw * occ / 12.), 1.6);
                 ao = lerp(ao, 1., smoothstep(70., 140., P.z));
+                ao = lerp(1., ao, smoothstep(5.5, 8.5, P.z));   // (none on the ground at your feet: a band of false shade there in build 28)
                 return float4(ao, P.z, 0, 1);
             }
             ENDCG
