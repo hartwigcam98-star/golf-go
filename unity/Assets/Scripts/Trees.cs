@@ -16,13 +16,13 @@ public class Trees
     float nextLod; Vector3 lodAt = new Vector3(1e9f, 0, 0);
 
     static Material[] Mats() => mats ??= new[] { Resources.Load<Material>("Mats/TreeBark"), Resources.Load<Material>("Mats/TreeMass"), Resources.Load<Material>("Mats/TreeLeaf") };
-    public static bool Available(string holePath) => Resources.Load<TextAsset>(holePath + "_trees") != null && Mats()[2] != null && Mats()[2].shader != null && Mats()[2].shader.isSupported;
+    public static bool Available(string holePath) => CourseStore.Load<TextAsset>(holePath + "_trees") != null && Mats()[2] != null && Mats()[2].shader != null && Mats()[2].shader.isSupported;
 
     // one model: 6 parts (full bark, mass, leaf; lite bark, mass, leaf), as Unity meshes (null where a part is empty)
     static Mesh[] Model(string key)
     {
         if (lib.TryGetValue(key, out var m)) return m;
-        var ta = Resources.Load<TextAsset>("trees/" + key.Replace('|', '_').Replace('#', '-'));
+        var ta = CourseStore.Load<TextAsset>("trees/" + key.Replace('|', '_').Replace('#', '-'));
         m = new Mesh[6];
         if (ta != null)
         {
@@ -52,7 +52,7 @@ public class Trees
     public Trees(string holePath, Transform parent)
     {
         root = new GameObject("Species trees").transform; root.SetParent(parent, false);
-        var ta = Resources.Load<TextAsset>(holePath + "_trees"); if (ta == null) return;
+        var ta = CourseStore.Load<TextAsset>(holePath + "_trees"); if (ta == null) return;
         var b = ta.bytes; int o = 0, groups = System.BitConverter.ToInt32(b, o); o += 4; var M = Mats(); var mpb = new MaterialPropertyBlock();
         for (int gi = 0; gi < groups; gi++)
         {

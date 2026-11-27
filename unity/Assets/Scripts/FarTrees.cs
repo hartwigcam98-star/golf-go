@@ -11,7 +11,7 @@ public class FarTrees
     readonly GameObject go; readonly Mesh mesh;
     public FarTrees(string holePath, Transform parent)
     {
-        var ta = Resources.Load<TextAsset>(holePath + "_far"); var bm = Resources.Load<Material>("Mats/Far");
+        var ta = CourseStore.Load<TextAsset>(holePath + "_far"); var bm = Resources.Load<Material>("Mats/Far");
         Why = ta == null ? "no data" : bm == null ? "no material" : bm.shader == null ? "no shader" : !bm.shader.isSupported ? "shader unsupported" : null;
         if (Why != null) return;
         var b = ta.bytes; int n = System.BitConverter.ToInt32(b, 0); if (n == 0) { Why = "0 trees"; return; }

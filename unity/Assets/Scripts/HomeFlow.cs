@@ -32,7 +32,11 @@ public partial class HoleTest
         {
             d.state = StateName(homeState); d.courses = new List<(string, string, string, Texture, bool)>();
             foreach (var c in Courses) if (c.state == homeState)
-                    d.courses.Add((c.id, c.name, c.town.Contains(",") ? c.town.Substring(0, c.town.LastIndexOf(',')) : c.town, Resources.Load<Texture2D>(c.id + "/hero"), c.id == CourseId));
+                {
+                    string town = c.town.Contains(",") ? c.town.Substring(0, c.town.LastIndexOf(',')) : c.town;
+                    if (!CourseStore.Ready(c.id)) town = CourseStore.Known(c.id) ? "↓ " + CourseStore.MB(CourseStore.Size(c.id)) + " · " + town : "Not in this build";
+                    d.courses.Add((c.id, c.name, town, Resources.Load<Texture2D>(c.id + "/hero"), c.id == CourseId));
+                }
         }
         hud.ShowHome(d, keep);
     }
@@ -50,17 +54,43 @@ public partial class HoleTest
         }
         if (e.StartsWith("state:")) { homeState = e.Substring(6); homeHoles = false; }
         else if (e == "map") homeState = null;
-        else if (e.StartsWith("course:")) { string id = e.Substring(7); if (id != CourseId) { SetCourse(id); newArmed = false; } }
+        else if (e.StartsWith("course:"))
+        {
+            string id = e.Substring(7);
+            if (!CourseStore.Ready(id)) { AskDownload(id, () => { SetCourse(id); newArmed = false; RefreshHome(true); }); return; }
+            if (id != CourseId) { SetCourse(id); newArmed = false; }
+        }
         else if (e == "holes") homeHoles = true;
         else if (e == "holes-back") homeHoles = false;
         else if (e.StartsWith("hole:")) { PlayHole(int.Parse(e.Substring(5))); return; }
-        else if (e == "continue") { var sv = LoadSave(); if (sv == null) return; HideHome(); ResumeRound(sv); hud.Toast("WELCOME BACK", CourseName + " · hole " + (hi + 1), Hud.Mint); return; }
+        else if (e == "continue")
+        {
+            var sv = LoadSave(); if (sv == null) return;
+            if (!CourseStore.Ready(sv.course)) { AskDownload(sv.course, () => HomeEvent("continue")); return; }
+            HideHome(); ResumeRound(sv); hud.Toast("WELCOME BACK", CourseName + " · hole " + (hi + 1), Hud.Mint); return; }
         else if (e == "new")
         {
             if (LoadSave() != null && !newArmed) { newArmed = true; RefreshHome(true); return; }
             ClearSave(); HideHome(); NewRound(); return;
         }
         RefreshHome(e.StartsWith("course:") || e == "holes" || e == "holes-back");
+    }
+    // a course not on the phone yet: its size, then the download with a bar (the web's courseGate / #cdlM)
+    void AskDownload(string id, System.Action then)
+    {
+        var ci = CourseOf(id); string nm = ci?.name ?? id;
+        if (!CourseStore.Known(id)) { hud.Toast("NOT HERE YET", nm + " isn't in this build", Hud.Coral); return; }
+        var opts = new List<(string, string, bool)> { ("Download", CourseStore.MB(CourseStore.Size(id)) + " · kept on this phone after this", true), ("Not now", "", false) };
+        hud.ShowChoice("New course", nm, "First time on this course: download it to play.", opts, k =>
+        {
+            if (k != 0) { RefreshHome(true); return; }
+            hud.ShowLoad("Loading " + nm, "First time on this course: it’s saved on this phone after this.", () => CourseStore.Cancel());
+            CourseStore.Download(id, (ok, err) =>
+            {
+                hud.HideLoad();
+                if (ok) then(); else { hud.Toast("NOT DOWNLOADED", err ?? "Try again", Hud.Coral); RefreshHome(true); }
+            });
+        });
     }
     // Play a hole (the web's practice mode): one hole of the current course, a fresh seed and weather, no score kept
     void PlayHole(int i)

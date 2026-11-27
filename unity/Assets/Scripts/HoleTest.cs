@@ -253,10 +253,11 @@ public partial class HoleTest : MonoBehaviour
     static string CourseName => CourseOf(CourseId)?.name ?? Tips?.name ?? CourseId;
     void SetCourse(string id)
     {
-        if (string.IsNullOrEmpty(id) || CourseOf(id) == null || Resources.Load<TextAsset>(id + "/h01") == null) id = "troy";
+        if (string.IsNullOrEmpty(id) || CourseOf(id) == null || !CourseStore.Ready(id)) id = "troy";
         if (id == CourseId && lightB != null) return;
+        if (!CourseStore.Open(id)) { id = "troy"; CourseStore.Open(id); }   // (its downloaded file: the hole data, ground, trees and buildings come from it)
         CourseId = id; PlayerPrefs.SetString("course", id); tipsD = null; groundShared = null; flagMat = null;
-        var lb = Resources.Load<TextAsset>(id + "/light_bounds"); lightB = lb != null ? (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(lb.text) : new Dictionary<string, object>();
+        var lb = CourseStore.Load<TextAsset>(id + "/light_bounds"); lightB = lb != null ? (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(lb.text) : new Dictionary<string, object>();
     }
     // the hole's own objects: ground (heights + course map + baked light), trees, flag; built again for every hole
     void BuildHole()
@@ -287,7 +288,7 @@ public partial class HoleTest : MonoBehaviour
         look = LoadLook();
         var gm = GroundMat(); mr.sharedMaterial = gm; holeAssets.Add(gm);
         // the hole's Blender-baked light as the x2 detail map; its rect can differ from the ground texture's, so map one onto the other
-        var lt = Resources.Load<Texture2D>(HolePath("_light")); Shader.SetGlobalFloat("_LightOn", 0); baked = false;
+        var lt = CourseStore.Load<Texture2D>(HolePath("_light")); Shader.SetGlobalFloat("_LightOn", 0); baked = false;
         if (lt != null && gm.shader.name == "GolfGo/Ground")
         {   // the web game's ground shader: the light map in its own rect
             float lx0 = D.tex.x0, ly0 = D.tex.y0, lw = D.tex.w, lh = D.tex.h;
@@ -377,7 +378,7 @@ public partial class HoleTest : MonoBehaviour
                 int a = j * 13 + i, c = a + 13; ft.AddRange(new[] { a, c, a + 1, a + 1, c, c + 1 }); int A = a + FLAG_N, Cc = c + FLAG_N; ft.AddRange(new[] { A, A + 1, Cc, A + 1, Cc + 1, Cc });
             }
             flagMesh.vertices = fv; flagMesh.uv = fuv; flagMesh.SetTriangles(ft, 0);
-            var ftex = Resources.Load<Texture2D>(CourseId + "/flag"); flagMat = new Material(Shader.Find("Standard")); flagMat.SetFloat("_Glossiness", .15f);
+            var ftex = CourseStore.Load<Texture2D>(CourseId + "/flag"); flagMat = new Material(Shader.Find("Standard")); flagMat.SetFloat("_Glossiness", .15f);
             if (ftex) flagMat.mainTexture = ftex; else flagMat.color = new Color(.12f, .31f, .24f);
         }
         var cloth = new GameObject("Cloth").transform; cloth.SetParent(flag, false); cloth.gameObject.AddComponent<MeshFilter>().sharedMesh = flagMesh;
@@ -386,7 +387,7 @@ public partial class HoleTest : MonoBehaviour
     }
     // ---------- the ground's look (Stage 6) ----------
     Dictionary<string, object> look; static Texture2D[] groundShared;
-    Dictionary<string, object> LoadLook() { var ta = Resources.Load<TextAsset>(HolePath("_look")); return ta == null ? null : (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(ta.text); }
+    Dictionary<string, object> LoadLook() { var ta = CourseStore.Load<TextAsset>(HolePath("_look")); return ta == null ? null : (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(ta.text); }
     static Vector4 V4(Dictionary<string, object> L, string k, Vector4 d)
     {
         if (L == null || !L.TryGetValue(k, out var o) || !(o is List<object> a) || a.Count < 2) return d;
@@ -472,16 +473,16 @@ public partial class HoleTest : MonoBehaviour
     {
         var gg = M("GroundG");
         if (gg == null || gg.shader == null || !gg.shader.isSupported)
-        { var std = new Material(M("Ground")); std.mainTexture = Resources.Load<Texture2D>(HolePath("_ground")); return std; }
+        { var std = new Material(M("Ground")); std.mainTexture = CourseStore.Load<Texture2D>(HolePath("_ground")); return std; }
         var gm = new Material(gg);
-        if (groundShared == null) groundShared = new[] { "det_short", "det_rough", "det_fescue", "det_sand", "turf_g", "turf_s", "surround", "turf_gn", "turf_sn" }.Select(n => Resources.Load<Texture2D>(CourseId + "/" + n)).ToArray();
-        gm.SetTexture("_MainTex", Resources.Load<Texture2D>(HolePath("_ground"))); gm.SetTexture("_Surf", Resources.Load<Texture2D>(HolePath("_surf")));
+        if (groundShared == null) groundShared = new[] { "det_short", "det_rough", "det_fescue", "det_sand", "turf_g", "turf_s", "surround", "turf_gn", "turf_sn" }.Select(n => CourseStore.Load<Texture2D>(CourseId + "/" + n)).ToArray();
+        gm.SetTexture("_MainTex", CourseStore.Load<Texture2D>(HolePath("_ground"))); gm.SetTexture("_Surf", CourseStore.Load<Texture2D>(HolePath("_surf")));
         string[] slots = { "_DS", "_DR", "_DF", "_DD", "_PG", "_PS", "_Surround", "_PGN", "_PSN" }; for (int k = 0; k < slots.Length; k++) if (groundShared[k]) gm.SetTexture(slots[k], groundShared[k]);
         gm.SetVector("_GB", V4(look, "gB", new Vector4(D.tex.x0, D.tex.y0, D.tex.w, D.tex.h))); gm.SetVector("_GSB", V4(look, "gSB", new Vector4(D.lg.x0, D.lg.y0, D.lg.nx, D.lg.ny)));
         gm.SetVector("_GSS", V4(look, "gSS", Vector4.zero)); gm.SetVector("_TK", V4(look, "tK", Vector4.one)); gm.SetVector("_RLS", V4(look, "rlS", Vector4.zero)); gm.SetVector("_RLG", V4(look, "rlG", Vector4.zero));
         gm.SetFloat("_POn", look != null && look.TryGetValue("pOn", out var po) && po is double pd ? (float)pd : 1); gm.SetFloat("_GMode", 1); gm.SetFloat("_LightOn", 0);
         // the green's slope map (export_slope.js: buildSlopeTex's own bytes)
-        var sb = Resources.Load<TextAsset>(HolePath("_slope"));
+        var sb = CourseStore.Load<TextAsset>(HolePath("_slope"));
         if (sb != null)
         {
             var by = sb.bytes; float x0 = System.BitConverter.ToSingle(by, 0), y0 = System.BitConverter.ToSingle(by, 4), sw = System.BitConverter.ToSingle(by, 8), sh = System.BitConverter.ToSingle(by, 12);
@@ -796,6 +797,7 @@ public partial class HoleTest : MonoBehaviour
     {
         float dt = Mathf.Min(Time.unscaledDeltaTime, .05f);
         Fps(Time.unscaledDeltaTime);
+        if (CourseStore.Busy != null && hud.LoadOpen) { long sz = CourseStore.Size(CourseStore.Busy); hud.SetLoad(CourseStore.Progress, CourseStore.MB((long)(sz * CourseStore.Progress)) + " of " + CourseStore.MB(sz)); }
         if (hud.ImpOpen && (st != S.Aim || C.putter || fc != null)) hud.ShowImp(false);
         if (st == S.Aim && !hud.ChoiceOpen) { HandleTouches(); ShortFlag(); DrawAim(); } else hud.AimHide();
         LookStep(dt);
@@ -1327,7 +1329,7 @@ public partial class HoleTest : MonoBehaviour
     }
     // ---------- the round's framing (save-file.js): the hole intro, the scorecard, the 10-stroke pick-up, the saved round ----------
     [System.Serializable] class TipsData { public string line, name, fine, town, tees; public string[] tips; public int[] par; }
-    static TipsData tipsD; static TipsData Tips => tipsD ??= JsonUtility.FromJson<TipsData>(Resources.Load<TextAsset>(CourseId + "/tips").text);
+    static TipsData tipsD; static TipsData Tips => tipsD ??= JsonUtility.FromJson<TipsData>(CourseStore.Load<TextAsset>(CourseId + "/tips").text);
     static readonly string[] HOWTO = {
         "<color=#c0542f><b>Aim:</b></color> drag the screen left or right (or use the arrows) to turn. The ring and dotted arc show where a full-power shot lands.",
         "<color=#c0542f><b>Look:</b></color> tap the eye (or pinch the screen) to scout the hole. Drag to move, pinch to zoom, twist to turn, and tap Green to read the putting surface.",
@@ -1417,12 +1419,12 @@ public partial class HoleTest : MonoBehaviour
     {
         CancelInvoke(); hud.HideChoice(); hud.HidePaper(); hud.HideStats(); fxR.Clear(); hopAir = false; cardUp = false; inCup = false; shotInfo = null; hi = i; canReplay = false; recOn = false; if (st == S.Replay) st = S.Aim;
         D = HoleData.Load(HolePath(""));
-        CO = new GolfGo.Sim.Course(Resources.Load<TextAsset>(HolePath("")).text);
+        CO = new GolfGo.Sim.Course(CourseStore.Load<TextAsset>(HolePath("")).text);
         // pinIndex (a Quick play round): one of the hole's three pin spots, from the round's seed
         if (CO.pins != null && CO.pins.Length == 3) { int k = (int)System.Math.Floor(new GolfGo.Sim.Rng(roundSeed + i * 7919).Next() * 3) % 3; CO.pin = new[] { CO.pins[k][0], CO.pins[k][1] }; }
         D.pin = new[] { (float)CO.pin[0], (float)CO.pin[1] };
         SK = new GolfGo.Sim.Strike(TU, CO) { Cm = GolferMods(golferId) };   // the golfer's own game (charMods)
-        SH = new GolfGo.Sim.SimHole(Resources.Load<TextAsset>(HolePath("_sim")).text); SB = new GolfGo.Sim.Ball(SH, CO, SK); SG = new GolfGo.Sim.Short(SK, SH, CO); PT = new GolfGo.Sim.Putt(SK, SH, CO);
+        SH = new GolfGo.Sim.SimHole(CourseStore.Load<TextAsset>(HolePath("_sim")).text); SB = new GolfGo.Sim.Ball(SH, CO, SK); SG = new GolfGo.Sim.Short(SK, SH, CO); PT = new GolfGo.Sim.Putt(SK, SH, CO);
         RD = new GolfGo.Sim.Round(SK, SH, CO, SG, PT); RD.SetClubs(Clubs);
         var w = GolfGo.Sim.Round.HoleWind(roundSeed, i); windA = w.a; windMph = w.mph;
         BuildHole(); Resources.UnloadUnusedAssets();   // (the last hole's 4K textures go)

@@ -163,6 +163,26 @@ public partial class Hud
         At(ct, 0, 0, cw, y + 18);
         if (keepY > 0) ct.anchoredPosition = new Vector2(0, Mathf.Min(keepY, Mathf.Max(0, y + 18 - ch)));
     }
+    // the download overlay (the web's #cdlM): the course, a bar, what's come in, Cancel
+    RectTransform load; RectTransform loadBar; Text loadT; float loadW;
+    public bool LoadOpen => load != null;
+    public void ShowLoad(string title, string sub, Action cancel)
+    {
+        HideLoad();
+        var dim = Box(root, "Load", 0, new Color(6 / 255f, 18 / 255f, 28 / 255f, .6f)); load = At(dim.rectTransform, 0, 0, W, Hh); dim.raycastTarget = true;
+        float cw = Mathf.Min(W - 32, 380), px = 20, iw = cw - 40, y = 22;
+        var card = Box(load, "Card", 22, PaperC); var ct = card.transform;
+        var h = Txt(ct, "T", fDisp, 26, PInk); At(h.rectTransform, px, y, iw, 32); h.text = title; y += 32 + 6;
+        var sb = Txt(ct, "S", fBody, 14, PMuted, TextAnchor.UpperLeft); sb.horizontalOverflow = HorizontalWrapMode.Wrap; sb.text = sub; float sh = TextH(sb, iw); At(sb.rectTransform, px, y, iw, sh + 2); y += sh + 14;
+        var track = Box(ct, "Track", 6, A(PInk, .12f)); At(track.rectTransform, px, y, iw, 12); loadW = iw;
+        loadBar = Box(track.transform, "Bar", 6, PInk).rectTransform; At(loadBar, 0, 0, 12, 12); y += 12 + 8;
+        loadT = Txt(ct, "P", fBold, 13, PInk); At(loadT.rectTransform, px, y, iw, 18); loadT.text = "Starting…"; y += 18 + 14;
+        var b = Box(ct, "Cancel", 14, Color.clear, 2, PInk); At(b.rectTransform, px, y, iw, 46);
+        var bt = Txt(b.transform, "T", fDisp, 19, PInk, TextAnchor.MiddleCenter); At(bt.rectTransform, 0, 0, iw, 46); bt.text = "Cancel"; Press(b, () => cancel?.Invoke()); y += 46 + 20;
+        At(card.rectTransform, (W - cw) / 2, Mathf.Max(STop + 16, (Hh - y) / 2), cw, y);
+    }
+    public void SetLoad(float f, string text) { if (load == null) return; loadBar.sizeDelta = new Vector2(Mathf.Max(12, loadW * Mathf.Clamp01(f)), 12); Set(loadT, text); }
+    public void HideLoad() { if (load) UnityEngine.Object.Destroy(load.gameObject); load = null; }
     // shrink a one-line label until it fits (long course names on the cards)
     void FitText(Text t, float w) { for (int s = t.fontSize; s > 11 && t.preferredWidth > w; s--) t.fontSize = s - 1; }
 }

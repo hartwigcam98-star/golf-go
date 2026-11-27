@@ -250,8 +250,9 @@ static class Program
         foreach (Dictionary<string, object> hc in holes)
         {
             int hn = (int)D(hc["hole"]); string nn = hn.ToString("00");
-            var C = new Course(File.ReadAllText(Path.Combine(root, $"Assets/Resources/{cid}/h{nn}.json")));
-            var H = new SimHole(File.ReadAllText(Path.Combine(root, $"Assets/Resources/{cid}/h{nn}_sim.json")));
+            string cdir = Directory.Exists(Path.Combine(root, $"Assets/Courses/{cid}")) ? $"Assets/Courses/{cid}" : $"Assets/Resources/{cid}";   // (downloadable courses live in Assets/Courses)
+            var C = new Course(File.ReadAllText(Path.Combine(root, $"{cdir}/h{nn}.json")));
+            var H = new SimHole(File.ReadAllText(Path.Combine(root, $"{cdir}/h{nn}_sim.json")));
             var S = new Strike(T, C); var R = new Round(S, H, C, new Short(S, H, C), new Putt(S, H, C));
             void Bad(string what) { bad++; if (bad <= 40) Console.WriteLine($"{cid} hole {hn}: {what}"); }
             n++; var w = (Dictionary<string, object>)hc["wind"]; var hw = Round.HoleWind((int)D(hc["roundSeed"]), hn - 1);

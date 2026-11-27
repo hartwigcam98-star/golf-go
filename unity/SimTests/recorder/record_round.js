@@ -16,7 +16,7 @@ const SITE = process.argv[2], OUT = process.argv[3], CID = process.argv[4] || 't
     const one=()=>1;window.__ID={carry:one,err:one,win:one,curve:1,spin:1,wind:1,putt:1,mis:1,sgVar:1,puttD:1,misFull:1,perf:1.03};
     G.cm=__ID;BAGC.set(__ID,{v:BAGV,w:__ID});return 'ok';})()`);
   // each hole's pin as exported (hNN.json, practice mode) so the C# side plays to the same cup; and the hole's three pin spots
-  const pinOf = hi => JSON.parse(fs.readFileSync(path.join(__dirname, '../../Assets/Resources/' + CID + '/h' + String(hi + 1).padStart(2, '0') + '.json'), 'utf8')).pin;
+  const pinOf = hi => JSON.parse(fs.readFileSync(path.join(__dirname, '../../Assets/' + (CID === 'troy' ? 'Resources/' : 'Courses/') + CID + '/h' + String(hi + 1).padStart(2, '0') + '.json'), 'utf8')).pin;
   const out = [];
   const NH = JSON.parse(await g.ev('TB.length'));
   for (let hi = 0; hi < NH; hi++) {

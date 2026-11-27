@@ -219,7 +219,7 @@ public partial class Hud
     }
     // ---------- the choice sheet (the web game's #reliefM: an eyebrow, a heading, option buttons with a sub line, the best one marked) ----------
     RectTransform sheet;
-    public bool ChoiceOpen => sheet != null || paper != null || home != null;
+    public bool ChoiceOpen => sheet != null || paper != null || home != null || load != null;
     public void HideChoice() { if (sheet) UnityEngine.Object.Destroy(sheet.gameObject); sheet = null; }
     // body: optional text above the buttons (the scorecard); opts: (label, sub line, marked best)
     public void ShowChoice(string eyebrow, string title, string body, IList<(string a, string b, bool best)> opts, Action<int> pick)

@@ -91,7 +91,7 @@ jobs:
           APP=unity/build/mac/GolfGo.app; BIN=$(ls "$APP"/Contents/MacOS/* 2>/dev/null | head -1); echo "player: $BIN"; test -n "$BIN"
           system_profiler SPDisplaysDataType 2>/dev/null | head -20 || true
           # (the runner's screen is 768 tall: the window is a third of a phone at the same shape; the 3D view is also rendered off screen at 590 x 1278)
-          "$BIN" -ggshots "$GITHUB_WORKSPACE/shots" -screen-width 300 -screen-height 650 -screen-fullscreen 0 -logFile "$GITHUB_WORKSPACE/shots/player.log" &
+          "$BIN" -ggshots "$GITHUB_WORKSPACE/shots" -ggbundles "$GITHUB_WORKSPACE/unity/build/bundles-mac" -screen-width 300 -screen-height 650 -screen-fullscreen 0 -logFile "$GITHUB_WORKSPACE/shots/player.log" &
           P=$!; echo "player pid $P"; SECONDS=0
           while kill -0 "$P" 2>/dev/null; do [ $SECONDS -gt 720 ] && { echo "player still running after 720 s: stopping it"; kill "$P"; break; }; sleep 3; done
           echo "player ran $SECONDS s"; ls -la shots
@@ -117,6 +117,16 @@ jobs:
           "$UNITY_EDITOR_PATH" -batchmode -quit -nographics -projectPath "$GITHUB_WORKSPACE/unity" -buildTarget iOS \
             -executeMethod GolfGoBuild.BuildIOS -logFile - 2>&1 | tee unity.log | grep -E "error|Error|GolfGoBuild|Exception|warning CS" | head -200
           test -d unity/build/iOS/Unity-iPhone.xcodeproj || { echo "::error::Unity did not write the Xcode project (see the log above)"; tail -80 unity.log; exit 1; }
+      - name: Course downloads (the courses release)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # every course but Troy Burne is downloaded by the app when it's picked: its bundle goes on the "courses" release as
+          # <id>-<hash>.bundle (a file already there is the same course data, so it's skipped)
+          ls -la unity/build/bundles-ios/upload || { echo "::error::no course bundles"; exit 1; }
+          gh release view courses -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create courses -R "$GITHUB_REPOSITORY" --title "Course downloads" --notes "Course data the Unity app downloads when a course is picked (built with each TestFlight build)." --latest=false
+          have=$(gh release view courses -R "$GITHUB_REPOSITORY" --json assets -q '.assets[].name')
+          for f in unity/build/bundles-ios/upload/*.bundle; do n=$(basename "$f"); if echo "$have" | grep -qx "$n"; then echo "have $n"; else echo "upload $n ($(du -h "$f" | cut -f1))"; gh release upload courses "$f" -R "$GITHUB_REPOSITORY"; fi; done
       - name: Xcode
         run: |
           sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"

@@ -5,7 +5,7 @@
    hNN_trees.bytes: int32 groups; per group: int32 key length + key (ascii), int32 n, then n * 9 float32: x, y, z, rotY, sx, sy, r, g, b
    trees/bark.png, bark_n.png (raw data), leaves.png (the species leaf atlas, sRGB, flipY false)                                    */
 const fs=require('fs'),path=require('path'),boot=require('./boot.js');
-(async()=>{const OUT=process.argv[3],CID=process.argv[4]||'troy',TOUT=path.join(OUT,'..','trees');fs.mkdirSync(TOUT,{recursive:true});const g=await boot(process.argv[2]);const done=new Set();
+(async()=>{const OUT=process.argv[3],CID=process.argv[4]||'troy',TOUT=process.env.GGTREES||path.join(OUT,'..','trees');fs.mkdirSync(TOUT,{recursive:true});const g=await boot(process.argv[2]);const done=new Set();
   const safe=k=>k.replace(/\|/g,'_').replace(/#/g,'-');
   for(let i=0;i<18;i++){
     const r=JSON.parse(await g.ev(`(()=>{G.mode='practice';setCourse('${CID}',false);startHole(${i});$('introM').hidden=true;

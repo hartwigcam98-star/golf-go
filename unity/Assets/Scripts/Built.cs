@@ -7,7 +7,7 @@ public static class Built
 {
     public static GameObject Build(string holePath, Transform parent, System.Collections.Generic.List<Object> assets)
     {
-        var ta = Resources.Load<TextAsset>(holePath + "_built"); var mat = Resources.Load<Material>("Mats/Built");
+        var ta = CourseStore.Load<TextAsset>(holePath + "_built"); var mat = Resources.Load<Material>("Mats/Built");
         if (ta == null || mat == null || mat.shader == null || !mat.shader.isSupported) return null;
         var b = ta.bytes; int n = System.BitConverter.ToInt32(b, 0); if (n < 3) return null;
         float F(int o) => System.BitConverter.ToSingle(b, o);

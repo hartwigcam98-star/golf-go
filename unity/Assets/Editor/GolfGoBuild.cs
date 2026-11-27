@@ -34,7 +34,8 @@ public static class GolfGoBuild
         // every hole's course map texture at full size (it holds every fairway stripe and bunker edge), and its Blender-baked light
         // (sun shadows of every tree, sky occlusion), the same map the web game uses, as a x2 detail map: 0.5 = full sun and open sky
         // (every course folder: the ones with a hole 1, export_all.sh)
-        foreach (var cdir in System.IO.Directory.GetDirectories("Assets/Resources")) if (System.IO.File.Exists(System.IO.Path.Combine(cdir, "h01.json")))
+        foreach (var cdir in System.IO.Directory.GetDirectories("Assets/Resources").Concat(System.IO.Directory.Exists("Assets/Courses") ? System.IO.Directory.GetDirectories("Assets/Courses") : new string[0]))
+            if (System.IO.File.Exists(System.IO.Path.Combine(cdir, "h01.json")) || System.IO.File.Exists(System.IO.Path.Combine(cdir, "hero.jpg")))
         foreach (var f in System.IO.Directory.GetFiles(cdir))
         {
             string a = f.Replace('\\', '/');
@@ -148,6 +149,34 @@ public static class GolfGoBuild
         EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene("Assets/Scenes/Hole.unity", true) };
     }
 
+    /* Every course but Troy Burne as an asset bundle of its folder (Assets/Courses/<id>), for the phone to download when it's picked
+       (CourseStore.cs). Written to <outDir>/<id>, and for the release as <outDir>/upload/<id>-<hash>.bundle; the list the app reads
+       (Resources/course_bundles.json: where, which file, its size) is written before the player is built so it's in the app. */
+    public const string BundleURL = "https://github.com/hartwigcam98-star/golf-go/releases/download/courses/";
+    public static void BuildCourseBundles(BuildTarget target, string outDir)
+    {
+        if (!Directory.Exists("Assets/Courses")) return;
+        var builds = new System.Collections.Generic.List<AssetBundleBuild>();
+        foreach (var dir in Directory.GetDirectories("Assets/Courses"))
+        {
+            var files = Directory.GetFiles(dir).Where(f => !f.EndsWith(".meta")).Select(f => f.Replace('\\', '/')).ToArray();
+            if (files.Length > 0) builds.Add(new AssetBundleBuild { assetBundleName = Path.GetFileName(dir), assetNames = files });
+        }
+        Directory.CreateDirectory(outDir);
+        var m = BuildPipeline.BuildAssetBundles(outDir, builds.ToArray(), BuildAssetBundleOptions.ChunkBasedCompression, target);
+        if (m == null) { Debug.LogError("GolfGoBuild: course bundles failed"); return; }
+        var up = Path.Combine(outDir, "upload"); Directory.CreateDirectory(up); var sb = new System.Text.StringBuilder();
+        foreach (var b in builds)
+        {
+            string id = b.assetBundleName, src = Path.Combine(outDir, id), file = id + "-" + m.GetAssetBundleHash(id) + ".bundle";
+            BuildPipeline.GetCRCForAssetBundle(src, out uint crc); long size = new FileInfo(src).Length;
+            File.Copy(src, Path.Combine(up, file), true);
+            sb.Append(sb.Length > 0 ? "," : "").Append("{\"id\":\"" + id + "\",\"file\":\"" + file + "\",\"size\":" + size + ",\"crc\":" + crc + "}");
+            Debug.Log("GolfGoBuild bundle " + file + " " + (size >> 20) + " MB");
+        }
+        File.WriteAllText("Assets/Resources/course_bundles.json", "{\"url\":\"" + BundleURL + "\",\"bundles\":[" + sb + "]}");
+        AssetDatabase.ImportAsset("Assets/Resources/course_bundles.json");
+    }
     public static void BuildIOS()
     {
         try
@@ -177,6 +206,7 @@ public static class GolfGoBuild
             else Debug.LogError("GolfGoBuild: Assets/Icon.png missing");
             PlayerSettings.statusBarHidden = true;
             QualitySettings.antiAliasing = 4;
+            BuildCourseBundles(BuildTarget.iOS, "build/bundles-ios");
             var r = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = new[] { "Assets/Scenes/Hole.unity" }, locationPathName = "build/iOS", target = BuildTarget.iOS, options = BuildOptions.None });
             Debug.Log("GolfGoBuild result: " + r.summary.result + " size " + r.summary.totalSize + " errors " + r.summary.totalErrors);
             EditorApplication.Exit(r.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? 0 : 1);
@@ -194,7 +224,8 @@ public static class GolfGoBuild
             PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
             PlayerSettings.SplashScreen.show = false; PlayerSettings.fullScreenMode = FullScreenMode.Windowed; PlayerSettings.resizableWindow = true;
             PlayerSettings.defaultScreenWidth = 300; PlayerSettings.defaultScreenHeight = 650; QualitySettings.antiAliasing = 4;
-            PlayerSettings.runInBackground = true;   // (the build Mac's window never has focus: without this the player sits paused and takes no pictures)
+            PlayerSettings.runInBackground = true;
+            BuildCourseBundles(BuildTarget.StandaloneOSX, "build/bundles-mac");   // (the player reads them from there: -ggbundles)   // (the build Mac's window never has focus: without this the player sits paused and takes no pictures)
             var r = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = new[] { "Assets/Scenes/Hole.unity" }, locationPathName = "build/mac/GolfGo.app", target = BuildTarget.StandaloneOSX, options = BuildOptions.None });
             Debug.Log("GolfGoBuild mac result: " + r.summary.result + " errors " + r.summary.totalErrors);
             EditorApplication.Exit(r.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? 0 : 1);

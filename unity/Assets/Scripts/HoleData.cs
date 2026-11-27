@@ -19,7 +19,7 @@ public class HoleData
     public float[] green;
     public float[] trees;   // x, y, crown radius, ground height, top height, crown base, conifer (7 per tree)
 
-    public static HoleData Load(string name) => JsonUtility.FromJson<HoleData>(Resources.Load<TextAsset>(name).text);
+    public static HoleData Load(string name) => JsonUtility.FromJson<HoleData>(CourseStore.Load<TextAsset>(name).text);
 
     static float Bilinear(Grid g, float x, float y)
     {
