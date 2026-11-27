@@ -220,7 +220,7 @@ public partial class HoleTest : MonoBehaviour
         // every other course: its 1st and 10th tees (the 3D view, Enhanced and Web), and the home screen once
         foreach (var co in Courses)
         {
-            if (co.id == "troy") continue; SetCourse(co.id);
+            if (co.id == "troy" || !CourseStore.Ready(co.id)) continue; SetCourse(co.id);   // (the courses built this time)
             foreach (int h in new[] { 0, 9 })
             {
                 Try("course " + co.id, () => { LoadHole(h); CAMV = 1; hud.HidePaper(); intro = false; mapView = false; });

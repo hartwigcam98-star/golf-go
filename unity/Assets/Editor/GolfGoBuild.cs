@@ -153,27 +153,39 @@ public static class GolfGoBuild
        (CourseStore.cs). Written to <outDir>/<id>, and for the release as <outDir>/upload/<id>-<hash>.bundle; the list the app reads
        (Resources/course_bundles.json: where, which file, its size) is written before the player is built so it's in the app. */
     public const string BundleURL = "https://github.com/hartwigcam98-star/golf-go/releases/download/courses/";
+    // (the workflow, before Unity starts, keeps in Assets/Courses only the courses whose bundle isn't on the release yet, up to a dozen a
+    // build, and names each one's file by its data: course_build.txt "id file"; the rest are already there: course_prebuilt.txt "id file
+    // size". Without those lists (a local build) every course in Assets/Courses is built, its file named by Unity's hash)
+    static System.Collections.Generic.Dictionary<string, string[]> Lines(string f) => File.Exists(f)
+        ? File.ReadAllLines(f).Select(l => l.Trim().Split(' ')).Where(a => a.Length >= 2).ToDictionary(a => a[0], a => a) : new System.Collections.Generic.Dictionary<string, string[]>();
     public static void BuildCourseBundles(BuildTarget target, string outDir)
     {
-        if (!Directory.Exists("Assets/Courses")) return;
+        var keys = Lines("course_build.txt"); var pre = Lines("course_prebuilt.txt");
         var builds = new System.Collections.Generic.List<AssetBundleBuild>();
-        foreach (var dir in Directory.GetDirectories("Assets/Courses"))
+        if (Directory.Exists("Assets/Courses"))
+            foreach (var dir in Directory.GetDirectories("Assets/Courses"))
+            {
+                var files = Directory.GetFiles(dir).Where(f => !f.EndsWith(".meta")).Select(f => f.Replace('\\', '/')).ToArray();
+                if (files.Length > 0) builds.Add(new AssetBundleBuild { assetBundleName = Path.GetFileName(dir), assetNames = files });
+            }
+        Directory.CreateDirectory(outDir); var sb = new System.Text.StringBuilder();
+        if (builds.Count > 0)
         {
-            var files = Directory.GetFiles(dir).Where(f => !f.EndsWith(".meta")).Select(f => f.Replace('\\', '/')).ToArray();
-            if (files.Length > 0) builds.Add(new AssetBundleBuild { assetBundleName = Path.GetFileName(dir), assetNames = files });
+            var m = BuildPipeline.BuildAssetBundles(outDir, builds.ToArray(), BuildAssetBundleOptions.ChunkBasedCompression, target);
+            if (m == null) { Debug.LogError("GolfGoBuild: course bundles failed"); return; }
+            var up = Path.Combine(outDir, "upload"); Directory.CreateDirectory(up);
+            foreach (var b in builds)
+            {
+                string id = b.assetBundleName, src = Path.Combine(outDir, id), file = keys.TryGetValue(id, out var k) ? k[1] : id + "-" + m.GetAssetBundleHash(id) + ".bundle";
+                BuildPipeline.GetCRCForAssetBundle(src, out uint crc); long size = new FileInfo(src).Length;
+                File.Copy(src, Path.Combine(up, file), true);
+                sb.Append(sb.Length > 0 ? "," : "").Append("{\"id\":\"" + id + "\",\"file\":\"" + file + "\",\"size\":" + size + ",\"crc\":" + crc + "}");
+                Debug.Log("GolfGoBuild bundle " + file + " " + (size >> 20) + " MB");
+            }
         }
-        Directory.CreateDirectory(outDir);
-        var m = BuildPipeline.BuildAssetBundles(outDir, builds.ToArray(), BuildAssetBundleOptions.ChunkBasedCompression, target);
-        if (m == null) { Debug.LogError("GolfGoBuild: course bundles failed"); return; }
-        var up = Path.Combine(outDir, "upload"); Directory.CreateDirectory(up); var sb = new System.Text.StringBuilder();
-        foreach (var b in builds)
-        {
-            string id = b.assetBundleName, src = Path.Combine(outDir, id), file = id + "-" + m.GetAssetBundleHash(id) + ".bundle";
-            BuildPipeline.GetCRCForAssetBundle(src, out uint crc); long size = new FileInfo(src).Length;
-            File.Copy(src, Path.Combine(up, file), true);
-            sb.Append(sb.Length > 0 ? "," : "").Append("{\"id\":\"" + id + "\",\"file\":\"" + file + "\",\"size\":" + size + ",\"crc\":" + crc + "}");
-            Debug.Log("GolfGoBuild bundle " + file + " " + (size >> 20) + " MB");
-        }
+        foreach (var kv in pre)   // (already on the release)
+            if (kv.Value.Length >= 3 && !builds.Any(b => b.assetBundleName == kv.Key))
+                sb.Append(sb.Length > 0 ? "," : "").Append("{\"id\":\"" + kv.Key + "\",\"file\":\"" + kv.Value[1] + "\",\"size\":" + kv.Value[2] + ",\"crc\":0}");
         File.WriteAllText("Assets/Resources/course_bundles.json", "{\"url\":\"" + BundleURL + "\",\"bundles\":[" + sb + "]}");
         AssetDatabase.ImportAsset("Assets/Resources/course_bundles.json");
     }

@@ -81,6 +81,23 @@ jobs:
           ls -la unity/Assets/Resources/Fonts
       # The look check: the same scene as a Mac player on this Mac, pictures of a few holes (HoleTest.Shots) with the on-screen
       # readout, uploaded as the look-shots artifact before the iPhone build starts (nothing here can stop the iPhone build)
+      - name: Course bundles to build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # every course but Troy Burne is downloaded by the app (CourseStore.cs). A course's file is named by its data (the git tree of
+          # its folder, plus BV: raise it to rebuild them all); one already on the "courses" release isn't built again, and its folder is
+          # moved out of the project so Unity doesn't import it. At most MAXNEW new ones a build (each takes a few minutes per platform);
+          # the rest wait for the next build.
+          BV=1; MAXNEW=12; n=0
+          have=$(gh release view courses -R "$GITHUB_REPOSITORY" --json assets -q '.assets[]|.name+" "+(.size|tostring)' 2>/dev/null || true)
+          mkdir -p "$RUNNER_TEMP/courses-out"; : > unity/course_build.txt; : > unity/course_prebuilt.txt
+          for d in unity/Assets/Courses/*/; do id=$(basename "$d"); key=$(echo "$BV $(git rev-parse HEAD:unity/Assets/Courses/$id)" | shasum | cut -c1-16); f="$id-$key.bundle"
+            sz=$(echo "$have" | awk -v f="$f" '$1==f{print $2}')
+            if [ -n "$sz" ]; then echo "$id $f $sz" >> unity/course_prebuilt.txt; mv "$d" "$RUNNER_TEMP/courses-out/"
+            elif [ $n -lt $MAXNEW ]; then echo "$id $f" >> unity/course_build.txt; n=$((n+1))
+            else echo "later: $id"; mv "$d" "$RUNNER_TEMP/courses-out/"; fi; done
+          echo "to build:"; cat unity/course_build.txt; echo "already there: $(wc -l < unity/course_prebuilt.txt)"
       - name: Look check (Mac player pictures)
         continue-on-error: true
         timeout-minutes: 35

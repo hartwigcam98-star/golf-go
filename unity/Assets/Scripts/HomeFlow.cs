@@ -34,7 +34,7 @@ public partial class HoleTest
             foreach (var c in Courses) if (c.state == homeState)
                 {
                     string town = c.town.Contains(",") ? c.town.Substring(0, c.town.LastIndexOf(',')) : c.town;
-                    if (!CourseStore.Ready(c.id)) town = CourseStore.Known(c.id) ? "↓ " + CourseStore.MB(CourseStore.Size(c.id)) + " · " + town : "Not in this build";
+                    if (!CourseStore.Ready(c.id)) town = CourseStore.Known(c.id) ? "↓ " + CourseStore.MB(CourseStore.Size(c.id)) + " · " + town : "Coming in a later build";
                     d.courses.Add((c.id, c.name, town, Resources.Load<Texture2D>(c.id + "/hero"), c.id == CourseId));
                 }
         }
@@ -79,7 +79,7 @@ public partial class HoleTest
     void AskDownload(string id, System.Action then)
     {
         var ci = CourseOf(id); string nm = ci?.name ?? id;
-        if (!CourseStore.Known(id)) { hud.Toast("NOT HERE YET", nm + " isn't in this build", Hud.Coral); return; }
+        if (!CourseStore.Known(id)) { hud.Toast("COMING SOON", nm + " comes in a later build", Hud.Coral); return; }
         var opts = new List<(string, string, bool)> { ("Download", CourseStore.MB(CourseStore.Size(id)) + " · kept on this phone after this", true), ("Not now", "", false) };
         hud.ShowChoice("New course", nm, "First time on this course: download it to play.", opts, k =>
         {
