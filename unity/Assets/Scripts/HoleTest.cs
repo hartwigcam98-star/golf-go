@@ -162,7 +162,7 @@ public partial class HoleTest : MonoBehaviour
         BuildWorld(); BuildHud();
         golferId = PlayerPrefs.GetString("golfer", "ch06"); LoadGolfer(golferId); BallColour();
         // the home screen first (home-screen.js), the saved round (or the course's 1st tee) loaded quietly behind it
-        var sv = LoadSave(); if (sv != null) { SetCourse(sv.course); ResumeRound(sv); } else { SetCourse(CourseId); resuming = true; NewRound(); resuming = false; }
+        var sv = LoadSave(); if (sv != null && CourseStore.Ready(sv.course)) { SetCourse(sv.course); ResumeRound(sv); }   // (a round on a course not downloaded yet: Continue asks for it) else { SetCourse(CourseId); resuming = true; NewRound(); resuming = false; }
         ShowHome();
         // the look check on GitHub's Mac (unity-test.yml): -ggshots <folder> saves pictures of a few holes, then quits
         var args = System.Environment.GetCommandLineArgs(); int ai = System.Array.IndexOf(args, "-ggshots");
