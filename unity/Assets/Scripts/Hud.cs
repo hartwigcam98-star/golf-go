@@ -498,7 +498,8 @@ public class Hud
     public void HidePaper() { if (paper) UnityEngine.Object.Destroy(paper.gameObject); paper = null; paperT = -1; }
     float TextH(Text t, float w)
     {
-        var st = t.GetGenerationSettings(new Vector2(w * t.pixelsPerUnit, 0)); st.scaleFactor = t.pixelsPerUnit;
+        // (as Text.preferredHeight: the extents in canvas units, the generator works at pixelsPerUnit, its answer divided back)
+        var st = t.GetGenerationSettings(new Vector2(w, 0));
         return t.cachedTextGeneratorForLayout.GetPreferredHeight(t.text, st) / t.pixelsPerUnit;
     }
     Text Para(Transform p, string text, Font f, float size, Color c, float x, ref float y, float w, float after, bool rich = false)
@@ -521,7 +522,7 @@ public class Hud
             float mx = px;
             foreach (var m in c.meta)
             {
-                var t = Txt(ct, "M", fBold, 14, PaperC, TextAnchor.MiddleCenter); t.text = m; float tw = t.preferredWidth / Mathf.Max(.01f, t.pixelsPerUnit) + 20;
+                var t = Txt(ct, "M", fBold, 14, PaperC, TextAnchor.MiddleCenter); t.text = m; float tw = t.preferredWidth + 20;
                 if (mx + tw > px + iw) { mx = px; y += 26 + 6; }
                 var pill = Box(ct, "Pill", 12, PInk); At(pill.rectTransform, mx, y, tw, 24); t.transform.SetParent(pill.transform, false); At(t.rectTransform, 0, 0, tw, 24); mx += tw + 8;
             }
@@ -562,7 +563,7 @@ public class Hud
                 {   // .textbtn: 15 px bold, underlined, centred
                     var b = Box(ct, "TextBtn", 0, Color.clear); At(b.rectTransform, (cw - 160) / 2, y, 160, 34);
                     var t = Txt(b.transform, "T", fBold, 15, PInk, TextAnchor.MiddleCenter); At(t.rectTransform, 0, 0, 160, 34); t.text = label;
-                    float tw = t.preferredWidth / Mathf.Max(.01f, t.pixelsPerUnit); var ul = Box(b.transform, "U", 0, PInk); At(ul.rectTransform, (160 - tw) / 2, 25, tw, 1.5f);
+                    float tw = t.preferredWidth; var ul = Box(b.transform, "U", 0, PInk); At(ul.rectTransform, (160 - tw) / 2, 25, tw, 1.5f);
                     Press(b, () => { HidePaper(); pick?.Invoke(k); }); y += 34;
                 }
             }
@@ -625,7 +626,7 @@ public class Hud
         }
         string Y(string v) => "<color=#ffc93c>" + v + "</color>";
         statsT.text = "Carry " + Y(carry.ToString()) + " · Total " + Y(total.ToString()) + " · Peak " + Y(peakFt + " ft");
-        float tw = statsT.preferredWidth / Mathf.Max(.01f, statsT.pixelsPerUnit) + 28;
+        float tw = statsT.preferredWidth + 28;
         At(statsRT, (W - tw) / 2, STop + 128, tw, 30); At(statsT.rectTransform, 0, 0, tw, 30); statsRT.gameObject.SetActive(true); statsT2 = 0;
     }
     float statsT2 = -1;
