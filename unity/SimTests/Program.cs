@@ -279,7 +279,11 @@ static class Program
                 var b = new Ball(H, C, S) { windA = 1, windMph = 3 }; b.Launch(f, (int)D(wc["lseed"])); b.RunToRest();
                 string kind = wc["kind"] as string ?? "none", got = b.outcome?.kind ?? "none";
                 if (kind == "rest" || kind == "none") { if (got != "rest" && got != "holed" && kind == "rest") Bad($"water shot ended {got} vs web rest"); continue; }
-                if (got != kind) { Bad($"water shot ended {got} vs web {kind}"); continue; }
+                if (got != kind)
+                {
+                    var wat = wc["opts"] is Dictionary<string, object> wo && wo.TryGetValue("at", out var av) && av is List<object> al ? $" (web in at {D(al[0]):F2},{D(al[1]):F2})" : "";
+                    Bad($"water shot ended {got} vs web {kind}: from {D(wc["bx"]):F2},{D(wc["by"]):F2} seed {D(wc["lseed"])}, ended at {b.x:F2},{b.y:F2} lie {H.Lie(b.x, b.y)}" + wat); continue;
+                }
                 if (kind != "water") continue;
                 var op = (Dictionary<string, object>)wc["opts"]; var prev = new[] { D(wc["bx"]), D(wc["by"]) }; var at = new[] { b.x, b.y };
                 var rec = new List<double[]>(b.rec) { at };   // (endRec adds the spot it went in)
