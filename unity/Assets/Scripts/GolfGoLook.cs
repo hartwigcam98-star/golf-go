@@ -71,6 +71,9 @@ public class GolfGoLook : MonoBehaviour
     }
     public int Posts;   // (finish passes run: for the on-screen check)
     public static System.Action AfterPost;
+    // Enhanced graphics (the menu's Graphics: Enhanced / Web): ambient occlusion and sun shafts here; sharper shadows and denser
+    // grass in HoleTest.ApplyGfx
+    public static bool Enhanced = true;
     public static bool Bloom = true, Glare = true; public string SrcFmt = "";   // (the picture's format: HDR is a float one)
     void OnRenderImage(RenderTexture src, RenderTexture dst)
     {
@@ -78,21 +81,45 @@ public class GolfGoLook : MonoBehaviour
         if (post == null) { Graphics.Blit(src, dst); return; }
         var w = WX[wx]; post.SetFloat("_GGExpo", .97f * w.ex); post.SetFloat("_GGAsp", (float)cam.pixelWidth / cam.pixelHeight);
         post.SetMatrix("_GGInvProj", cam.projectionMatrix.inverse); post.SetMatrix("_GGCamToWorld", cam.cameraToWorldMatrix);
+        int W = src.width, H = src.height; var fmt = RenderTextureFormat.ARGBHalf;
+        RenderTexture T(int d, RenderTextureFormat f) { var r = RenderTexture.GetTemporary(Mathf.Max(1, W >> d), Mathf.Max(1, H >> d), 0, f); r.filterMode = FilterMode.Bilinear; r.wrapMode = TextureWrapMode.Clamp; return r; }
+        void Blur(RenderTexture a, RenderTexture b, int pass)
+        {
+            post.SetVector("_GGDir", new Vector4(1f / a.width, 0)); Graphics.Blit(a, b, post, pass);
+            post.SetVector("_GGDir", new Vector4(0, 1f / a.height)); Graphics.Blit(b, a, post, pass);
+        }
+        // Enhanced: ambient occlusion at half size (the web's High setting), then sun shafts at a quarter
+        RenderTexture ao = null, aoB = null, sh = null, shB = null;
+        if (Enhanced)
+        {
+            var af = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGHalf) ? RenderTextureFormat.RGHalf : RenderTextureFormat.ARGBHalf;
+            ao = T(1, af); aoB = T(1, af); var P = cam.projectionMatrix;
+            post.SetVector("_GGK", new Vector4(P.m00, P.m11, 1f / ao.width, 1f / ao.height));
+            Graphics.Blit(src, ao, post, 4); Blur(ao, aoB, 5);
+            post.SetTexture("_GGAO", ao); post.SetFloat("_GGAOOn", 1);
+        }
+        else { post.SetTexture("_GGAO", Texture2D.whiteTexture); post.SetFloat("_GGAOOn", 0); }
+        float shK = 0; var sv = cam.WorldToViewportPoint(cam.transform.position + SunUnity * 4000);
+        if (Enhanced && sv.z > 0)
+        {   // full strength with the sun on screen, fading out as it gets more than 60% of the screen beyond an edge
+            float ox = Mathf.Max(0, Mathf.Max(-sv.x, sv.x - 1)), oy = Mathf.Max(0, Mathf.Max(-sv.y, sv.y - 1));
+            shK = .55f * WX[wx].sun * Mathf.Clamp01(1 - Mathf.Max(ox, oy) / .6f);
+        }
+        if (shK > .01f)
+        {
+            sh = T(2, fmt); shB = T(2, fmt); post.SetVector("_GGSunS", new Vector4(sv.x, sv.y, 0, 0));
+            Graphics.Blit(src, sh, post, 6); Blur(sh, shB, 3);
+            post.SetTexture("_GGShaft", sh); post.SetFloat("_GGShaftK", shK);
+        }
+        else { post.SetTexture("_GGShaft", Texture2D.blackTexture); post.SetFloat("_GGShaftK", 0); }
         // the bloom (r3Post, the phones' "fast" level): bright pass at half size, blurred, then a quarter and an eighth, each blurred
         RenderTexture b1 = null, b1b = null, b2 = null, b2b = null, b3 = null, b3b = null;
         if (Bloom)
         {
-            int W = src.width, H = src.height; var fmt = RenderTextureFormat.ARGBHalf;
-            RenderTexture T(int d) { var r = RenderTexture.GetTemporary(Mathf.Max(1, W >> d), Mathf.Max(1, H >> d), 0, fmt); r.filterMode = FilterMode.Bilinear; r.wrapMode = TextureWrapMode.Clamp; return r; }
-            void Blur(RenderTexture a, RenderTexture b)
-            {
-                post.SetVector("_GGDir", new Vector4(1f / a.width, 0)); Graphics.Blit(a, b, post, 3);
-                post.SetVector("_GGDir", new Vector4(0, 1f / a.height)); Graphics.Blit(b, a, post, 3);
-            }
-            b1 = T(1); b1b = T(1); b2 = T(2); b2b = T(2); b3 = T(3); b3b = T(3);
-            Graphics.Blit(src, b1, post, 1); Blur(b1, b1b);
-            Graphics.Blit(b1, b2, post, 2); Blur(b2, b2b);
-            Graphics.Blit(b2, b3, post, 2); Blur(b3, b3b);
+            b1 = T(1, fmt); b1b = T(1, fmt); b2 = T(2, fmt); b2b = T(2, fmt); b3 = T(3, fmt); b3b = T(3, fmt);
+            Graphics.Blit(src, b1, post, 1); Blur(b1, b1b, 3);
+            Graphics.Blit(b1, b2, post, 2); Blur(b2, b2b, 3);
+            Graphics.Blit(b2, b3, post, 2); Blur(b3, b3b, 3);
             post.SetTexture("_GGB1", b1); post.SetTexture("_GGB2", b2); post.SetTexture("_GGB3", b3); post.SetFloat("_GGBloomK", .55f);
         }
         else { post.SetTexture("_GGB1", Texture2D.blackTexture); post.SetTexture("_GGB2", Texture2D.blackTexture); post.SetTexture("_GGB3", Texture2D.blackTexture); post.SetFloat("_GGBloomK", 0); }
@@ -106,6 +133,6 @@ public class GolfGoLook : MonoBehaviour
         post.SetVector("_GGSunP", sunP);
         Graphics.Blit(src, dst, post, 0);
         RenderTexture.active = dst; AfterPost?.Invoke();   // (what the web draws on its 2D overlay over the picture: the flames)
-        foreach (var r in new[] { b1, b1b, b2, b2b, b3, b3b }) if (r != null) RenderTexture.ReleaseTemporary(r);
+        foreach (var r in new[] { b1, b1b, b2, b2b, b3, b3b, ao, aoB, sh, shB }) if (r != null) RenderTexture.ReleaseTemporary(r);
     }
 }

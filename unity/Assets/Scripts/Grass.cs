@@ -7,7 +7,7 @@ using UnityEngine;
    are built on the GPU (Assets/Shaders/GolfGoGrass.shader). Quality "fast" (the phones'): k = .7. */
 public class Grass
 {
-    const int S = 4, MAXT = 1200; const float K = .7f;
+    const int S = 4, MAXT = 1200; public static float K = .7f;   // (Enhanced graphics: 1, the web's High)
     static readonly int[] CAPS = { 110, 64, 36, 18, 8 };
     static Mesh[] meshes; static Texture2D noise;
     readonly Material[] mats = new Material[5]; readonly List<Matrix4x4> mx = new List<Matrix4x4>(1023); readonly int[] counts = new int[5];

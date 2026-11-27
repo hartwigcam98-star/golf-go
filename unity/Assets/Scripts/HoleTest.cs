@@ -155,8 +155,7 @@ public class HoleTest : MonoBehaviour
         Application.logMessageReceived += OnLog;
         Application.targetFrameRate = 120; QualitySettings.vSyncCount = 0; Screen.sleepTimeout = SleepTimeout.NeverSleep;
         QualitySettings.shadowDistance = 160; QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowResolution = ShadowResolution.High;
-        // two cascades, the near one over the first 30%: the golfer's shadow about as sharp as the web's (2048 over 200 yd round the view)
-        QualitySettings.shadowCascades = 2; QualitySettings.shadowCascade2Split = .3f; QualitySettings.shadowProjection = ShadowProjection.StableFit;
+        QualitySettings.shadowProjection = ShadowProjection.StableFit; ApplyGfx(PlayerPrefs.GetInt("gfx", 1) == 1);
         // the game's own mechanics (GolfGo.Sim, checked shot for shot against the web game) and its numbers
         TU = new GolfGo.Sim.Tuning(Resources.Load<TextAsset>("tuning").text); Clubs = TU.ClubSet(Swaps());
         lightB = (Dictionary<string, object>)GolfGo.Sim.MiniJson.Parse(Resources.Load<TextAsset>("troy/light_bounds").text);
@@ -166,6 +165,16 @@ public class HoleTest : MonoBehaviour
         // the look check on GitHub's Mac (unity-test.yml): -ggshots <folder> saves pictures of a few holes, then quits
         var args = System.Environment.GetCommandLineArgs(); int ai = System.Array.IndexOf(args, "-ggshots");
         if (ai >= 0 && ai + 1 < args.Length) StartCoroutine(Shots(args[ai + 1]));
+    }
+    /* Graphics (the menu): Enhanced, more than the web runs on a phone: ambient occlusion and sun shafts (GolfGoLook), four shadow
+       cascades on a 4096 map (crisp shadows near you), the web's High grass density; Web, the web's own phone level: two cascades
+       (the near one over the first 30%: the golfer's shadow about as sharp as the web's, 2048 over 200 yd), grass .7 */
+    static void ApplyGfx(bool enh)
+    {
+        GolfGoLook.Enhanced = enh; Grass.K = enh ? 1 : .7f;
+        QualitySettings.shadowCascades = enh ? 4 : 2; QualitySettings.shadowCascade2Split = .3f;
+        QualitySettings.shadowCascade4Split = new Vector3(.067f, .2f, .467f);
+        QualitySettings.shadowResolution = enh ? ShadowResolution.VeryHigh : ShadowResolution.High;
     }
     // sunny (the web screenshots' weather), the tee view on four holes in the lower camera, then the higher one and the green from the look camera
     System.Collections.IEnumerator Shots(string dir)
@@ -188,14 +197,18 @@ public class HoleTest : MonoBehaviour
                 var name = "h" + (h + 1).ToString("00") + "_" + new[] { "tee", "tee_high", "green" }[view] + ".png";
                 System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, name), t.EncodeToPNG()); Destroy(t);
                 // the 3D view alone at a phone's size (590 x 1278, the same shape as the window: the same framing), off screen
-                Try("hi-res", () =>
-                {
-                    var rt = new RenderTexture(590, 1278, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { antiAliasing = 4 };
-                    var keep = cam.targetTexture; cam.targetTexture = rt; cam.Render(); cam.targetTexture = keep;
-                    var was = RenderTexture.active; RenderTexture.active = rt;
-                    var t2 = new Texture2D(590, 1278, TextureFormat.RGB24, false); t2.ReadPixels(new Rect(0, 0, 590, 1278), 0, 0); t2.Apply(); RenderTexture.active = was;
-                    System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, name.Replace(".png", "_3d.png")), t2.EncodeToPNG()); Destroy(t2); rt.Release(); Destroy(rt);
-                });
+                // (Enhanced as _3d, then the web's level as _3dw, to put side by side)
+                foreach (bool enh in new[] { true, false })
+                    Try("hi-res", () =>
+                    {
+                        ApplyGfx(enh);
+                        var rt = new RenderTexture(590, 1278, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { antiAliasing = 4 };
+                        var keep = cam.targetTexture; cam.targetTexture = rt; cam.Render(); cam.targetTexture = keep;
+                        var was = RenderTexture.active; RenderTexture.active = rt;
+                        var t2 = new Texture2D(590, 1278, TextureFormat.RGB24, false); t2.ReadPixels(new Rect(0, 0, 590, 1278), 0, 0); t2.Apply(); RenderTexture.active = was;
+                        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, name.Replace(".png", enh ? "_3d.png" : "_3dw.png")), t2.EncodeToPNG()); Destroy(t2); rt.Release(); Destroy(rt);
+                    });
+                ApplyGfx(true);
                 Debug.Log("GGSHOT " + name + " " + Screen.width + "x" + Screen.height + " · " + Diag() + (errs.Count > 0 ? " · errors: " + string.Join(" | ", errs) : ""));
             }
             if (fc != null) { Try("look end", LookEnd); yield return new WaitForSecondsRealtime(1.5f); }
@@ -1424,13 +1437,14 @@ public class HoleTest : MonoBehaviour
     {
         if (hud.ChoiceOpen || !(st == S.Aim || st == S.Holed)) return;
         string gName = System.Array.Find(Golfers, g => g[0] == golferId)?[1] ?? golferId;
-        var opts = new List<(string, string, bool)> { ("Resume", "", true), ("Scorecard", "Thru " + holesDone + " · Round " + DiffStr(roundDiff), false), ("Golfer", "Playing as " + gName, false), ("Bag", BagSummary(), false), ("Flight zoom", TRZ >= 1.5f ? "Closest" : TRZ >= 1.3f ? "Closer" : "Standard", false), ("Restart hole", "Hole " + (hi + 1) + " from the tee", false), ("New round", "Troy Burne from the 1st", false) };
+        var opts = new List<(string, string, bool)> { ("Resume", "", true), ("Scorecard", "Thru " + holesDone + " · Round " + DiffStr(roundDiff), false), ("Golfer", "Playing as " + gName, false), ("Bag", BagSummary(), false), ("Flight zoom", TRZ >= 1.5f ? "Closest" : TRZ >= 1.3f ? "Closer" : "Standard", false), ("Graphics", GolfGoLook.Enhanced ? "Enhanced · tap for the web's look" : "Web · tap for Enhanced", false), ("Restart hole", "Hole " + (hi + 1) + " from the tee", false), ("New round", "Troy Burne from the 1st", false) };
         hud.ShowChoice("Paused", "Troy Burne · Hole " + (hi + 1), null, opts, k =>
         {
             if (k == 0) { if (cardUp && st == S.Holed) HoleDone(); }
             else if (k == 1) ShowCard(false); else if (k == 2) PickGolfer(); else if (k == 3) { hud.HideChoice(); BagMenu(); }
             else if (k == 4) { float z = TRZ; PlayerPrefs.SetFloat("trz", z >= 1.5f ? 1 : z >= 1.3f ? 1.5f : 1.3f); hud.HideChoice(); Menu(); }
-            else if (k == 5) { if (scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); } else if (k == 6) { ClearSave(); NewRound(); }
+            else if (k == 5) { bool e = !GolfGoLook.Enhanced; PlayerPrefs.SetInt("gfx", e ? 1 : 0); ApplyGfx(e); hud.HideChoice(); Menu(); }
+            else if (k == 6) { if (scores[hi] > 0) { roundDiff -= scores[hi] - pars[hi]; scores[hi] = 0; holesDone--; } LoadHole(hi); } else if (k == 7) { ClearSave(); NewRound(); }
         });
     }
 
