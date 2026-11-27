@@ -281,7 +281,7 @@ static class Program
                 if (kind == "rest" || kind == "none") { if (got != "rest" && got != "holed" && kind == "rest") Bad($"water shot ended {got} vs web rest"); continue; }
                 if (got != kind)
                 {
-                    var wat = wc["opts"] is Dictionary<string, object> wo && wo.TryGetValue("at", out var av) && av is List<object> al ? $" (web in at {D(al[0]):F2},{D(al[1]):F2})" : "";
+                    var wat = wc["opts"] is Dictionary<string, object> wOpt && wOpt.TryGetValue("at", out var wAt) && wAt is List<object> al ? $" (web in at {D(al[0]):F2},{D(al[1]):F2})" : "";
                     Bad($"water shot ended {got} vs web {kind}: from {D(wc["bx"]):F2},{D(wc["by"]):F2} seed {D(wc["lseed"])}, ended at {b.x:F2},{b.y:F2} lie {H.Lie(b.x, b.y)}" + wat); continue;
                 }
                 if (kind != "water") continue;
