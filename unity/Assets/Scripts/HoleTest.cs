@@ -172,7 +172,7 @@ public class HoleTest : MonoBehaviour
         if (gLook != null && gLook.Ok) Try("weather", () => gLook.Weather(0));
         foreach (int h in new[] { 0, 4, 9, 13 })
         {
-            LoadHole(h); CAMV = 1;
+            LoadHole(h); CAMV = 1; hud.HidePaper(); intro = false; mapView = false;   // (past the intro card: the tee view)
             for (int view = 0; view < 3; view++)
             {
                 if (view == 1) CAMV = 0;
@@ -1303,7 +1303,7 @@ public class HoleTest : MonoBehaviour
         {
             strokes = sv.strokes; b = new Vector2(sv.bx, sv.by); prev = new Vector2(sv.px, sv.py); bY = D.H(b.x, b.y); fromLie = Lie0;
             windA = sv.windA; windMph = sv.windMph; var o = RD.Prepare(b.x, b.y, buried, windA, windMph); aim = (float)o.aim; ci = o.club; stype = o.stype;
-            PrepareShot(false); camPos = Vector3.zero;
+            PrepareShot(false); camPos = Vector3.zero; SaveRound(false);   // (loading the hole saved its start: put the stroke back)
         }
     }
     // #cardM: after each hole (and from the menu): the hole's result, both nines with the marks, the round so far
