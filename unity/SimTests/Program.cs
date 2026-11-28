@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using GolfGo.Sim;
 
 /* Parity test: every case in strike_cases.json was struck in the web game (headless, neutral golfer) with its seed; the C# sim
@@ -282,7 +283,10 @@ static class Program
                 if (got != kind)
                 {
                     var wat = wc["opts"] is Dictionary<string, object> wOpt && wOpt.TryGetValue("at", out var wAt) && wAt is List<object> al ? $" (web in at {D(al[0]):F2},{D(al[1]):F2})" : "";
-                    Bad($"water shot ended {got} vs web {kind}: from {D(wc["bx"]):F2},{D(wc["by"]):F2} seed {D(wc["lseed"])}, ended at {b.x:F2},{b.y:F2} lie {H.Lie(b.x, b.y)}" + wat); continue;
+                    Bad($"water shot ended {got} vs web {kind}: from {D(wc["bx"]):F2},{D(wc["by"]):F2} seed {D(wc["lseed"])}, ended at {b.x:F2},{b.y:F2} lie {H.Lie(b.x, b.y)}" + wat);
+                    if (Environment.GetEnvironmentVariable("GGTRACE") != null || cid == "prestwick")
+                        Console.WriteLine("  path: " + string.Join(" ", b.rec.Select((q, i) => $"{i}:{q[0]:F2},{q[1]:F2}")) + " | events " + string.Join(",", b.outcome.events));
+                    continue;
                 }
                 if (kind != "water") continue;
                 var op = (Dictionary<string, object>)wc["opts"]; var prev = new[] { D(wc["bx"]), D(wc["by"]) }; var at = new[] { b.x, b.y };
