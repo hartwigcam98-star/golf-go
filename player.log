@@ -1,0 +1,185 @@
+Mono path[0] = '/Users/runner/work/golf-go/golf-go/unity/build/mac/GolfGo.app/Contents/Resources/Data/Managed'
+Mono config path = '/Users/runner/work/golf-go/golf-go/unity/build/mac/GolfGo.app/Contents/MonoBleedingEdge/etc'
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+Initialize engine version: 6000.3.29f1 (96d2fe17529c)
+[Subsystems] Discovering subsystems at path /Users/runner/work/golf-go/golf-go/unity/build/mac/GolfGo.app/Contents/Resources/Data/UnitySubsystems
+GfxDevice: creating device client; kGfxThreadingModeThreaded
+ preferred device: Apple Paravirtual device (high power)
+Metal devices available: 1
+0: Apple Paravirtual device (high power)
+Using device Apple Paravirtual device (high power)
+Initializing Metal device caps: Apple Paravirtual device
+Mac GPU Family: 2
+Apple GPU Family: 5
+MSL Version: 3.0
+Has Float MSAA: 1
+Has Float Filtering: 1
+ReadWrite Texture Tier: 2
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  0.089 seconds
+- Finished resetting the current domain, in  0.002 seconds
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+UnloadTime: 0.823250 ms
+Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 91 unused Assets to reduce memory usage. Loaded Objects now: 7867.
+Total: 6.902333 ms (FindLiveObjects: 0.360333 ms CreateObjectMapping: 0.081625 ms MarkObjects: 5.989208 ms  DeleteObjects: 0.470166 ms)
+
+GGSHOT h01_tee.png 300x650 · linear · finish on ARGBHalf · bake on · far 2923 · grass 115 · Metal · sh All/160
+GGSHOT h01_tee_high.png 300x650 · linear · finish on ARGBHalf · bake on · far 2923 · grass 132 · Metal · sh All/160
+GGSHOT h01_green.png 300x650 · linear · finish on ARGBHalf · bake on · far 2923 · grass 165 · Metal · sh All/160
+Unloading 3 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 16 unused Assets to reduce memory usage. Loaded Objects now: 3302.
+Total: 7.887875 ms (FindLiveObjects: 0.262458 ms CreateObjectMapping: 0.046083 ms MarkObjects: 7.519708 ms  DeleteObjects: 0.058791 ms)
+
+GGSHOT h05_tee.png 300x650 · linear · finish on ARGBHalf · bake on · far 2902 · grass 110 · Metal · sh All/160
+GGSHOT h05_tee_high.png 300x650 · linear · finish on ARGBHalf · bake on · far 2902 · grass 127 · Metal · sh All/160
+GGSHOT h05_green.png 300x650 · linear · finish on ARGBHalf · bake on · far 2902 · grass 178 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 23 unused Assets to reduce memory usage. Loaded Objects now: 6311.
+Total: 4.738666 ms (FindLiveObjects: 0.302709 ms CreateObjectMapping: 0.030250 ms MarkObjects: 4.349500 ms  DeleteObjects: 0.055791 ms)
+
+GGSHOT h10_tee.png 300x650 · linear · finish on ARGBHalf · bake on · far 3101 · grass 105 · Metal · sh All/160
+GGSHOT h10_tee_high.png 300x650 · linear · finish on ARGBHalf · bake on · far 3101 · grass 122 · Metal · sh All/160
+GGSHOT h10_green.png 300x650 · linear · finish on ARGBHalf · bake on · far 3101 · grass 205 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 55 unused Assets to reduce memory usage. Loaded Objects now: 11695.
+Total: 4.169541 ms (FindLiveObjects: 0.428417 ms CreateObjectMapping: 0.041916 ms MarkObjects: 3.623209 ms  DeleteObjects: 0.075041 ms)
+
+GGSHOT h14_tee.png 300x650 · linear · finish on ARGBHalf · bake on · far 4191 · grass 111 · Metal · sh All/160
+GGSHOT h14_tee_high.png 300x650 · linear · finish on ARGBHalf · bake on · far 4191 · grass 125 · Metal · sh All/160
+GGSHOT h14_green.png 300x650 · linear · finish on ARGBHalf · bake on · far 4191 · grass 193 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 82 unused Assets to reduce memory usage. Loaded Objects now: 9732.
+Total: 13.626834 ms (FindLiveObjects: 1.202750 ms CreateObjectMapping: 0.166333 ms MarkObjects: 12.179458 ms  DeleteObjects: 0.077375 ms)
+
+GGSHOT caledonia_h01_tee.png · linear · finish on ARGBHalf · bake on · far 2583 · grass 112 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 29 unused Assets to reduce memory usage. Loaded Objects now: 19779.
+Total: 7.315167 ms (FindLiveObjects: 0.784209 ms CreateObjectMapping: 0.056209 ms MarkObjects: 6.381500 ms  DeleteObjects: 0.092292 ms)
+
+GGSHOT caledonia_h10_tee.png · linear · finish on ARGBHalf · bake on · far 2776 · grass 109 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 65 unused Assets to reduce memory usage. Loaded Objects now: 25342.
+Total: 15.284250 ms (FindLiveObjects: 1.358500 ms CreateObjectMapping: 0.079959 ms MarkObjects: 13.727167 ms  DeleteObjects: 0.117667 ms)
+
+GGSHOT crsc_h01_tee.png · linear · finish on ARGBHalf · bake on · far 4195 · grass 113 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 27 unused Assets to reduce memory usage. Loaded Objects now: 25113.
+Total: 7.272083 ms (FindLiveObjects: 1.374708 ms CreateObjectMapping: 0.087500 ms MarkObjects: 5.724250 ms  DeleteObjects: 0.084833 ms)
+
+GGSHOT crsc_h10_tee.png · linear · finish on ARGBHalf · bake on · far 4022 · grass 101 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 22 unused Assets to reduce memory usage. Loaded Objects now: 21060.
+Total: 4.081833 ms (FindLiveObjects: 0.816708 ms CreateObjectMapping: 0.060125 ms MarkObjects: 3.151958 ms  DeleteObjects: 0.052125 ms)
+
+GGSHOT crls_h01_tee.png · linear · finish on ARGBHalf · bake on · far 3712 · grass 96 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 18 unused Assets to reduce memory usage. Loaded Objects now: 23702.
+Total: 13.635834 ms (FindLiveObjects: 3.639042 ms CreateObjectMapping: 0.207000 ms MarkObjects: 9.639958 ms  DeleteObjects: 0.148709 ms)
+
+GGSHOT crls_h10_tee.png · linear · finish on ARGBHalf · bake on · far 4195 · grass 113 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 37 unused Assets to reduce memory usage. Loaded Objects now: 26579.
+Total: 3.440167 ms (FindLiveObjects: 0.810250 ms CreateObjectMapping: 0.076458 ms MarkObjects: 2.503375 ms  DeleteObjects: 0.049542 ms)
+
+GGSHOT deacon_h01_tee.png · linear · finish on ARGBHalf · bake on · far 4158 · grass 113 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 21 unused Assets to reduce memory usage. Loaded Objects now: 25563.
+Total: 4.488167 ms (FindLiveObjects: 1.126250 ms CreateObjectMapping: 0.100958 ms MarkObjects: 3.190208 ms  DeleteObjects: 0.070000 ms)
+
+GGSHOT deacon_h10_tee.png · linear · finish on ARGBHalf · bake on · far 4165 · grass 112 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 60 unused Assets to reduce memory usage. Loaded Objects now: 21004.
+Total: 5.525959 ms (FindLiveObjects: 0.861833 ms CreateObjectMapping: 0.101667 ms MarkObjects: 4.504500 ms  DeleteObjects: 0.057083 ms)
+
+GGSHOT dove_h01_tee.png · linear · finish on ARGBHalf · bake on · far 1546 · grass 105 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 20 unused Assets to reduce memory usage. Loaded Objects now: 13852.
+Total: 2.631292 ms (FindLiveObjects: 0.440875 ms CreateObjectMapping: 0.110792 ms MarkObjects: 2.028583 ms  DeleteObjects: 0.050375 ms)
+
+GGSHOT dove_h10_tee.png · linear · finish on ARGBHalf · bake on · far 1058 · grass 120 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 22 unused Assets to reduce memory usage. Loaded Objects now: 11546.
+Total: 4.219209 ms (FindLiveObjects: 1.213292 ms CreateObjectMapping: 0.110375 ms MarkObjects: 2.848250 ms  DeleteObjects: 0.046375 ms)
+
+GGSHOT chaska_h01_tee.png · linear · finish on ARGBHalf · bake on · far 2098 · grass 111 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 20 unused Assets to reduce memory usage. Loaded Objects now: 11271.
+Total: 2.437542 ms (FindLiveObjects: 0.384666 ms CreateObjectMapping: 0.061000 ms MarkObjects: 1.940875 ms  DeleteObjects: 0.050250 ms)
+
+GGSHOT chaska_h10_tee.png · linear · finish on ARGBHalf · bake on · far 2506 · grass 116 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 25 unused Assets to reduce memory usage. Loaded Objects now: 17933.
+Total: 4.446292 ms (FindLiveObjects: 1.251375 ms CreateObjectMapping: 0.060583 ms MarkObjects: 3.063333 ms  DeleteObjects: 0.070250 ms)
+
+GGSHOT farmlinks_h01_tee.png · linear · finish on ARGBHalf · bake on · far 2989 · grass 119 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 23 unused Assets to reduce memory usage. Loaded Objects now: 26200.
+Total: 5.442000 ms (FindLiveObjects: 0.908084 ms CreateObjectMapping: 0.089334 ms MarkObjects: 4.383458 ms  DeleteObjects: 0.060375 ms)
+
+GGSHOT farmlinks_h10_tee.png · linear · finish on ARGBHalf · bake on · far 3031 · grass 119 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 27 unused Assets to reduce memory usage. Loaded Objects now: 22159.
+Total: 9.665417 ms (FindLiveObjects: 4.784917 ms CreateObjectMapping: 0.157584 ms MarkObjects: 4.640958 ms  DeleteObjects: 0.080875 ms)
+
+GGSHOT desertcanyon_h01_tee.png · linear · finish on ARGBHalf · bake on · far 1308 · grass 92 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 25 unused Assets to reduce memory usage. Loaded Objects now: 17533.
+Total: 12.352625 ms (FindLiveObjects: 1.978167 ms CreateObjectMapping: 0.162084 ms MarkObjects: 10.082084 ms  DeleteObjects: 0.129292 ms)
+
+GGSHOT desertcanyon_h10_tee.png · linear · finish on ARGBHalf · bake on · far 1133 · grass 62 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 20 unused Assets to reduce memory usage. Loaded Objects now: 21482.
+Total: 13.727834 ms (FindLiveObjects: 2.720292 ms CreateObjectMapping: 0.635000 ms MarkObjects: 10.231084 ms  DeleteObjects: 0.140208 ms)
+
+GGSHOT edinburgh_h01_tee.png · linear · finish on ARGBHalf · bake on · far 2229 · grass 120 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 18 unused Assets to reduce memory usage. Loaded Objects now: 25391.
+Total: 6.454833 ms (FindLiveObjects: 1.098917 ms CreateObjectMapping: 0.135292 ms MarkObjects: 5.137208 ms  DeleteObjects: 0.082750 ms)
+
+GGSHOT edinburgh_h10_tee.png · linear · finish on ARGBHalf · bake on · far 1885 · grass 114 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 20 unused Assets to reduce memory usage. Loaded Objects now: 17350.
+Total: 10.681875 ms (FindLiveObjects: 3.970958 ms CreateObjectMapping: 0.454333 ms MarkObjects: 6.154833 ms  DeleteObjects: 0.100833 ms)
+
+GGSHOT dacotah_h01_tee.png · linear · finish on ARGBHalf · bake on · far 839 · grass 110 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 24 unused Assets to reduce memory usage. Loaded Objects now: 10361.
+Total: 2.508709 ms (FindLiveObjects: 0.437958 ms CreateObjectMapping: 0.066375 ms MarkObjects: 1.954708 ms  DeleteObjects: 0.048917 ms)
+
+GGSHOT dacotah_h10_tee.png · linear · finish on ARGBHalf · bake on · far 881 · grass 101 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 25 unused Assets to reduce memory usage. Loaded Objects now: 18063.
+Total: 3.688666 ms (FindLiveObjects: 0.575167 ms CreateObjectMapping: 0.064541 ms MarkObjects: 2.995250 ms  DeleteObjects: 0.053041 ms)
+
+GGSHOT baker_h01_tee.png · linear · finish on ARGBHalf · bake on · far 3003 · grass 120 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 21 unused Assets to reduce memory usage. Loaded Objects now: 25848.
+Total: 4.370625 ms (FindLiveObjects: 1.223875 ms CreateObjectMapping: 0.101250 ms MarkObjects: 2.996916 ms  DeleteObjects: 0.047959 ms)
+
+GGSHOT baker_h10_tee.png · linear · finish on ARGBHalf · bake on · far 4191 · grass 116 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 20 unused Assets to reduce memory usage. Loaded Objects now: 18141.
+Total: 4.945250 ms (FindLiveObjects: 1.387667 ms CreateObjectMapping: 0.079000 ms MarkObjects: 3.411208 ms  DeleteObjects: 0.066583 ms)
+
+GGSHOT albatros_h01_tee.png · linear · finish on ARGBHalf · bake on · far 1687 · grass 116 · Metal · sh All/160
+Unloading 1 Unused Serialized files (Serialized files now loaded: 1)
+Unloading 18 unused Assets to reduce memory usage. Loaded Objects now: 6919.
+Total: 4.517208 ms (FindLiveObjects: 1.054000 ms CreateObjectMapping: 0.065917 ms MarkObjects: 3.330333 ms  DeleteObjects: 0.066083 ms)
+
+GGSHOT albatros_h10_tee.png · linear · finish on ARGBHalf · bake on · far 986 · grass 115 · Metal · sh All/160
+GGSHOT done
+Thread 0x16f22f000 may have been prematurely finalized
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+Thread 0x16e31f000 may have been prematurely finalized
